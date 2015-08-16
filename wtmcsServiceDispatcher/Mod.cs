@@ -1,6 +1,4 @@
 ﻿using ICities;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 {
@@ -52,6 +50,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <param name="helper">The helper.</param>
         public void OnSettingsUI(UIHelperBase helper)
         {
+            Log.Debug(this, "OnSettingsUI");
+
             try
             {
             }

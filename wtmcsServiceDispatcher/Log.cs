@@ -12,6 +12,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
     internal static class Log
     {
         /// <summary>
+        /// Log a lot of stuff.
+        /// </summary>
+        public static readonly bool LogALot = Library.IsDebugBuild;
+
+        /// <summary>
         /// The log level.
         /// </summary>
         public static Level LogLevel = Level.Warning;
@@ -241,6 +246,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 if (msg.Length == 0)
                 {
                     return;
+                }
+
+                if (Global.LevelLoaded)
+                {
+                    msg.Insert(0, ' ').Insert(0, Global.CurrentFrame.ToString()).Insert(0, '@');
                 }
 
                 msg.Insert(0, "] ").Insert(0, Library.Name).Insert(0, "[");

@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text.RegularExpressions;
 using System.Xml.Serialization;
 
 namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
@@ -13,15 +10,19 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
     internal class Settings
     {
         /// <summary>
-        /// Wether hearses should be handled or not.
-        /// </summary>
-        public bool HandleHearses = true;
-
-        public bool DispatchByDistrict = false;
-        /// <summary>
         /// The settings version.
         /// </summary>
         public readonly int Version = 1;
+
+        /// <summary>
+        /// Wether dispatchers should care about districts or not.
+        /// </summary>
+        public bool DispatchByDistrict = false;
+
+        /// <summary>
+        /// Wether hearses should be handled or not.
+        /// </summary>
+        public bool HandleHearses = false;
 
         /// <summary>
         /// The save count.
@@ -32,6 +33,22 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// The settings version in the loaded file.
         /// </summary>
         private int? loadedVersion = null;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Settings"/> class.
+        /// </summary>
+        /// <param name="settings">The file settings.</param>
+        public Settings(ServiceDispatcherSettings settings = null)
+        {
+            HandleHearses = true;
+
+            if (settings != null)
+            {
+                loadedVersion = settings.Version;
+                HandleHearses = settings.HandleHearses;
+                DispatchByDistrict = settings.DispatchByDistrict;
+            }
+        }
 
         /// <summary>
         /// Gets the complete path.
@@ -62,28 +79,48 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
-        /// Serializable settings class.
+        /// Loads settings from the specified file name.
         /// </summary>
-        [Serializable]
-        public class ServiceDispatcherSettings
+        /// <param name="fileName">Name of the file.</param>
+        /// <returns>The settings.</returns>
+        public static Settings Load(string fileName = null)
         {
-            /// <summary>
-            /// Wether hearses should be handled or not.
-            /// </summary>
-            public Boolean HandleHearses = true;
+            Log.Debug(typeof(Settings), "Load", "Begin");
 
-            public Boolean DispatchByDistrict = false;
+            try
+            {
+                if (fileName == null)
+                {
+                    fileName = FilePathName;
+                }
 
-            /// <summary>
-            /// The save count.
-            /// </summary>
-            public uint SaveCount = 0;
+                if (File.Exists(fileName))
+                {
+                    Log.Info(typeof(Settings), "Load", fileName);
 
-            /// <summary>
-            /// The settings version.
-            /// </summary>
-            public int Version = 0;
+                    using (FileStream file = File.OpenRead(fileName))
+                    {
+                        XmlSerializer ser = new XmlSerializer(typeof(ServiceDispatcherSettings));
+                        ServiceDispatcherSettings cfg = ser.Deserialize(file) as ServiceDispatcherSettings;
+                        if (cfg != null)
+                        {
+                            Log.Debug(typeof(Settings), "Load", "Loaded");
 
+                            Settings sets = new Settings(cfg);
+
+                            Log.Debug(typeof(Settings), "Load", "End");
+                            return sets;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error(typeof(Settings), "Load", ex);
+            }
+
+            Log.Debug(typeof(Settings), "Load", "End");
+            return new Settings();
         }
 
         /// <summary>
@@ -133,65 +170,27 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Settings"/> class.
+        /// Serializable settings class.
         /// </summary>
-        /// <param name="settings">The file settings.</param>
-        public Settings(ServiceDispatcherSettings settings = null)
+        [Serializable]
+        public class ServiceDispatcherSettings
         {
-            HandleHearses = true;
+            public Boolean DispatchByDistrict = false;
 
-            if (settings != null)
-            {
-                loadedVersion = settings.Version;
-                HandleHearses = settings.HandleHearses;
-                DispatchByDistrict = settings.DispatchByDistrict;
-            }
+            /// <summary>
+            /// Wether hearses should be handled or not.
+            /// </summary>
+            public Boolean HandleHearses = true;
+
+            /// <summary>
+            /// The save count.
+            /// </summary>
+            public uint SaveCount = 0;
+
+            /// <summary>
+            /// The settings version.
+            /// </summary>
+            public int Version = 0;
         }
-
-        /// <summary>
-        /// Loads settings from the specified file name.
-        /// </summary>
-        /// <param name="fileName">Name of the file.</param>
-        /// <returns>The settings.</returns>
-        public static Settings Load(string fileName = null)
-        {
-            Log.Debug(typeof(Settings), "Load", "Begin");
-
-            try
-            {
-                if (fileName == null)
-                {
-                    fileName = FilePathName;
-                }
-
-                if (File.Exists(fileName))
-                {
-                    Log.Info(typeof(Settings), "Load", fileName);
-
-                    using (FileStream file = File.OpenRead(fileName))
-                    {
-                        XmlSerializer ser = new XmlSerializer(typeof(ServiceDispatcherSettings));
-                        ServiceDispatcherSettings cfg = ser.Deserialize(file) as ServiceDispatcherSettings;
-                        if (cfg != null)
-                        {
-                            Log.Debug(typeof(Settings), "Load", "Loaded");
-
-                            Settings sets = new Settings(cfg);
-
-                            Log.Debug(typeof(Settings), "Load", "End");
-                            return sets;
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Log.Error(typeof(Settings), "Load", ex);
-            }
-
-            Log.Debug(typeof(Settings), "Load", "End");
-            return new Settings();
-        }
-
     }
 }
