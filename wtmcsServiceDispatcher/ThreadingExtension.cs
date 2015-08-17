@@ -1,0 +1,91 @@
+﻿using ICities;
+using System;
+
+namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
+{
+    /// <summary>
+    /// The actual doer.
+    /// </summary>
+    public class ThreadingExtension : ThreadingExtensionBase
+    {
+        /// <summary>
+        /// The mod is broken.
+        /// </summary>
+        private bool isBroken = false;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ThreadingExtension"/> class.
+        /// </summary>
+        public ThreadingExtension()
+            : base()
+        {
+            Log.Debug(this, "Constructed");
+        }
+
+        /// <summary>
+        /// Called when doer is created.
+        /// </summary>
+        /// <param name="threading">The threading.</param>
+        public override void OnCreated(IThreading threading)
+        {
+            Log.Debug(this, "OnCreated", "Base");
+            base.OnCreated(threading);
+        }
+
+        /// <summary>
+        /// Called when doer is released.
+        /// </summary>
+        public override void OnReleased()
+        {
+            Log.Debug(this, "OnReleased", "Base");
+            base.OnReleased();
+        }
+
+        /// <summary>
+        /// Called when gane updates.
+        /// </summary>
+        /// <param name="realTimeDelta">The real time delta.</param>
+        /// <param name="simulationTimeDelta">The simulation time delta.</param>
+        public override void OnUpdate(float realTimeDelta, float simulationTimeDelta)
+        {
+            if (isBroken)
+            {
+                return;
+            }
+
+            try
+            {
+                if (Global.Buildings == null)
+                {
+                    return;
+                }
+
+                if (this.threadingManager.simulationPaused)
+                {
+                    return;
+                }
+
+                Global.CurrentFrame = this.threadingManager.simulationFrame;
+
+                // Update buildings and vehicles.
+                Global.Buildings.Update();
+                //Global.Vehicles.Update();
+
+                // Dispatch hearses.
+                if (Global.HearseDispatcher != null)
+                {
+                    Global.HearseDispatcher.Dispatch();
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error(this, "OnUpdate", ex);
+                isBroken = true;
+            }
+            finally
+            {
+                base.OnUpdate(realTimeDelta, simulationTimeDelta);
+            }
+        }
+    }
+}
