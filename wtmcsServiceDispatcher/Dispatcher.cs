@@ -242,17 +242,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             {
                 get
                 {
-                    if (!stamps.ContainsKey(targetId))
-                    {
-                        return false;
-                    }
-
-                    if (Global.CurrentFrame - stamps[targetId] < interval)
-                    {
-                        return true;
-                    }
-
-                    return false;
+                    return (interval > 0 && stamps.ContainsKey(targetId) && Global.CurrentFrame - stamps[targetId] < interval);
                 }
                 set
                 {
