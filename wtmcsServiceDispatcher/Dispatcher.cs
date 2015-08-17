@@ -246,13 +246,16 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 }
                 set
                 {
-                    if (value)
+                    if (interval > 0)
                     {
-                        stamps[targetId] = Global.CurrentFrame;
-                    }
-                    else
-                    {
-                        stamps.Remove(targetId);
+                        if (value)
+                        {
+                            stamps[targetId] = Global.CurrentFrame;
+                        }
+                        else
+                        {
+                            stamps.Remove(targetId);
+                        }
                     }
                 }
             }
