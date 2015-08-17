@@ -30,11 +30,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         private uint lastClean = 0;
 
         /// <summary>
-        /// The service buildings.
-        /// </summary>
-        private Dictionary<ushort, Buildings.serviceBuildingInfo> serviceBuildings = new Dictionary<ushort, Buildings.serviceBuildingInfo>();
-
-        /// <summary>
         /// Initializes a new instance of the <see cref="Dispatcher"/> class.
         /// </summary>
         /// <param name="doPretend">if set to <c>true</c> [pretend].</param>
@@ -69,12 +64,20 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         protected abstract bool HasTargetBuildings { get; }
 
         /// <summary>
+        /// Gets the service buildings.
+        /// </summary>
+        /// <value>
+        /// The service buildings.
+        /// </value>
+        protected abstract IEnumerable<Buildings.ServiceBuildingInfo> ServiceBuildings { get; }
+
+        /// <summary>
         /// Gets the target buildings.
         /// </summary>
         /// <value>
         /// The target buildings.
         /// </value>
-        protected abstract IEnumerable<ushort> TargetBuildings { get; }
+        protected abstract IEnumerable<Buildings.TargetBuildingInfo> TargetBuildings { get; }
 
         /// <summary>
         /// Dispatches vehicles to targets.
@@ -86,23 +89,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             {
                 if (Log.LogALot && Library.IsDebugBuild) Log.Debug(this, "Dispatch", "Dispatch");
 
-                Building[] buildings = Singleton<BuildingManager>.instance.m_buildings.m_buffer;
-                bool initialized = false;
-
                 // Collect buildings with dead people that has not been checked or handled recently.
-                foreach (ushort targetId in TargetBuildings)
+                foreach (Buildings.TargetBuildingInfo targetBuilding in TargetBuildings.OrderBy(tb => tb, new Buildings.TargetBuildingInfoComparer()))
                 {
-                    if (!Checked[targetId] && !Handled[targetId])
+                    if (!Checked[targetBuilding.BuildingId] && !Handled[targetBuilding.BuildingId])
                     {
-                        if (!initialized)
-                        {
-                            // Initialize buildings with vehicles.
-                            Initialize();
-                        }
-
                         // Assign vehicles.
-                        AssignVehicle(targetId, buildings[targetId]);
-                        Checked[targetId] = true;
+                        AssignVehicle(targetBuilding);
+                        Checked[targetBuilding.BuildingId] = true;
                     }
                 }
             }
@@ -114,9 +108,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// Assigns a vehicle to a target building.
         /// </summary>
-        /// <param name="targetBuildingId">The target building identifier.</param>
         /// <param name="targetBuilding">The target building.</param>
-        protected void AssignVehicle(ushort targetBuildingId, Building targetBuilding)
+        protected void AssignVehicle(Buildings.TargetBuildingInfo targetBuilding)
         {
             // Get target district.
             DistrictManager districtManager = null;
@@ -124,81 +117,70 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             if (Global.Settings.DispatchByDistrict && districtManager != null)
             {
                 districtManager = Singleton<DistrictManager>.instance;
-                targetDistrict = districtManager.GetDistrict(targetBuilding.m_position);
+                targetDistrict = districtManager.GetDistrict(targetBuilding.Position);
             }
 
-            if (Log.LogALot && Library.IsDebugBuild) Log.Debug(this, "AssignVehicle", "TargetBuilding", targetBuildingId, targetDistrict);
+            if (Log.LogALot && Library.IsDebugBuild) Log.Debug(this, "AssignVehicle", "TargetBuilding", targetBuilding.BuildingId, targetDistrict);
 
+            
             // Set target info on service buildings.
-            foreach (Buildings.serviceBuildingInfo serviceBuilding in serviceBuildings.Values)
+            foreach (Buildings.ServiceBuildingInfo serviceBuilding in ServiceBuildings)
             {
-                serviceBuilding.SetTargetInfo(districtManager, targetBuildingId, targetBuilding);
+                serviceBuilding.SetTargetInfo(districtManager, targetBuilding);
 
-                if (Log.LogALot && Library.IsDebugBuild) Log.Debug(this, "AssignVehicle", "ServiceBuilding", "Set", serviceBuilding.BuildingId, serviceBuilding.District, serviceBuilding.InDistrict, serviceBuilding.Distance);
+                if (Log.LogALot && Library.IsDebugBuild) Log.Debug(this, "AssignVehicle", "ServiceBuilding", "Set", serviceBuilding.BuildingId, serviceBuilding.District, serviceBuilding.InDistrict, serviceBuilding.Distance, serviceBuilding.InRange);
             }
 
+            //Building[] buildings = Singleton<BuildingManager>.instance.m_buildings.m_buffer;
             Vehicle[] vehicles = Singleton<VehicleManager>.instance.m_vehicles.m_buffer;
 
             // Loop through service buildings in priority order and assign a vehicle to the target.
-            foreach (Buildings.serviceBuildingInfo serviceBuilding in serviceBuildings.Values.OrderBy(i => i, new Buildings.serviceBuildingInfoComparer()))
+            foreach (Buildings.ServiceBuildingInfo serviceBuilding in ServiceBuildings.Where(sb => sb.InRange).OrderBy(sb => sb, new Buildings.ServiceBuildingInfoComparer()))
             {
                 if (Log.LogALot && Library.IsDebugBuild) Log.Debug(this, "AssignVehicle", "ServiceBuilding", "Check", serviceBuilding.BuildingId, serviceBuilding.District, serviceBuilding.InDistrict, serviceBuilding.Distance);
 
-                Vehicles.ServiceVehicleInfo vehicleInfo = null;
-                float vehicleDistance = float.PositiveInfinity;
-                
+                ushort vehicleFoundId = 0;
+                float vehicleFoundDistance = float.PositiveInfinity;
+
                 // Loop through vehicles and save the closest free vehicle.
-                foreach (Vehicles.ServiceVehicleInfo vehicle in serviceBuilding.Vehicles)
+                ushort vehicleId = serviceBuilding.FirstOwnVehicle;
+                while (vehicleId != 0)
                 {
-                    if (IsMyType(vehicles[vehicle.VehicleId].Info) && vehicles[vehicle.VehicleId].m_targetBuilding == 0)
+                    Vehicle vehicle = vehicles[vehicleId];
+
+                    if (vehicle.Info != null && vehicle.m_targetBuilding == 0 && (vehicle.m_flags & Vehicle.Flags.Spawned) == Vehicle.Flags.None && IsMyType(vehicle.Info))
                     {
-                        float distance = (targetBuilding.m_position - vehicle.Position).sqrMagnitude;
+                        float distance = (targetBuilding.Position - vehicle.GetLastFramePosition()).sqrMagnitude;
+                        if (Log.LogALot && Library.IsDebugBuild) Log.Debug(this, "AssignVehicle", "Vehicle", "Check", vehicleId, distance);
 
-                        if (Log.LogALot && Library.IsDebugBuild) Log.Debug(this, "AssignVehicle", "Vehicle", "Check", vehicle.VehicleId, distance);
-
-                        if (vehicleInfo == null || distance < vehicleDistance)
+                        if (vehicleFoundId == 0 || distance < vehicleFoundDistance)
                         {
-                            vehicleInfo = vehicle;
-                            vehicleDistance = distance;
+                            vehicleFoundId = vehicleId;
+                            vehicleFoundDistance = distance;
 
-                            if (Log.LogALot && Library.IsDebugBuild) Log.Debug(this, "AssignVehicle", "Vehicle", "Save", vehicle.VehicleId, distance);
+                            if (Log.LogALot && Library.IsDebugBuild) Log.Debug(this, "AssignVehicle", "Vehicle", "Save", vehicleId, distance);
                         }
+                    }
+
+                    vehicleId = vehicle.m_nextOwnVehicle;
+                    if (vehicleId == serviceBuilding.FirstOwnVehicle)
+                    {
+                        break;
                     }
                 }
 
-                if (vehicleInfo != null)
+                if (vehicleFoundId != 0)
                 {
                     // A free vehicle was found, assign it to the target.
-
-                    Handled[targetBuildingId] = true;
-
-                    if (Log.LogALot && Library.IsDebugBuild) Log.Debug(this, "AssignVehicle", "Assign", targetBuildingId, vehicleInfo.SourceBuilding, vehicleInfo.VehicleId, vehicleDistance);
+                    Handled[targetBuilding.BuildingId] = true;
+                    if (Log.LogALot && Library.IsDebugBuild) Log.Debug(this, "AssignVehicle", "Assign", targetBuilding.BuildingId, vehicleId, vehicleFoundDistance);
 
                     if (!IsPretending)
                     {
-                        vehicles[vehicleInfo.VehicleId].m_targetBuilding = targetBuildingId;
+                        vehicles[vehicleId].m_targetBuilding = targetBuilding.BuildingId;
                     }
                 }
             }
-        }
-
-        /// <summary>
-        /// Assigns vehicles to targets.
-        /// </summary>
-        /// <param name="targets">The targets.</param>
-        protected void AssignVehicles(ushort[] targets)
-        {
-            if (Library.IsDebugBuild) Log.Debug(this, "AssignVehicles", "Begin");
-
-            Building[] buildings = Singleton<BuildingManager>.instance.m_buildings.m_buffer;
-
-            // Loop through targets and assign vehicles.
-            foreach (ushort target in targets)
-            {
-                AssignVehicle(target, buildings[target]);
-            }
-
-            if (Library.IsDebugBuild) Log.Debug(this, "AssignVehicles", "End");
         }
 
         /// <summary>
@@ -215,47 +197,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             Checked.Clean();
 
             lastClean = Global.CurrentFrame;
-        }
-
-        /// <summary>
-        /// Initializes the service buidlings with vehicles.
-        /// </summary>
-        protected abstract void Initialize();
-
-        /// <summary>
-        /// Initializes the specified service buildings with vehicles.
-        /// </summary>
-        /// <param name="serviceBuildings">The service buildings.</param>
-        /// <param name="serviceVehicles">The service vehicles.</param>
-        protected void Initialize(IEnumerable<ushort> serviceBuildings, IEnumerable<Vehicles.ServiceVehicleInfo> serviceVehicles)
-        {
-            if (Library.IsDebugBuild) Log.Debug(this, "Initialize", "Begin");
-
-            DistrictManager districtManager = Singleton<DistrictManager>.instance;
-            Building[] buildingBuffer = Singleton<BuildingManager>.instance.m_buildings.m_buffer;
-
-            this.serviceBuildings.Clear();
-
-            // Collect building info.
-            foreach (ushort serviceBuildingId in serviceBuildings)
-            {
-                if (Library.IsDebugBuild) Log.Debug(this, "Initialize", "serviceBuildings.Add", serviceBuildingId);
-
-                this.serviceBuildings.Add(serviceBuildingId, new Buildings.serviceBuildingInfo(districtManager, serviceBuildingId, buildingBuffer[serviceBuildingId]));
-            }
-
-            // Collect vehicles for buildings.
-            foreach (Vehicles.ServiceVehicleInfo vehicle in serviceVehicles)
-            {
-                if (serviceBuildings.Contains(vehicle.SourceBuilding))
-                {
-                    if (Library.IsDebugBuild) Log.Debug(this, "Initialize", "serviceBuildings.Vehicles.Add", vehicle.SourceBuilding, vehicle.VehicleId);
-
-                    this.serviceBuildings[vehicle.SourceBuilding].Vehicles.Add(vehicle);
-                }
-            }
-
-            if (Library.IsDebugBuild) Log.Debug(this, "Initialize", "End");
         }
 
         /// <summary>

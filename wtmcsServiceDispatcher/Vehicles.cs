@@ -1,7 +1,5 @@
 ﻿using ColossalFramework;
 using System;
-using System.Collections.Generic;
-using UnityEngine;
 
 namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 {
@@ -10,11 +8,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
     /// </summary>
     internal class Vehicles
     {
-        /// <summary>
-        /// The hearse vehicles.
-        /// </summary>
-        private Dictionary<ushort, ServiceVehicleInfo> hearseVehicles = new Dictionary<ushort, ServiceVehicleInfo>();
-
         /// <summary>
         /// The data is initialized.
         /// </summary>
@@ -31,20 +24,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public Vehicles()
         {
             Log.Debug(this, "Constructed");
-        }
-
-        /// <summary>
-        /// Gets the hearse vehicles.
-        /// </summary>
-        /// <value>
-        /// The hearse vehicles.
-        /// </value>
-        public IEnumerable<ServiceVehicleInfo> HearseVehicles
-        {
-            get
-            {
-                return hearseVehicles.Values;
-            }
         }
 
         /// <summary>
@@ -76,7 +55,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     vehicleFrame = GetFrameNext(vehicleFrame + 1);
                     Types.FrameBoundaries bounds = GetFrameBoundaries(vehicleFrame);
 
-                    CategorizeVehicles(vehicles, bounds.First, bounds.Last);
+                    CategorizeVehicles(ref vehicles, bounds.FirstId, bounds.LastId);
                 }
             }
             else
@@ -84,7 +63,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 // Data is not initialized. Check all vehicles.
                 if (Log.LogALot && Library.IsDebugBuild) Log.Debug(this, "OnUpdate", "Intialize");
 
-                CategorizeVehicles(vehicles, 0, vehicles.Length);
+                CategorizeVehicles(ref vehicles, 0, vehicles.Length);
 
                 vehicleFrame = GetFrameEnd();
                 isInitialized = true;
@@ -93,59 +72,31 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             if (Log.LogALot && Library.IsDebugBuild) Log.Debug(this, "Update", "End");
         }
 
-        private void CategorizeVehicles(Vehicle[] vehicles, ushort first, int last)
-        {
-            for (ushort id = first; id < last; id++)
-            {
-                if (vehicles[id].m_leadingVehicle != 0
-                    || vehicles[id].m_cargoParent != 0
-                    || vehicles[id].Info == null
-                    || vehicles[id].Info.m_vehicleAI is PoliceCarAI
-                    //|| (vehicles[id].m_flags & Vehicle.Flags.Spawned) == Vehicle.Flags.None
-                    )
-                {
-                    if (Global.Settings.HandleHearses)
-                    {
-                        hearseVehicles.Remove(id);
-                    }
-                }
-                else
-                {
-                    CategorizeVehicle(id, vehicles[id]);
-                }
-            }
-        }
-
         /// <summary>
         /// Categorizes the vehicle.
         /// </summary>
         /// <param name="vehicleId">The vehicle identifier.</param>
         /// <param name="vehicle">The vehicle.</param>
-        private void CategorizeVehicle(ushort vehicleId, Vehicle vehicle)
+        private void CategorizeVehicle(ushort vehicleId, ref Vehicle vehicle)
         {
-            if (Log.LogALot && Library.IsDebugBuild) Log.Debug(this, "CategorizeVehicle", vehicleId, vehicle.Info.name, vehicle.Info.m_vehicleAI.GetType(), vehicle.m_targetBuilding, (vehicle.m_flags & Vehicle.Flags.Spawned));
+        }
 
-            if (Global.Settings.HandleHearses)
+        /// <summary>
+        /// Categorizes the vehicles.
+        /// </summary>
+        /// <param name="vehicles">The vehicles.</param>
+        /// <param name="firstVehicleId">The first vehicle identifier.</param>
+        /// <param name="lastVehicleId">The last vehicle identifier.</param>
+        private void CategorizeVehicles(ref Vehicle[] vehicles, ushort firstVehicleId, int lastVehicleId)
+        {
+            for (ushort id = firstVehicleId; id < lastVehicleId; id++)
             {
-                // Check free hearses.
-                if (vehicle.Info.m_vehicleAI is HearseAI && vehicle.m_targetBuilding == 0)
+                if (vehicles[id].m_leadingVehicle != 0 || vehicles[id].m_cargoParent != 0 || vehicles[id].Info == null || (vehicles[id].m_flags & Vehicle.Flags.Spawned) == Vehicle.Flags.None)
                 {
-                    if (!hearseVehicles.ContainsKey(vehicleId))
-                    {
-                        if (Log.LogALot && Library.IsDebugBuild) Log.Debug(this, "CategorizeVehicle", "Free Hearse", vehicleId);
-
-                        hearseVehicles[vehicleId] = new ServiceVehicleInfo(vehicleId, vehicle);
-                    }
-                    else
-                    {
-                        hearseVehicles[vehicleId].SetInfo(vehicle);
-                    }
                 }
-                else if (hearseVehicles.ContainsKey(vehicleId))
+                else
                 {
-                    if (Log.LogALot && Library.IsDebugBuild) Log.Debug(this, "CategorizeVehicle", "Not Free Hearse", vehicleId);
-
-                    hearseVehicles.Remove(vehicleId);
+                    CategorizeVehicle(id, ref vehicles[id]);
                 }
             }
         }
@@ -179,56 +130,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         private uint GetFrameNext(uint frame)
         {
             return frame & 15;
-        }
-
-        /// <summary>
-        /// Info about service vehicle.
-        /// </summary>
-        public class ServiceVehicleInfo
-        {
-            /// <summary>
-            /// The position.
-            /// </summary>
-            public Vector3 Position;
-
-            /// <summary>
-            /// The source building.
-            /// </summary>
-            public ushort SourceBuilding = 0;
-
-            /// <summary>
-            /// The vehicle identifier.
-            /// </summary>
-            public ushort VehicleId = 0;
-
-            /// <summary>
-            /// Initializes a new instance of the <see cref="ServiceVehicleInfo"/> class.
-            /// </summary>
-            public ServiceVehicleInfo()
-            {
-            }
-
-            /// <summary>
-            /// Initializes a new instance of the <see cref="ServiceVehicleInfo"/> class.
-            /// </summary>
-            /// <param name="vehicleId">The vehicle identifier.</param>
-            /// <param name="vehicle">The vehicle.</param>
-            public ServiceVehicleInfo(ushort vehicleId, Vehicle vehicle)
-            {
-                this.VehicleId = vehicleId;
-                this.SourceBuilding = vehicle.m_sourceBuilding;
-                this.Position = vehicle.GetLastFramePosition();
-            }
-
-            /// <summary>
-            /// Sets the information.
-            /// </summary>
-            /// <param name="vehicle">The vehicle.</param>
-            public void SetInfo(Vehicle vehicle)
-            {
-                this.SourceBuilding = vehicle.m_sourceBuilding;
-                this.Position = vehicle.GetLastFramePosition();
-            }
         }
     }
 }

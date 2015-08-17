@@ -20,9 +20,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public bool DispatchByDistrict = false;
 
         /// <summary>
+        /// Limit service building range for target buildings without problems.
+        /// </summary>
+        public bool LimitRange = true;
+
+        /// <summary>
         /// Wether hearses should be handled or not.
         /// </summary>
-        public bool HandleHearses = false;
+        public bool HandleHearses = true;
 
         /// <summary>
         /// The save count.

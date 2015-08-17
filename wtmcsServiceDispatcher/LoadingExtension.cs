@@ -46,7 +46,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     if (Global.Settings.HandleHearses)
                     {
                         Global.Buildings = new Buildings();
-                        Global.Vehicles = new Vehicles();
 
                         // Initialize hearse objects.
                         if (Global.Settings.HandleHearses)
@@ -67,7 +66,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 try
                 {
                     Global.HearseDispatcher = null;
-                    Global.Vehicles = null;
                     Global.Buildings = null;
                 }
                 catch (Exception exnull)
@@ -141,7 +139,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             Log.Info(this, "DeInitialize");
 
             Global.HearseDispatcher = null;
-            Global.Vehicles = null;
             Global.Buildings = null;
         }
     }
