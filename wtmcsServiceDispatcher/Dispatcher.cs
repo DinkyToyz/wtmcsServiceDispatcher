@@ -90,7 +90,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 if (Log.LogALot && Library.IsDebugBuild) Log.Debug(this, "Dispatch", "Dispatch");
 
                 // Collect buildings with dead people that has not been checked or handled recently.
-                foreach (Buildings.TargetBuildingInfo targetBuilding in TargetBuildings.OrderBy(tb => tb, new Buildings.TargetBuildingInfoComparer()))
+                foreach (Buildings.TargetBuildingInfo targetBuilding in TargetBuildings.Where(tb => tb.Updated).OrderBy(tb => tb, new Buildings.TargetBuildingInfoComparer()))
                 {
                     if (!Checked[targetBuilding.BuildingId] && !Handled[targetBuilding.BuildingId])
                     {
