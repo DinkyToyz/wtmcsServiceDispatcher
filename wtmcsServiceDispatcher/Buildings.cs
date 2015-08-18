@@ -32,6 +32,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// </summary>
         public Buildings()
         {
+            HasDeadPeopleBuildingsToCheck = false;
             Log.Debug(this, "Constructed");
         }
 
@@ -50,18 +51,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
-        /// Gets a value indicating whether this instance has dead people buildings.
+        /// Gets a value indicating whether this instance has dead people buildings that should be checked.
         /// </summary>
         /// <value>
-        /// <c>true</c> if this instance has dead people buildings; otherwise, <c>false</c>.
+        /// <c>true</c> if this instance has dead people buildings to check; otherwise, <c>false</c>.
         /// </value>
-        public bool HasDeadPeopleBuildings
-        {
-            get
-            {
-                return deadPeopleBuildings.Count > 0;
-            }
-        }
+        public bool HasDeadPeopleBuildingsToCheck { get; private set; }
 
         /// <summary>
         /// Gets the hearse buildings.
@@ -91,15 +86,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 districtManager = Singleton<DistrictManager>.instance;
             }
 
+            HasDeadPeopleBuildingsToCheck = false;
+
             // First update?
             if (isInitialized)
             {
                 // Data is initialized. Just check buildings for this frame.
-
-                if (Global.Settings.HandleHearses)
-                {
-                    deadPeopleBuildings.Clear();
-                }
 
                 uint endFrame = GetFrameEnd();
 
@@ -113,7 +105,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     counter++;
 
                     buildingFrame = GetFrameNext(buildingFrame + 1);
-                    Types.FrameBoundaries bounds = GetFrameBoundaries(buildingFrame);
+                    FrameBoundaries bounds = GetFrameBoundaries(buildingFrame);
 
                     CategorizeBuildings(districtManager, ref buildings, bounds.FirstId, bounds.LastId);
                 }
@@ -172,10 +164,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         if (Library.IsDebugBuild) Log.Debug(this, "CategorizeBuilding", "Dead People", buildingId, building.Info.name);
 
                         deadPeopleBuildings[buildingId] = new TargetBuildingInfo(districtManager, buildingId, ref building, building.m_deathProblemTimer, Notification.Problem.Death);
+                        HasDeadPeopleBuildingsToCheck = true;
                     }
                     else
                     {
                         deadPeopleBuildings[buildingId].Update(districtManager, ref building, building.m_deathProblemTimer, Notification.Problem.Death);
+                        HasDeadPeopleBuildingsToCheck = HasDeadPeopleBuildingsToCheck || deadPeopleBuildings[buildingId].CheckThis;
                     }
                 }
                 else if (deadPeopleBuildings.ContainsKey(buildingId))
@@ -217,11 +211,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// </summary>
         /// <param name="frame">The frame.</param>
         /// <returns>The frame boundaries.</returns>
-        private Types.FrameBoundaries GetFrameBoundaries(uint frame)
+        private FrameBoundaries GetFrameBoundaries(uint frame)
         {
             frame = frame & 255;
 
-            return new Types.FrameBoundaries(frame * 128, (frame + 1) * 128 - 1);
+            return new FrameBoundaries(frame * 128, (frame + 1) * 128 - 1);
         }
 
         /// <summary>
@@ -392,45 +386,45 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     }
                 }
             }
-        }
 
-        /// <summary>
-        /// Compares service buildings for priority sorting.
-        /// </summary>
-        public class ServiceBuildingInfoComparer : IComparer<ServiceBuildingInfo>
-        {
             /// <summary>
-            /// Compares two buildings and returns a value indicating whether one is less than, equal to, or greater than the other.
+            /// Compares service buildings for priority sorting.
             /// </summary>
-            /// <param name="x">The first buildings to compare.</param>
-            /// <param name="y">The second buildings to compare.</param>
-            /// <returns>
-            /// A signed integer that indicates the relative values of <paramref name="x" /> and <paramref name="y" />, as shown in the following table.Value Meaning Less than zero<paramref name="x" /> is less than <paramref name="y" />.Zero<paramref name="x" /> equals <paramref name="y" />.Greater than zero<paramref name="x" /> is greater than <paramref name="y" />.
-            /// </returns>
-            public int Compare(ServiceBuildingInfo x, ServiceBuildingInfo y)
+            public class PriorityComparer : IComparer<ServiceBuildingInfo>
             {
-                if (x.InDistrict && !y.InDistrict)
+                /// <summary>
+                /// Compares two buildings and returns a value indicating whether one is less than, equal to, or greater than the other.
+                /// </summary>
+                /// <param name="x">The first buildings to compare.</param>
+                /// <param name="y">The second buildings to compare.</param>
+                /// <returns>
+                /// A signed integer that indicates the relative values of <paramref name="x" /> and <paramref name="y" />, as shown in the following table.Value Meaning Less than zero<paramref name="x" /> is less than <paramref name="y" />.Zero<paramref name="x" /> equals <paramref name="y" />.Greater than zero<paramref name="x" /> is greater than <paramref name="y" />.
+                /// </returns>
+                public int Compare(ServiceBuildingInfo x, ServiceBuildingInfo y)
                 {
-                    return -1;
-                }
-                else if (y.InDistrict && !x.InDistrict)
-                {
-                    return 1;
-                }
-                else
-                {
-                    float s = x.Distance - y.Distance;
-                    if (s < 0)
+                    if (x.InDistrict && !y.InDistrict)
                     {
                         return -1;
                     }
-                    else if (s > 0)
+                    else if (y.InDistrict && !x.InDistrict)
                     {
                         return 1;
                     }
                     else
                     {
-                        return 0;
+                        float s = x.Distance - y.Distance;
+                        if (s < 0)
+                        {
+                            return -1;
+                        }
+                        else if (s > 0)
+                        {
+                            return 1;
+                        }
+                        else
+                        {
+                            return 0;
+                        }
                     }
                 }
             }
@@ -444,17 +438,17 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             /// <summary>
             /// The building identifier.
             /// </summary>
-            public ushort BuildingId = 0;
+            public ushort BuildingId;
 
             /// <summary>
             /// The district the building is in.
             /// </summary>
-            public byte District = 0;
+            public byte District;
 
             /// <summary>
             /// The building has a problem.
             /// </summary>
-            public bool HasProblem = false;
+            public bool HasProblem;
 
             /// <summary>
             /// The position.
@@ -464,17 +458,27 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             /// <summary>
             /// The problem timer.
             /// </summary>
-            public byte ProblemTimer = 0;
+            public byte ProblemTimer;
+
+            /// <summary>
+            /// The last check stamp.
+            /// </summary>
+            private uint lastCheck = 0;
+
+            /// <summary>
+            /// The last handled stamp.
+            /// </summary>
+            private uint lastHandled = 0;
 
             /// <summary>
             /// The last update stamp.
             /// </summary>
-            private uint lastInfoUpdate = 0;
+            private uint lastInfoUpdate;
 
             /// <summary>
             /// The last update stamp.
             /// </summary>
-            private uint lastUpdate = 0;
+            private uint lastUpdate;
 
             /// <summary>
             /// Initializes a new instance of the <see cref="TargetBuildingInfo" /> class.
@@ -487,6 +491,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             public TargetBuildingInfo(DistrictManager districtManager, ushort buildingId, ref Building building, byte problemTimer, Notification.Problem problemToCheck)
             {
                 this.lastUpdate = Global.CurrentFrame;
+                this.lastInfoUpdate = Global.CurrentFrame;
 
                 this.BuildingId = buildingId;
                 this.ProblemTimer = problemTimer;
@@ -496,6 +501,72 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 if (districtManager != null)
                 {
                     this.District = districtManager.GetDistrict(Position);
+                }
+                else
+                {
+                    this.District = 0;
+                }
+
+                CheckThis = true;
+            }
+
+            /// <summary>
+            /// Gets or sets a value indicating whether this <see cref="TargetBuildingInfo"/> is checked.
+            /// </summary>
+            /// <value>
+            ///   <c>true</c> if checked; otherwise, <c>false</c>.
+            /// </value>
+            public bool Checked
+            {
+                get
+                {
+                    return (Global.RecheckInterval > 0 && Global.CurrentFrame - lastCheck < Global.RecheckInterval);
+                }
+                set
+                {
+                    if (value)
+                    {
+                        this.CheckThis = false;
+                        lastCheck = Global.CurrentFrame;
+                    }
+                    else
+                    {
+                        lastCheck = 0;
+                    }
+                }
+            }
+
+            /// <summary>
+            /// Gets a value indicating whether to check this building.
+            /// </summary>
+            /// <value>
+            ///   <c>true</c> if this building should be checked; otherwise, <c>false</c>.
+            /// </value>
+            public bool CheckThis { get; private set; }
+
+            /// <summary>
+            /// Gets or sets a value indicating whether this <see cref="TargetBuildingInfo"/> is handled.
+            /// </summary>
+            /// <value>
+            ///   <c>true</c> if handled; otherwise, <c>false</c>.
+            /// </value>
+            public bool Handled
+            {
+                get
+                {
+                    return (Global.RecheckHandledInterval > 0 && Global.CurrentFrame - lastHandled < Global.RecheckHandledInterval);
+                }
+                set
+                {
+                    if (value)
+                    {
+                        this.CheckThis = false;
+                        lastHandled = Global.CurrentFrame;
+                    }
+                    else
+                    {
+                        lastHandled = 0;
+                    }
                 }
             }
 
@@ -534,35 +605,38 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         this.District = districtManager.GetDistrict(Position);
                     }
                 }
-            }
-        }
 
-        /// <summary>
-        /// Compares target buildings for priority sorting.
-        /// </summary>
-        public class TargetBuildingInfoComparer : IComparer<TargetBuildingInfo>
-        {
+                this.CheckThis = ((Global.RecheckInterval == 0 || Global.CurrentFrame - lastCheck >= Global.RecheckInterval) &&
+                                  (Global.RecheckHandledInterval == 0 || Global.CurrentFrame - lastHandled >= Global.RecheckHandledInterval));
+            }
+
             /// <summary>
-            /// Compares two buildings and returns a value indicating whether one is less than, equal to, or greater than the other.
+            /// Compares target buildings for priority sorting.
             /// </summary>
-            /// <param name="x">The first buildings to compare.</param>
-            /// <param name="y">The second buildings to compare.</param>
-            /// <returns>
-            /// A signed integer that indicates the relative values of <paramref name="x" /> and <paramref name="y" />, as shown in the following table.Value Meaning Less than zero<paramref name="x" /> is less than <paramref name="y" />.Zero<paramref name="x" /> equals <paramref name="y" />.Greater than zero<paramref name="x" /> is greater than <paramref name="y" />.
-            /// </returns>
-            public int Compare(TargetBuildingInfo x, TargetBuildingInfo y)
+            public class PriorityComparer : IComparer<TargetBuildingInfo>
             {
-                if (x.HasProblem && !y.HasProblem)
+                /// <summary>
+                /// Compares two buildings and returns a value indicating whether one is less than, equal to, or greater than the other.
+                /// </summary>
+                /// <param name="x">The first buildings to compare.</param>
+                /// <param name="y">The second buildings to compare.</param>
+                /// <returns>
+                /// A signed integer that indicates the relative values of <paramref name="x" /> and <paramref name="y" />, as shown in the following table.Value Meaning Less than zero<paramref name="x" /> is less than <paramref name="y" />.Zero<paramref name="x" /> equals <paramref name="y" />.Greater than zero<paramref name="x" /> is greater than <paramref name="y" />.
+                /// </returns>
+                public int Compare(TargetBuildingInfo x, TargetBuildingInfo y)
                 {
-                    return -1;
-                }
-                else if (y.HasProblem && !x.HasProblem)
-                {
-                    return 1;
-                }
-                else
-                {
-                    return (int)y.ProblemTimer - (int)x.ProblemTimer;
+                    if (x.HasProblem && !y.HasProblem)
+                    {
+                        return -1;
+                    }
+                    else if (y.HasProblem && !x.HasProblem)
+                    {
+                        return 1;
+                    }
+                    else
+                    {
+                        return (int)y.ProblemTimer - (int)x.ProblemTimer;
+                    }
                 }
             }
         }

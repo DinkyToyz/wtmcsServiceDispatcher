@@ -26,38 +26,38 @@
         public static bool LevelLoaded = false;
 
         /// <summary>
-        /// The minimum recheck interval for handled targets when pretending.
-        /// </summary>
-        public static uint PretendRecheckHandledInterval = RecheckHandledInterval * 10;
-
-        /// <summary>
-        /// The minimum recheck interval for targets when pretending.
-        /// </summary>
-        public static uint PretendRecheckInterval = RecheckInterval * 10;
-
-        /// <summary>
-        /// Pretend to handle hearses (find vehicles for target, but don't actually assign them).
-        /// </summary>
-        public static bool PretendToHandleHearses = true;
-
-        /// <summary>
-        /// The minimum recheck interval for handled targets.
-        /// </summary>
-        public static uint RecheckHandledInterval = 240;
-
-        /// <summary>
-        /// The minimum recheck interval for targets.
-        /// </summary>
-        public static uint RecheckInterval = 60;
-
-        /// <summary>
         /// The minimum object update interval.
         /// </summary>
         public static uint ObjectUpdateInterval = 120;
 
         /// <summary>
+        /// Pretend to handle hearses (find vehicles for target, but don't actually assign them).
+        /// </summary>
+        public static bool PretendToHandleStuff = true;
+
+        /// <summary>
+        /// The minimum recheck interval for handled targets.
+        /// </summary>
+        public static uint RecheckHandledInterval = PretendToHandleStuff ? 2400u : 240u;
+
+        /// <summary>
+        /// The minimum recheck interval for targets.
+        /// </summary>
+        public static uint RecheckInterval = PretendToHandleStuff ? 600u : 60u;
+
+        /// <summary>
+        /// The service building information priority comparer.
+        /// </summary>
+        public static Buildings.ServiceBuildingInfo.PriorityComparer ServiceBuildingInfoPriorityComparer = null;
+
+        /// <summary>
         /// The settings.
         /// </summary>
         public static Settings Settings = null;
+
+        /// <summary>
+        /// The target building information priority comparer.
+        /// </summary>
+        public static Buildings.TargetBuildingInfo.PriorityComparer TargetBuildingInfoPriorityComparer = null;
     }
 }

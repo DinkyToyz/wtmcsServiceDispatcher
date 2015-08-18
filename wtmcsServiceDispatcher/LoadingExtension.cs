@@ -46,11 +46,13 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     if (Global.Settings.HandleHearses)
                     {
                         Global.Buildings = new Buildings();
+                        Global.TargetBuildingInfoPriorityComparer = new Buildings.TargetBuildingInfo.PriorityComparer();
+                        Global.ServiceBuildingInfoPriorityComparer = new Buildings.ServiceBuildingInfo.PriorityComparer();
 
                         // Initialize hearse objects.
                         if (Global.Settings.HandleHearses)
                         {
-                            Global.HearseDispatcher = new HearseDispatcher(Global.PretendToHandleHearses);
+                            Global.HearseDispatcher = new HearseDispatcher();
                         }
                     }
 
@@ -65,8 +67,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 Log.Error(this, "OnLevelLoaded", ex);
                 try
                 {
-                    Global.HearseDispatcher = null;
-                    Global.Buildings = null;
+                    DeInitialize();
                 }
                 catch (Exception exnull)
                 {
@@ -139,6 +140,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             Log.Info(this, "DeInitialize");
 
             Global.HearseDispatcher = null;
+            Global.ServiceBuildingInfoPriorityComparer = null;
+            Global.TargetBuildingInfoPriorityComparer = null;
             Global.Buildings = null;
         }
     }

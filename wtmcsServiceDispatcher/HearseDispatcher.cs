@@ -10,9 +10,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// Initializes a new instance of the <see cref="HearseDispatcher"/> class.
         /// </summary>
-        /// <param name="pretend">if set to <c>true</c> [pretend].</param>
-        public HearseDispatcher(bool pretend = false)
-            : base(pretend)
+        public HearseDispatcher()
+            : base()
         {
             Log.Debug(this, "Constructed");
         }
@@ -27,7 +26,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             get
             {
-                return Global.Buildings.HasDeadPeopleBuildings;
+                return Global.Buildings.HasDeadPeopleBuildingsToCheck;
             }
         }
 

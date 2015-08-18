@@ -53,7 +53,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     counter++;
 
                     vehicleFrame = GetFrameNext(vehicleFrame + 1);
-                    Types.FrameBoundaries bounds = GetFrameBoundaries(vehicleFrame);
+                    FrameBoundaries bounds = GetFrameBoundaries(vehicleFrame);
 
                     CategorizeVehicles(ref vehicles, bounds.FirstId, bounds.LastId);
                 }
@@ -106,11 +106,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// </summary>
         /// <param name="frame">The frame.</param>
         /// <returns>The frame boundaries.</returns>
-        private Types.FrameBoundaries GetFrameBoundaries(uint frame)
+        private FrameBoundaries GetFrameBoundaries(uint frame)
         {
             frame = frame & 15;
 
-            return new Types.FrameBoundaries(frame * 1024, (frame + 1) * 1024 - 1);
+            return new FrameBoundaries(frame * 1024, (frame + 1) * 1024 - 1);
         }
 
         /// <summary>
