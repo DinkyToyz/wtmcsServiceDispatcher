@@ -350,7 +350,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 if (Global.Settings.LimitRange)
                 {
-                    this.InRange = building.HasProblem || (this.Distance < this.Range);
+                    this.InRange = building.HasProblem || this.InDistrict || (this.Distance < this.Range);
                 }
                 else
                 {
