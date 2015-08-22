@@ -23,7 +23,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// The title.
         /// </summary>
-        public const string Title = "WtM Service Dispatcher";
+        public const string Title = "WtM Central Services Dispatcher";
 
         /// <summary>
         /// Gets a value indicating whether this is a debug build.
