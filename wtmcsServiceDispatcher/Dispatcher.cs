@@ -69,9 +69,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 bool initialized = false;
                 foreach (BuldingCheckParameters bcParams in Global.BuldingCheckParameters)
                 {
+                    if (Log.LogALot && Library.IsDebugBuild) Log.DevDebug(this, "Dispatch", bcParams.Setting, bcParams.OnlyProblematic, bcParams.MinProblemTimer, bcParams.IgnoreRange);
+
                     ushort stillWaiting = 0;
 
-                    foreach (Buildings.TargetBuildingInfo targetBuilding in TargetBuildings.Where(tb => tb.CheckThis && tb.ProblemTimer >= bcParams.MinTimer && (tb.HasProblem || !bcParams.OnlyProblematic)).OrderBy(tb => tb, Global.TargetBuildingInfoPriorityComparer))
+                    foreach (Buildings.TargetBuildingInfo targetBuilding in TargetBuildings.Where(tb => tb.CheckThis && tb.ProblemTimer >= bcParams.MinProblemTimer && (tb.HasProblem || !bcParams.OnlyProblematic)).OrderBy(tb => tb, Global.TargetBuildingInfoPriorityComparer))
                     {
                         // Initialize vehicle data.
                         if (!initialized)
@@ -81,6 +83,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                             CollectVehicleData();
                             if (freeVehicles < 1)
                             {
+                                if (Log.LogALot && Library.IsDebugBuild) Log.DevDebug(this, "Dispatch", "BreakCheck", stillWaiting, freeVehicles);
                                 break;
                             }
                         }
@@ -96,6 +99,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                             {
                                 if (freeVehicles < 1)
                                 {
+                                    if (Log.LogALot && Library.IsDebugBuild) Log.DevDebug(this, "Dispatch", "BreakCheck", stillWaiting, freeVehicles);
                                     break;
                                 }
                             }
@@ -110,6 +114,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                     if (stillWaiting == 0 || freeVehicles < 1)
                     {
+                        if (Log.LogALot && Library.IsDebugBuild) Log.DevDebug(this, "Dispatch", "BreakChecks", stillWaiting, freeVehicles);
+
                         break;
                     }
                 }
@@ -230,6 +236,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     // Add or update status for relevant vegicles.
                     if (vehicles[vehicleId].Info != null && (vehicles[vehicleId].m_flags & Vehicle.Flags.Spawned) == Vehicle.Flags.Spawned && IsMyType(vehicles[vehicleId].Info))
                     {
+
+
+                        if (v.Info.m_vehicleAI.GetLocalizedStatus(id, ref v, out instanceID) != _collecting)
+                            continue;
+private string _collecting = ColossalFramework.Globalization.Locale.Get("VEHICLE_STATUS_HEARSE_COLLECT");                        
+                        
                         // Update vehicle status.
                         if (serviceBuilding.Vehicles.ContainsKey(vehicleId))
                         {
@@ -243,7 +255,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         }
                         else
                         {
-                            if (Log.LogALot && Library.IsDebugBuild) Log.DevDebug(this, "CollectVehicles", "AddVehicle", serviceBuilding.BuildingId, vehicleId, vehicles[vehicleId].Info.name);
+                            Vehicles.ServiceVehicleInfo vehicle = new Vehicles.ServiceVehicleInfo(vehicleId, ref vehicles[vehicleId]);
+                            if (Log.LogALot && Library.IsDebugBuild) Log.DevDebug(this, "CollectVehicles", "AddVehicle", serviceBuilding.BuildingId, vehicleId, vehicles[vehicleId].Info.name, vehicle.VehicleName);
 
                             if (Global.ForceTarget && vehicles[vehicleId].m_targetBuilding != 0)
                             {
@@ -251,7 +264,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                                 vehicles[vehicleId].m_targetBuilding = 0;
                             }
 
-                            serviceBuilding.Vehicles[vehicleId] = new Vehicles.ServiceVehicleInfo(vehicleId, ref vehicles[vehicleId]);
+                            serviceBuilding.Vehicles[vehicleId] = vehicle;
                         }
 
                         // Update assigned target status.
@@ -280,7 +293,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 {
                     if (vehicles[vehicleId].Info == null || (vehicles[vehicleId].m_flags & Vehicle.Flags.Spawned) != Vehicle.Flags.Spawned || !IsMyType(vehicles[vehicleId].Info))
                     {
-                        if (Log.LogALot && Library.IsDebugBuild) Log.DevDebug(this, "CollectVehicles", "RemoveVehicle", serviceBuilding.BuildingId, id);
+                        if (Log.LogALot && Library.IsDebugBuild) Log.DevDebug(this, "CollectVehicles", "RemoveVehicle", serviceBuilding.BuildingId, id, serviceBuilding.Vehicles[id].VehicleName);
 
                         serviceBuilding.Vehicles.Remove(id);
                     }
@@ -288,7 +301,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     {
                         if (vehicles[vehicleId].m_sourceBuilding != serviceBuilding.BuildingId)
                         {
-                            if (Log.LogALot && Library.IsDebugBuild) Log.DevDebug(this, "CollectVehicles", "RemoveVehicle", serviceBuilding.BuildingId, id);
+                            if (Log.LogALot && Library.IsDebugBuild) Log.DevDebug(this, "CollectVehicles", "RemoveVehicle", serviceBuilding.BuildingId, id, serviceBuilding.Vehicles[id].VehicleName);
 
                             serviceBuilding.Vehicles.Remove(id);
                         }
@@ -311,23 +324,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// Building check parameters.
         /// </summary>
-        public struct BuldingCheckParameters
+        public class BuldingCheckParameters
         {
-            /// <summary>
-            /// Ignore the range
-            /// </summary>
-            public bool IgnoreRange;
-
-            /// <summary>
-            /// The minimum problem timer value.
-            /// </summary>
-            public byte MinTimer;
-
-            /// <summary>
-            /// Only problematic buildings.
-            /// </summary>
-            public bool OnlyProblematic;
-
             /// <summary>
             /// Initializes a new instance of the <see cref="BuldingCheckParameters"/> struct.
             /// </summary>
@@ -336,112 +334,114 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             /// <param name="minTimer">The minimum problem timer value.</param>
             public BuldingCheckParameters(bool onlyProblematic, bool ignoreRange, byte minTimer)
             {
+                this.Setting = Settings.BuildingCheckParameters.Custom;
                 this.OnlyProblematic = onlyProblematic;
                 this.IgnoreRange = ignoreRange;
-                this.MinTimer = minTimer;
+                this.MinProblemTimer = minTimer;
             }
 
             /// <summary>
-            /// 1, forgotten in range; 2, forgotten out of range; 3, in range; 4, problematic out of range.
+            /// Initializes a new instance of the <see cref="BuldingCheckParameters"/> class.
             /// </summary>
-            public static BuldingCheckParameters[] ForgottenFirst
+            /// <param name="buildingCheckParameters">The building check parameters.</param>
+            public BuldingCheckParameters(Settings.BuildingCheckParameters buildingCheckParameters)
             {
-                get
+                this.Setting = buildingCheckParameters;
+
+                switch (buildingCheckParameters)
                 {
-                    return new BuldingCheckParameters[]
-                    {
-                        ForgottenInRange,
-                        ForgottenIgnoreRange,
-                        InRange,
-                        ProblematicIgnoreRange
-                    };
+                    case Settings.BuildingCheckParameters.InRange:
+                        this.OnlyProblematic = false;
+                        this.IgnoreRange = false;
+                        this.MinProblemTimer = 0;
+                        break;
+
+                    case Settings.BuildingCheckParameters.Any:
+                        this.OnlyProblematic = false;
+                        this.IgnoreRange = true;
+                        this.MinProblemTimer = 0;
+                        break;
+
+                    case Settings.BuildingCheckParameters.ProblematicInRange:
+                        this.OnlyProblematic = true;
+                        this.IgnoreRange = false;
+                        this.MinProblemTimer = 0;
+                        break;
+
+                    case Settings.BuildingCheckParameters.ProblematicIgnoreRange:
+                        this.OnlyProblematic = true;
+                        this.IgnoreRange = true;
+                        this.MinProblemTimer = 0;
+                        break;
+
+                    case Settings.BuildingCheckParameters.ForgottenInRange:
+                        this.OnlyProblematic = false;
+                        this.IgnoreRange = false;
+                        this.MinProblemTimer = 0;
+                        break;
+
+                    case Settings.BuildingCheckParameters.ForgottenIgnoreRange:
+                        this.OnlyProblematic = false;
+                        this.IgnoreRange = true;
+                        this.MinProblemTimer = 0;
+                        break;
+
+                    default:
+                        this.OnlyProblematic = false;
+                        this.IgnoreRange = true;
+                        this.MinProblemTimer = 0;
+                        break;
                 }
             }
 
             /// <summary>
-            /// Forgotten buildings in or out of range.
+            /// Gets a value indicating whether to ignore range.
             /// </summary>
-            public static BuldingCheckParameters ForgottenIgnoreRange
-            {
-                get
-                {
-                    return new BuldingCheckParameters(false, true, 255);
-                }
-            }
+            /// <value>
+            /// <c>true</c> if the range should be ignored; otherwise, <c>false</c>.
+            /// </value>
+            public bool IgnoreRange { get; private set; }
 
             /// <summary>
-            /// Forgotten buildings in range.
+            /// Gets the minimum problem timer.
             /// </summary>
-            public static BuldingCheckParameters ForgottenInRange
-            {
-                get
-                {
-                    return new BuldingCheckParameters(false, false, 255);
-                }
-            }
+            /// <value>
+            /// The minimum problem timer.
+            /// </value>
+            public byte MinProblemTimer { get; private set; }
 
             /// <summary>
-            /// Buildings in range.
+            /// Gets a value indicating whether only problematic buildings should be checked.
             /// </summary>
-            public static BuldingCheckParameters InRange
-            {
-                get
-                {
-                    return new BuldingCheckParameters(false, false, 0);
-                }
-            }
+            /// <value>
+            ///   <c>true</c> if only problematic buildings should be checked; otherwise, <c>false</c>.
+            /// </value>
+            public bool OnlyProblematic { get; private set; }
 
             /// <summary>
-            /// 1, in range; 2, problematic out of range.
+            /// Gets the setting.
             /// </summary>
-            public static BuldingCheckParameters[] InRangeFirst
-            {
-                get
-                {
-                    return new BuldingCheckParameters[]
-                    {
-                        InRange,
-                        ProblematicIgnoreRange
-                    };
-                }
-            }
+            /// <value>
+            /// The setting.
+            /// </value>
+            public Settings.BuildingCheckParameters Setting { get; private set; }
 
             /// <summary>
-            /// 1, problematic in range; 2, problematic; 3, in range.
+            /// Gets the bulding check parameters.
             /// </summary>
-            public static BuldingCheckParameters[] ProblematicFirst
+            /// <param name="buildingCheckParameters">The building check parameters.</param>
+            /// <returns>
+            /// The bulding check parameters.
+            /// </returns>
+            public static BuldingCheckParameters[] GetBuldingCheckParameters(Settings.BuildingCheckParameters[] buildingCheckParameters = null)
             {
-                get
+                if (buildingCheckParameters == null)
                 {
-                    return new BuldingCheckParameters[]
-                    {
-                        ProblematicInRange,
-                        ProblematicIgnoreRange,
-                        InRange
-                    };
+                    Global.InitSettings();
+                    buildingCheckParameters = Global.Settings.BuildingChecksParameters;
                 }
-            }
 
-            /// <summary>
-            /// Problematic buildings in or out of range.
-            /// </summary>
-            public static BuldingCheckParameters ProblematicIgnoreRange
-            {
-                get
-                {
-                    return new BuldingCheckParameters(true, true, 0);
-                }
-            }
-
-            /// <summary>
-            /// Problematic buildings in range.
-            /// </summary>
-            public static BuldingCheckParameters ProblematicInRange
-            {
-                get
-                {
-                    return new BuldingCheckParameters(true, false, 0);
-                }
+                return buildingCheckParameters.Select(bcp => new BuldingCheckParameters(bcp)).ToArray();
             }
         }
     }

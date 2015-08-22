@@ -1,4 +1,6 @@
-﻿namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
+﻿using System;
+
+namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 {
     /// <summary>
     /// Global objects.
@@ -11,14 +13,29 @@
         public static Buildings Buildings = null;
 
         /// <summary>
+        /// The bulding check parameters.
+        /// </summary>
+        public static Dispatcher.BuldingCheckParameters[] BuldingCheckParameters = null;
+
+        /// <summary>
         /// The current frame.
         /// </summary>
         public static uint CurrentFrame = 0;
 
         /// <summary>
+        /// Force mod targets.
+        /// </summary>
+        public static bool ForceTarget = true;
+
+        /// <summary>
         /// Wether updates should be framed or complete.
         /// </summary>
         public static bool FramedUpdates = false;
+
+        /// <summary>
+        /// The garbage truck dispatcher.
+        /// </summary>
+        public static GarbageTruckDispatcher GarbageTruckDispatcher = null;
 
         /// <summary>
         /// The hearse dispatcher.
@@ -36,7 +53,7 @@
         public static uint ObjectUpdateInterval = 120;
 
         /// <summary>
-        /// Pretend to handle hearses (find vehicles for target, but don't actually assign them).
+        /// Pretend to handle services (find vehicles for target, but don't actually assign them).
         /// </summary>
         public static bool PretendToHandleStuff = false;
 
@@ -70,27 +87,44 @@
         /// </summary>
         public static Vehicles Vehicles = null;
 
-        /// <summary>
-        /// Force mod targets.
-        /// </summary>
-        public static bool ForceTarget = true;
+        public static void InitBuildingChecks()
+        {
+            BuldingCheckParameters = Dispatcher.BuldingCheckParameters.GetBuldingCheckParameters();
+            if (BuldingCheckParameters == null || BuldingCheckParameters.Length == 0)
+            {
+                BuldingCheckParameters = Dispatcher.BuldingCheckParameters.GetBuldingCheckParameters(Settings.GetBuildingChecksParameters(Settings.BuildingCheckOrder.InRangeFirst));
+            }
+        }
 
         /// <summary>
-        /// The bulding check parameters.
+        /// Initializes the settings.
         /// </summary>
-        public static Dispatcher.BuldingCheckParameters[] BuldingCheckParameters = null;
-
         public static void InitSettings()
         {
             if (Settings == null)
             {
                 try
                 {
-                    Settings = Settings.Load();
+                    try
+                    {
+                        Settings = Settings.Load();
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error(typeof(Global), "InitSettings", ex);
+                        Settings = new Settings();
+                    }
+
+                    Settings.LogSettings();
+
+                    if (Settings.LoadedVersion < Settings.Version)
+                    {
+                        Settings.Save();
+                    }
                 }
-                catch
+                catch (Exception ex)
                 {
-                    Settings = new Settings();
+                    Log.Error(typeof(Global), "InitSettings", ex);
                 }
             }
         }

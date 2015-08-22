@@ -14,6 +14,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         private bool isBroken = false;
 
         private bool started = false;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="ThreadingExtension"/> class.
         /// </summary>
@@ -63,6 +64,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     return;
                 }
 
+                if (Global.CurrentFrame == this.threadingManager.simulationFrame)
+                {
+                    return;
+                }
+
                 Global.CurrentFrame = this.threadingManager.simulationFrame;
 
                 // Do vehicle based stuff.
@@ -83,6 +89,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     {
                         Global.HearseDispatcher.Dispatch();
                     }
+
+                    ////// Dispatch garbage trucks;
+                    ////if (Global.GarbageTruckDispatcher != null)
+                    ////{
+                    ////    Global.GarbageTruckDispatcher.Dispatch();
+                    ////}
                 }
 
                 if (!started || (Global.CurrentFrame - Log.LastFlush >= 600))

@@ -1,6 +1,5 @@
 ﻿using ICities;
 using System;
-using System.Collections.Generic;
 
 namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 {
@@ -43,53 +42,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 {
                     // Load settings.
                     Global.InitSettings();
-
-                    // Initialize building checks.
-                    switch (Global.Settings.BuildingChecks)
-                    {
-                        case Settings.BuildingCheckOrder.InRangeFirst:
-                            Global.BuldingCheckParameters = Dispatcher.BuldingCheckParameters.InRangeFirst;
-                            break;
-
-                        case Settings.BuildingCheckOrder.ProblematicFirst:
-                            Global.BuldingCheckParameters = Dispatcher.BuldingCheckParameters.ProblematicFirst;
-                            break;
-
-                        case Settings.BuildingCheckOrder.ForgottenFirst:
-                            Global.BuldingCheckParameters = Dispatcher.BuldingCheckParameters.ForgottenFirst;
-                            break;
-
-                        case Settings.BuildingCheckOrder.Custom:
-                            List<Dispatcher.BuldingCheckParameters> pars = new List<Dispatcher.BuldingCheckParameters>();
-
-                            foreach (Settings.BuildingCheckParameters par in Global.Settings.BuildingChecksCustom)
-                            {
-                                switch (par)
-                                {
-                                    case Settings.BuildingCheckParameters.InRange:
-                                        pars.Add(Dispatcher.BuldingCheckParameters.InRange);
-                                        break;
-
-                                    case Settings.BuildingCheckParameters.ProblematicInRange:
-                                        pars.Add(Dispatcher.BuldingCheckParameters.ProblematicInRange);
-                                        break;
-
-                                    case Settings.BuildingCheckParameters.ProblematicIgnoreRange:
-                                        pars.Add(Dispatcher.BuldingCheckParameters.ProblematicIgnoreRange);
-                                        break;
-
-                                    case Settings.BuildingCheckParameters.ForgottenIgnoreRange:
-                                        pars.Add(Dispatcher.BuldingCheckParameters.ForgottenIgnoreRange);
-                                        break;
-                                }
-                            }
-
-                            Global.BuldingCheckParameters = pars.ToArray();
-                            break;
-                    }
+                    Global.InitBuildingChecks();
 
                     // Initialize dispatch objects.
-                    if (Global.Settings.DispatchHearses)
+                    if (Global.Settings.DispatchHearses || Global.Settings.DispatchGarbageTrucks)
                     {
                         Global.Buildings = new Buildings();
                         Global.TargetBuildingInfoPriorityComparer = new Buildings.TargetBuildingInfo.PriorityComparer();
@@ -100,10 +56,16 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         {
                             Global.HearseDispatcher = new HearseDispatcher();
                         }
+
+                        // Initialize garbage truck objects.
+                        if (Global.Settings.DispatchGarbageTrucks)
+                        {
+                            Global.GarbageTruckDispatcher = new GarbageTruckDispatcher();
+                        }
                     }
 
                     // Initialize vehicle objects.
-                    if (Global.Settings.RemoveHearsesFromGrid)
+                    if (Global.Settings.RemoveHearsesFromGrid || Global.Settings.RemoveGarbageTrucksFromGrid)
                     {
                         Global.Vehicles = new Vehicles();
                     }
@@ -194,10 +156,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             Log.Info(this, "DeInitialize");
 
+            Global.GarbageTruckDispatcher = null;
             Global.HearseDispatcher = null;
             Global.ServiceBuildingInfoPriorityComparer = null;
             Global.TargetBuildingInfoPriorityComparer = null;
             Global.Buildings = null;
+            Global.Vehicles = null;
         }
     }
 }

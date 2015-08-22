@@ -34,6 +34,39 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Gets the name of the vehicle.
+        /// </summary>
+        /// <param name="vehicleId">The vehicle identifier.</param>
+        /// <returns></returns>
+        public static string GetVehicleName(ushort vehicleId)
+        {
+            try
+            {
+                string name = null;
+                VehicleManager manager = Singleton<VehicleManager>.instance;
+
+                try
+                {
+                    name = manager.GetVehicleName(vehicleId);
+                }
+                catch { }
+
+                if (String.IsNullOrEmpty(name))
+                {
+                    Vehicle[] vehicles = manager.m_vehicles.m_buffer;
+
+                    name = vehicles[vehicleId].Info.name;
+                }
+
+                return String.IsNullOrEmpty(name) ? (string)null : name;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
         /// Updates data.
         /// </summary>
         public void Update()
@@ -135,12 +168,16 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         {
                             if (removedFromGrid.Contains(id))
                             {
+                                if (Log.LogALot || Library.IsDebugBuild) Log.DevDebug(this, "HandleVehicles", "Moving", id, vehicles[id].Info.name, GetVehicleName(id));
+
                                 removedFromGrid.Remove(id);
                             }
                         }
-                        else if (Global.Settings.RemoveHearsesFromGrid && vehicles[id].Info.m_vehicleAI is HearseAI && !removedFromGrid.Contains(id))
+                        else if (((Global.Settings.RemoveHearsesFromGrid && vehicles[id].Info.m_vehicleAI is HearseAI) ||
+                                  (Global.Settings.RemoveGarbageTrucksFromGrid && vehicles[id].Info.m_vehicleAI is GarbageTruckAI)) &&
+                                 !removedFromGrid.Contains(id))
                         {
-                            if (Log.LogALot || Library.IsDebugBuild) Log.DevDebug(this, "HandleVehicles", "RemoveFromGrid", id, vehicles[id].Info.name);
+                            if (Log.LogALot || Library.IsDebugBuild) Log.DevDebug(this, "HandleVehicles", "RemoveFromGrid", id, vehicles[id].Info.name, GetVehicleName(id));
 
                             Singleton<VehicleManager>.instance.RemoveFromGrid(id, ref vehicles[id], false);
                             removedFromGrid.Add(id);
@@ -183,6 +220,20 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 this.LastSeen = Global.CurrentFrame;
                 this.Position = vehicle.GetLastFramePosition();
                 this.Target = vehicle.m_targetBuilding;
+            }
+
+            /// <summary>
+            /// Gets the name of the vehicle.
+            /// </summary>
+            /// <value>
+            /// The name of the vehicle.
+            /// </value>
+            public string VehicleName
+            {
+                get
+                {
+                    return GetVehicleName(VehicleId);
+                }
             }
 
             /// <summary>

@@ -332,7 +332,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     }
                     else if (messages[i] is float)
                     {
-                        message = ((float)messages[i]).ToString("0,0.##", CultureInfo.InvariantCulture);
+                        message = ((float)messages[i]).ToString("#,0.##", CultureInfo.InvariantCulture);
                     }
                     else
                     {
