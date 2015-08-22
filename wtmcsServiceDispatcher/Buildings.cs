@@ -113,12 +113,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             else
             {
                 // Data is not initialized. Check all buildings.
-                if (Log.LogALot && Library.IsDebugBuild) Log.Debug(this, "OnUpdate", "Intialize");
+                //if (Log.LogALot && Library.IsDebugBuild) Log.DevDebug(this, "OnUpdate", "Intialize");
 
                 CategorizeBuildings(districtManager, ref buildings, 0, buildings.Length);
 
                 buildingFrame = GetFrameEnd();
-                isInitialized = true;
+                isInitialized = Global.FramedUpdates;
             }
         }
 
@@ -131,7 +131,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         private void CategorizeBuilding(DistrictManager districtManager, ushort buildingId, ref Building building)
         {
             // Checks for hearse dispatcher.
-            if (Global.Settings.HandleHearses)
+            if (Global.Settings.DispatchHearses)
             {
                 // Check cemetaries and crematoriums.
                 if (building.Info.m_buildingAI is CemeteryAI)
@@ -161,7 +161,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                     if (!deadPeopleBuildings.ContainsKey(buildingId))
                     {
-                        if (Library.IsDebugBuild) Log.Debug(this, "CategorizeBuilding", "Dead People", buildingId, building.Info.name);
+                        if (Log.LogALot || Library.IsDebugBuild) Log.Debug(this, "CategorizeBuilding", "Dead People", buildingId, building.Info.name);
 
                         deadPeopleBuildings[buildingId] = new TargetBuildingInfo(districtManager, buildingId, ref building, building.m_deathProblemTimer, Notification.Problem.Death);
                         HasDeadPeopleBuildingsToCheck = true;
@@ -174,7 +174,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 }
                 else if (deadPeopleBuildings.ContainsKey(buildingId))
                 {
-                    if (Library.IsDebugBuild) Log.Debug(this, "CategorizeBuilding", "No Dead People", buildingId, building.Info.name);
+                    if (Log.LogALot || Library.IsDebugBuild) Log.Debug(this, "CategorizeBuilding", "No Dead People", buildingId, building.Info.name);
 
                     deadPeopleBuildings.Remove(buildingId);
                 }
@@ -194,7 +194,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             {
                 if (buildings[id].Info == null)
                 {
-                    if (Global.Settings.HandleHearses)
+                    if (Global.Settings.DispatchHearses)
                     {
                         hearseBuildings.Remove(id);
                     }
@@ -283,6 +283,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             public float Range = 0;
 
             /// <summary>
+            /// The vehicles.
+            /// </summary>
+            public Dictionary<ushort, Vehicles.ServiceVehicleInfo> Vehicles = new Dictionary<ushort, Vehicles.ServiceVehicleInfo>();
+
+            /// <summary>
             /// The last info update stamp.
             /// </summary>
             private uint lastInfoUpdate = 0;
@@ -314,7 +319,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 if (Global.Settings.LimitRange)
                 {
                     this.Range = building.Info.m_buildingAI.GetCurrentRange(buildingId, ref building);
-                    this.Range = this.Range * this.Range * 2;
+                    this.Range = this.Range * this.Range * Global.Settings.RangeModifier;
                 }
             }
 
@@ -334,7 +339,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             /// </summary>
             /// <param name="districtManager">The district manager.</param>
             /// <param name="building">The building.</param>
-            public void SetTargetInfo(DistrictManager districtManager, TargetBuildingInfo building)
+            /// <param name="ignoreRange">if set to <c>true</c> ignore the range.</param>
+            public void SetTargetInfo(DistrictManager districtManager, TargetBuildingInfo building, bool ignoreRange)
             {
                 this.Distance = (this.Position - building.Position).sqrMagnitude;
 
@@ -348,14 +354,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     this.InDistrict = false;
                 }
 
-                if (Global.Settings.LimitRange)
-                {
-                    this.InRange = building.HasProblem || this.InDistrict || (this.Distance < this.Range);
-                }
-                else
-                {
-                    this.InRange = true;
-                }
+                this.InRange = !Global.Settings.LimitRange || ignoreRange || this.InDistrict || (this.Distance < this.Range);
             }
 
             /// <summary>
@@ -507,7 +506,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     this.District = 0;
                 }
 
-                CheckThis = true;
+                checkThis = true;
             }
 
             /// <summary>
@@ -526,7 +525,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 {
                     if (value)
                     {
-                        this.CheckThis = false;
                         lastCheck = Global.CurrentFrame;
                     }
                     else
@@ -537,12 +535,23 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             }
 
             /// <summary>
+            /// Wether this building should be checked or not.
+            /// </summary>
+            private bool checkThis;
+
+            /// <summary>
             /// Gets a value indicating whether to check this building.
             /// </summary>
             /// <value>
             ///   <c>true</c> if this building should be checked; otherwise, <c>false</c>.
             /// </value>
-            public bool CheckThis { get; private set; }
+            public bool CheckThis
+            {
+                get
+                {
+                    return this.checkThis && lastUpdate == Global.CurrentFrame;
+                }
+            }
 
             /// <summary>
             /// Gets or sets a value indicating whether this <see cref="TargetBuildingInfo"/> is handled.
@@ -560,7 +569,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 {
                     if (value)
                     {
-                        this.CheckThis = false;
+                        this.checkThis = false;
                         lastHandled = Global.CurrentFrame;
                     }
                     else
@@ -606,7 +615,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     }
                 }
 
-                this.CheckThis = ((Global.RecheckInterval == 0 || Global.CurrentFrame - lastCheck >= Global.RecheckInterval) &&
+                this.checkThis = ((Global.RecheckInterval == 0 || Global.CurrentFrame - lastCheck >= Global.RecheckInterval) &&
                                   (Global.RecheckHandledInterval == 0 || Global.CurrentFrame - lastHandled >= Global.RecheckHandledInterval));
             }
 

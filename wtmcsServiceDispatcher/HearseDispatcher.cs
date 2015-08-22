@@ -67,5 +67,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             return (vehicleInfo != null && vehicleInfo.m_vehicleAI is HearseAI);
         }
+    
+        protected override void AISetTarget(ushort vehicleId, ref Vehicle vehicle, ushort buildingId)
+        {
+            ((HearseAI)(vehicle.Info.m_vehicleAI)).SetTarget(vehicleId, ref vehicle, buildingId);
+        }
     }
 }

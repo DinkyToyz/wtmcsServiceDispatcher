@@ -1,5 +1,6 @@
 ﻿using ICities;
 using System;
+using System.Collections.Generic;
 
 namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 {
@@ -24,6 +25,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public override void OnCreated(ILoading loading)
         {
             Log.Debug(this, "OnCreated", "Base");
+            Log.FlushBuffer();
             base.OnCreated(loading);
         }
 
@@ -40,20 +42,70 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 if (mode == LoadMode.NewGame || mode == LoadMode.LoadGame)
                 {
                     // Load settings.
-                    Global.Settings = Settings.Load();
+                    Global.InitSettings();
 
-                    // Initialize data objects.
-                    if (Global.Settings.HandleHearses)
+                    // Initialize building checks.
+                    switch (Global.Settings.BuildingChecks)
+                    {
+                        case Settings.BuildingCheckOrder.InRangeFirst:
+                            Global.BuldingCheckParameters = Dispatcher.BuldingCheckParameters.InRangeFirst;
+                            break;
+
+                        case Settings.BuildingCheckOrder.ProblematicFirst:
+                            Global.BuldingCheckParameters = Dispatcher.BuldingCheckParameters.ProblematicFirst;
+                            break;
+
+                        case Settings.BuildingCheckOrder.ForgottenFirst:
+                            Global.BuldingCheckParameters = Dispatcher.BuldingCheckParameters.ForgottenFirst;
+                            break;
+
+                        case Settings.BuildingCheckOrder.Custom:
+                            List<Dispatcher.BuldingCheckParameters> pars = new List<Dispatcher.BuldingCheckParameters>();
+
+                            foreach (Settings.BuildingCheckParameters par in Global.Settings.BuildingChecksCustom)
+                            {
+                                switch (par)
+                                {
+                                    case Settings.BuildingCheckParameters.InRange:
+                                        pars.Add(Dispatcher.BuldingCheckParameters.InRange);
+                                        break;
+
+                                    case Settings.BuildingCheckParameters.ProblematicInRange:
+                                        pars.Add(Dispatcher.BuldingCheckParameters.ProblematicInRange);
+                                        break;
+
+                                    case Settings.BuildingCheckParameters.ProblematicIgnoreRange:
+                                        pars.Add(Dispatcher.BuldingCheckParameters.ProblematicIgnoreRange);
+                                        break;
+
+                                    case Settings.BuildingCheckParameters.ForgottenIgnoreRange:
+                                        pars.Add(Dispatcher.BuldingCheckParameters.ForgottenIgnoreRange);
+                                        break;
+                                }
+                            }
+
+                            Global.BuldingCheckParameters = pars.ToArray();
+                            break;
+                    }
+
+                    // Initialize dispatch objects.
+                    if (Global.Settings.DispatchHearses)
                     {
                         Global.Buildings = new Buildings();
                         Global.TargetBuildingInfoPriorityComparer = new Buildings.TargetBuildingInfo.PriorityComparer();
                         Global.ServiceBuildingInfoPriorityComparer = new Buildings.ServiceBuildingInfo.PriorityComparer();
 
                         // Initialize hearse objects.
-                        if (Global.Settings.HandleHearses)
+                        if (Global.Settings.DispatchHearses)
                         {
                             Global.HearseDispatcher = new HearseDispatcher();
                         }
+                    }
+
+                    // Initialize vehicle objects.
+                    if (Global.Settings.RemoveHearsesFromGrid)
+                    {
+                        Global.Vehicles = new Vehicles();
                     }
 
                     Global.LevelLoaded = true;
@@ -80,6 +132,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             }
 
             Log.Debug(this, "OnLevelLoaded", "End");
+            Log.FlushBuffer();
         }
 
         /// <summary>
@@ -104,6 +157,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             }
 
             Log.Debug(this, "OnLevelUnloading", "End");
+            Log.FlushBuffer();
         }
 
         /// <summary>
@@ -128,6 +182,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             }
 
             Log.Debug(this, "OnReleased", "End");
+            Log.FlushBuffer();
         }
 
         /// <summary>

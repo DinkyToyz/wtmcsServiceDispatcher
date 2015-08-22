@@ -16,6 +16,11 @@
         public static uint CurrentFrame = 0;
 
         /// <summary>
+        /// Wether updates should be framed or complete.
+        /// </summary>
+        public static bool FramedUpdates = false;
+
+        /// <summary>
         /// The hearse dispatcher.
         /// </summary>
         public static HearseDispatcher HearseDispatcher = null;
@@ -33,7 +38,7 @@
         /// <summary>
         /// Pretend to handle hearses (find vehicles for target, but don't actually assign them).
         /// </summary>
-        public static bool PretendToHandleStuff = true;
+        public static bool PretendToHandleStuff = false;
 
         /// <summary>
         /// The minimum recheck interval for handled targets.
@@ -59,5 +64,35 @@
         /// The target building information priority comparer.
         /// </summary>
         public static Buildings.TargetBuildingInfo.PriorityComparer TargetBuildingInfoPriorityComparer = null;
+
+        /// <summary>
+        /// The vehicles.
+        /// </summary>
+        public static Vehicles Vehicles = null;
+
+        /// <summary>
+        /// Force mod targets.
+        /// </summary>
+        public static bool ForceTarget = true;
+
+        /// <summary>
+        /// The bulding check parameters.
+        /// </summary>
+        public static Dispatcher.BuldingCheckParameters[] BuldingCheckParameters = null;
+
+        public static void InitSettings()
+        {
+            if (Settings == null)
+            {
+                try
+                {
+                    Settings = Settings.Load();
+                }
+                catch
+                {
+                    Settings = new Settings();
+                }
+            }
+        }
     }
 }

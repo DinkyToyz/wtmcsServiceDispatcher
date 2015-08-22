@@ -1,5 +1,7 @@
 ﻿using ColossalFramework.Plugins;
 using System;
+using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Reflection;
 using System.Text;
@@ -14,17 +16,37 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// Log a lot of stuff.
         /// </summary>
-        public static readonly bool LogALot = Library.IsDebugBuild;
+        public static readonly bool LogALot;
+
+        /// <summary>
+        /// The number of lines to buffer.
+        /// </summary>
+        public static int BufferLines = 5120;
+
+        /// <summary>
+        /// The last flush of buffer.
+        /// </summary>
+        public static uint LastFlush = 0;
 
         /// <summary>
         /// The log level.
         /// </summary>
-        public static Level LogLevel = Level.Warning;
+        public static Level LogLevel;
 
         /// <summary>
         /// True for logging to file.
         /// </summary>
         public static bool LogToFile = true;
+
+        /// <summary>
+        /// The line buffer.
+        /// </summary>
+        private static List<string> lineBuffer;
+
+        /// <summary>
+        /// The log info all to file.
+        /// </summary>
+        private static bool LogAllToFile;
 
         /// <summary>
         /// True when log file has been created.
@@ -38,13 +60,28 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             if (Library.IsDebugBuild || FileSystem.Exists(".debug"))
             {
-                Log.LogLevel = Log.Level.All;
+                Log.LogLevel = Log.Level.Info;
                 Log.LogToFile = true;
+                Log.LogAllToFile = true;
+
+                if (Library.IsDebugBuild)
+                {
+                    Log.LogALot = true;
+                    Log.lineBuffer = new List<string>();
+                }
+                else
+                {
+                    Log.LogALot = false;
+                    Log.lineBuffer = null;
+                }
             }
             else
             {
                 Log.LogLevel = Log.Level.Warning;
                 Log.LogToFile = false;
+                Log.LogAllToFile = false;
+                Log.LogALot = false;
+                Log.lineBuffer = null;
             }
 
             try
@@ -92,6 +129,37 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Gets or sets a value indicating whether this <see cref="Log"/> is buffered.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if buffered; otherwise, <c>false</c>.
+        /// </value>
+        public static bool Buffer
+        {
+            get
+            {
+                return (lineBuffer != null);
+            }
+            set
+            {
+                if (value)
+                {
+                    if (lineBuffer == null)
+                    {
+                        lineBuffer = new List<string>();
+                    }
+                }
+                else
+                {
+                    if (lineBuffer != null)
+                    {
+                        lineBuffer = null;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
         /// Outputs the specified debugging message.
         /// </summary>
         /// <param name="sourceObject">The source object.</param>
@@ -100,6 +168,17 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public static void Debug(object sourceObject, string sourceBlock, params object[] messages)
         {
             Output(Level.Debug, sourceObject, sourceBlock, null, messages);
+        }
+
+        /// <summary>
+        /// Outputs the specified warning message.
+        /// </summary>
+        /// <param name="sourceObject">The source object.</param>
+        /// <param name="sourceBlock">The source block.</param>
+        /// <param name="messages">The messages.</param>
+        public static void DevDebug(object sourceObject, string sourceBlock, params object[] messages)
+        {
+            Output(Level.All, sourceObject, sourceBlock, null, messages);
         }
 
         /// <summary>
@@ -112,6 +191,36 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public static void Error(object sourceObject, string sourceBlock, Exception exception, params object[] messages)
         {
             Output(Level.Error, sourceObject, sourceBlock, exception, messages);
+        }
+
+        /// <summary>
+        /// Flushes the buffer.
+        /// </summary>
+        public static void FlushBuffer()
+        {
+            try
+            {
+                if (lineBuffer != null && lineBuffer.Count > 0)
+                {
+                    try
+                    {
+                        using (StreamWriter logFile = new StreamWriter(FileSystem.FilePathName(".log"), logFileCreated))
+                        {
+                            logFile.Write(String.Join("", lineBuffer.ToArray()));
+                            logFile.Close();
+                        }
+
+                        logFileCreated = true;
+                    }
+                    catch { }
+                    finally
+                    {
+                        LastFlush = Global.CurrentFrame;
+                        lineBuffer.Clear();
+                    }
+                }
+            }
+            catch { }
         }
 
         /// <summary>
@@ -147,7 +256,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
-        /// Do nothing (except trigger the class constructor unless it has run allrrady).
+        /// Do nothing (except trigger the class constructor unless it has run allready).
         /// </summary>
         public static void NoOp()
         { }
@@ -162,7 +271,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <param name="messages">The messages.</param>
         public static void Output(Level level, object sourceObject, string sourceBlock, Exception exception, params object[] messages)
         {
-            if (level > LogLevel)
+            if (level > LogLevel && !LogAllToFile)
             {
                 return;
             }
@@ -215,7 +324,21 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         continue;
                     }
 
-                    string message = (messages[i] is string) ? (string)messages[i] : messages[i].ToString();
+                    string message;
+
+                    if (messages[i] is string)
+                    {
+                        message = (string)messages[i];
+                    }
+                    else if (messages[i] is float)
+                    {
+                        message = ((float)messages[i]).ToString("0,0.##", CultureInfo.InvariantCulture);
+                    }
+                    else
+                    {
+                        message = messages[i].ToString();
+                    }
+
                     if (message == null)
                     {
                         continue;
@@ -255,7 +378,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 msg.Insert(0, "] ").Insert(0, Library.Name).Insert(0, "[");
 
-                if (level != Level.None && level != Level.All)
+                if (level != Level.None && level != Level.All && level <= LogLevel)
                 {
                     try
                     {
@@ -280,17 +403,17 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     {
                         case Level.Info:
                             msg.Insert(0, "Info:    ");
-                            UnityEngine.Debug.Log(msg.CleanNewLines());
+                            if (level <= LogLevel) UnityEngine.Debug.Log(msg.CleanNewLines());
                             break;
 
                         case Level.Warning:
                             msg.Insert(0, "Warning: ");
-                            UnityEngine.Debug.LogWarning(msg.CleanNewLines());
+                            if (level <= LogLevel) UnityEngine.Debug.LogWarning(msg.CleanNewLines());
                             break;
 
                         case Level.Error:
                             msg.Insert(0, "Error:   ");
-                            UnityEngine.Debug.LogError(msg.CleanNewLines());
+                            if (level <= LogLevel) UnityEngine.Debug.LogError(msg.CleanNewLines());
                             break;
 
                         case Level.None:
@@ -300,7 +423,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                         default:
                             msg.Insert(0, "Debug:   ");
-                            UnityEngine.Debug.Log(msg.CleanNewLines());
+                            if (level <= LogLevel) UnityEngine.Debug.Log(msg.CleanNewLines());
                             break;
                     }
                 }
@@ -310,16 +433,27 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 {
                     try
                     {
-                        using (StreamWriter logFile = new StreamWriter(FileSystem.FilePathName(".log"), logFileCreated))
+                        msg.Insert(0, ' ').Insert(0, now.ToString("yyyy-MM-dd HH:mm:ss.fff"));
+                        msg.Append("\n");
+
+                        if (lineBuffer != null)
                         {
-                            msg.Insert(0, ' ').Insert(0, now.ToString("yyyy-MM-dd HH:mm:ss.fff"));
-                            msg.Append("\n");
-
-                            logFile.Write(msg.ConformNewlines());
-                            logFile.Close();
+                            lineBuffer.Add(msg.ConformNewlines());
+                            if (level >= Level.Warning || lineBuffer.Count >= BufferLines)
+                            {
+                                FlushBuffer();
+                            }
                         }
+                        else
+                        {
+                            using (StreamWriter logFile = new StreamWriter(FileSystem.FilePathName(".log"), logFileCreated))
+                            {
+                                logFile.Write(msg.ConformNewlines());
+                                logFile.Close();
+                            }
 
-                        logFileCreated = true;
+                            logFileCreated = true;
+                        }
                     }
                     catch { }
                 }

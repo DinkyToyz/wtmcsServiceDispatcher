@@ -13,6 +13,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// </summary>
         private bool isBroken = false;
 
+        private bool started = false;
         /// <summary>
         /// Initializes a new instance of the <see cref="ThreadingExtension"/> class.
         /// </summary>
@@ -29,6 +30,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public override void OnCreated(IThreading threading)
         {
             Log.Debug(this, "OnCreated", "Base");
+            Log.FlushBuffer();
             base.OnCreated(threading);
         }
 
@@ -38,6 +40,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public override void OnReleased()
         {
             Log.Debug(this, "OnReleased", "Base");
+            Log.FlushBuffer();
             base.OnReleased();
         }
 
@@ -55,11 +58,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             try
             {
-                if (Global.Buildings == null)
-                {
-                    return;
-                }
-
                 if (this.threadingManager.simulationPaused)
                 {
                     return;
@@ -67,15 +65,32 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 Global.CurrentFrame = this.threadingManager.simulationFrame;
 
-                // Update buildings and vehicles.
-                Global.Buildings.Update();
-                //Global.Vehicles.Update();
-
-                // Dispatch hearses.
-                if (Global.HearseDispatcher != null)
+                // Do vehicle based stuff.
+                if (Global.Vehicles != null)
                 {
-                    Global.HearseDispatcher.Dispatch();
+                    // Update vehicles.
+                    Global.Vehicles.Update();
                 }
+
+                // Do bulding based stuff.
+                if (Global.Buildings != null)
+                {
+                    // Update buildings.
+                    Global.Buildings.Update();
+
+                    // Dispatch hearses.
+                    if (Global.HearseDispatcher != null)
+                    {
+                        Global.HearseDispatcher.Dispatch();
+                    }
+                }
+
+                if (!started || (Global.CurrentFrame - Log.LastFlush >= 600))
+                {
+                    Log.FlushBuffer();
+                }
+
+                started = true;
             }
             catch (Exception ex)
             {
