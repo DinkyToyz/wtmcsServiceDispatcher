@@ -131,52 +131,55 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 for (ushort id = 0; id < buildings.Length; id++)
                 {
 
-                    List<string> info = new List<string>();
-
-                    info.Add("BuildingId=" + id.ToString());
-                    info.Add("AI=" + buildings[id].Info.m_buildingAI.GetType().ToString());
-                    info.Add("InfoName='" + buildings[id].Info.name + "'");
-
-                    string name = GetBuildingName(id);
-                    if (!String.IsNullOrEmpty(name) && name != buildings[id].Info.name)
+                    if (buildings[id].Info != null)
                     {
-                        info.Add("BuildingName='" + name + "'");
-                    }
+                        List<string> info = new List<string>();
 
-                    info.Add("DeathProblemTimer=" + buildings[id].m_deathProblemTimer.ToString());
-                    info.Add("HealthProblemTimer=" +buildings[id].m_healthProblemTimer.ToString());
-                    info.Add("MajorProblemTimer=" +buildings[id].m_majorProblemTimer.ToString());
+                        info.Add("BuildingId=" + id.ToString());
+                        info.Add("AI=" + buildings[id].Info.m_buildingAI.GetType().ToString());
+                        info.Add("InfoName='" + buildings[id].Info.name + "'");
 
-                    info.Add("GarbageAmount=" + buildings[id].Info.m_buildingAI.GetGarbageAmount(id, ref buildings[id]).ToString());
-                    info.Add("GarbageBuffer=" + buildings[id].m_garbageBuffer.ToString());
-
-                    string problems = buildings[id].m_problems.ToString();
-                    if (problems.IndexOfAny(new char[] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' }) >= 0)
-                    {
-                        foreach (Notification.Problem problem in Enum.GetValues(typeof(Notification.Problem)))
+                        string name = GetBuildingName(id);
+                        if (!String.IsNullOrEmpty(name) && name != buildings[id].Info.name)
                         {
-                            if (problem != Notification.Problem.None && (buildings[id].m_problems & problem) == problem)
+                            info.Add("BuildingName='" + name + "'");
+                        }
+
+                        info.Add("DeathProblemTimer=" + buildings[id].m_deathProblemTimer.ToString());
+                        info.Add("HealthProblemTimer=" + buildings[id].m_healthProblemTimer.ToString());
+                        info.Add("MajorProblemTimer=" + buildings[id].m_majorProblemTimer.ToString());
+
+                        info.Add("GarbageAmount=" + buildings[id].Info.m_buildingAI.GetGarbageAmount(id, ref buildings[id]).ToString());
+                        info.Add("GarbageBuffer=" + buildings[id].m_garbageBuffer.ToString());
+
+                        string problems = buildings[id].m_problems.ToString();
+                        if (problems.IndexOfAny(new char[] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' }) >= 0)
+                        {
+                            foreach (Notification.Problem problem in Enum.GetValues(typeof(Notification.Problem)))
                             {
-                                problems += ", " + problem.ToString();
+                                if (problem != Notification.Problem.None && (buildings[id].m_problems & problem) == problem)
+                                {
+                                    problems += ", " + problem.ToString();
+                                }
                             }
                         }
-                    }
-                    info.Add("Problems=" + problems);
+                        info.Add("Problems=" + problems);
 
-                    string flags = buildings[id].m_flags.ToString();
-                    if (flags.IndexOfAny(new char[] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' }) >= 0)
-                    {
-                        foreach (Building.Flags flag in Enum.GetValues(typeof(Building.Flags)))
+                        string flags = buildings[id].m_flags.ToString();
+                        if (flags.IndexOfAny(new char[] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' }) >= 0)
                         {
-                            if (flag != Building.Flags.None && (buildings[id].m_flags & flag) == flag)
+                            foreach (Building.Flags flag in Enum.GetValues(typeof(Building.Flags)))
                             {
-                                flags += ", " + flag.ToString();
+                                if (flag != Building.Flags.None && (buildings[id].m_flags & flag) == flag)
+                                {
+                                    flags += ", " + flag.ToString();
+                                }
                             }
                         }
-                    }
-                    info.Add("Flags=" + flags);
+                        info.Add("Flags=" + flags);
 
-                    Log.DevDebug(typeof(Buildings), "DebugListLog", String.Join("; ", info.ToArray()));
+                        Log.DevDebug(typeof(Buildings), "DebugListLog", String.Join("; ", info.ToArray()));
+                    }
                 }
             }
             catch (Exception ex)
