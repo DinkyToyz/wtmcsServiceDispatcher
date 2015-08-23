@@ -42,7 +42,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 {
                     // Load settings.
                     Global.InitSettings();
-                    Global.InitBuildingChecks();
 
                     // Initialize dispatch objects.
                     if (Global.Settings.DispatchHearses || Global.Settings.DispatchGarbageTrucks)

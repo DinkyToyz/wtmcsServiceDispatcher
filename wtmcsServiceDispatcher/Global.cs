@@ -13,11 +13,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public static Buildings Buildings = null;
 
         /// <summary>
-        /// The bulding check parameters.
-        /// </summary>
-        public static Dispatcher.BuldingCheckParameters[] BuldingCheckParameters = null;
-
-        /// <summary>
         /// The current frame.
         /// </summary>
         public static uint CurrentFrame = 0;
@@ -86,15 +81,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// The vehicles.
         /// </summary>
         public static Vehicles Vehicles = null;
-
-        public static void InitBuildingChecks()
-        {
-            BuldingCheckParameters = Dispatcher.BuldingCheckParameters.GetBuldingCheckParameters();
-            if (BuldingCheckParameters == null || BuldingCheckParameters.Length == 0)
-            {
-                BuldingCheckParameters = Dispatcher.BuldingCheckParameters.GetBuldingCheckParameters(Settings.GetBuildingChecksParameters(Settings.BuildingCheckOrder.InRangeFirst));
-            }
-        }
 
         /// <summary>
         /// Initializes the settings.

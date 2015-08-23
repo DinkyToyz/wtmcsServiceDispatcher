@@ -13,6 +13,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// </summary>
         private bool isBroken = false;
 
+        /// <summary>
+        /// The game has started.
+        /// </summary>
         private bool started = false;
 
         /// <summary>
@@ -96,11 +99,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         Global.HearseDispatcher.Dispatch();
                     }
 
-                    ////// Dispatch garbage trucks;
-                    ////if (Global.GarbageTruckDispatcher != null)
-                    ////{
-                    ////    Global.GarbageTruckDispatcher.Dispatch();
-                    ////}
+                    // Dispatch garbage trucks;
+                    if (Global.GarbageTruckDispatcher != null)
+                    {
+                        Global.GarbageTruckDispatcher.Dispatch();
+                    }
                 }
 
                 if (!started || (Global.CurrentFrame - Log.LastFlush >= 600))

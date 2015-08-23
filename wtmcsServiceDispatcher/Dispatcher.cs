@@ -15,6 +15,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         protected Dictionary<ushort, uint> assignedTargets = new Dictionary<ushort, uint>();
 
         /// <summary>
+        /// The bulding check parameters.
+        /// </summary>
+        protected Dispatcher.BuldingCheckParameters[] BuldingChecks = null;
+
+        /// <summary>
         /// The dispatcher is just pretending to dispatch.
         /// </summary>
         protected bool IsPretending = Global.PretendToHandleStuff;
@@ -65,13 +70,13 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             if (HasTargetBuildings)
             {
                 bool initialized = false;
-                foreach (BuldingCheckParameters bcParams in Global.BuldingCheckParameters)
+                foreach (BuldingCheckParameters bcParams in BuldingChecks)
                 {
-                    if (Log.LogALot) Log.DevDebug(this, "Dispatch", bcParams.Setting, bcParams.OnlyProblematic, bcParams.MinProblemTimer, bcParams.IgnoreRange);
+                    if (Log.LogALot) Log.DevDebug(this, "Dispatch", bcParams.Setting, bcParams.OnlyProblematic, bcParams.MinProblemValue, bcParams.IgnoreRange);
 
                     ushort stillWaiting = 0;
 
-                    foreach (Buildings.TargetBuildingInfo targetBuilding in TargetBuildings.Where(tb => tb.CheckThis && tb.ProblemTimer >= bcParams.MinProblemTimer && (tb.HasProblem || !bcParams.OnlyProblematic)).OrderBy(tb => tb, Global.TargetBuildingInfoPriorityComparer))
+                    foreach (Buildings.TargetBuildingInfo targetBuilding in TargetBuildings.Where(tb => tb.CheckThis && tb.ProblemValue >= bcParams.MinProblemValue && (tb.HasProblem || !bcParams.OnlyProblematic)).OrderBy(tb => tb, Global.TargetBuildingInfoPriorityComparer))
                     {
                         // Initialize vehicle data.
                         if (!initialized)
@@ -119,6 +124,18 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 }
             }
         }
+
+        /// <summary>
+        /// Initializes the building check parameters.
+        /// </summary>
+        public abstract void InitBuildingChecks();
+
+        /// <summary>
+        /// Get capacity using the correct AI cast.
+        /// </summary>
+        /// <param name="vehicle">The vehicle.</param>
+        /// <returns></returns>
+        protected abstract int AIGetCapacity(ref Vehicle vehicle);
 
         /// <summary>
         /// Set target with the vehicles AI.
@@ -218,8 +235,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             ushort vehicleId;
             bool canCollect;
             bool collecting;
-            string localeKey;
-            int bufCur, bufMax;
 
             // Loop through the service buildings.
             foreach (Buildings.ServiceBuildingInfo serviceBuilding in ServiceBuildings)
@@ -233,12 +248,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     {
                         // Check if vehicle is free to dispatch and has free space.
                         collecting = (vehicles[vehicleId].m_flags & Vehicle.Flags.TransferToSource) != Vehicle.Flags.None && (vehicles[vehicleId].m_flags & Vehicle.Flags.TransferToTarget) == Vehicle.Flags.None;
-                        canCollect = collecting;
-                        if (canCollect)
-                        {
-                            vehicles[vehicleId].Info.m_vehicleAI.GetBufferStatus(vehicleId, ref vehicles[vehicleId], out localeKey, out bufCur, out bufMax);
-                            canCollect = bufCur < bufMax;
-                        }
+                        canCollect = collecting && vehicles[vehicleId].m_transferSize < AIGetCapacity(ref vehicles[vehicleId]);
 
                         // Update vehicle status.
                         if (serviceBuilding.Vehicles.ContainsKey(vehicleId))
@@ -335,7 +345,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 this.Setting = Settings.BuildingCheckParameters.Custom;
                 this.OnlyProblematic = onlyProblematic;
                 this.IgnoreRange = ignoreRange;
-                this.MinProblemTimer = minTimer;
+                this.MinProblemValue = minTimer;
             }
 
             /// <summary>
@@ -351,43 +361,43 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     case Settings.BuildingCheckParameters.InRange:
                         this.OnlyProblematic = false;
                         this.IgnoreRange = false;
-                        this.MinProblemTimer = 0;
+                        this.MinProblemValue = 0;
                         break;
 
                     case Settings.BuildingCheckParameters.Any:
                         this.OnlyProblematic = false;
                         this.IgnoreRange = true;
-                        this.MinProblemTimer = 0;
+                        this.MinProblemValue = 0;
                         break;
 
                     case Settings.BuildingCheckParameters.ProblematicInRange:
                         this.OnlyProblematic = true;
                         this.IgnoreRange = false;
-                        this.MinProblemTimer = 0;
+                        this.MinProblemValue = 0;
                         break;
 
                     case Settings.BuildingCheckParameters.ProblematicIgnoreRange:
                         this.OnlyProblematic = true;
                         this.IgnoreRange = true;
-                        this.MinProblemTimer = 0;
+                        this.MinProblemValue = 0;
                         break;
 
                     case Settings.BuildingCheckParameters.ForgottenInRange:
                         this.OnlyProblematic = false;
                         this.IgnoreRange = false;
-                        this.MinProblemTimer = 255;
+                        this.MinProblemValue = (ushort)255 << 8;
                         break;
 
                     case Settings.BuildingCheckParameters.ForgottenIgnoreRange:
                         this.OnlyProblematic = false;
                         this.IgnoreRange = true;
-                        this.MinProblemTimer = 255;
+                        this.MinProblemValue = (ushort)255 << 8;
                         break;
 
                     default:
                         this.OnlyProblematic = false;
                         this.IgnoreRange = true;
-                        this.MinProblemTimer = 0;
+                        this.MinProblemValue = 0;
                         break;
                 }
             }
@@ -406,7 +416,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             /// <value>
             /// The minimum problem timer.
             /// </value>
-            public byte MinProblemTimer { get; private set; }
+            public ushort MinProblemValue { get; private set; }
 
             /// <summary>
             /// Gets a value indicating whether only problematic buildings should be checked.
@@ -431,14 +441,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             /// <returns>
             /// The bulding check parameters.
             /// </returns>
-            public static BuldingCheckParameters[] GetBuldingCheckParameters(Settings.BuildingCheckParameters[] buildingCheckParameters = null)
+            public static BuldingCheckParameters[] GetBuldingCheckParameters(Settings.BuildingCheckParameters[] buildingCheckParameters)
             {
-                if (buildingCheckParameters == null)
-                {
-                    Global.InitSettings();
-                    buildingCheckParameters = Global.Settings.BuildingChecksParameters;
-                }
-
                 return buildingCheckParameters.Select(bcp => new BuldingCheckParameters(bcp)).ToArray();
             }
         }

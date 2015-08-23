@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Xml.Serialization;
@@ -23,7 +24,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// Wether garbage trucks should be handled or not.
         /// </summary>
-        public bool DispatchGarbageTrucks = false;
+        public bool DispatchGarbageTrucks = true;
 
         /// <summary>
         /// Wether hearses should be handled or not.
@@ -36,9 +37,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public bool LimitRange = true;
 
         /// <summary>
+        /// The minimum amount of garbage to dispatch a truck for.
+        /// </summary>
+        public ushort MinimumGarbageForDispatch = 2000;
+
+        /// <summary>
         /// The range modifier
         /// </summary>
-        public float RangeModifier = 1.5f;
+        public float RangeModifier = 1.0f;
 
         /// <summary>
         /// Wether stopped garbage trucks should be removed from grid or not.
@@ -58,25 +64,35 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// The display names for the building checks orders.
         /// </summary>
-        private static string[] buildingCheckOrderNames = new string[]
+        private static Dictionary<BuildingCheckOrder, string> buildingCheckOrderNames = new Dictionary<BuildingCheckOrder, string>()
         {
-            "Custom",
-            "First first",
-            "In range first",
-            "Problematic first",
-            "Forgotten first",
-            "In range"
+            { BuildingCheckOrder.Custom, "Custom" },
+            { BuildingCheckOrder.FirstFirst, "First first" },
+            { BuildingCheckOrder.ForgottenFirst, "Forgotten first" },
+            { BuildingCheckOrder.InRange, "In range" },
+            { BuildingCheckOrder.InRangeFirst, "In range first" },
+            { BuildingCheckOrder.ProblematicFirst, "Problematic first" }
         };
 
         /// <summary>
         /// The custom building checks.
         /// </summary>
-        private BuildingCheckParameters[] buildingChecksCustom = null;
+        private BuildingCheckParameters[] deathChecksCustom = null;
 
         /// <summary>
-        /// The building checks presets.
+        /// The dead people building checks presets.
         /// </summary>
-        private BuildingCheckOrder buildingChecksPreset = BuildingCheckOrder.InRangeFirst;
+        private BuildingCheckOrder deathChecksPreset = BuildingCheckOrder.InRange;
+
+        /// <summary>
+        /// The custom building checks.
+        /// </summary>
+        private BuildingCheckParameters[] garbageChecksCustom = null;
+
+        /// <summary>
+        /// The dirty building checks presets.
+        /// </summary>
+        private BuildingCheckOrder garbageChecksPreset = BuildingCheckOrder.InRange;
 
         /// <summary>
         /// The settings version in the loaded file.
@@ -97,18 +113,24 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 this.LimitRange = settings.LimitRange;
                 this.RangeModifier = settings.RangeModifier;
 
-                this.buildingChecksPreset = settings.BuildingChecksPreset;
-                this.buildingChecksCustom = settings.BuildingChecksCustom;
-                if (this.buildingChecksPreset == BuildingCheckOrder.Custom && (buildingChecksCustom == null || buildingChecksCustom.Length == 0))
-                {
-                    this.buildingChecksPreset = BuildingCheckOrder.InRangeFirst;
-                }
-
                 this.DispatchHearses = settings.DispatchHearses;
                 this.RemoveHearsesFromGrid = settings.RemoveHearsesFromGrid;
+                this.deathChecksPreset = settings.DeathChecksPreset;
+                this.deathChecksCustom = settings.DeathChecksCustom;
+                if (this.deathChecksPreset == BuildingCheckOrder.Custom && (this.deathChecksCustom == null || this.deathChecksCustom.Length == 0))
+                {
+                    this.deathChecksCustom = GetBuildingChecksParameters(BuildingCheckOrder.InRange);
+                }
 
                 this.DispatchGarbageTrucks = settings.DispatchGarbageTrucks;
                 this.RemoveGarbageTrucksFromGrid = settings.RemoveGarbageTrucksFromGrid;
+                this.MinimumGarbageForDispatch = settings.MinimumGarbageForDispatch;
+                this.garbageChecksPreset = settings.GarbageChecksPreset;
+                this.garbageChecksCustom = settings.GarbageChecksCustom;
+                if (this.garbageChecksPreset == BuildingCheckOrder.Custom && (this.garbageChecksCustom == null || this.garbageChecksCustom.Length == 0))
+                {
+                    this.garbageChecksCustom = GetBuildingChecksParameters(BuildingCheckOrder.InRange);
+                }
             }
         }
 
@@ -123,29 +145,29 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             Custom = 0,
 
             /// <summary>
+            /// 1, in range; 2, forgotten.
+            /// </summary>
+            InRange = 1,
+
+            /// <summary>
             /// Custom order.
             /// </summary>
-            FirstFirst = 1,
+            FirstFirst = 2,
 
             /// <summary>
             /// 1, in range; 2, problematic out of range.
             /// </summary>
-            InRangeFirst = 2,
+            InRangeFirst = 3,
 
             /// <summary>
             /// 1, problematic in range; 2, problematic; 3, in range.
             /// </summary>
-            ProblematicFirst = 3,
+            ProblematicFirst = 4,
 
             /// <summary>
             /// 1, forgotten in range; 2, forgotten out of range; 3, in range; 4, problematic out of range.
             /// </summary>
-            ForgottenFirst = 4,
-
-            /// <summary>
-            /// 1, in range; 2, forgotten.
-            /// </summary>
-            InRange = 5
+            ForgottenFirst = 5
         }
 
         /// <summary>
@@ -204,16 +226,53 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
-        /// Gets the building checks parameters.
+        /// Gets the dead people building checks parameters.
         /// </summary>
         /// <value>
         /// The building checks parameters.
         /// </value>
-        public BuildingCheckParameters[] BuildingChecksParameters
+        public BuildingCheckParameters[] DeathChecksParameters
         {
             get
             {
-                return GetBuildingChecksParameters(this.buildingChecksPreset, this.buildingChecksCustom, !Object.ReferenceEquals(this, Global.Settings));
+                return GetBuildingChecksParameters(this.deathChecksPreset, this.deathChecksCustom);
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the dead people building checks preset.
+        /// </summary>
+        /// <value>
+        /// The building checks preset.
+        /// </value>
+        public BuildingCheckOrder DeathChecksPreset
+        {
+            get
+            {
+                return deathChecksPreset;
+            }
+            set
+            {
+                deathChecksPreset = value;
+
+                if (value == BuildingCheckOrder.Custom && (deathChecksCustom == null || deathChecksCustom.Length == 0))
+                {
+                    deathChecksCustom = GetBuildingChecksParameters(BuildingCheckOrder.InRange);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets the garbage building checks parameters.
+        /// </summary>
+        /// <value>
+        /// The building checks parameters.
+        /// </value>
+        public BuildingCheckParameters[] GarbageChecksParameters
+        {
+            get
+            {
+                return GetBuildingChecksParameters(this.garbageChecksPreset, this.garbageChecksCustom);
             }
         }
 
@@ -223,19 +282,19 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <value>
         /// The building checks preset.
         /// </value>
-        public BuildingCheckOrder BuildingChecksPreset
+        public BuildingCheckOrder GarbageChecksPreset
         {
             get
             {
-                return buildingChecksPreset;
+                return garbageChecksPreset;
             }
             set
             {
-                buildingChecksPreset = value;
+                garbageChecksPreset = value;
 
-                if (value == BuildingCheckOrder.Custom && (buildingChecksCustom == null || buildingChecksCustom.Length == 0))
+                if (value == BuildingCheckOrder.Custom && (garbageChecksCustom == null || garbageChecksCustom.Length == 0))
                 {
-                    buildingChecksCustom = GetBuildingChecksParameters(BuildingCheckOrder.InRangeFirst);
+                    garbageChecksCustom = GetBuildingChecksParameters(BuildingCheckOrder.InRange);
                 }
             }
         }
@@ -261,12 +320,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <returns>The display name.</returns>
         public static string GetBuildingCheckOrderName(BuildingCheckOrder checkOrder)
         {
-            if ((byte)checkOrder >= 0 && (byte)checkOrder < buildingCheckOrderNames.Length)
-            {
-                return buildingCheckOrderNames[(byte)checkOrder];
-            }
-
-            return checkOrder.ToString();
+            return buildingCheckOrderNames.ContainsKey(checkOrder) ? buildingCheckOrderNames[checkOrder] : checkOrder.ToString();
         }
 
         /// <summary>
@@ -274,11 +328,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// </summary>
         /// <param name="buildingChecks">The building check order.</param>
         /// <param name="customBuildingCheckParameters">The custom building check parameters.</param>
-        /// <param name="checkGlobal">if set to <c>true</c> check global settings if needed.</param>
         /// <returns>
         /// The building checks parameters.
         /// </returns>
-        public static BuildingCheckParameters[] GetBuildingChecksParameters(BuildingCheckOrder buildingChecks, BuildingCheckParameters[] customBuildingCheckParameters = null, bool checkGlobal = true)
+        public static BuildingCheckParameters[] GetBuildingChecksParameters(BuildingCheckOrder buildingChecks, BuildingCheckParameters[] customBuildingCheckParameters = null)
         {
             switch (buildingChecks)
             {
@@ -298,25 +351,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     return new BuildingCheckParameters[] { BuildingCheckParameters.InRange, BuildingCheckParameters.ForgottenIgnoreRange };
 
                 case Settings.BuildingCheckOrder.Custom:
-                    if (customBuildingCheckParameters != null)
-                    {
-                        return customBuildingCheckParameters;
-                    }
-
-                    if (checkGlobal && Global.Settings != null)
-                    {
-                        if (Global.Settings.buildingChecksCustom != null)
-                        {
-                            return Global.Settings.buildingChecksCustom;
-                        }
-
-                        if (Global.Settings.buildingChecksPreset != BuildingCheckOrder.Custom)
-                        {
-                            return GetBuildingChecksParameters(Global.Settings.buildingChecksPreset);
-                        }
-                    }
-
-                    return GetBuildingChecksParameters(BuildingCheckOrder.InRangeFirst);
+                    return (customBuildingCheckParameters != null) ? customBuildingCheckParameters : GetBuildingChecksParameters(BuildingCheckOrder.InRange);
 
                 default:
                     return GetBuildingChecksParameters(BuildingCheckOrder.FirstFirst);
@@ -377,18 +412,24 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             Log.Debug(this, "LogSettings", "LimitRange", LimitRange);
             Log.Debug(this, "LogSettings", "RangeModifier", RangeModifier);
 
-            Log.Debug(this, "LogSettings", "BuildingChecks", (byte)buildingChecksPreset, buildingChecksPreset, GetBuildingCheckOrderName(buildingChecksPreset));
-            Log.Debug(this, "LogSettings", "BuildingChecksParameters", String.Join(", ", BuildingChecksParameters.Select(bc => bc.ToString()).ToArray()));
-            if (buildingChecksCustom != null)
-            {
-                Log.Debug(this, "LogSettings", "BuildingChecksCustom", String.Join(", ", buildingChecksCustom.Select(bc => bc.ToString()).ToArray()));
-            }
-
             Log.Debug(this, "LogSettings", "DispatchHearses", DispatchHearses);
             Log.Debug(this, "LogSettings", "RemoveHearsesFromGrid", RemoveHearsesFromGrid);
+            Log.Debug(this, "LogSettings", "DeathChecks", (byte)deathChecksPreset, deathChecksPreset, GetBuildingCheckOrderName(deathChecksPreset));
+            Log.Debug(this, "LogSettings", "DeathChecksParameters", String.Join(", ", DeathChecksParameters.Select(bc => bc.ToString()).ToArray()));
+            if (deathChecksCustom != null)
+            {
+                Log.Debug(this, "LogSettings", "DeathChecksCustom", String.Join(", ", deathChecksCustom.Select(bc => bc.ToString()).ToArray()));
+            }
 
             Log.Debug(this, "LogSettings", "DispatchGarbageTrucks", DispatchGarbageTrucks);
             Log.Debug(this, "LogSettings", "RemoveGarbageTrucksFromGrid", RemoveGarbageTrucksFromGrid);
+            Log.Debug(this, "LogSettings", "MinimumGarbageForDispatch", MinimumGarbageForDispatch);
+            Log.Debug(this, "LogSettings", "GarbageChecks", (byte)garbageChecksPreset, garbageChecksPreset, GetBuildingCheckOrderName(garbageChecksPreset));
+            Log.Debug(this, "LogSettings", "GarbageChecksParameters", String.Join(", ", GarbageChecksParameters.Select(bc => bc.ToString()).ToArray()));
+            if (garbageChecksCustom != null)
+            {
+                Log.Debug(this, "LogSettings", "GarbageChecksCustom", String.Join(", ", garbageChecksCustom.Select(bc => bc.ToString()).ToArray()));
+            }
 
             Log.Debug(this, "LogSettings", Version, LoadedVersion, SaveCount);
         }
@@ -427,15 +468,18 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     cfg.LimitRange = this.LimitRange;
                     cfg.RangeModifier = this.RangeModifier;
 
-                    cfg.BuildingChecksPreset = this.buildingChecksPreset;
-                    cfg.BuildingChecksCustom = this.buildingChecksCustom;
-                    cfg.BuildingChecksCurrent = this.BuildingChecksParameters;
-
                     cfg.RemoveHearsesFromGrid = this.RemoveHearsesFromGrid;
                     cfg.DispatchHearses = this.DispatchHearses;
+                    cfg.DeathChecksPreset = this.deathChecksPreset;
+                    cfg.DeathChecksCustom = this.deathChecksCustom;
+                    cfg.DeathChecksCurrent = this.DeathChecksParameters;
 
                     cfg.RemoveGarbageTrucksFromGrid = this.RemoveGarbageTrucksFromGrid;
                     cfg.DispatchGarbageTrucks = this.DispatchGarbageTrucks;
+                    cfg.MinimumGarbageForDispatch = this.MinimumGarbageForDispatch;
+                    cfg.GarbageChecksPreset = this.garbageChecksPreset;
+                    cfg.GarbageChecksCustom = this.garbageChecksCustom;
+                    cfg.GarbageChecksCurrent = this.GarbageChecksParameters;
 
                     cfg.BuildingChecksPresets = (Enum.GetValues(typeof(BuildingCheckOrder)) as BuildingCheckOrder[]).Where(bco => bco != BuildingCheckOrder.Custom).Select(bco => new ServiceDispatcherSettings.BuildingChecksPresetInfo(bco)).ToArray();
                     cfg.BuildingChecksPossible = (Enum.GetValues(typeof(BuildingCheckParameters)) as BuildingCheckParameters[]).Where(bcp => bcp != BuildingCheckParameters.Custom).ToArray();
@@ -464,29 +508,29 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public class ServiceDispatcherSettings
         {
             /// <summary>
-            /// The current building checks.
-            /// </summary>
-            public BuildingCheckParameters[] BuildingChecksCurrent = null;
-
-            /// <summary>
-            /// The custom building checks.
-            /// </summary>
-            public BuildingCheckParameters[] BuildingChecksCustom = null;
-
-            /// <summary>
             /// The possible building checks.
             /// </summary>
             public BuildingCheckParameters[] BuildingChecksPossible = null;
 
             /// <summary>
-            /// The building checks presets.
-            /// </summary>
-            public BuildingCheckOrder BuildingChecksPreset = BuildingCheckOrder.InRangeFirst;
-
-            /// <summary>
             /// The possible building checks presets.
             /// </summary>
             public BuildingChecksPresetInfo[] BuildingChecksPresets = null;
+
+            /// <summary>
+            /// The current dead people building checks.
+            /// </summary>
+            public BuildingCheckParameters[] DeathChecksCurrent = null;
+
+            /// <summary>
+            /// The custom building checks.
+            /// </summary>
+            public BuildingCheckParameters[] DeathChecksCustom = null;
+
+            /// <summary>
+            /// The dead people building checks presets.
+            /// </summary>
+            public BuildingCheckOrder DeathChecksPreset = BuildingCheckOrder.InRange;
 
             /// <summary>
             /// Wether the dispatch should be limited by district or not.
@@ -504,9 +548,29 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             public Boolean DispatchHearses = true;
 
             /// <summary>
+            /// The current garbage building checks.
+            /// </summary>
+            public BuildingCheckParameters[] GarbageChecksCurrent = null;
+
+            /// <summary>
+            /// The custom building checks.
+            /// </summary>
+            public BuildingCheckParameters[] GarbageChecksCustom = null;
+
+            /// <summary>
+            /// The dirty building checks presets.
+            /// </summary>
+            public BuildingCheckOrder GarbageChecksPreset = BuildingCheckOrder.InRange;
+
+            /// <summary>
             /// Limit service building range for target buildings without problems.
             /// </summary>
             public bool LimitRange = false;
+
+            /// <summary>
+            /// The minimum amount of garbage to dispatch a truck for.
+            /// </summary>
+            public ushort MinimumGarbageForDispatch = 2000;
 
             /// <summary>
             /// The range modifier
@@ -558,13 +622,13 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 }
 
                 /// <summary>
-                /// Initializes a new instance of the <see cref="BuildingChecksPreset"/> class.
+                /// Initializes a new instance of the <see cref="BuildingChecksPresetInfo" /> class.
                 /// </summary>
                 /// <param name="buildingCheckOrder">The building check order preset.</param>
                 public BuildingChecksPresetInfo(BuildingCheckOrder buildingCheckOrder)
                 {
                     this.Identifier = buildingCheckOrder;
-                    this.BuildingChecks = GetBuildingChecksParameters(Identifier, null, false);
+                    this.BuildingChecks = GetBuildingChecksParameters(Identifier);
                 }
             }
         }

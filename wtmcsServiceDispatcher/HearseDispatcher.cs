@@ -13,6 +13,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public HearseDispatcher()
             : base()
         {
+            InitBuildingChecks();
+            BuldingChecks = Dispatcher.BuldingCheckParameters.GetBuldingCheckParameters(Global.Settings.GarbageChecksParameters);
             Log.Debug(this, "Constructed");
         }
 
@@ -59,13 +61,21 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
-        /// Determines whether vehicle is correct type of vehicle.
+        /// Initializes the building check parameters.
         /// </summary>
-        /// <param name="vehicleInfo">The vehicle information.</param>
-        /// <returns>True if vehicle is correct type.</returns>
-        protected override bool IsMyType(VehicleInfo vehicleInfo)
+        public override void InitBuildingChecks()
         {
-            return (vehicleInfo != null && vehicleInfo.m_vehicleAI is HearseAI);
+            BuldingChecks = Dispatcher.BuldingCheckParameters.GetBuldingCheckParameters(Global.Settings.GarbageChecksParameters);
+        }
+
+        /// <summary>
+        /// Get capacity using the correct AI cast.
+        /// </summary>
+        /// <param name="vehicle">The vehicle.</param>
+        /// <returns></returns>
+        protected override int AIGetCapacity(ref Vehicle vehicle)
+        {
+            return ((HearseAI)(vehicle.Info.m_vehicleAI)).m_corpseCapacity;
         }
 
         /// <summary>
@@ -77,6 +87,16 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         protected override void AISetTarget(ushort vehicleId, ref Vehicle vehicle, ushort buildingId)
         {
             ((HearseAI)(vehicle.Info.m_vehicleAI)).SetTarget(vehicleId, ref vehicle, buildingId);
+        }
+
+        /// <summary>
+        /// Determines whether vehicle is correct type of vehicle.
+        /// </summary>
+        /// <param name="vehicleInfo">The vehicle information.</param>
+        /// <returns>True if vehicle is correct type.</returns>
+        protected override bool IsMyType(VehicleInfo vehicleInfo)
+        {
+            return (vehicleInfo != null && vehicleInfo.m_vehicleAI is HearseAI);
         }
     }
 }

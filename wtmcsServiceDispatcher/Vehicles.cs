@@ -104,12 +104,13 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         info.Add("BufCur=" + bufCur.ToString());
                         info.Add("BufMax=" + bufMax.ToString());
 
+                        info.Add("TransferSize=" + vehicles[id].m_transferSize);
+
                         if (vehicles[id].Info.m_vehicleAI is HearseAI)
                         {
                             info.Add("Capacity=" + ((HearseAI)vehicles[id].Info.m_vehicleAI).m_corpseCapacity.ToString());
                         }
-
-                        if (vehicles[id].Info.m_vehicleAI is GarbageTruckAI)
+                        else if (vehicles[id].Info.m_vehicleAI is GarbageTruckAI)
                         {
                             info.Add("Capacity=" + ((GarbageTruckAI)vehicles[id].Info.m_vehicleAI).m_cargoCapacity.ToString());
                         }
@@ -228,8 +229,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <param name="lastVehicleId">The last vehicle identifier.</param>
         private void HandleVehicles(ref Vehicle[] vehicles, ushort firstVehicleId, int lastVehicleId)
         {
-            return;
-
             for (ushort id = firstVehicleId; id < lastVehicleId; id++)
             {
                 if (vehicles[id].m_leadingVehicle != 0 || vehicles[id].m_cargoParent != 0 || vehicles[id].Info == null || (vehicles[id].m_flags & Vehicle.Flags.Spawned) == Vehicle.Flags.None)

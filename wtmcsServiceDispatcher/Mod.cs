@@ -105,35 +105,62 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 UIHelperBase dispatchGroup = helper.AddGroup("Central Services Dispatch");
                 dispatchGroup.AddCheckbox("Dispatch by district", Global.Settings.DispatchByDistrict, value => { Global.Settings.DispatchByDistrict = value; Global.Settings.Save(); });
                 dispatchGroup.AddCheckbox("Limit by building range", Global.Settings.LimitRange, value => { Global.Settings.LimitRange = value; Global.Settings.Save(); });
-                dispatchGroup.AddSlider("Service Building range modifier (0.1 - 10)", 0.1f, 10.0f, 0.1f, Global.Settings.RangeModifier, value => { Global.Settings.RangeModifier = value; Global.Settings.Save(); });
-                dispatchGroup.AddDropdown("Target Building Checks", TargetBuildingChecks.OrderBy(bco => bco.Key).Select(bco => bco.Value).ToArray(), (int)Global.Settings.BuildingChecksPreset,
+                dispatchGroup.AddSlider("Range modifier (0.1 - 10)", 0.1f, 10.0f, 0.1f, Global.Settings.RangeModifier, value => { Global.Settings.RangeModifier = value; Global.Settings.Save(); });
+
+                // Add hearse group.
+                UIHelperBase hearseGroup = helper.AddGroup("Hearses");
+                hearseGroup.AddCheckbox("Dispatch hearses", Global.Settings.DispatchHearses, value => { Global.Settings.DispatchHearses = value; Global.Settings.Save(); });
+                hearseGroup.AddCheckbox("Pass through hearses", Global.Settings.RemoveHearsesFromGrid, value => { Global.Settings.RemoveHearsesFromGrid = value; Global.Settings.Save(); });
+                hearseGroup.AddDropdown("Hearse dispatch strategy", TargetBuildingChecks.OrderBy(bco => bco.Key).Select(bco => bco.Value).ToArray(), (int)Global.Settings.DeathChecksPreset,
                     value =>
                     {
-                        if (Log.LogALot || Library.IsDebugBuild) Log.Debug(this, "OnSettingsUI", "Set", "BuildingCheckOrder", value);
+                        if (Log.LogALot || Library.IsDebugBuild) Log.Debug(this, "OnSettingsUI", "Set", "DeathChecksPreset", value);
 
                         foreach (Settings.BuildingCheckOrder checks in Enum.GetValues(typeof(Settings.BuildingCheckOrder)))
                         {
                             if ((byte)checks == value)
                             {
-                                if (Log.LogALot || Library.IsDebugBuild) Log.Debug(this, "OnSettingsUI", "Set", "BuildingCheckOrder", value, checks);
+                                if (Log.LogALot || Library.IsDebugBuild) Log.Debug(this, "OnSettingsUI", "Set", "DeathChecksPreset", value, checks);
 
-                                Global.Settings.BuildingChecksPreset = checks;
-                                Global.InitBuildingChecks();
+                                Global.Settings.DeathChecksPreset = checks;
+                                if (Global.HearseDispatcher != null)
+                                {
+                                    Global.HearseDispatcher.InitBuildingChecks();
+                                }
                                 Global.Settings.Save();
                                 break;
                             }
                         }
                     });
 
-                // Add hearse group.
-                UIHelperBase hearseGroup = helper.AddGroup("Hearses");
-                hearseGroup.AddCheckbox("Dispatch hearses", Global.Settings.DispatchHearses, value => { Global.Settings.DispatchHearses = value; Global.Settings.Save(); });
-                hearseGroup.AddCheckbox("Pass through hearses", Global.Settings.RemoveHearsesFromGrid, value => { Global.Settings.RemoveHearsesFromGrid = value; Global.Settings.Save(); });
-
                 // Add garbage group.
                 UIHelperBase garbageGroup = helper.AddGroup("Garbage Trucks");
-                hearseGroup.AddCheckbox("Dispatch garbage trucks", Global.Settings.DispatchGarbageTrucks, value => { Global.Settings.DispatchGarbageTrucks = value; Global.Settings.Save(); });
-                hearseGroup.AddCheckbox("Pass through garbage trucks", Global.Settings.RemoveGarbageTrucksFromGrid, value => { Global.Settings.RemoveGarbageTrucksFromGrid = value; Global.Settings.Save(); });
+                garbageGroup.AddCheckbox("Dispatch garbage trucks", Global.Settings.DispatchGarbageTrucks, value => { Global.Settings.DispatchGarbageTrucks = value; Global.Settings.Save(); });
+                garbageGroup.AddCheckbox("Pass through garbage trucks", Global.Settings.RemoveGarbageTrucksFromGrid, value => { Global.Settings.RemoveGarbageTrucksFromGrid = value; Global.Settings.Save(); });
+                garbageGroup.AddDropdown("Garbage truck dispatch strategy", TargetBuildingChecks.OrderBy(bco => bco.Key).Select(bco => bco.Value).ToArray(), (int)Global.Settings.GarbageChecksPreset,
+                    value =>
+                    {
+                        if (Log.LogALot || Library.IsDebugBuild) Log.Debug(this, "OnSettingsUI", "Set", "GarbageChecksPreset", value);
+
+                        foreach (Settings.BuildingCheckOrder checks in Enum.GetValues(typeof(Settings.BuildingCheckOrder)))
+                        {
+                            if ((byte)checks == value)
+                            {
+                                if (Log.LogALot || Library.IsDebugBuild) Log.Debug(this, "OnSettingsUI", "Set", "GarbageChecksPreset", value, checks);
+
+                                Global.Settings.GarbageChecksPreset = checks;
+                                if (Global.GarbageTruckDispatcher != null)
+                                {
+                                    Global.GarbageTruckDispatcher.InitBuildingChecks();
+                                }
+                                Global.Settings.Save();
+                                break;
+                            }
+                        }
+                    });
+                garbageGroup.AddSlider("Garbage amount limit (1-5000)", 1.0f, 5000.0f, 1.0f, Global.Settings.MinimumGarbageForDispatch, value => { Global.Settings.MinimumGarbageForDispatch = (ushort)value; Global.Settings.Save(); });
+
+                Log.FlushBuffer();
             }
             catch (System.Exception ex)
             {

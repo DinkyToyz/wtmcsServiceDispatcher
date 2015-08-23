@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
+﻿namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 {
     /// <summary>
     /// Mod info.
@@ -23,7 +18,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// The title.
         /// </summary>
-        public const string Title = "WtM Central Services Dispatcher";
+        public const string Title = "Central Services Dispatcher (WtM)";
 
         /// <summary>
         /// Gets a value indicating whether this is a debug build.

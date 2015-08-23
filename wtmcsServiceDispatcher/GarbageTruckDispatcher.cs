@@ -13,7 +13,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public GarbageTruckDispatcher()
             : base()
         {
-            IsPretending = true;
+            BuldingChecks = Dispatcher.BuldingCheckParameters.GetBuldingCheckParameters(Global.Settings.GarbageChecksParameters);
             Log.Debug(this, "Constructed");
         }
 
@@ -57,6 +57,24 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             {
                 return Global.Buildings.DirtyBuildings;
             }
+        }
+
+        /// <summary>
+        /// Initializes the building check parameters.
+        /// </summary>
+        public override void InitBuildingChecks()
+        {
+            BuldingChecks = Dispatcher.BuldingCheckParameters.GetBuldingCheckParameters(Global.Settings.GarbageChecksParameters);
+        }
+
+        /// <summary>
+        /// Get capacity using the correct AI cast.
+        /// </summary>
+        /// <param name="vehicle">The vehicle.</param>
+        /// <returns></returns>
+        protected override int AIGetCapacity(ref Vehicle vehicle)
+        {
+            return ((GarbageTruckAI)(vehicle.Info.m_vehicleAI)).m_cargoCapacity;
         }
 
         /// <summary>
