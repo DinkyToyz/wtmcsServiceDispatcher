@@ -23,7 +23,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// Wether garbage trucks should be handled or not.
         /// </summary>
-        public bool DispatchGarbageTrucks = true;
+        public bool DispatchGarbageTrucks = false;
 
         /// <summary>
         /// Wether hearses should be handled or not.
@@ -62,9 +62,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             "Custom",
             "First first",
-            "In-range first",
+            "In range first",
             "Problematic first",
-            "Forgotten first"
+            "Forgotten first",
+            "In range"
         };
 
         /// <summary>
@@ -139,7 +140,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             /// <summary>
             /// 1, forgotten in range; 2, forgotten out of range; 3, in range; 4, problematic out of range.
             /// </summary>
-            ForgottenFirst = 4
+            ForgottenFirst = 4,
+
+            /// <summary>
+            /// 1, in range; 2, forgotten.
+            /// </summary>
+            InRange = 5
         }
 
         /// <summary>
@@ -276,17 +282,20 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             switch (buildingChecks)
             {
-                case Settings.BuildingCheckOrder.FirstFirst:
+                case BuildingCheckOrder.FirstFirst:
                     return new BuildingCheckParameters[] { BuildingCheckParameters.Any };
 
-                case Settings.BuildingCheckOrder.InRangeFirst:
+                case BuildingCheckOrder.InRangeFirst:
                     return new BuildingCheckParameters[] { BuildingCheckParameters.InRange, BuildingCheckParameters.ProblematicIgnoreRange };
 
-                case Settings.BuildingCheckOrder.ProblematicFirst:
+                case BuildingCheckOrder.ProblematicFirst:
                     return new BuildingCheckParameters[] { BuildingCheckParameters.ProblematicInRange, BuildingCheckParameters.ProblematicIgnoreRange, BuildingCheckParameters.InRange };
 
-                case Settings.BuildingCheckOrder.ForgottenFirst:
+                case BuildingCheckOrder.ForgottenFirst:
                     return new BuildingCheckParameters[] { BuildingCheckParameters.ForgottenInRange, BuildingCheckParameters.ForgottenIgnoreRange, BuildingCheckParameters.InRange, BuildingCheckParameters.ProblematicIgnoreRange };
+
+                case BuildingCheckOrder.InRange:
+                    return new BuildingCheckParameters[] { BuildingCheckParameters.InRange, BuildingCheckParameters.ForgottenIgnoreRange };
 
                 case Settings.BuildingCheckOrder.Custom:
                     if (customBuildingCheckParameters != null)

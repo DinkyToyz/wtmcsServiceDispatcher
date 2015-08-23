@@ -69,6 +69,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     return;
                 }
 
+                if (Global.CurrentFrame == 0 && Log.LogDebugLists)
+                {
+                    Vehicles.DebugListLog();
+                    Buildings.DebugListLog();
+                }
+
                 Global.CurrentFrame = this.threadingManager.simulationFrame;
 
                 // Do vehicle based stuff.

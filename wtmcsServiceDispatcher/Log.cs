@@ -19,34 +19,39 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public static readonly bool LogALot;
 
         /// <summary>
-        /// The number of lines to buffer.
+        /// Log the debug lists.
         /// </summary>
-        public static int BufferLines = 5120;
-
-        /// <summary>
-        /// The last flush of buffer.
-        /// </summary>
-        public static uint LastFlush = 0;
+        public static bool LogDebugLists;
 
         /// <summary>
         /// The log level.
         /// </summary>
-        public static Level LogLevel;
+        public static Level LogLevel = Log.Level.Info;
+
+        /// <summary>
+        /// Log object names (slow).
+        /// </summary>
+        public static bool LogNames;
 
         /// <summary>
         /// True for logging to file.
         /// </summary>
-        public static bool LogToFile = true;
+        public static bool LogToFile = false;
+
+        /// <summary>
+        /// The number of lines to buffer.
+        /// </summary>
+        private static int BufferLines = 5120;
 
         /// <summary>
         /// The line buffer.
         /// </summary>
-        private static List<string> lineBuffer;
+        private static List<string> lineBuffer = null;
 
         /// <summary>
         /// The log info all to file.
         /// </summary>
-        private static bool LogAllToFile;
+        private static bool LogAllToFile = false;
 
         /// <summary>
         /// True when log file has been created.
@@ -58,30 +63,28 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// </summary>
         static Log()
         {
-            if (Library.IsDebugBuild || FileSystem.Exists(".debug"))
+            Log.LastFlush = 0;
+
+            Log.LogNames = FileSystem.Exists(".debug.names");
+            Log.LogDebugLists = FileSystem.Exists(".debug.lists");
+            Log.LogALot = FileSystem.Exists(".debug.dev");
+
+            bool LogDebug = (Library.IsDebugBuild || FileSystem.Exists(".debug"));
+
+            if (LogDebug)
             {
                 Log.LogLevel = Log.Level.Info;
-                Log.LogToFile = true;
-                Log.LogAllToFile = true;
-
-                if (Library.IsDebugBuild)
-                {
-                    Log.LogALot = true;
-                    Log.lineBuffer = new List<string>();
-                }
-                else
-                {
-                    Log.LogALot = false;
-                    Log.lineBuffer = null;
-                }
             }
             else
             {
                 Log.LogLevel = Log.Level.Warning;
-                Log.LogToFile = false;
-                Log.LogAllToFile = false;
-                Log.LogALot = false;
-                Log.lineBuffer = null;
+            }
+
+            if (LogDebug || Log.LogALot || Log.LogDebugLists)
+            {
+                Log.LogToFile = true;
+                Log.LogAllToFile = true;
+                Log.lineBuffer = new List<string>();
             }
 
             try
@@ -160,6 +163,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// The last flush of buffer.
+        /// </summary>
+        public static uint LastFlush { get; private set; }
+
+        /// <summary>
         /// Outputs the specified debugging message.
         /// </summary>
         /// <param name="sourceObject">The source object.</param>
@@ -206,6 +214,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     {
                         using (StreamWriter logFile = new StreamWriter(FileSystem.FilePathName(".log"), logFileCreated))
                         {
+                            if (Log.LogALot) lineBuffer.Add((DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") + " Flush\n").ConformNewlines());
+
                             logFile.Write(String.Join("", lineBuffer.ToArray()));
                             logFile.Close();
                         }
@@ -439,7 +449,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         if (lineBuffer != null)
                         {
                             lineBuffer.Add(msg.ConformNewlines());
-                            if (level >= Level.Warning || lineBuffer.Count >= BufferLines)
+                            if (level <= Level.Warning || lineBuffer.Count >= BufferLines)
                             {
                                 FlushBuffer();
                             }

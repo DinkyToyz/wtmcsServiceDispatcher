@@ -175,7 +175,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 // Loop through vehicles and save the closest free vehicle.
                 foreach (Vehicles.ServiceVehicleInfo vehicleInfo in serviceBuilding.Vehicles.Values)
                 {
-                    if (vehicleInfo.Target == 0)
+                    if (vehicleInfo.CanCollect && vehicleInfo.Target == 0)
                     {
                         float distance = (targetBuilding.Position - vehicleInfo.Position).sqrMagnitude;
                         //if (Log.LogALot && Library.IsDebugBuild) Log.DevDebug(this, "AssignVehicle", "Vehicle", "Check", vehicleInfo.VehicleId, distance);
@@ -204,11 +204,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         vehicles[vehicleFoundId].m_targetBuilding = targetBuilding.BuildingId;
 
                         assignedTargets[targetBuilding.BuildingId] = Global.CurrentFrame;
-
-                        serviceBuilding.Vehicles[vehicleFoundId].Target = targetBuilding.BuildingId;
-
-                        freeVehicles--;
                     }
+
+                    serviceBuilding.Vehicles[vehicleFoundId].Target = targetBuilding.BuildingId;
+
+                    freeVehicles--;
 
                     return true;
                 }
@@ -226,55 +226,64 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             Vehicle[] vehicles = Singleton<VehicleManager>.instance.m_vehicles.m_buffer;
 
+            ushort vehicleId;
+            bool canCollect;
+            bool collecting;
+            string localeKey;
+            int bufCur, bufMax;
+
             // Loop through the service buildings.
             foreach (Buildings.ServiceBuildingInfo serviceBuilding in ServiceBuildings)
             {
                 // Loop therough the vehicles.
-                ushort vehicleId = serviceBuilding.FirstOwnVehicle;
+                vehicleId = serviceBuilding.FirstOwnVehicle;
                 while (vehicleId != 0)
                 {
                     // Add or update status for relevant vegicles.
-                    if (vehicles[vehicleId].Info != null && (vehicles[vehicleId].m_flags & Vehicle.Flags.Spawned) == Vehicle.Flags.Spawned && IsMyType(vehicles[vehicleId].Info))
+                    if (vehicles[vehicleId].Info != null && (vehicles[vehicleId].m_flags & (Vehicle.Flags.Created | Vehicle.Flags.Spawned)) != Vehicle.Flags.None && IsMyType(vehicles[vehicleId].Info))
                     {
+                        // Check if vehicle is free to dispatch and has free space.
+                        collecting = (vehicles[vehicleId].m_flags & Vehicle.Flags.TransferToSource) != Vehicle.Flags.None && (vehicles[vehicleId].m_flags & Vehicle.Flags.TransferToTarget) == Vehicle.Flags.None;
+                        canCollect = collecting;
+                        if (canCollect)
+                        {
+                            vehicles[vehicleId].Info.m_vehicleAI.GetBufferStatus(vehicleId, ref vehicles[vehicleId], out localeKey, out bufCur, out bufMax);
+                            canCollect = bufCur < bufMax;
+                        }
 
-
-                        if (v.Info.m_vehicleAI.GetLocalizedStatus(id, ref v, out instanceID) != _collecting)
-                            continue;
-private string _collecting = ColossalFramework.Globalization.Locale.Get("VEHICLE_STATUS_HEARSE_COLLECT");                        
-                        
                         // Update vehicle status.
                         if (serviceBuilding.Vehicles.ContainsKey(vehicleId))
                         {
-                            if (Global.ForceTarget && vehicles[vehicleId].m_targetBuilding != 0 && vehicles[vehicleId].m_targetBuilding != serviceBuilding.Vehicles[vehicleId].Target)
+                            if (canCollect && Global.ForceTarget && vehicles[vehicleId].m_targetBuilding != 0 && vehicles[vehicleId].m_targetBuilding != serviceBuilding.Vehicles[vehicleId].Target)
                             {
                                 AISetTarget(vehicleId, ref vehicles[vehicleId], 0);
                                 vehicles[vehicleId].m_targetBuilding = 0;
                             }
 
-                            serviceBuilding.Vehicles[vehicleId].Update(ref vehicles[vehicleId]);
+                            serviceBuilding.Vehicles[vehicleId].Update(ref vehicles[vehicleId], canCollect);
                         }
                         else
                         {
-                            Vehicles.ServiceVehicleInfo vehicle = new Vehicles.ServiceVehicleInfo(vehicleId, ref vehicles[vehicleId]);
-                            if (Log.LogALot && Library.IsDebugBuild) Log.DevDebug(this, "CollectVehicles", "AddVehicle", serviceBuilding.BuildingId, vehicleId, vehicles[vehicleId].Info.name, vehicle.VehicleName);
-
-                            if (Global.ForceTarget && vehicles[vehicleId].m_targetBuilding != 0)
+                            if (canCollect && Global.ForceTarget && vehicles[vehicleId].m_targetBuilding != 0)
                             {
                                 AISetTarget(vehicleId, ref vehicles[vehicleId], 0);
                                 vehicles[vehicleId].m_targetBuilding = 0;
                             }
+
+                            Vehicles.ServiceVehicleInfo vehicle = new Vehicles.ServiceVehicleInfo(vehicleId, ref vehicles[vehicleId], canCollect);
+                            if (Log.LogALot && Library.IsDebugBuild) Log.DevDebug(this, "CollectVehicles", "AddVehicle", serviceBuilding.BuildingId, vehicleId, vehicles[vehicleId].Info.name, vehicle.VehicleName, vehicle.CanCollect, collecting);
 
                             serviceBuilding.Vehicles[vehicleId] = vehicle;
                         }
 
                         // Update assigned target status.
-                        if (vehicles[vehicleId].m_targetBuilding != 0)
+                        if (collecting && vehicles[vehicleId].m_targetBuilding != 0 && (canCollect || (vehicles[vehicleId].m_flags & (Vehicle.Flags.Stopped | Vehicle.Flags.Arriving)) != Vehicle.Flags.None))
                         {
                             if (Log.LogALot && Library.IsDebugBuild && !assignedTargets.ContainsKey(vehicles[vehicleId].m_targetBuilding)) Log.DevDebug(this, "CollectVehicles", "AddAssigned", serviceBuilding.BuildingId, vehicleId, vehicles[vehicleId].m_targetBuilding);
 
                             assignedTargets[vehicles[vehicleId].m_targetBuilding] = Global.CurrentFrame;
                         }
-                        else
+                        else if (canCollect)
                         {
                             freeVehicles++;
                         }
@@ -293,7 +302,7 @@ private string _collecting = ColossalFramework.Globalization.Locale.Get("VEHICLE
                 {
                     if (vehicles[vehicleId].Info == null || (vehicles[vehicleId].m_flags & Vehicle.Flags.Spawned) != Vehicle.Flags.Spawned || !IsMyType(vehicles[vehicleId].Info))
                     {
-                        if (Log.LogALot && Library.IsDebugBuild) Log.DevDebug(this, "CollectVehicles", "RemoveVehicle", serviceBuilding.BuildingId, id, serviceBuilding.Vehicles[id].VehicleName);
+                        if (Log.LogALot && Library.IsDebugBuild) Log.DevDebug(this, "CollectVehicles", "RemoveVehicle", serviceBuilding.BuildingId, id);
 
                         serviceBuilding.Vehicles.Remove(id);
                     }
@@ -301,7 +310,7 @@ private string _collecting = ColossalFramework.Globalization.Locale.Get("VEHICLE
                     {
                         if (vehicles[vehicleId].m_sourceBuilding != serviceBuilding.BuildingId)
                         {
-                            if (Log.LogALot && Library.IsDebugBuild) Log.DevDebug(this, "CollectVehicles", "RemoveVehicle", serviceBuilding.BuildingId, id, serviceBuilding.Vehicles[id].VehicleName);
+                            if (Log.LogALot && Library.IsDebugBuild) Log.DevDebug(this, "CollectVehicles", "RemoveVehicle", serviceBuilding.BuildingId, id);
 
                             serviceBuilding.Vehicles.Remove(id);
                         }
