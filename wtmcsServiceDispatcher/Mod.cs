@@ -24,6 +24,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Finalizes an instance of the <see cref="Mod"/> class.
+        /// </summary>
+        ~Mod()
+        {
+            Log.FlushBuffer();
+        }
+
+        /// <summary>
         /// Gets the description.
         /// </summary>
         /// <value>
