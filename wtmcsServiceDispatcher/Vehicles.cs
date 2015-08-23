@@ -228,6 +228,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <param name="lastVehicleId">The last vehicle identifier.</param>
         private void HandleVehicles(ref Vehicle[] vehicles, ushort firstVehicleId, int lastVehicleId)
         {
+            return;
+
             for (ushort id = firstVehicleId; id < lastVehicleId; id++)
             {
                 if (vehicles[id].m_leadingVehicle != 0 || vehicles[id].m_cargoParent != 0 || vehicles[id].Info == null || (vehicles[id].m_flags & Vehicle.Flags.Spawned) == Vehicle.Flags.None)

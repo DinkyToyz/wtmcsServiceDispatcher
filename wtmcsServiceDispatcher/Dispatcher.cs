@@ -375,13 +375,13 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     case Settings.BuildingCheckParameters.ForgottenInRange:
                         this.OnlyProblematic = false;
                         this.IgnoreRange = false;
-                        this.MinProblemTimer = 0;
+                        this.MinProblemTimer = 255;
                         break;
 
                     case Settings.BuildingCheckParameters.ForgottenIgnoreRange:
                         this.OnlyProblematic = false;
                         this.IgnoreRange = true;
-                        this.MinProblemTimer = 0;
+                        this.MinProblemTimer = 255;
                         break;
 
                     default:
