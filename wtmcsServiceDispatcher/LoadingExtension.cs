@@ -64,7 +64,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     }
 
                     // Initialize vehicle objects.
-                    if (Global.Settings.RemoveHearsesFromGrid || Global.Settings.RemoveGarbageTrucksFromGrid)
+                    if (Global.Settings.DispatchHearses || Global.Settings.DispatchGarbageTrucks || Global.Settings.RemoveHearsesFromGrid || Global.Settings.RemoveGarbageTrucksFromGrid)
                     {
                         Global.Vehicles = new Vehicles();
                     }

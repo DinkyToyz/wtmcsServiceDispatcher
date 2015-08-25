@@ -2,26 +2,45 @@
 
 use strict;
 use Text::CSV;
-use YAML;
+#use YAML;
 use DBI;
 
-my $db = DBI->connect('dbi:SQLite:dbname=wtmcsServiceDispatcherDebugLog.db',"","");
+my $appdata = $ENV{LOCALAPPDATA};
+my $modconf = "$appdata/Colossal Order/Cities_Skylines/ModConfig";
+
+my $db = DBI->connect("dbi:SQLite:dbname=$modconf/wtmcsServiceDispatcherDebugLog.db","","");
 $db->do('PRAGMA journal_mode = MEMORY');
 
 my $records = 0;
 my %data = ();
 my $scsv = Text::CSV->new({sep_char=>';', allow_whitespace=>1, blank_is_undef=>1});
-die unless (open(F,'<:encoding(UTF-8)', 'wtmcsServiceDispatcher.log'));
+die unless (open(F,'<:encoding(UTF-8)', "$modconf/wtmcsServiceDispatcher.log"));
 
 print "< wtmcsServiceDispatcher.log\n";
 while (my $l = <F>)
 {
-    next unless ($l =~ /^.*<(Vehicles|Buildings)\.DebugListLog>(.*?)[\r\n]*$/);
-    my $type = $1;
-    next unless ($scsv->parse($2));
+    next unless ($l =~ /^(\S+ \S+)\s+(?:\S+:\s+)?\[wtmcsServiceDispatcher\]\s+(?:\@(\d+)\s+)?<([A-Za-z]+)\.DebugListLog>(.*?)[\r\n]*$/);
+    my $stamp =  $1;
+    my $frame = $2;
+    my $type = $3;
+    next unless ($scsv->parse($4));
 
-    $data{$type} = {c=>{}, r=>[]} unless ($data{$type});
-    my %record = ();
+    $data{$type} =
+    {
+        c=>
+        {
+            _stamp => {p=>-5, t=>'TEXT'},
+            _frame => {p=>-4, t=>'INTEGER'},
+        },
+        r=>[]
+    } unless ($data{$type});
+
+    my %record =
+    (
+        _stamp => $stamp,
+        _frame => $frame,
+    );
+
     my $p = 0;
     foreach my $fld ($scsv->fields)
     {
@@ -80,11 +99,11 @@ while (my $l = <F>)
 close(F);
 print "# $records\n";
 
-if (open(F, '>:encoding(UTF-8)', 'wtmcsServiceDispatcherDebugLog.yml'))
-{
-    print F Dump(\%data);
-    close(F);
-}
+#if (open(F, '>:encoding(UTF-8)', "$modconf/wtmcsServiceDispatcherDebugLog.yml"))
+#{
+#    print F Dump(\%data);
+#    close(F);
+#}
 
 foreach my $type (keys %data)
 {
@@ -94,23 +113,36 @@ foreach my $type (keys %data)
 
     my $table = join(', ', (map { "[$_] $data{$type}->{c}->{$_}->{t}" } sort { $data{$type}->{c}->{$a}->{p} <=> $data{$type}->{c}->{$b}->{p} } keys %{$data{$type}->{c}}));
     $db->do("CREATE TABLE [$type] ($table);");
+
+    my $key = "${type}Id";
+    if (!$data{$type}->{c}->{$key} && $type =~ /^(.*?)s$/)
+    {
+        $key = "${1}Id";
+    }
+    if ($data{$type}->{c}->{$key})
+    {
+        $db->do("CREATE UNIQUE INDEX [${type}_Primary_Index] ON [$type] ([$key], _frame);");
+    }
+
     foreach my $col (('Status'))
     {
         next unless ($data{$type}->{c}->{$col});
-        $db->do("CREATE INDEX [${type}_${col}] ON [$type] ($col);");
+        $db->do("CREATE INDEX [${type}_${col}] ON [$type] ([$col]);");
     }
 
-    my $inscols = join(', ', sort { $a cmp $b } keys %{$data{$type}->{c}});
+    my $inscols = join(', ', map { "[$_]" } sort { $a cmp $b } keys %{$data{$type}->{c}});
     my $insplhs = join(', ', (map { '?' } keys %{$data{$type}->{c}}));
-    my $insert = "INSERT INTO [$type] ($inscols) VALUES ($insplhs);";
+    my $insert = "INSERT OR REPLACE INTO [$type] ($inscols) VALUES ($insplhs);";
     my $st = $db->prepare($insert);
 
     $db->begin_work();
+
     foreach my $record (@{$data{$type}->{r}})
     {
         my @values = map { !defined($record->{$_}) ? undef : ($data{$type}->{c}->{$_}->{t} ne 'INTEGER' && $data{$type}->{c}->{$_}->{t} ne 'REAL') ? $record->{$_} : ($record->{$_} eq 'False') ? 0 : ($record->{$_} eq 'True') ? 1 : $record->{$_} } sort { $a cmp $b } keys %{$data{$type}->{c}};
         $st->execute(@values);
     }
+
     $db->commit();
     $st->finish();
 

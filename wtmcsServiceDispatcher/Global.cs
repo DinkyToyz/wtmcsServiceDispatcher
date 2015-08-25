@@ -18,11 +18,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public static uint CurrentFrame = 0;
 
         /// <summary>
-        /// Force mod targets.
-        /// </summary>
-        public static bool ForceTarget = true;
-
-        /// <summary>
         /// Wether updates should be framed or complete.
         /// </summary>
         public static bool FramedUpdates = false;
@@ -48,19 +43,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public static uint ObjectUpdateInterval = 120;
 
         /// <summary>
-        /// Pretend to handle services (find vehicles for target, but don't actually assign them).
-        /// </summary>
-        public static bool PretendToHandleStuff = false;
-
-        /// <summary>
         /// The minimum recheck interval for handled targets.
         /// </summary>
-        public static uint RecheckHandledInterval = PretendToHandleStuff ? 2400u : 240u;
+        public static uint RecheckHandledInterval = 240u;
 
         /// <summary>
         /// The minimum recheck interval for targets.
         /// </summary>
-        public static uint RecheckInterval = PretendToHandleStuff ? 600u : 60u;
+        public static uint RecheckInterval = 60u;
 
         /// <summary>
         /// The service building information priority comparer.

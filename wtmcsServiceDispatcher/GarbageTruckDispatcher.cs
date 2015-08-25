@@ -37,7 +37,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <value>
         /// The service buildings.
         /// </value>
-        protected override IEnumerable<Buildings.ServiceBuildingInfo> ServiceBuildings
+        protected override Dictionary<ushort, Buildings.ServiceBuildingInfo> ServiceBuildings
         {
             get
             {
@@ -51,7 +51,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <value>
         /// The target buildings.
         /// </value>
-        protected override IEnumerable<Buildings.TargetBuildingInfo> TargetBuildings
+        protected override Dictionary<ushort, Buildings.TargetBuildingInfo> TargetBuildings
         {
             get
             {
@@ -65,6 +65,16 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public override void InitBuildingChecks()
         {
             BuldingChecks = Dispatcher.BuldingCheckParameters.GetBuldingCheckParameters(Global.Settings.GarbageChecksParameters);
+        }
+
+        /// <summary>
+        /// Determines whether vehicle is correct type of vehicle.
+        /// </summary>
+        /// <param name="vehicleInfo">The vehicle information.</param>
+        /// <returns>True if vehicle is correct type.</returns>
+        public override bool IsCorrectType(VehicleInfo vehicleInfo)
+        {
+            return (vehicleInfo != null && vehicleInfo.m_vehicleAI is GarbageTruckAI);
         }
 
         /// <summary>
@@ -86,16 +96,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         protected override void AISetTarget(ushort vehicleId, ref Vehicle vehicle, ushort buildingId)
         {
             ((GarbageTruckAI)(vehicle.Info.m_vehicleAI)).SetTarget(vehicleId, ref vehicle, buildingId);
-        }
-
-        /// <summary>
-        /// Determines whether vehicle is correct type of vehicle.
-        /// </summary>
-        /// <param name="vehicleInfo">The vehicle information.</param>
-        /// <returns>True if vehicle is correct type.</returns>
-        protected override bool IsMyType(VehicleInfo vehicleInfo)
-        {
-            return (vehicleInfo != null && vehicleInfo.m_vehicleAI is GarbageTruckAI);
         }
     }
 }

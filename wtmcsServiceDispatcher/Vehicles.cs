@@ -34,88 +34,52 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
-        /// Might log a list of vehicle info for debug use.
+        /// Logs a list of vehicle info for debug use.
         /// </summary>
         public static void DebugListLog()
         {
             try
             {
                 Vehicle[] vehicles = Singleton<VehicleManager>.instance.m_vehicles.m_buffer;
+                Building[] buildings = Singleton<BuildingManager>.instance.m_buildings.m_buffer;
 
                 for (ushort id = 0; id < vehicles.Length; id++)
                 {
-                    if (vehicles[id].Info != null && (vehicles[id].m_flags & Vehicle.Flags.Spawned) == Vehicle.Flags.Spawned && (vehicles[id].Info.m_vehicleAI is HearseAI || vehicles[id].Info.m_vehicleAI is GarbageTruckAI))
+                    DebugListLog(vehicles, buildings, id);
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error(typeof(Vehicles), "DebugListLog()", ex);
+            }
+        }
+
+        /// <summary>
+        /// Logs a list of vehicle info for debug use.
+        /// </summary>
+        public static void DebugListLog(Buildings.ServiceBuildingInfo building)
+        {
+            try
+            {
+                Vehicle[] vehicles = Singleton<VehicleManager>.instance.m_vehicles.m_buffer;
+                Building[] buildings = Singleton<BuildingManager>.instance.m_buildings.m_buffer;
+
+                int count = 0;
+                ushort id = building.FirstOwnVehicleId;
+                while (id != 0)
+                {
+                    DebugListLog(vehicles, buildings, id);
+
+                    id = vehicles[id].m_nextOwnVehicle;
+                    if (id == building.FirstOwnVehicleId)
                     {
-                        List<string> info = new List<string>();
+                        break;
+                    }
 
-                        InstanceID instanceId;
-                        float prgCur, prgMax;
-                        int bufCur, bufMax;
-                        string localeKey;
-
-                        info.Add("VehicleId=" + id.ToString());
-                        info.Add("AI=" + vehicles[id].Info.m_vehicleAI.GetType().ToString());
-                        info.Add("InfoName='" + vehicles[id].Info.name + "'");
-
-                        string name = GetVehicleName(id);
-                        if (!String.IsNullOrEmpty(name) && name != vehicles[id].Info.name)
-                        {
-                            info.Add("VehicleName='" + name + "'");
-                        }
-
-                        string status = vehicles[id].Info.m_vehicleAI.GetLocalizedStatus(id, ref vehicles[id], out instanceId);
-                        if (!String.IsNullOrEmpty(status))
-                        {
-                            info.Add("Status='" + status + "'");
-                        }
-
-                        info.Add("Source=" + vehicles[id].m_sourceBuilding.ToString());
-                        info.Add("Target=" + vehicles[id].m_targetBuilding.ToString());
-
-                        string flags = vehicles[id].m_flags.ToString();
-                        if (flags.IndexOfAny(new char[] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' }) >= 0)
-                        {
-                            foreach (Vehicle.Flags flag in Enum.GetValues(typeof(Vehicle.Flags)))
-                            {
-                                if (flag != Vehicle.Flags.None && (vehicles[id].m_flags & flag) == flag)
-                                {
-                                    flags += ", " + flag.ToString();
-                                }
-                            }
-                        }
-                        info.Add("Flags=" + flags);
-
-                        info.Add("Enabled=" + vehicles[id].Info.enabled.ToString());
-                        info.Add("Active=" + vehicles[id].Info.isActiveAndEnabled.ToString());
-                        info.Add("AIEnabled=" + vehicles[id].Info.m_vehicleAI.enabled.ToString());
-                        info.Add("AIActive=" + vehicles[id].Info.m_vehicleAI.isActiveAndEnabled.ToString());
-
-                        if (vehicles[id].Info.m_vehicleAI.GetProgressStatus(id, ref vehicles[id], out prgCur, out prgMax))
-                        {
-                            info.Add("PrgCur=" + prgCur.ToString("F"));
-                            info.Add("PrgMax=" + prgMax.ToString("F"));
-                        }
-
-                        vehicles[id].Info.m_vehicleAI.GetBufferStatus(id, ref vehicles[id], out localeKey, out bufCur, out bufMax);
-                        if (!String.IsNullOrEmpty(localeKey))
-                        {
-                            info.Add("BufLocKey='" + localeKey + "'");
-                        }
-                        info.Add("BufCur=" + bufCur.ToString());
-                        info.Add("BufMax=" + bufMax.ToString());
-
-                        info.Add("TransferSize=" + vehicles[id].m_transferSize);
-
-                        if (vehicles[id].Info.m_vehicleAI is HearseAI)
-                        {
-                            info.Add("Capacity=" + ((HearseAI)vehicles[id].Info.m_vehicleAI).m_corpseCapacity.ToString());
-                        }
-                        else if (vehicles[id].Info.m_vehicleAI is GarbageTruckAI)
-                        {
-                            info.Add("Capacity=" + ((GarbageTruckAI)vehicles[id].Info.m_vehicleAI).m_cargoCapacity.ToString());
-                        }
-
-                        Log.DevDebug(typeof(Vehicles), "DebugListLog", String.Join("; ", info.ToArray()));
+                    count++;
+                    if (count > ushort.MaxValue)
+                    {
+                        throw new Exception("Loop counter too high!");
                     }
                 }
             }
@@ -191,6 +155,133 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Logs a list of vehicle info for debug use.
+        /// </summary>
+        private static void DebugListLog(IEnumerable<ushort> vehicleIds)
+        {
+            Vehicle[] vehicles = Singleton<VehicleManager>.instance.m_vehicles.m_buffer;
+            Building[] buildings = Singleton<BuildingManager>.instance.m_buildings.m_buffer;
+
+            foreach (ushort id in vehicleIds)
+            {
+                DebugListLog(vehicles, buildings, id);
+            }
+        }
+
+        /// <summary>
+        /// Logs a list of vehicle info for debug use.
+        /// </summary>
+        private static void DebugListLog(IEnumerable<ServiceVehicleInfo> serviceVehicles)
+        {
+            Vehicle[] vehicles = Singleton<VehicleManager>.instance.m_vehicles.m_buffer;
+            Building[] buildings = Singleton<BuildingManager>.instance.m_buildings.m_buffer;
+
+            foreach (ServiceVehicleInfo vehicle in serviceVehicles)
+            {
+                DebugListLog(vehicles, buildings, vehicle.VehicleId);
+            }
+        }
+
+        /// <summary>
+        /// Log vehicle info for debug use.
+        /// </summary>
+        private static void DebugListLog(Vehicle[] vehicles, Building[] buildings, ushort vehicleId)
+        {
+            if (vehicles[vehicleId].Info != null && (vehicles[vehicleId].m_flags & Vehicle.Flags.Spawned) == Vehicle.Flags.Spawned && (vehicles[vehicleId].Info.m_vehicleAI is HearseAI || vehicles[vehicleId].Info.m_vehicleAI is GarbageTruckAI))
+            {
+                List<string> info = new List<string>();
+
+                InstanceID instanceId;
+                float prgCur, prgMax;
+                int bufCur, bufMax;
+                string localeKey;
+
+                info.Add("VehicleId=" + vehicleId.ToString());
+                info.Add("AI=" + vehicles[vehicleId].Info.m_vehicleAI.GetType().ToString());
+                info.Add("InfoName='" + vehicles[vehicleId].Info.name + "'");
+
+                string name = GetVehicleName(vehicleId);
+                if (!String.IsNullOrEmpty(name) && name != vehicles[vehicleId].Info.name)
+                {
+                    info.Add("VehicleName='" + name + "'");
+                }
+
+                name = null;
+                if (vehicles[vehicleId].m_sourceBuilding != 0 && buildings[vehicles[vehicleId].m_sourceBuilding].Info != null)
+                {
+                    name = Buildings.GetBuildingName(vehicles[vehicleId].m_sourceBuilding);
+                    if (String.IsNullOrEmpty(name))
+                    {
+                        name = buildings[vehicles[vehicleId].m_sourceBuilding].Info.name;
+                    }
+                }
+                info.Add("Source=" + vehicles[vehicleId].m_sourceBuilding.ToString() + (String.IsNullOrEmpty(name) ? "" : ", " + name));
+
+                name = null;
+                if (vehicles[vehicleId].m_targetBuilding != 0 && buildings[vehicles[vehicleId].m_targetBuilding].Info != null)
+                {
+                    name = Buildings.GetBuildingName(vehicles[vehicleId].m_targetBuilding);
+                    if (String.IsNullOrEmpty(name))
+                    {
+                        name = buildings[vehicles[vehicleId].m_targetBuilding].Info.name;
+                    }
+                }
+                info.Add("Target=" + vehicles[vehicleId].m_targetBuilding.ToString() + (String.IsNullOrEmpty(name) ? "" : ", " + name));
+
+                string flags = vehicles[vehicleId].m_flags.ToString();
+                if (flags.IndexOfAny(new char[] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' }) >= 0)
+                {
+                    foreach (Vehicle.Flags flag in Enum.GetValues(typeof(Vehicle.Flags)))
+                    {
+                        if (flag != Vehicle.Flags.None && (vehicles[vehicleId].m_flags & flag) == flag)
+                        {
+                            flags += ", " + flag.ToString();
+                        }
+                    }
+                }
+                info.Add("Flags=" + flags);
+
+                info.Add("Enabled=" + vehicles[vehicleId].Info.enabled.ToString());
+                info.Add("Active=" + vehicles[vehicleId].Info.isActiveAndEnabled.ToString());
+                info.Add("AIEnabled=" + vehicles[vehicleId].Info.m_vehicleAI.enabled.ToString());
+                info.Add("AIActive=" + vehicles[vehicleId].Info.m_vehicleAI.isActiveAndEnabled.ToString());
+
+                if (vehicles[vehicleId].Info.m_vehicleAI.GetProgressStatus(vehicleId, ref vehicles[vehicleId], out prgCur, out prgMax))
+                {
+                    info.Add("PrgCur=" + prgCur.ToString("F"));
+                    info.Add("PrgMax=" + prgMax.ToString("F"));
+                }
+
+                vehicles[vehicleId].Info.m_vehicleAI.GetBufferStatus(vehicleId, ref vehicles[vehicleId], out localeKey, out bufCur, out bufMax);
+                if (!String.IsNullOrEmpty(localeKey))
+                {
+                    info.Add("BufLocKey='" + localeKey + "'");
+                }
+                info.Add("BufCur=" + bufCur.ToString());
+                info.Add("BufMax=" + bufMax.ToString());
+
+                info.Add("TransferSize=" + vehicles[vehicleId].m_transferSize);
+
+                if (vehicles[vehicleId].Info.m_vehicleAI is HearseAI)
+                {
+                    info.Add("Capacity=" + ((HearseAI)vehicles[vehicleId].Info.m_vehicleAI).m_corpseCapacity.ToString());
+                }
+                else if (vehicles[vehicleId].Info.m_vehicleAI is GarbageTruckAI)
+                {
+                    info.Add("Capacity=" + ((GarbageTruckAI)vehicles[vehicleId].Info.m_vehicleAI).m_cargoCapacity.ToString());
+                }
+
+                string status = vehicles[vehicleId].Info.m_vehicleAI.GetLocalizedStatus(vehicleId, ref vehicles[vehicleId], out instanceId);
+                if (!String.IsNullOrEmpty(status))
+                {
+                    info.Add("Status='" + status + "'");
+                }
+
+                Log.DevDebug(typeof(Vehicles), "DebugListLog", String.Join("; ", info.ToArray()));
+            }
+        }
+
+        /// <summary>
         /// Gets the frame boundaries.
         /// </summary>
         /// <param name="frame">The frame.</param>
@@ -240,13 +331,26 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 }
                 else
                 {
+                    if ((vehicles[id].m_flags & Vehicle.Flags.TransferToSource) != Vehicle.Flags.None && (vehicles[id].m_flags & (Vehicle.Flags.TransferToTarget | Vehicle.Flags.Arriving | Vehicle.Flags.Stopped)) == Vehicle.Flags.None && vehicles[id].m_targetBuilding != 0)
+                    {
+                        if (Global.HearseDispatcher != null && Global.HearseDispatcher.IsCorrectType(vehicles[id].Info))
+                        {
+                            Global.HearseDispatcher.CheckVehicleTarget(id, ref vehicles[id]);
+                        }
+
+                        if (Global.GarbageTruckDispatcher != null && Global.GarbageTruckDispatcher.IsCorrectType(vehicles[id].Info))
+                        {
+                            Global.GarbageTruckDispatcher.CheckVehicleTarget(id, ref vehicles[id]);
+                        }
+                    }
+
                     if (removedFromGrid != null)
                     {
                         if ((vehicles[id].m_flags & Vehicle.Flags.Stopped) == Vehicle.Flags.None)
                         {
                             if (removedFromGrid.Contains(id))
                             {
-                                if (Log.LogToFile) Log.Debug(this, "HandleVehicles", "Moving", id, vehicles[id].Info.name, GetVehicleName(id));
+                                if (Log.LogToFile) Log.Debug(this, "HandleVehicles", "Moving", id, vehicles[id].m_targetBuilding, vehicles[id].Info.name, GetVehicleName(id), vehicles[id].m_flags);
 
                                 removedFromGrid.Remove(id);
                             }
@@ -255,7 +359,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                                   (Global.Settings.RemoveGarbageTrucksFromGrid && vehicles[id].Info.m_vehicleAI is GarbageTruckAI)) &&
                                  !removedFromGrid.Contains(id))
                         {
-                            if (Log.LogToFile) Log.Debug(this, "HandleVehicles", "RemoveFromGrid", id, vehicles[id].Info.name, GetVehicleName(id));
+                            if (Log.LogToFile) Log.Debug(this, "HandleVehicles", "RemoveFromGrid", id, vehicles[id].m_targetBuilding, vehicles[id].Info.name, GetVehicleName(id), vehicles[id].m_flags);
 
                             Singleton<VehicleManager>.instance.RemoveFromGrid(id, ref vehicles[id], false);
                             removedFromGrid.Add(id);

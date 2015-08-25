@@ -13,26 +13,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         private uint buildingFrame;
 
         /// <summary>
-        /// The dead people buildings.
-        /// </summary>
-        private Dictionary<ushort, TargetBuildingInfo> deadPeopleBuildings = new Dictionary<ushort, TargetBuildingInfo>();
-
-        /// <summary>
-        /// The dirty buildings.
-        /// </summary>
-        private Dictionary<ushort, TargetBuildingInfo> dirtyBuildings = new Dictionary<ushort, TargetBuildingInfo>();
-
-        /// <summary>
-        /// The garbage buildings.
-        /// </summary>
-        private Dictionary<ushort, ServiceBuildingInfo> garbageBuildings = new Dictionary<ushort, ServiceBuildingInfo>();
-
-        /// <summary>
-        /// The hearse buildings.
-        /// </summary>
-        private Dictionary<ushort, ServiceBuildingInfo> hearseBuildings = new Dictionary<ushort, ServiceBuildingInfo>();
-
-        /// <summary>
         /// The data is initialized.
         /// </summary>
         private bool isInitialized = false;
@@ -44,50 +24,46 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             HasDeadPeopleBuildingsToCheck = false;
             HasDirtyBuildingsToCheck = false;
+
+            if (Global.Settings.DispatchHearses)
+            {
+                DeadPeopleBuildings = new Dictionary<ushort, TargetBuildingInfo>();
+                HearseBuildings = new Dictionary<ushort, ServiceBuildingInfo>();
+            }
+            else
+            {
+                DeadPeopleBuildings = null;
+                HearseBuildings = null;
+            }
+
+            if (Global.Settings.DispatchGarbageTrucks)
+            {
+                DirtyBuildings = new Dictionary<ushort, TargetBuildingInfo>();
+                GarbageBuildings = new Dictionary<ushort, ServiceBuildingInfo>();
+            }
+            else
+            {
+                DirtyBuildings = null;
+                GarbageBuildings = null;
+            }
+
             Log.Debug(this, "Constructed");
         }
 
         /// <summary>
-        /// Gets the dead people buildings.
-        /// </summary>
-        /// <value>
         /// The dead people buildings.
-        /// </value>
-        public IEnumerable<TargetBuildingInfo> DeadPeopleBuildings
-        {
-            get
-            {
-                return deadPeopleBuildings.Values;
-            }
-        }
+        /// </summary>
+        public Dictionary<ushort, TargetBuildingInfo> DeadPeopleBuildings { get; private set; }
 
         /// <summary>
-        /// Gets the dirty buildings.
-        /// </summary>
-        /// <value>
         /// The dirty buildings.
-        /// </value>
-        public IEnumerable<TargetBuildingInfo> DirtyBuildings
-        {
-            get
-            {
-                return dirtyBuildings.Values;
-            }
-        }
+        /// </summary>
+        public Dictionary<ushort, TargetBuildingInfo> DirtyBuildings { get; private set; }
 
         /// <summary>
-        /// Gets the garbage buildings.
-        /// </summary>
-        /// <value>
         /// The garbage buildings.
-        /// </value>
-        public IEnumerable<ServiceBuildingInfo> GarbageBuildings
-        {
-            get
-            {
-                return garbageBuildings.Values;
-            }
-        }
+        /// </summary>
+        public Dictionary<ushort, ServiceBuildingInfo> GarbageBuildings { get; private set; }
 
         /// <summary>
         /// Gets a value indicating whether this instance has dead people buildings that should be checked.
@@ -106,21 +82,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public bool HasDirtyBuildingsToCheck { get; private set; }
 
         /// <summary>
-        /// Gets the hearse buildings.
-        /// </summary>
-        /// <value>
         /// The hearse buildings.
-        /// </value>
-        public IEnumerable<ServiceBuildingInfo> HearseBuildings
-        {
-            get
-            {
-                return hearseBuildings.Values;
-            }
-        }
+        /// </summary>
+        public Dictionary<ushort, ServiceBuildingInfo> HearseBuildings { get; private set; }
 
         /// <summary>
-        /// Might log a list of building info for debug use.
+        /// Logs a list of building info for debug use.
         /// </summary>
         public static void DebugListLog()
         {
@@ -130,70 +97,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 for (ushort id = 0; id < buildings.Length; id++)
                 {
-                    if (buildings[id].Info != null && (buildings[id].m_flags & Building.Flags.Created) == Building.Flags.Created)
-                    {
-                        List<string> info = new List<string>();
-
-                        info.Add("BuildingId=" + id.ToString());
-                        info.Add("AI=" + buildings[id].Info.m_buildingAI.GetType().ToString());
-                        info.Add("InfoName='" + buildings[id].Info.name + "'");
-
-                        string name = GetBuildingName(id);
-                        if (!String.IsNullOrEmpty(name) && name != buildings[id].Info.name)
-                        {
-                            info.Add("BuildingName='" + name + "'");
-                        }
-
-                        List<string> needs = new List<string>();
-                        if (buildings[id].m_garbageBuffer >= Global.Settings.MinimumGarbageForDispatch)
-                        {
-                            needs.Add("Dirty");
-                        }
-                        else if (buildings[id].m_garbageBuffer > 0)
-                        {
-                            needs.Add("Dusty");
-                        }
-                        if (buildings[id].m_deathProblemTimer > 0)
-                        {
-                            needs.Add("Dead");
-                        }
-                        info.Add("Needs=" + String.Join(", ", needs.ToArray()));
-
-                        info.Add("DeathProblemTimer=" + buildings[id].m_deathProblemTimer.ToString());
-                        info.Add("HealthProblemTimer=" + buildings[id].m_healthProblemTimer.ToString());
-                        info.Add("MajorProblemTimer=" + buildings[id].m_majorProblemTimer.ToString());
-
-                        info.Add("GarbageAmount=" + buildings[id].Info.m_buildingAI.GetGarbageAmount(id, ref buildings[id]).ToString());
-                        info.Add("GarbageBuffer=" + buildings[id].m_garbageBuffer.ToString());
-
-                        string problems = buildings[id].m_problems.ToString();
-                        if (problems.IndexOfAny(new char[] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' }) >= 0)
-                        {
-                            foreach (Notification.Problem problem in Enum.GetValues(typeof(Notification.Problem)))
-                            {
-                                if (problem != Notification.Problem.None && (buildings[id].m_problems & problem) == problem)
-                                {
-                                    problems += ", " + problem.ToString();
-                                }
-                            }
-                        }
-                        info.Add("Problems=" + problems);
-
-                        string flags = buildings[id].m_flags.ToString();
-                        if (flags.IndexOfAny(new char[] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' }) >= 0)
-                        {
-                            foreach (Building.Flags flag in Enum.GetValues(typeof(Building.Flags)))
-                            {
-                                if (flag != Building.Flags.None && (buildings[id].m_flags & flag) == flag)
-                                {
-                                    flags += ", " + flag.ToString();
-                                }
-                            }
-                        }
-                        info.Add("Flags=" + flags);
-
-                        Log.DevDebug(typeof(Buildings), "DebugListLog", String.Join("; ", info.ToArray()));
-                    }
+                    DebugListLog(buildings, id);
                 }
             }
             catch (Exception ex)
@@ -224,6 +128,91 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             catch
             {
                 return null;
+            }
+        }
+
+        /// <summary>
+        /// Logs a list of service building info for debug use.
+        /// </summary>
+        public void DebugListLogBuildings()
+        {
+            try
+            {
+                if (Global.Settings.DispatchHearses)
+                {
+                    if (DeadPeopleBuildings != null)
+                    {
+                        DebugListLog(DeadPeopleBuildings.Values);
+                    }
+
+                    if (HearseBuildings != null)
+                    {
+                        DebugListLog(HearseBuildings.Values);
+                    }
+                }
+
+                if (Global.Settings.DispatchGarbageTrucks)
+                {
+                    if (DirtyBuildings != null)
+                    {
+                        DebugListLog(DirtyBuildings.Values);
+                    }
+
+                    if (GarbageBuildings != null)
+                    {
+                        DebugListLog(GarbageBuildings.Values);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error(typeof(Buildings), "DebugListLogBuildings", ex);
+            }
+        }
+
+        /// <summary>
+        /// Logs a list of service building info for debug use.
+        /// </summary>
+        public void DebugListLogServiceBuildings()
+        {
+            try
+            {
+                if (Global.Settings.DispatchHearses && HearseBuildings != null)
+                {
+                    DebugListLog(HearseBuildings.Values);
+                }
+
+                if (Global.Settings.DispatchGarbageTrucks && GarbageBuildings != null)
+                {
+                    DebugListLog(GarbageBuildings.Values);
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error(typeof(Buildings), "DebugListLogServiceBuildings", ex);
+            }
+        }
+
+        /// <summary>
+        /// Logs a list of service building info for debug use.
+        /// </summary>
+        public void DebugListLogTargetBuildings()
+        {
+            try
+            {
+                if (Global.Settings.DispatchHearses && DeadPeopleBuildings != null)
+                {
+                    DebugListLog(DeadPeopleBuildings.Values);
+                }
+
+                if (Global.Settings.DispatchGarbageTrucks && DirtyBuildings != null)
+                {
+                    DebugListLog(DirtyBuildings.Values);
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error(typeof(Buildings), "DebugListLogTargetBuildings", ex);
             }
         }
 
@@ -276,6 +265,132 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Logs a list of building info for debug use.
+        /// </summary>
+        private static void DebugListLog(IEnumerable<ushort> buildingIds)
+        {
+            Building[] buildings = Singleton<BuildingManager>.instance.m_buildings.m_buffer;
+
+            foreach (ushort id in buildingIds)
+            {
+                DebugListLog(buildings, id);
+            }
+        }
+
+        /// <summary>
+        /// Logs a list of building info for debug use.
+        /// </summary>
+        private static void DebugListLog(IEnumerable<TargetBuildingInfo> targetBuildings)
+        {
+            Building[] buildings = Singleton<BuildingManager>.instance.m_buildings.m_buffer;
+
+            foreach (TargetBuildingInfo building in targetBuildings)
+            {
+                DebugListLog(buildings, building.BuildingId);
+            }
+        }
+
+        /// <summary>
+        /// Logs a list of building info for debug use.
+        /// </summary>
+        private static void DebugListLog(IEnumerable<ServiceBuildingInfo> serviceBuildings)
+        {
+            Building[] buildings = Singleton<BuildingManager>.instance.m_buildings.m_buffer;
+
+            foreach (ServiceBuildingInfo building in serviceBuildings)
+            {
+                DebugListLog(buildings, building.BuildingId);
+            }
+
+            foreach (ServiceBuildingInfo building in serviceBuildings)
+            {
+                Vehicles.DebugListLog(building);
+            }
+        }
+
+        /// <summary>
+        /// Logs building info for debug use.
+        /// </summary>
+        private static void DebugListLog(Building[] buildings, ushort buildingId)
+        {
+            if (buildings[buildingId].Info != null && (buildings[buildingId].m_flags & Building.Flags.Created) == Building.Flags.Created)
+            {
+                List<string> info = new List<string>();
+
+                info.Add("BuildingId=" + buildingId.ToString());
+                info.Add("AI=" + buildings[buildingId].Info.m_buildingAI.GetType().ToString());
+                info.Add("InfoName='" + buildings[buildingId].Info.name + "'");
+
+                string name = GetBuildingName(buildingId);
+                if (!String.IsNullOrEmpty(name) && name != buildings[buildingId].Info.name)
+                {
+                    info.Add("BuildingName='" + name + "'");
+                }
+
+                List<string> needs = new List<string>();
+                if (buildings[buildingId].m_garbageBuffer >= Global.Settings.MinimumGarbageForDispatch)
+                {
+                    needs.Add("Dirty");
+                }
+                else if (buildings[buildingId].m_garbageBuffer > 0)
+                {
+                    needs.Add("Dusty");
+                }
+                if (buildings[buildingId].m_deathProblemTimer > 0)
+                {
+                    needs.Add("Dead");
+                }
+                if (buildings[buildingId].m_garbageBuffer * Dispatcher.ProblemBufferModifier >= Dispatcher.ProblemForgottenLimit ||
+                    buildings[buildingId].m_deathProblemTimer * Dispatcher.ProblemTimerModifier >= Dispatcher.ProblemForgottenLimit)
+                {
+                    needs.Add("Forgotten");
+                }
+                info.Add("Needs=" + String.Join(", ", needs.ToArray()));
+
+                info.Add("DeathProblemTimer=" + buildings[buildingId].m_deathProblemTimer.ToString());
+                info.Add("HealthProblemTimer=" + buildings[buildingId].m_healthProblemTimer.ToString());
+                info.Add("MajorProblemTimer=" + buildings[buildingId].m_majorProblemTimer.ToString());
+
+                info.Add("GarbageAmount=" + buildings[buildingId].Info.m_buildingAI.GetGarbageAmount(buildingId, ref buildings[buildingId]).ToString());
+                info.Add("GarbageBuffer=" + buildings[buildingId].m_garbageBuffer.ToString());
+
+                string problems = buildings[buildingId].m_problems.ToString();
+                if (problems.IndexOfAny(new char[] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' }) >= 0)
+                {
+                    foreach (Notification.Problem problem in Enum.GetValues(typeof(Notification.Problem)))
+                    {
+                        if (problem != Notification.Problem.None && (buildings[buildingId].m_problems & problem) == problem)
+                        {
+                            problems += ", " + problem.ToString();
+                        }
+                    }
+                }
+                info.Add("Problems=" + problems);
+
+                string flags = buildings[buildingId].m_flags.ToString();
+                if (flags.IndexOfAny(new char[] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' }) >= 0)
+                {
+                    foreach (Building.Flags flag in Enum.GetValues(typeof(Building.Flags)))
+                    {
+                        if (flag != Building.Flags.None && (buildings[buildingId].m_flags & flag) == flag)
+                        {
+                            flags += ", " + flag.ToString();
+                        }
+                    }
+                }
+                info.Add("Flags=" + flags);
+
+                string status = buildings[buildingId].Info.m_buildingAI.GetLocalizedStatus(buildingId, ref buildings[buildingId]);
+                if (!String.IsNullOrEmpty(status))
+                {
+                    info.Add("Status='" + status + "'");
+                }
+
+                Log.DevDebug(typeof(Buildings), "DebugListLog", String.Join("; ", info.ToArray()));
+            }
+        }
+
+        /// <summary>
         /// Categorizes the building.
         /// </summary>
         /// <param name="districtManager">The district manager.</param>
@@ -289,23 +404,23 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 // Check cemetaries and crematoriums.
                 if (building.Info.m_buildingAI is CemeteryAI)
                 {
-                    if (!hearseBuildings.ContainsKey(buildingId))
+                    if (!HearseBuildings.ContainsKey(buildingId))
                     {
                         ServiceBuildingInfo hearseBuilding = new ServiceBuildingInfo(districtManager, buildingId, ref building);
                         Log.Debug(this, "CategorizeBuilding", "Cemetary", buildingId, building.Info.name, hearseBuilding.BuildingName, hearseBuilding.Range, hearseBuilding.District);
 
-                        hearseBuildings[buildingId] = hearseBuilding;
+                        HearseBuildings[buildingId] = hearseBuilding;
                     }
                     else
                     {
-                        hearseBuildings[buildingId].Update(districtManager, ref building);
+                        HearseBuildings[buildingId].Update(districtManager, ref building);
                     }
                 }
-                else if (hearseBuildings.ContainsKey(buildingId))
+                else if (HearseBuildings.ContainsKey(buildingId))
                 {
                     Log.Debug(this, "CategorizeBuilding", "Not Cemetary", buildingId);
 
-                    hearseBuildings.Remove(buildingId);
+                    HearseBuildings.Remove(buildingId);
                 }
 
                 // Check dead people.
@@ -313,25 +428,25 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 {
                     bool problematic = (building.m_problems & Notification.Problem.Death) != Notification.Problem.None;
 
-                    if (!deadPeopleBuildings.ContainsKey(buildingId))
+                    if (!DeadPeopleBuildings.ContainsKey(buildingId))
                     {
-                        TargetBuildingInfo deadPeopleBuilding = new TargetBuildingInfo(districtManager, buildingId, ref building, building.m_deathProblemTimer, null, Notification.Problem.Death);
+                        TargetBuildingInfo deadPeopleBuilding = new TargetBuildingInfo(districtManager, buildingId, ref building, building.m_deathProblemTimer, null, true, Notification.Problem.Death);
                         if (Log.LogToFile) Log.Debug(this, "CategorizeBuilding", "Dead People", buildingId, building.Info.name, deadPeopleBuilding.BuildingName, building.m_deathProblemTimer, deadPeopleBuilding.ProblemValue, deadPeopleBuilding.HasProblem, deadPeopleBuilding.District);
 
-                        deadPeopleBuildings[buildingId] = deadPeopleBuilding;
+                        DeadPeopleBuildings[buildingId] = deadPeopleBuilding;
                         HasDeadPeopleBuildingsToCheck = true;
                     }
                     else
                     {
-                        deadPeopleBuildings[buildingId].Update(districtManager, ref building, building.m_deathProblemTimer, null, Notification.Problem.Death);
-                        HasDeadPeopleBuildingsToCheck = HasDeadPeopleBuildingsToCheck || deadPeopleBuildings[buildingId].CheckThis;
+                        DeadPeopleBuildings[buildingId].Update(districtManager, ref building, building.m_deathProblemTimer, null, true, Notification.Problem.Death);
+                        HasDeadPeopleBuildingsToCheck = HasDeadPeopleBuildingsToCheck || DeadPeopleBuildings[buildingId].CheckThis;
                     }
                 }
-                else if (deadPeopleBuildings.ContainsKey(buildingId))
+                else if (DeadPeopleBuildings.ContainsKey(buildingId))
                 {
                     if (Log.LogToFile) Log.Debug(this, "CategorizeBuilding", "No Dead People", buildingId);
 
-                    deadPeopleBuildings.Remove(buildingId);
+                    DeadPeopleBuildings.Remove(buildingId);
                 }
             }
 
@@ -340,23 +455,23 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 // Check landfills and incinerators.
                 if (building.Info.m_buildingAI is LandfillSiteAI)
                 {
-                    if (!garbageBuildings.ContainsKey(buildingId))
+                    if (!GarbageBuildings.ContainsKey(buildingId))
                     {
                         ServiceBuildingInfo garbageBuilding = new ServiceBuildingInfo(districtManager, buildingId, ref building);
                         Log.Debug(this, "CategorizeBuilding", "Landfill", buildingId, building.Info.name, garbageBuilding.BuildingName, garbageBuilding.Range, garbageBuilding.District);
 
-                        garbageBuildings[buildingId] = garbageBuilding;
+                        GarbageBuildings[buildingId] = garbageBuilding;
                     }
                     else
                     {
-                        garbageBuildings[buildingId].Update(districtManager, ref building);
+                        GarbageBuildings[buildingId].Update(districtManager, ref building);
                     }
                 }
-                else if (garbageBuildings.ContainsKey(buildingId))
+                else if (GarbageBuildings.ContainsKey(buildingId))
                 {
                     Log.Debug(this, "CategorizeBuilding", "Not Landfill", buildingId);
 
-                    garbageBuildings.Remove(buildingId);
+                    GarbageBuildings.Remove(buildingId);
                 }
 
                 // Check garbage.
@@ -364,25 +479,32 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 {
                     bool problematic = (building.m_problems & Notification.Problem.Garbage) != Notification.Problem.None;
 
-                    if (!dirtyBuildings.ContainsKey(buildingId))
+                    if (!DirtyBuildings.ContainsKey(buildingId))
                     {
-                        TargetBuildingInfo dirtyBuilding = new TargetBuildingInfo(districtManager, buildingId, ref building, null, building.m_garbageBuffer, Notification.Problem.Garbage);
+                        TargetBuildingInfo dirtyBuilding = new TargetBuildingInfo(districtManager, buildingId, ref building, null, building.m_garbageBuffer, true, Notification.Problem.Garbage);
                         if (Log.LogToFile) Log.Debug(this, "CategorizeBuilding", "Dirty", buildingId, building.Info.name, dirtyBuilding.BuildingName, building.m_garbageBuffer, dirtyBuilding.ProblemValue, dirtyBuilding.HasProblem, dirtyBuilding.District);
 
-                        dirtyBuildings[buildingId] = dirtyBuilding;
+                        DirtyBuildings[buildingId] = dirtyBuilding;
                         HasDirtyBuildingsToCheck = true;
                     }
                     else
                     {
-                        dirtyBuildings[buildingId].Update(districtManager, ref building, null, building.m_garbageBuffer, Notification.Problem.Garbage);
-                        HasDirtyBuildingsToCheck = HasDirtyBuildingsToCheck || dirtyBuildings[buildingId].CheckThis;
+                        DirtyBuildings[buildingId].Update(districtManager, ref building, null, building.m_garbageBuffer, true, Notification.Problem.Garbage);
+                        HasDirtyBuildingsToCheck = HasDirtyBuildingsToCheck || DirtyBuildings[buildingId].CheckThis;
                     }
                 }
-                else if (dirtyBuildings.ContainsKey(buildingId))
+                else if (DirtyBuildings.ContainsKey(buildingId))
                 {
-                    if (Log.LogToFile) Log.Debug(this, "CategorizeBuilding", "Not Dirty", buildingId);
+                    if (building.m_garbageBuffer >= Global.Settings.MinimumGarbageForDispatch / 10)
+                    {
+                        DirtyBuildings[buildingId].Update(districtManager, ref building, null, building.m_garbageBuffer, false, Notification.Problem.Garbage);
+                    }
+                    else
+                    {
+                        if (Log.LogToFile) Log.Debug(this, "CategorizeBuilding", "Not Dirty", buildingId);
 
-                    dirtyBuildings.Remove(buildingId);
+                        DirtyBuildings.Remove(buildingId);
+                    }
                 }
             }
         }
@@ -402,30 +524,30 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 {
                     if (Global.Settings.DispatchHearses)
                     {
-                        if (hearseBuildings.ContainsKey(id))
+                        if (HearseBuildings.ContainsKey(id))
                         {
-                            hearseBuildings.Remove(id);
+                            HearseBuildings.Remove(id);
                             Log.Debug(this, "CategorizeBuildings", "Not Cemetary Building", id);
                         }
 
-                        if (deadPeopleBuildings.ContainsKey(id))
+                        if (DeadPeopleBuildings.ContainsKey(id))
                         {
-                            deadPeopleBuildings.Remove(id);
+                            DeadPeopleBuildings.Remove(id);
                             Log.Debug(this, "CategorizeBuildings", "Not Dead People Building", id);
                         }
                     }
 
                     if (Global.Settings.DispatchGarbageTrucks)
                     {
-                        if (garbageBuildings.ContainsKey(id))
+                        if (GarbageBuildings.ContainsKey(id))
                         {
-                            garbageBuildings.Remove(id);
+                            GarbageBuildings.Remove(id);
                             Log.Debug(this, "CategorizeBuildings", "Not Landfill Building", id);
                         }
 
-                        if (dirtyBuildings.ContainsKey(id))
+                        if (DirtyBuildings.ContainsKey(id))
                         {
-                            dirtyBuildings.Remove(id);
+                            DirtyBuildings.Remove(id);
                             Log.Debug(this, "CategorizeBuildings", "Not Dirty Building", id);
                         }
                     }
@@ -491,7 +613,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             /// <summary>
             /// The buildings first own vehicle.
             /// </summary>
-            public ushort FirstOwnVehicle = 0;
+            public ushort FirstOwnVehicleId = 0;
 
             /// <summary>
             /// The building is in target district.
@@ -540,7 +662,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 this.BuildingId = buildingId;
                 this.Position = building.m_position;
-                this.FirstOwnVehicle = building.m_ownVehicles;
+                this.FirstOwnVehicleId = building.m_ownVehicles;
 
                 if (districtManager != null)
                 {
@@ -612,7 +734,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 this.lastUpdate = Global.CurrentFrame;
 
                 this.Position = building.m_position;
-                this.FirstOwnVehicle = building.m_ownVehicles;
+                this.FirstOwnVehicleId = building.m_ownVehicles;
 
                 if (Global.CurrentFrame - lastInfoUpdate > Global.ObjectUpdateInterval)
                 {
@@ -695,6 +817,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             public bool HasProblem;
 
             /// <summary>
+            /// The buidling needs service.
+            /// </summary>
+            public bool NeedsService;
+
+            /// <summary>
             /// The position.
             /// </summary>
             public Vector3 Position;
@@ -737,8 +864,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             /// <param name="building">The building.</param>
             /// <param name="problemTimer">The problem timer.</param>
             /// <param name="problemBuffer">The problem buffer.</param>
+            /// <param name="needsService">if set to <c>true</c> building needs service.</param>
             /// <param name="problemToCheck">The problem to check.</param>
-            public TargetBuildingInfo(DistrictManager districtManager, ushort buildingId, ref Building building, byte? problemTimer, ushort? problemBuffer, Notification.Problem problemToCheck)
+            public TargetBuildingInfo(DistrictManager districtManager, ushort buildingId, ref Building building, byte? problemTimer, ushort? problemBuffer, bool needsService, Notification.Problem problemToCheck)
             {
                 this.lastUpdate = Global.CurrentFrame;
                 this.lastInfoUpdate = Global.CurrentFrame;
@@ -747,11 +875,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 if (problemTimer != null && problemTimer.HasValue)
                 {
-                    this.ProblemValue = (ushort)problemTimer.Value << 8;
+                    this.ProblemValue = (ushort)problemTimer.Value * Dispatcher.ProblemTimerModifier;
                 }
                 else if (problemBuffer != null && problemBuffer.HasValue)
                 {
-                    ProblemValue = problemBuffer.Value;
+                    ProblemValue = problemBuffer.Value * Dispatcher.ProblemBufferModifier;
                 }
                 else
                 {
@@ -770,7 +898,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     this.District = 0;
                 }
 
-                checkThis = true;
+                this.NeedsService = needsService || this.HasProblem;
+                this.checkThis = needsService;
             }
 
             /// <summary>
@@ -824,6 +953,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 {
                     return this.checkThis && lastUpdate == Global.CurrentFrame;
                 }
+                set
+                {
+                    this.checkThis = value;
+                }
             }
 
             /// <summary>
@@ -870,8 +1003,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             /// <param name="building">The building.</param>
             /// <param name="problemTimer">The problem timer.</param>
             /// <param name="problemBuffer">The problem buffer.</param>
+            /// <param name="needsService">if set to <c>true</c> building needs service.</param>
             /// <param name="problemToCheck">The problem to check.</param>
-            public void Update(DistrictManager districtManager, ref Building building, byte? problemTimer, ushort? problemBuffer, Notification.Problem problemToCheck)
+            public void Update(DistrictManager districtManager, ref Building building, byte? problemTimer, ushort? problemBuffer, bool needsService, Notification.Problem problemToCheck)
             {
                 this.lastUpdate = Global.CurrentFrame;
 
@@ -901,7 +1035,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     }
                 }
 
-                this.checkThis = ((Global.RecheckInterval == 0 || Global.CurrentFrame - lastCheck >= Global.RecheckInterval) &&
+                this.NeedsService = needsService || this.HasProblem;
+                this.checkThis = needsService &&
+                                 ((Global.RecheckInterval == 0 || Global.CurrentFrame - lastCheck >= Global.RecheckInterval) &&
                                   (Global.RecheckHandledInterval == 0 || Global.CurrentFrame - lastHandled >= Global.RecheckHandledInterval));
             }
 

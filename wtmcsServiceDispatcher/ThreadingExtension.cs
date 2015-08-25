@@ -14,6 +14,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         private bool isBroken = false;
 
         /// <summary>
+        /// The last debug list log stamp.
+        /// </summary>
+        private uint LastDebugListLog = 0;
+
+        /// <summary>
         /// The game has started.
         /// </summary>
         private bool started = false;
@@ -67,7 +72,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     return;
                 }
 
-                if (Global.CurrentFrame == this.threadingManager.simulationFrame)
+                uint simulationFrame = this.threadingManager.simulationFrame;
+
+                if (Global.CurrentFrame == simulationFrame)
                 {
                     return;
                 }
@@ -78,7 +85,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     Buildings.DebugListLog();
                 }
 
-                Global.CurrentFrame = this.threadingManager.simulationFrame;
+                if (Global.CurrentFrame == 0 && simulationFrame > 0)
+                {
+                    LastDebugListLog = simulationFrame;
+                }
+
+                Global.CurrentFrame = simulationFrame;
 
                 // Do vehicle based stuff.
                 if (Global.Vehicles != null)
@@ -103,6 +115,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     if (Global.GarbageTruckDispatcher != null)
                     {
                         Global.GarbageTruckDispatcher.Dispatch();
+                    }
+
+                    if (Log.LogDebugLists && Global.CurrentFrame - LastDebugListLog >= 1800)
+                    {
+                        LastDebugListLog = Global.CurrentFrame;
+
+                        Global.Buildings.DebugListLogBuildings();
+                        Log.FlushBuffer();
                     }
                 }
 
