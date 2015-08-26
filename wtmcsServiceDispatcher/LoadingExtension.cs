@@ -53,13 +53,13 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         // Initialize hearse objects.
                         if (Global.Settings.DispatchHearses)
                         {
-                            Global.HearseDispatcher = new HearseDispatcher();
+                            Global.HearseDispatcher = new Dispatcher(Dispatcher.DispatcherTypes.HearseDispatcher);
                         }
 
                         // Initialize garbage truck objects.
                         if (Global.Settings.DispatchGarbageTrucks)
                         {
-                            Global.GarbageTruckDispatcher = new GarbageTruckDispatcher();
+                            Global.GarbageTruckDispatcher = new Dispatcher(Dispatcher.DispatcherTypes.GarbageTruckDispatcher);
                         }
                     }
 

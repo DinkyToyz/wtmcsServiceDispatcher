@@ -1,4 +1,5 @@
-﻿using ColossalFramework;
+﻿
+using ColossalFramework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,7 +9,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
     /// <summary>
     /// Service vehicle dispatch base class.
     /// </summary>
-    internal abstract class Dispatcher
+    internal class Dispatcher
     {
         /// <summary>
         /// The problem buffer modifier
@@ -51,9 +52,19 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         protected Dictionary<ushort, Buildings.TargetBuildingInfo> TargetBuildings;
 
         /// <summary>
+        /// Set target to source building when de-assigning vehicle.
+        /// </summary>
+        private const bool DeAssignToSource = false;
+
+        /// <summary>
         /// The bulding check parameters.
         /// </summary>
         private BuldingCheckParameters[] buildingChecks;
+
+        /// <summary>
+        /// The dispatcher type.
+        /// </summary>
+        public readonly DispatcherTypes DispatcherType;
 
         /// <summary>
         /// The free vehicle count.
@@ -63,10 +74,41 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// Initializes a new instance of the <see cref="Dispatcher"/> class.
         /// </summary>
-        public Dispatcher()
+        public Dispatcher(DispatcherTypes dispatcherType)
         {
-            buildingChecks = BuildingCheckParamaters;
+            this.DispatcherType = dispatcherType;
+
+            switch (this.DispatcherType)
+            {
+                case DispatcherTypes.HearseDispatcher:
+                    transferType = (byte)TransferManager.TransferReason.Dead;
+                    serviceBuildings = Global.Buildings.HearseBuildings;
+                    TargetBuildings = Global.Buildings.DeadPeopleBuildings;
+                    buildingChecks = BuldingCheckParameters.GetBuldingCheckParameters(Global.Settings.DeathChecksParameters);
+                    break;
+
+                case DispatcherTypes.GarbageTruckDispatcher:
+                    transferType = (byte)TransferManager.TransferReason.Garbage;
+                    serviceBuildings = Global.Buildings.GarbageBuildings;
+                    TargetBuildings = Global.Buildings.DirtyBuildings;
+                    buildingChecks = BuldingCheckParameters.GetBuldingCheckParameters(Global.Settings.GarbageChecksParameters);
+                    break;
+
+                default:
+                    throw new Exception("Bad dispatcher type");
+            }
+
             Log.Debug(this, "Constructed");
+        }
+
+        /// <summary>
+        /// The dispatcher types.
+        /// </summary>
+        public enum DispatcherTypes
+        {
+            None = 0,
+            HearseDispatcher = 1,
+            GarbageTruckDispatcher = 2
         }
 
         /// <summary>
@@ -78,20 +120,28 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public byte transferType { get; protected set; }
 
         /// <summary>
-        /// Gets the building check paramaters.
-        /// </summary>
-        /// <value>
-        /// The building check paramaters.
-        /// </value>
-        protected abstract BuldingCheckParameters[] BuildingCheckParamaters { get; }
-
-        /// <summary>
         /// Gets a value indicating whether this service has target buildings.
         /// </summary>
         /// <value>
         /// <c>true</c> if this service has target buildings; otherwise, <c>false</c>.
         /// </value>
-        protected abstract bool HasTargetBuildings { get; }
+        protected bool HasTargetBuildings
+        {
+            get
+            {
+                switch (this.DispatcherType)
+                {
+                    case DispatcherTypes.HearseDispatcher:
+                        return Global.Buildings.HasDeadPeopleBuildingsToCheck;
+
+                    case DispatcherTypes.GarbageTruckDispatcher:
+                        return Global.Buildings.HasDirtyBuildingsToCheck;
+
+                    default:
+                        return false;
+                }
+            }
+        }
 
         /// <summary>
         /// Checks the vehicle target.
@@ -112,21 +162,21 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             {
                 if (Log.LogALot) Log.DevDebug(this, "CheckVehicleTarget", "NewVehicle", vehicleId, vehicle.m_targetBuilding);
 
-                vehicle.Info.m_vehicleAI.SetTarget(vehicleId, ref vehicle, vehicle.m_sourceBuilding);
+                vehicle.Info.m_vehicleAI.SetTarget(vehicleId, ref vehicle, DeAssignToSource ? vehicle.m_sourceBuilding : (ushort)0);
             }
             else if (!TargetBuildings.ContainsKey(vehicle.m_targetBuilding))
             {
                 if (Log.LogALot) Log.DevDebug(this, "CheckVehicleTarget", "NoNeed", vehicleId, vehicle.m_targetBuilding);
 
-                vehicle.Info.m_vehicleAI.SetTarget(vehicleId, ref vehicle, vehicle.m_sourceBuilding);
-                serviceBuilding.Vehicles[vehicleId].Target = vehicle.m_sourceBuilding;
+                vehicle.Info.m_vehicleAI.SetTarget(vehicleId, ref vehicle, DeAssignToSource ? vehicle.m_sourceBuilding : (ushort)0);
+                serviceBuilding.Vehicles[vehicleId].Target = DeAssignToSource ? vehicle.m_sourceBuilding : (ushort)0;
             }
             else if (vehicle.m_targetBuilding != serviceBuilding.Vehicles[vehicleId].Target)
             {
                 if (Log.LogALot) Log.DevDebug(this, "CheckVehicleTarget", "WrongTarget", vehicleId, vehicle.m_targetBuilding, serviceBuilding.Vehicles[vehicleId].Target);
 
-                vehicle.Info.m_vehicleAI.SetTarget(vehicleId, ref vehicle, vehicle.m_sourceBuilding);
-                serviceBuilding.Vehicles[vehicleId].Target = vehicle.m_sourceBuilding;
+                vehicle.Info.m_vehicleAI.SetTarget(vehicleId, ref vehicle, DeAssignToSource ? vehicle.m_sourceBuilding : (ushort)0);
+                serviceBuilding.Vehicles[vehicleId].Target = DeAssignToSource ? vehicle.m_sourceBuilding : (ushort)0;
             }
         }
 
@@ -197,7 +247,19 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// </summary>
         public void ReInitBuildingChecks()
         {
-            buildingChecks = BuildingCheckParamaters;
+            switch (this.DispatcherType)
+            {
+                case DispatcherTypes.HearseDispatcher:
+                    buildingChecks = BuldingCheckParameters.GetBuldingCheckParameters(Global.Settings.DeathChecksParameters);
+                    break;
+
+                case DispatcherTypes.GarbageTruckDispatcher:
+                    buildingChecks = BuldingCheckParameters.GetBuldingCheckParameters(Global.Settings.GarbageChecksParameters);
+                    break;
+
+                default:
+                    throw new Exception("Bad dispatcher type");
+            }
         }
 
         /// <summary>
@@ -306,7 +368,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                             {
                                 if (Log.LogALot) Log.DevDebug(this, "CollectVehicles", "WrongTarget", vehicleId, vehicles[vehicleId].m_targetBuilding, serviceBuilding.Vehicles[vehicleId].Target);
 
-                                vehicles[vehicleId].Info.m_vehicleAI.SetTarget(vehicleId, ref vehicles[vehicleId], serviceBuilding.BuildingId);
+                                vehicles[vehicleId].Info.m_vehicleAI.SetTarget(vehicleId, ref vehicles[vehicleId], DeAssignToSource ? serviceBuilding.BuildingId : (ushort)0);
                                 hasTarget = false;
                             }
 
@@ -316,7 +378,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         {
                             if (collecting && !loading && vehicles[vehicleId].m_targetBuilding != 0)
                             {
-                                vehicles[vehicleId].Info.m_vehicleAI.SetTarget(vehicleId, ref vehicles[vehicleId], serviceBuilding.BuildingId);
+                                vehicles[vehicleId].Info.m_vehicleAI.SetTarget(vehicleId, ref vehicles[vehicleId], DeAssignToSource ? serviceBuilding.BuildingId : (ushort)0);
                                 hasTarget = false;
                             }
 
@@ -331,8 +393,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         {
                             if (Log.LogALot) Log.DevDebug(this, "CollectVehicles", "NoNeed", vehicleId, vehicles[vehicleId].m_targetBuilding);
 
-                            vehicles[vehicleId].Info.m_vehicleAI.SetTarget(vehicleId, ref vehicles[vehicleId], serviceBuilding.BuildingId);
-                            vehicles[vehicleId].m_targetBuilding = serviceBuilding.BuildingId;
+                            vehicles[vehicleId].Info.m_vehicleAI.SetTarget(vehicleId, ref vehicles[vehicleId], DeAssignToSource ? serviceBuilding.BuildingId : (ushort)0);
+                            vehicles[vehicleId].m_targetBuilding = DeAssignToSource ? serviceBuilding.BuildingId : (ushort)0;
                         }
 
                         // Update assigned target status.

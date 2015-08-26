@@ -304,6 +304,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     {
                         msg.Append('<').Append(((Type)sourceObject).Name);
                     }
+                    else if (sourceObject is Dispatcher && ((Dispatcher)sourceObject).DispatcherType != Dispatcher.DispatcherTypes.None)
+                    {
+                        msg.Append('<').Append(((Dispatcher)sourceObject).DispatcherType.ToString());
+                    }
                     else
                     {
                         msg.Append('<').Append(sourceObject.GetType().Name);

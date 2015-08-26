@@ -25,12 +25,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// The garbage truck dispatcher.
         /// </summary>
-        public static GarbageTruckDispatcher GarbageTruckDispatcher = null;
+        public static Dispatcher GarbageTruckDispatcher = null;
 
         /// <summary>
         /// The hearse dispatcher.
         /// </summary>
-        public static HearseDispatcher HearseDispatcher = null;
+        public static Dispatcher HearseDispatcher = null;
 
         /// <summary>
         /// A level is loaded.

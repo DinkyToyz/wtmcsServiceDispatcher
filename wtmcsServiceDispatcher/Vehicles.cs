@@ -206,15 +206,16 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     info.Add("VehicleName='" + name + "'");
                 }
 
-                string type = "Type=" + vehicles[vehicleId].m_transferType.ToString();
+                string type = vehicles[vehicleId].m_transferType.ToString();
                 foreach (TransferManager.TransferReason reason in Enum.GetValues(typeof(TransferManager.TransferReason)))
                 {
                     if ((byte)reason == vehicles[vehicleId].m_transferType)
                     {
-                        type += ", " + reason.ToString();
+                        type = reason.ToString();
+                        break;
                     }
                 }
-                info.Add(type);
+                info.Add("Type=" + type);
 
                 name = null;
                 if (vehicles[vehicleId].m_sourceBuilding != 0 && buildings[vehicles[vehicleId].m_sourceBuilding].Info != null)

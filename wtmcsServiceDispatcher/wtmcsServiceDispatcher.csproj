@@ -61,9 +61,7 @@
     <Compile Include="Dispatcher.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="FileSystem.cs" />
-    <Compile Include="GarbageTruckDispatcher.cs" />
     <Compile Include="Global.cs" />
-    <Compile Include="HearseDispatcher.cs" />
     <Compile Include="Library.cs" />
     <Compile Include="LoadingExtension.cs" />
     <Compile Include="Log.cs" />
