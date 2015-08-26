@@ -97,7 +97,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     foreach (Settings.BuildingCheckOrder checks in Enum.GetValues(typeof(Settings.BuildingCheckOrder)))
                     {
                         if (Log.LogALot || Library.IsDebugBuild) Log.Debug(this, "OnSettingsUI", "Init", "BuildingCheckOrder", (byte)checks, checks, Settings.GetBuildingCheckOrderName(checks));
-                        TargetBuildingChecks.Add((byte)checks, Settings.GetBuildingCheckOrderName(checks));
+
+                        string name = Settings.GetBuildingCheckOrderName(checks);
+                        if (String.IsNullOrEmpty(name))
+                        {
+                            name = checks.ToString();
+                        }
+
+                        TargetBuildingChecks.Add((byte)checks, name);
                     }
                 }
 
@@ -125,7 +132,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                                 Global.Settings.DeathChecksPreset = checks;
                                 if (Global.HearseDispatcher != null)
                                 {
-                                    Global.HearseDispatcher.InitBuildingChecks();
+                                    Global.HearseDispatcher.ReInitBuildingChecks();
                                 }
                                 Global.Settings.Save();
                                 break;
@@ -151,7 +158,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                                 Global.Settings.GarbageChecksPreset = checks;
                                 if (Global.GarbageTruckDispatcher != null)
                                 {
-                                    Global.GarbageTruckDispatcher.InitBuildingChecks();
+                                    Global.GarbageTruckDispatcher.ReInitBuildingChecks();
                                 }
                                 Global.Settings.Save();
                                 break;

@@ -206,6 +206,16 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     info.Add("VehicleName='" + name + "'");
                 }
 
+                string type = "Type=" + vehicles[vehicleId].m_transferType.ToString();
+                foreach (TransferManager.TransferReason reason in Enum.GetValues(typeof(TransferManager.TransferReason)))
+                {
+                    if ((byte)reason == vehicles[vehicleId].m_transferType)
+                    {
+                        type += ", " + reason.ToString();
+                    }
+                }
+                info.Add(type);
+
                 name = null;
                 if (vehicles[vehicleId].m_sourceBuilding != 0 && buildings[vehicles[vehicleId].m_sourceBuilding].Info != null)
                 {
@@ -331,14 +341,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 }
                 else
                 {
-                    if ((vehicles[id].m_flags & Vehicle.Flags.TransferToSource) != Vehicle.Flags.None && (vehicles[id].m_flags & (Vehicle.Flags.TransferToTarget | Vehicle.Flags.Arriving | Vehicle.Flags.Stopped)) == Vehicle.Flags.None && vehicles[id].m_targetBuilding != 0)
+                    if ((vehicles[id].m_flags & Vehicle.Flags.TransferToSource) != Vehicle.Flags.None && (vehicles[id].m_flags & (Vehicle.Flags.TransferToTarget | Vehicle.Flags.Arriving | Vehicle.Flags.Stopped)) == Vehicle.Flags.None && vehicles[id].m_targetBuilding != 0 && vehicles[id].m_targetBuilding != vehicles[id].m_sourceBuilding)
                     {
-                        if (Global.HearseDispatcher != null && Global.HearseDispatcher.IsCorrectType(vehicles[id].Info))
+                        if (Global.HearseDispatcher != null && vehicles[id].m_transferType == Global.HearseDispatcher.transferType)
                         {
                             Global.HearseDispatcher.CheckVehicleTarget(id, ref vehicles[id]);
                         }
 
-                        if (Global.GarbageTruckDispatcher != null && Global.GarbageTruckDispatcher.IsCorrectType(vehicles[id].Info))
+                        if (Global.GarbageTruckDispatcher != null && vehicles[id].m_transferType == Global.GarbageTruckDispatcher.transferType)
                         {
                             Global.GarbageTruckDispatcher.CheckVehicleTarget(id, ref vehicles[id]);
                         }
@@ -372,9 +382,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public class ServiceVehicleInfo
         {
             /// <summary>
-            /// The vehcile is free.
+            /// The vehilce is free.
             /// </summary>
-            public bool CanCollect;
+            public bool FreeToCollect;
 
             /// <summary>
             /// The last seen stamp.
@@ -401,14 +411,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             /// </summary>
             /// <param name="vehicleId">The vehicle identifier.</param>
             /// <param name="vehicle">The vehicle.</param>
-            /// <param name="canCollect">if set to <c>true</c> the vehile is free.</param>
-            public ServiceVehicleInfo(ushort vehicleId, ref Vehicle vehicle, bool canCollect)
+            /// <param name="freeToCollect">if set to <c>true</c> the vehile is free.</param>
+            public ServiceVehicleInfo(ushort vehicleId, ref Vehicle vehicle, bool freeToCollect)
             {
                 this.VehicleId = vehicleId;
-                this.LastSeen = Global.CurrentFrame;
-                this.Position = vehicle.GetLastFramePosition();
-                this.Target = vehicle.m_targetBuilding;
-                this.CanCollect = canCollect;
+
+                this.Update(ref vehicle, freeToCollect);
             }
 
             /// <summary>
@@ -429,13 +437,13 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             /// Updates the specified vehicle.
             /// </summary>
             /// <param name="vehicle">The vehicle.</param>
-            /// <param name="canCollect">if set to <c>true</c> the vehile is free.</param>
-            public void Update(ref Vehicle vehicle, bool canCollect)
+            /// <param name="freeToCollect">if set to <c>true</c> the vehile is free.</param>
+            public void Update(ref Vehicle vehicle, bool freeToCollect)
             {
                 this.LastSeen = Global.CurrentFrame;
                 this.Position = vehicle.GetLastFramePosition();
                 this.Target = vehicle.m_targetBuilding;
-                this.CanCollect = canCollect;
+                this.FreeToCollect = freeToCollect;
             }
         }
     }

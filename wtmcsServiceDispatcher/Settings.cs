@@ -39,7 +39,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// The minimum amount of garbage to dispatch a truck for.
         /// </summary>
-        public ushort MinimumGarbageForDispatch = 2000;
+        public ushort MinimumGarbageForDispatch = 1500;
 
         /// <summary>
         /// The range modifier
@@ -62,6 +62,19 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public uint SaveCount = 0;
 
         /// <summary>
+        /// The descriptions for the building checks orders.
+        /// </summary>
+        private static Dictionary<BuildingCheckOrder, string> buildingCheckOrderDescriptions = new Dictionary<BuildingCheckOrder, string>()
+        {
+            { BuildingCheckOrder.FirstFirst, "All buldings regardless of range." },
+            { BuildingCheckOrder.ForgottenFirst, "Forgotten buidlings in range, followed by forgotten buildings out of range, buildings in range and finally problematic buildings in or out of range." },
+            { BuildingCheckOrder.InRange, "Buildings in range followed by forgotten out of range." },
+            { BuildingCheckOrder.InRangeFirst, "Buildings in range followed by problematic buildings in or out of range." },
+            { BuildingCheckOrder.ProblematicFirst, "Problematic buildings in range followed by problematic buildings out of range and finally buildings in range." },
+            { BuildingCheckOrder.VeryProblematicFirst, "Very problematic buildings in range followed by very problematic buildings out of range, buildings in range and finally problematic buildings in or out of range." }
+        };
+
+        /// <summary>
         /// The display names for the building checks orders.
         /// </summary>
         private static Dictionary<BuildingCheckOrder, string> buildingCheckOrderNames = new Dictionary<BuildingCheckOrder, string>()
@@ -71,7 +84,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             { BuildingCheckOrder.ForgottenFirst, "Forgotten first" },
             { BuildingCheckOrder.InRange, "In range" },
             { BuildingCheckOrder.InRangeFirst, "In range first" },
-            { BuildingCheckOrder.ProblematicFirst, "Problematic first" }
+            { BuildingCheckOrder.ProblematicFirst, "Problematic first" },
+            { BuildingCheckOrder.VeryProblematicFirst, "Very problematic first" }
         };
 
         /// <summary>
@@ -150,7 +164,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             InRange = 1,
 
             /// <summary>
-            /// Custom order.
+            /// Straight order.
             /// </summary>
             FirstFirst = 2,
 
@@ -165,9 +179,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             ProblematicFirst = 4,
 
             /// <summary>
+            /// 1, very problematic in range; 2, very problematic; 3, in range; 4, problematic out of range.
+            /// </summary>
+            VeryProblematicFirst = 5,
+
+            /// <summary>
             /// 1, forgotten in range; 2, forgotten out of range; 3, in range; 4, problematic out of range.
             /// </summary>
-            ForgottenFirst = 5
+            ForgottenFirst = 6
         }
 
         /// <summary>
@@ -201,14 +220,24 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             ProblematicIgnoreRange = 4,
 
             /// <summary>
+            /// Problematic buildings in range.
+            /// </summary>
+            VeryProblematicInRange = 5,
+
+            /// <summary>
+            /// Problematic buildings in or out of range.
+            /// </summary>
+            VeryProblematicIgnoreRange = 6,
+
+            /// <summary>
             /// Forgotten buildings in range.
             /// </summary>
-            ForgottenInRange = 5,
+            ForgottenInRange = 7,
 
             /// <summary>
             /// Forgotten buildings in or out of range.
             /// </summary>
-            ForgottenIgnoreRange = 6
+            ForgottenIgnoreRange = 8
         }
 
         /// <summary>
@@ -318,9 +347,19 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// </summary>
         /// <param name="checkOrder">The check order.</param>
         /// <returns>The display name.</returns>
+        public static string GetBuildingCheckOrderDescription(BuildingCheckOrder checkOrder)
+        {
+            return buildingCheckOrderDescriptions.ContainsKey(checkOrder) ? buildingCheckOrderDescriptions[checkOrder] : null;
+        }
+
+        /// <summary>
+        /// Gets the display name of the building check order.
+        /// </summary>
+        /// <param name="checkOrder">The check order.</param>
+        /// <returns>The display name.</returns>
         public static string GetBuildingCheckOrderName(BuildingCheckOrder checkOrder)
         {
-            return buildingCheckOrderNames.ContainsKey(checkOrder) ? buildingCheckOrderNames[checkOrder] : checkOrder.ToString();
+            return buildingCheckOrderNames.ContainsKey(checkOrder) ? buildingCheckOrderNames[checkOrder] : null;
         }
 
         /// <summary>
@@ -343,6 +382,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 case BuildingCheckOrder.ProblematicFirst:
                     return new BuildingCheckParameters[] { BuildingCheckParameters.ProblematicInRange, BuildingCheckParameters.ProblematicIgnoreRange, BuildingCheckParameters.InRange };
+
+                case BuildingCheckOrder.VeryProblematicFirst:
+                    return new BuildingCheckParameters[] { BuildingCheckParameters.VeryProblematicInRange, BuildingCheckParameters.VeryProblematicIgnoreRange, BuildingCheckParameters.InRange, BuildingCheckParameters.ProblematicIgnoreRange };
 
                 case BuildingCheckOrder.ForgottenFirst:
                     return new BuildingCheckParameters[] { BuildingCheckParameters.ForgottenInRange, BuildingCheckParameters.ForgottenIgnoreRange, BuildingCheckParameters.InRange, BuildingCheckParameters.ProblematicIgnoreRange };
@@ -608,9 +650,19 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 public BuildingCheckParameters[] BuildingChecks = null;
 
                 /// <summary>
+                /// The description.
+                /// </summary>
+                public string Description;
+
+                /// <summary>
                 /// The identifier
                 /// </summary>
                 public BuildingCheckOrder Identifier;
+
+                /// <summary>
+                /// The name
+                /// </summary>
+                public string Name;
 
                 /// <summary>
                 /// Initializes a new instance of the <see cref="BuildingChecksPresetInfo"/> class.
@@ -628,6 +680,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 public BuildingChecksPresetInfo(BuildingCheckOrder buildingCheckOrder)
                 {
                     this.Identifier = buildingCheckOrder;
+                    this.Name = GetBuildingCheckOrderName(buildingCheckOrder);
+                    this.Description = GetBuildingCheckOrderDescription(buildingCheckOrder);
                     this.BuildingChecks = GetBuildingChecksParameters(Identifier);
                 }
             }

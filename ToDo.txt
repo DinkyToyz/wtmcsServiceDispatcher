@@ -1,0 +1,13 @@
+Use methods and property methods (nicer, more correct)?
+Use non method properties (faster)?
+  GetBufferStatus differs from mod...
+  GetSize does what mod does
+
+CreateVehicle if not all exists
+ CreateVehicle(...)
+ SetSource(...)
+
+Citizens?
+
+
+Detour ProduceGoods???

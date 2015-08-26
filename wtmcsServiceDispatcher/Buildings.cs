@@ -340,8 +340,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 {
                     needs.Add("Dead");
                 }
-                if (buildings[buildingId].m_garbageBuffer * Dispatcher.ProblemBufferModifier >= Dispatcher.ProblemForgottenLimit ||
-                    buildings[buildingId].m_deathProblemTimer * Dispatcher.ProblemTimerModifier >= Dispatcher.ProblemForgottenLimit)
+                if (buildings[buildingId].m_garbageBuffer * Dispatcher.ProblemBufferModifier >= Dispatcher.ProblemLimitForgotten ||
+                    buildings[buildingId].m_deathProblemTimer * Dispatcher.ProblemTimerModifier >= Dispatcher.ProblemLimitForgotten)
                 {
                     needs.Add("Forgotten");
                 }
@@ -426,8 +426,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 // Check dead people.
                 if (building.m_deathProblemTimer > 0)
                 {
-                    bool problematic = (building.m_problems & Notification.Problem.Death) != Notification.Problem.None;
-
                     if (!DeadPeopleBuildings.ContainsKey(buildingId))
                     {
                         TargetBuildingInfo deadPeopleBuilding = new TargetBuildingInfo(districtManager, buildingId, ref building, building.m_deathProblemTimer, null, true, Notification.Problem.Death);
@@ -475,10 +473,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 }
 
                 // Check garbage.
-                if (building.m_garbageBuffer >= Global.Settings.MinimumGarbageForDispatch)
+                if (building.m_garbageBuffer >= Global.Settings.MinimumGarbageForDispatch && !(building.Info.m_buildingAI is LandfillSiteAI))
                 {
-                    bool problematic = (building.m_problems & Notification.Problem.Garbage) != Notification.Problem.None;
-
                     if (!DirtyBuildings.ContainsKey(buildingId))
                     {
                         TargetBuildingInfo dirtyBuilding = new TargetBuildingInfo(districtManager, buildingId, ref building, null, building.m_garbageBuffer, true, Notification.Problem.Garbage);
@@ -601,6 +597,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             public ushort BuildingId = 0;
 
             /// <summary>
+            /// The building can receive.
+            /// </summary>
+            public bool CanReceive;
+
+            /// <summary>
             /// The distance to the target.
             /// </summary>
             public float Distance = float.PositiveInfinity;
@@ -658,22 +659,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             /// <param name="building">The building.</param>
             public ServiceBuildingInfo(DistrictManager districtManager, ushort buildingId, ref Building building)
             {
-                this.lastUpdate = Global.CurrentFrame;
-
                 this.BuildingId = buildingId;
-                this.Position = building.m_position;
-                this.FirstOwnVehicleId = building.m_ownVehicles;
 
-                if (districtManager != null)
-                {
-                    this.District = districtManager.GetDistrict(Position);
-                }
-
-                if (Global.Settings.LimitRange)
-                {
-                    this.Range = building.Info.m_buildingAI.GetCurrentRange(buildingId, ref building);
-                    this.Range = this.Range * this.Range * Global.Settings.RangeModifier;
-                }
+                this.Update(districtManager, ref building);
             }
 
             /// <summary>
@@ -736,10 +724,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 this.Position = building.m_position;
                 this.FirstOwnVehicleId = building.m_ownVehicles;
 
-                if (Global.CurrentFrame - lastInfoUpdate > Global.ObjectUpdateInterval)
+                if (lastInfoUpdate == 0 || Global.CurrentFrame - lastInfoUpdate > Global.ObjectUpdateInterval)
                 {
-                    lastInfoUpdate = Global.ObjectUpdateInterval;
-
                     if (districtManager != null)
                     {
                         this.District = districtManager.GetDistrict(Position);
@@ -748,9 +734,16 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     if (Global.Settings.LimitRange)
                     {
                         this.Range = building.Info.m_buildingAI.GetCurrentRange(BuildingId, ref building);
-                        this.Range = this.Range * this.Range * 2;
+                        this.Range = this.Range * this.Range * Global.Settings.RangeModifier;
                     }
+
+                    lastInfoUpdate = Global.CurrentFrame;
                 }
+
+                this.CanReceive = (building.m_flags & (Building.Flags.CapacityFull | Building.Flags.Downgrading | Building.Flags.Demolishing | Building.Flags.Deleted | Building.Flags.BurnedDown)) == Building.Flags.None &&
+                                  (building.m_flags & (Building.Flags.Created | Building.Flags.Created | Building.Flags.Active)) == (Building.Flags.Created | Building.Flags.Created | Building.Flags.Active) &&
+                                  (building.m_problems & (Notification.Problem.Emptying | Notification.Problem.LandfillFull | Notification.Problem.RoadNotConnected | Notification.Problem.TurnedOff | Notification.Problem.FatalProblem)) == Notification.Problem.None &&
+                                  !building.Info.m_buildingAI.IsFull(this.BuildingId, ref building);
             }
 
             /// <summary>
@@ -868,38 +861,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             /// <param name="problemToCheck">The problem to check.</param>
             public TargetBuildingInfo(DistrictManager districtManager, ushort buildingId, ref Building building, byte? problemTimer, ushort? problemBuffer, bool needsService, Notification.Problem problemToCheck)
             {
-                this.lastUpdate = Global.CurrentFrame;
-                this.lastInfoUpdate = Global.CurrentFrame;
-
                 this.BuildingId = buildingId;
 
-                if (problemTimer != null && problemTimer.HasValue)
-                {
-                    this.ProblemValue = (ushort)problemTimer.Value * Dispatcher.ProblemTimerModifier;
-                }
-                else if (problemBuffer != null && problemBuffer.HasValue)
-                {
-                    ProblemValue = problemBuffer.Value * Dispatcher.ProblemBufferModifier;
-                }
-                else
-                {
-                    ProblemValue = 0;
-                }
-
-                this.HasProblem = (building.m_problems & problemToCheck) == problemToCheck;
-                this.Position = building.m_position;
-
-                if (districtManager != null)
-                {
-                    this.District = districtManager.GetDistrict(Position);
-                }
-                else
-                {
-                    this.District = 0;
-                }
-
-                this.NeedsService = needsService || this.HasProblem;
-                this.checkThis = needsService;
+                this.Update(districtManager, ref building, problemTimer, problemBuffer, needsService, problemToCheck);
             }
 
             /// <summary>
@@ -1015,30 +979,35 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 }
                 else if (problemBuffer != null && problemBuffer.HasValue)
                 {
-                    ProblemValue = problemBuffer.Value;
+                    this.ProblemValue = problemBuffer.Value;
                 }
                 else
                 {
-                    ProblemValue = 0;
+                    this.ProblemValue = 0;
                 }
 
-                this.HasProblem = (building.m_problems & problemToCheck) == problemToCheck;
+                this.HasProblem = (building.m_problems & problemToCheck) == problemToCheck || this.ProblemValue >= Dispatcher.ProblemLimit;
                 this.Position = building.m_position;
 
-                if (Global.CurrentFrame - lastInfoUpdate > Global.ObjectUpdateInterval)
+                if (lastInfoUpdate == 0 || Global.CurrentFrame - lastInfoUpdate > Global.ObjectUpdateInterval)
                 {
-                    lastInfoUpdate = Global.ObjectUpdateInterval;
-
                     if (districtManager != null)
                     {
                         this.District = districtManager.GetDistrict(Position);
                     }
+                    else if (lastInfoUpdate == 0)
+                    {
+                        this.District = 0;
+                    }
+
+                    lastInfoUpdate = Global.CurrentFrame;
                 }
 
                 this.NeedsService = needsService || this.HasProblem;
+
                 this.checkThis = needsService &&
-                                 ((Global.RecheckInterval == 0 || Global.CurrentFrame - lastCheck >= Global.RecheckInterval) &&
-                                  (Global.RecheckHandledInterval == 0 || Global.CurrentFrame - lastHandled >= Global.RecheckHandledInterval));
+                                 ((Global.RecheckInterval == 0 || this.lastCheck == 0 || Global.CurrentFrame - this.lastCheck >= Global.RecheckInterval) &&
+                                  (Global.RecheckHandledInterval == 0 || this.lastHandled == 0 || Global.CurrentFrame - this.lastHandled >= Global.RecheckHandledInterval));
             }
 
             /// <summary>
