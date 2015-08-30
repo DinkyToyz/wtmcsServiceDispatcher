@@ -94,10 +94,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             try
             {
                 Building[] buildings = Singleton<BuildingManager>.instance.m_buildings.m_buffer;
+                Vehicle[] vehicles = Singleton<VehicleManager>.instance.m_vehicles.m_buffer;
 
                 for (ushort id = 0; id < buildings.Length; id++)
                 {
-                    DebugListLog(buildings, id);
+                    DebugListLog(buildings, vehicles, id);
                 }
             }
             catch (Exception ex)
@@ -270,10 +271,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         private static void DebugListLog(IEnumerable<ushort> buildingIds)
         {
             Building[] buildings = Singleton<BuildingManager>.instance.m_buildings.m_buffer;
+            Vehicle[] vehicles = Singleton<VehicleManager>.instance.m_vehicles.m_buffer;
 
             foreach (ushort id in buildingIds)
             {
-                DebugListLog(buildings, id);
+                DebugListLog(buildings, vehicles, id);
             }
         }
 
@@ -283,10 +285,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         private static void DebugListLog(IEnumerable<TargetBuildingInfo> targetBuildings)
         {
             Building[] buildings = Singleton<BuildingManager>.instance.m_buildings.m_buffer;
+            Vehicle[] vehicles = Singleton<VehicleManager>.instance.m_vehicles.m_buffer;
 
             foreach (TargetBuildingInfo building in targetBuildings)
             {
-                DebugListLog(buildings, building.BuildingId);
+                DebugListLog(buildings, vehicles, building.BuildingId);
             }
         }
 
@@ -296,10 +299,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         private static void DebugListLog(IEnumerable<ServiceBuildingInfo> serviceBuildings)
         {
             Building[] buildings = Singleton<BuildingManager>.instance.m_buildings.m_buffer;
+            Vehicle[] vehicles = Singleton<VehicleManager>.instance.m_vehicles.m_buffer;
 
             foreach (ServiceBuildingInfo building in serviceBuildings)
             {
-                DebugListLog(buildings, building.BuildingId);
+                DebugListLog(buildings, vehicles, building.BuildingId);
             }
 
             foreach (ServiceBuildingInfo building in serviceBuildings)
@@ -311,20 +315,56 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// Logs building info for debug use.
         /// </summary>
-        private static void DebugListLog(Building[] buildings, ushort buildingId)
+        private static void DebugListLog(Building[] buildings, Vehicle[] vehicles, ushort buildingId)
         {
             if (buildings[buildingId].Info != null && (buildings[buildingId].m_flags & Building.Flags.Created) == Building.Flags.Created)
             {
-                List<string> info = new List<string>();
+                Log.InfoList info = new Log.InfoList();
 
-                info.Add("BuildingId=" + buildingId.ToString());
-                info.Add("AI=" + buildings[buildingId].Info.m_buildingAI.GetType().ToString());
-                info.Add("InfoName='" + buildings[buildingId].Info.name + "'");
+                info.Add("BuildingId", buildingId);
+                info.Add("AI", buildings[buildingId].Info.m_buildingAI.GetType());
+                info.Add("InfoName", buildings[buildingId].Info.name);
 
                 string name = GetBuildingName(buildingId);
                 if (!String.IsNullOrEmpty(name) && name != buildings[buildingId].Info.name)
                 {
-                    info.Add("BuildingName='" + name + "'");
+                    info.Add("BuildingName", name);
+                }
+
+                ushort vehicleCount = 0;
+                ushort vehicleId = buildings[buildingId].m_ownVehicles;
+                while (vehicleId != 0 && vehicleCount < ushort.MaxValue)
+                {
+                    vehicleCount++;
+                    vehicleId = vehicles[vehicleId].m_nextOwnVehicle;
+                }
+                info.Add("OwnVehicles", vehicleCount);
+
+                if (buildings[buildingId].Info.m_buildingAI is CemeteryAI)
+                {
+                    info.Add("CorpseCapacity", ((CemeteryAI)buildings[buildingId].Info.m_buildingAI).m_corpseCapacity);
+                    info.Add("GraveCount", ((CemeteryAI)buildings[buildingId].Info.m_buildingAI).m_graveCount);
+                    info.Add("HearseCount", ((CemeteryAI)buildings[buildingId].Info.m_buildingAI).m_hearseCount);
+                    info.Add("CustomBuffer1", buildings[buildingId].m_customBuffer1); // GraveCapacity?
+                    info.Add("CustomBuffer2", buildings[buildingId].m_customBuffer2);
+                    info.Add("PR_HC_Calc", (buildings[buildingId].m_productionRate * ((CemeteryAI)buildings[buildingId].Info.m_buildingAI).m_hearseCount + 99) / 100); // Hearse capacity?
+                }
+
+                info.Add("ProductionRate", buildings[buildingId].m_productionRate);
+
+                float range = buildings[buildingId].Info.m_buildingAI.GetCurrentRange(buildingId, ref buildings[buildingId]);
+                range = range * range * Global.Settings.RangeModifier;
+                if (range < Global.Settings.RangeMinimum)
+                {
+                    info.Add("Range", range, Global.Settings.RangeMinimum);
+                }
+                else if (range > Global.Settings.RangeMaximum)
+                {
+                    info.Add("Range", range, Global.Settings.RangeMaximum);
+                }
+                else
+                {
+                    info.Add("Range", range);
                 }
 
                 List<string> needs = new List<string>();
@@ -345,14 +385,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 {
                     needs.Add("Forgotten");
                 }
-                info.Add("Needs=" + String.Join(", ", needs.ToArray()));
+                info.Add("Needs", needs);
 
-                info.Add("DeathProblemTimer=" + buildings[buildingId].m_deathProblemTimer.ToString());
-                info.Add("HealthProblemTimer=" + buildings[buildingId].m_healthProblemTimer.ToString());
-                info.Add("MajorProblemTimer=" + buildings[buildingId].m_majorProblemTimer.ToString());
+                info.Add("DeathProblemTimer", buildings[buildingId].m_deathProblemTimer);
+                info.Add("HealthProblemTimer", buildings[buildingId].m_healthProblemTimer);
+                info.Add("MajorProblemTimer", buildings[buildingId].m_majorProblemTimer);
 
-                info.Add("GarbageAmount=" + buildings[buildingId].Info.m_buildingAI.GetGarbageAmount(buildingId, ref buildings[buildingId]).ToString());
-                info.Add("GarbageBuffer=" + buildings[buildingId].m_garbageBuffer.ToString());
+                info.Add("GarbageAmount", buildings[buildingId].Info.m_buildingAI.GetGarbageAmount(buildingId, ref buildings[buildingId]));
+                info.Add("GarbageBuffer", buildings[buildingId].m_garbageBuffer);
 
                 string problems = buildings[buildingId].m_problems.ToString();
                 if (problems.IndexOfAny(new char[] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' }) >= 0)
@@ -365,7 +405,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         }
                     }
                 }
-                info.Add("Problems=" + problems);
+                info.Add("Problems", problems);
 
                 string flags = buildings[buildingId].m_flags.ToString();
                 if (flags.IndexOfAny(new char[] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' }) >= 0)
@@ -378,15 +418,15 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         }
                     }
                 }
-                info.Add("Flags=" + flags);
+                info.Add("Flags", flags);
 
                 string status = buildings[buildingId].Info.m_buildingAI.GetLocalizedStatus(buildingId, ref buildings[buildingId]);
                 if (!String.IsNullOrEmpty(status))
                 {
-                    info.Add("Status='" + status + "'");
+                    info.Add("Status", status);
                 }
 
-                Log.DevDebug(typeof(Buildings), "DebugListLog", String.Join("; ", info.ToArray()));
+                Log.DevDebug(typeof(Buildings), "DebugListLog", info.ToString());
             }
         }
 
@@ -617,6 +657,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             public ushort FirstOwnVehicleId = 0;
 
             /// <summary>
+            /// The free vehicles count.
+            /// </summary>
+            public int VehiclesFree = 0;
+
+            /// <summary>
             /// The building is in target district.
             /// </summary>
             public bool InDistrict = false;
@@ -635,6 +680,21 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             /// The building's effect range.
             /// </summary>
             public float Range = 0;
+
+            /// <summary>
+            /// The spare vehicles count;
+            /// </summary>
+            public int VehiclesSpare = 0;
+
+            /// <summary>
+            /// The vehicle in use count.
+            /// </summary>
+            public int VehiclesUsed = 0;
+
+            /// <summary>
+            /// The total vehicles count;
+            /// </summary>
+            public int VehiclesTotal = 0;
 
             /// <summary>
             /// The vehicles.
@@ -709,7 +769,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     this.InDistrict = false;
                 }
 
-                this.InRange = ignoreRange || this.InDistrict || (Global.Settings.LimitRange && this.Distance < this.Range) || (!Global.Settings.DispatchByDistrict && !Global.Settings.LimitRange);
+                this.InRange = ignoreRange || this.InDistrict || (Global.Settings.DispatchByRange && this.Distance < this.Range) || (!Global.Settings.DispatchByDistrict && !Global.Settings.DispatchByRange);
             }
 
             /// <summary>
@@ -731,13 +791,33 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         this.District = districtManager.GetDistrict(Position);
                     }
 
-                    if (Global.Settings.LimitRange)
+                    if (Global.Settings.DispatchByRange)
                     {
                         this.Range = building.Info.m_buildingAI.GetCurrentRange(BuildingId, ref building);
                         this.Range = this.Range * this.Range * Global.Settings.RangeModifier;
+                        if (Global.Settings.RangeLimit)
+                        {
+                            if (this.Range < Global.Settings.RangeMinimum)
+                            {
+                                this.Range = Global.Settings.RangeMinimum;
+                            }
+                            else if (this.Range > Global.Settings.RangeMaximum)
+                            {
+                                this.Range = Global.Settings.RangeMaximum;
+                            }
+                        }
                     }
 
                     lastInfoUpdate = Global.CurrentFrame;
+                }
+
+                if (building.Info.m_buildingAI is CemeteryAI)
+                {
+                    VehiclesTotal = ((CemeteryAI)building.Info.m_buildingAI).m_hearseCount;
+                }
+                else if (building.Info.m_buildingAI is LandfillSiteAI)
+                {
+                    VehiclesTotal = ((LandfillSiteAI)building.Info.m_buildingAI).m_garbageTruckCount;
                 }
 
                 this.CanReceive = (building.m_flags & (Building.Flags.CapacityFull | Building.Flags.Downgrading | Building.Flags.Demolishing | Building.Flags.Deleted | Building.Flags.BurnedDown)) == Building.Flags.None &&

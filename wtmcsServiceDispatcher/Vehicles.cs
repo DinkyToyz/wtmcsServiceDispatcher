@@ -121,6 +121,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             // Get and categorize vehicles.
             Vehicle[] vehicles = Singleton<VehicleManager>.instance.m_vehicles.m_buffer;
+            Building[] buildings = Singleton<BuildingManager>.instance.m_buildings.m_buffer;
 
             // First update?
             if (isInitialized)
@@ -141,13 +142,13 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     vehicleFrame = GetFrameNext(vehicleFrame + 1);
                     FrameBoundaries bounds = GetFrameBoundaries(vehicleFrame);
 
-                    HandleVehicles(ref vehicles, bounds.FirstId, bounds.LastId);
+                    HandleVehicles(ref vehicles, buildings, bounds.FirstId, bounds.LastId);
                 }
             }
             else
             {
                 // Data is not initialized. Check all vehicles.
-                HandleVehicles(ref vehicles, 0, vehicles.Length);
+                HandleVehicles(ref vehicles, buildings, 0, vehicles.Length);
 
                 vehicleFrame = GetFrameEnd();
                 isInitialized = Global.FramedUpdates;
@@ -189,21 +190,22 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             if (vehicles[vehicleId].Info != null && (vehicles[vehicleId].m_flags & Vehicle.Flags.Spawned) == Vehicle.Flags.Spawned && (vehicles[vehicleId].Info.m_vehicleAI is HearseAI || vehicles[vehicleId].Info.m_vehicleAI is GarbageTruckAI))
             {
-                List<string> info = new List<string>();
+                Log.InfoList info = new Log.InfoList();
 
                 InstanceID instanceId;
                 float prgCur, prgMax;
                 int bufCur, bufMax;
                 string localeKey;
+                float distance;
 
-                info.Add("VehicleId=" + vehicleId.ToString());
-                info.Add("AI=" + vehicles[vehicleId].Info.m_vehicleAI.GetType().ToString());
-                info.Add("InfoName='" + vehicles[vehicleId].Info.name + "'");
+                info.Add("VehicleId", vehicleId);
+                info.Add("AI", vehicles[vehicleId].Info.m_vehicleAI.GetType());
+                info.Add("InfoName", vehicles[vehicleId].Info.name);
 
                 string name = GetVehicleName(vehicleId);
                 if (!String.IsNullOrEmpty(name) && name != vehicles[vehicleId].Info.name)
                 {
-                    info.Add("VehicleName='" + name + "'");
+                    info.Add("VehicleName", name);
                 }
 
                 string type = vehicles[vehicleId].m_transferType.ToString();
@@ -215,29 +217,31 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         break;
                     }
                 }
-                info.Add("Type=" + type);
+                info.Add("Type", type);
 
-                name = null;
                 if (vehicles[vehicleId].m_sourceBuilding != 0 && buildings[vehicles[vehicleId].m_sourceBuilding].Info != null)
                 {
+                    distance = (vehicles[vehicleId].GetLastFramePosition() - buildings[vehicles[vehicleId].m_sourceBuilding].m_position).sqrMagnitude;
                     name = Buildings.GetBuildingName(vehicles[vehicleId].m_sourceBuilding);
                     if (String.IsNullOrEmpty(name))
                     {
                         name = buildings[vehicles[vehicleId].m_sourceBuilding].Info.name;
                     }
-                }
-                info.Add("Source=" + vehicles[vehicleId].m_sourceBuilding.ToString() + (String.IsNullOrEmpty(name) ? "" : ", " + name));
 
-                name = null;
+                    info.Add("Source", vehicles[vehicleId].m_sourceBuilding, name, distance);
+                }
+
                 if (vehicles[vehicleId].m_targetBuilding != 0 && buildings[vehicles[vehicleId].m_targetBuilding].Info != null)
                 {
+                    distance = (vehicles[vehicleId].GetLastFramePosition() - buildings[vehicles[vehicleId].m_targetBuilding].m_position).sqrMagnitude;
                     name = Buildings.GetBuildingName(vehicles[vehicleId].m_targetBuilding);
                     if (String.IsNullOrEmpty(name))
                     {
                         name = buildings[vehicles[vehicleId].m_targetBuilding].Info.name;
                     }
+
+                    info.Add("Target", vehicles[vehicleId].m_targetBuilding, name, distance);
                 }
-                info.Add("Target=" + vehicles[vehicleId].m_targetBuilding.ToString() + (String.IsNullOrEmpty(name) ? "" : ", " + name));
 
                 string flags = vehicles[vehicleId].m_flags.ToString();
                 if (flags.IndexOfAny(new char[] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' }) >= 0)
@@ -250,45 +254,45 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         }
                     }
                 }
-                info.Add("Flags=" + flags);
+                info.Add("Flags", flags);
 
-                info.Add("Enabled=" + vehicles[vehicleId].Info.enabled.ToString());
-                info.Add("Active=" + vehicles[vehicleId].Info.isActiveAndEnabled.ToString());
-                info.Add("AIEnabled=" + vehicles[vehicleId].Info.m_vehicleAI.enabled.ToString());
-                info.Add("AIActive=" + vehicles[vehicleId].Info.m_vehicleAI.isActiveAndEnabled.ToString());
+                info.Add("Enabled", vehicles[vehicleId].Info.enabled);
+                info.Add("Active", vehicles[vehicleId].Info.isActiveAndEnabled);
+                info.Add("AIEnabled", vehicles[vehicleId].Info.m_vehicleAI.enabled);
+                info.Add("AIActive", vehicles[vehicleId].Info.m_vehicleAI.isActiveAndEnabled);
 
                 if (vehicles[vehicleId].Info.m_vehicleAI.GetProgressStatus(vehicleId, ref vehicles[vehicleId], out prgCur, out prgMax))
                 {
-                    info.Add("PrgCur=" + prgCur.ToString("F"));
-                    info.Add("PrgMax=" + prgMax.ToString("F"));
+                    info.Add("PrgCur", prgCur);
+                    info.Add("PrgMax", prgMax);
                 }
 
                 vehicles[vehicleId].Info.m_vehicleAI.GetBufferStatus(vehicleId, ref vehicles[vehicleId], out localeKey, out bufCur, out bufMax);
                 if (!String.IsNullOrEmpty(localeKey))
                 {
-                    info.Add("BufLocKey='" + localeKey + "'");
+                    info.Add("BufLocKey", localeKey);
                 }
-                info.Add("BufCur=" + bufCur.ToString());
-                info.Add("BufMax=" + bufMax.ToString());
+                info.Add("BufCur", bufCur);
+                info.Add("BufMax", bufMax);
 
-                info.Add("TransferSize=" + vehicles[vehicleId].m_transferSize);
+                info.Add("TransferSize", vehicles[vehicleId].m_transferSize);
 
                 if (vehicles[vehicleId].Info.m_vehicleAI is HearseAI)
                 {
-                    info.Add("Capacity=" + ((HearseAI)vehicles[vehicleId].Info.m_vehicleAI).m_corpseCapacity.ToString());
+                    info.Add("Capacity", ((HearseAI)vehicles[vehicleId].Info.m_vehicleAI).m_corpseCapacity);
                 }
                 else if (vehicles[vehicleId].Info.m_vehicleAI is GarbageTruckAI)
                 {
-                    info.Add("Capacity=" + ((GarbageTruckAI)vehicles[vehicleId].Info.m_vehicleAI).m_cargoCapacity.ToString());
+                    info.Add("Capacity", ((GarbageTruckAI)vehicles[vehicleId].Info.m_vehicleAI).m_cargoCapacity);
                 }
 
                 string status = vehicles[vehicleId].Info.m_vehicleAI.GetLocalizedStatus(vehicleId, ref vehicles[vehicleId], out instanceId);
                 if (!String.IsNullOrEmpty(status))
                 {
-                    info.Add("Status='" + status + "'");
+                    info.Add("Status", status);
                 }
 
-                Log.DevDebug(typeof(Vehicles), "DebugListLog", String.Join("; ", info.ToArray()));
+                Log.DevDebug(typeof(Vehicles), "DebugListLog", info.ToString());
             }
         }
 
@@ -327,9 +331,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// Categorizes the vehicles.
         /// </summary>
         /// <param name="vehicles">The vehicles.</param>
+        /// <param name="buildings">The buildings.</param>
         /// <param name="firstVehicleId">The first vehicle identifier.</param>
         /// <param name="lastVehicleId">The last vehicle identifier.</param>
-        private void HandleVehicles(ref Vehicle[] vehicles, ushort firstVehicleId, int lastVehicleId)
+        private void HandleVehicles(ref Vehicle[] vehicles, Building[] buildings, ushort firstVehicleId, int lastVehicleId)
         {
             for (ushort id = firstVehicleId; id < lastVehicleId; id++)
             {
@@ -342,7 +347,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 }
                 else
                 {
-                    if ((vehicles[id].m_flags & Vehicle.Flags.TransferToSource) != Vehicle.Flags.None && (vehicles[id].m_flags & (Vehicle.Flags.TransferToTarget | Vehicle.Flags.Arriving | Vehicle.Flags.Stopped)) == Vehicle.Flags.None && vehicles[id].m_targetBuilding != 0 && vehicles[id].m_targetBuilding != vehicles[id].m_sourceBuilding)
+                    if ((vehicles[id].m_flags & Vehicle.Flags.TransferToSource) != Vehicle.Flags.None && (vehicles[id].m_flags & (Vehicle.Flags.TransferToTarget | Vehicle.Flags.Arriving | Vehicle.Flags.Stopped)) == Vehicle.Flags.None &&
+                        vehicles[id].m_targetBuilding != 0 && vehicles[id].m_targetBuilding != vehicles[id].m_sourceBuilding && (buildings[vehicles[id].m_sourceBuilding].m_flags & Building.Flags.Downgrading) == Building.Flags.None)
                     {
                         if (Global.HearseDispatcher != null && vehicles[id].m_transferType == Global.HearseDispatcher.transferType)
                         {

@@ -5,6 +5,7 @@ using System.Globalization;
 using System.IO;
 using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 {
@@ -484,6 +485,138 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public static void Warning(object sourceObject, string sourceBlock, params object[] messages)
         {
             Output(Level.Warning, sourceObject, sourceBlock, null, messages);
+        }
+
+        /// <summary>
+        /// Named info list for log lines.
+        /// </summary>
+        public class InfoList
+        {
+            /// <summary>
+            /// The string escape regex.
+            /// </summary>
+            private static Regex escapeRex = new Regex("([;^\"])");
+
+            /// <summary>
+            /// The information list.
+            /// </summary>
+            private StringBuilder info = new StringBuilder();
+
+            /// <summary>
+            /// Adds the info to the list.
+            /// </summary>
+            /// <param name="name">The name.</param>
+            /// <param name="data">The data.</param>
+            public void Add(string name, params object[] data)
+            {
+                if (data.Length == 0)
+                {
+                    AddNameOrSeparator(name);
+                    return;
+                }
+
+                int dc = 0;
+
+                for (int i = 0; i < data.Length; i++)
+                {
+                    if (data[i] == null)
+                    {
+                        continue;
+                    }
+
+                    if (data[i] is IEnumerable<string>)
+                    {
+                        bool sa = false;
+                        foreach (string str in (IEnumerable<string>)data[i])
+                        {
+                            if (str == null)
+                            {
+                                continue;
+                            }
+
+                            if (!sa)
+                            {
+                                AddNameOrSeparator(name, dc);
+                                sa = true;
+                            }
+
+                            info.Append(escapeRex.Replace(str.Trim(), "^$1"));
+                        }
+
+                        if (!sa)
+                        {
+                            continue;
+                        }
+                    }
+                    else if (data[i] is string)
+                    {
+                        AddNameOrSeparator(name, dc);
+                        info.Append(escapeRex.Replace(((string)data[i]).Trim(), "^$1"));
+                    }
+                    else if (data[i] is float)
+                    {
+                        AddNameOrSeparator(name, dc);
+                        info.Append(((float)data[i]).ToString("#,0.##", CultureInfo.InvariantCulture));
+                    }
+                    else if (data[i] is int || data[i] is Int16 || data[i] is Int32 || data[i] is Int64 || data[i] is short || data[i] is byte ||
+                             data[i] is uint || data[i] is UInt16 || data[i] is UInt32 || data[i] is UInt64 || data[i] is ushort)
+                    {
+                        AddNameOrSeparator(name, dc);
+                        info.Append(data[i].ToString());
+                    }
+                    else
+                    {
+                        string text = data[i].ToString();
+                        if (text == null)
+                        {
+                            continue;
+                        }
+
+                        AddNameOrSeparator(name, dc);
+                        info.Append(escapeRex.Replace(text.Trim(), "^$1"));
+                    }
+
+                    dc++;
+                }
+            }
+
+            /// <summary>
+            /// Returns a <see cref="System.String" /> that represents this instance.
+            /// </summary>
+            /// <returns>
+            /// A <see cref="System.String" /> that represents this instance.
+            /// </returns>
+            public override string ToString()
+            {
+                return info.ToString();
+            }
+
+            /// <summary>
+            /// Adds the name or separator if it should.
+            /// </summary>
+            /// <param name="name">The name.</param>
+            /// <param name="paramPos">The parameter position.</param>
+            private void AddNameOrSeparator(string name, int paramPos = -1)
+            {
+                if (paramPos <= 0)
+                {
+                    if (info.Length > 0)
+                    {
+                        info.Append("; ");
+                    }
+
+                    info.Append(escapeRex.Replace(name, "^$1"));
+
+                    if (paramPos == 0)
+                    {
+                        info.Append('=');
+                    }
+                }
+                else
+                {
+                    info.Append(", ");
+                }
+            }
         }
     }
 }

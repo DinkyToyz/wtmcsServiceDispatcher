@@ -13,13 +13,13 @@ $db->do('PRAGMA journal_mode = MEMORY');
 
 my $records = 0;
 my %data = ();
-my $scsv = Text::CSV->new({sep_char=>';', allow_whitespace=>1, blank_is_undef=>1});
+my $scsv = Text::CSV->new({sep_char=>';', allow_whitespace=>1, blank_is_undef=>1, escape_char=>'^'});
 die unless (open(F,'<:encoding(UTF-8)', "$modconf/wtmcsServiceDispatcher.log"));
 
 print "< wtmcsServiceDispatcher.log\n";
 while (my $l = <F>)
 {
-    next unless ($l =~ /^(\S+ \S+)\s+(?:\S+:\s+)?\[wtmcsServiceDispatcher\]\s+(?:\@(\d+)\s+)?<([A-Za-z]+)\.DebugListLog>(.*?)[\r\n]*$/);
+    next unless ($l =~ /^(\S+ \S+)\s+(?:\S+:\s+)?\[wtmcsServiceDispatcher\]\s+(?:\@(\d+)\s+)?<([A-Za-z]+)\.DebugListLog>\s*(.*?)[\s\r\n]*$/);
     my $stamp =  $1;
     my $frame = $2;
     my $type = $3;
@@ -31,6 +31,7 @@ while (my $l = <F>)
         {
             _stamp => {p=>-5, t=>'TEXT'},
             _frame => {p=>-4, t=>'INTEGER'},
+            _last => {p=>-3, t=>'INTEGER'},
         },
         r=>[]
     } unless ($data{$type});
@@ -39,16 +40,16 @@ while (my $l = <F>)
     (
         _stamp => $stamp,
         _frame => $frame,
+        _last => 0,
     );
 
     my $p = 0;
     foreach my $fld ($scsv->fields)
     {
-        next unless ($fld =~ /^([a-zA-Z]+)=(.*)$/);
+        next unless ($fld =~ /^([_a-zA-Z0-9]+)=(.*)$/);
 
         my $col = $1;
         my $val = $2;
-        $val =~ s/^'(.*?)'$/$1/;
 
         if ($data{$type}->{c}->{$col})
         {
@@ -136,15 +137,20 @@ foreach my $type (keys %data)
     my $st = $db->prepare($insert);
 
     $db->begin_work();
-
     foreach my $record (@{$data{$type}->{r}})
     {
         my @values = map { !defined($record->{$_}) ? undef : ($data{$type}->{c}->{$_}->{t} ne 'INTEGER' && $data{$type}->{c}->{$_}->{t} ne 'REAL') ? $record->{$_} : ($record->{$_} eq 'False') ? 0 : ($record->{$_} eq 'True') ? 1 : $record->{$_} } sort { $a cmp $b } keys %{$data{$type}->{c}};
         $st->execute(@values);
     }
-
     $db->commit();
     $st->finish();
+
+    if ($key)
+    {
+        $db->begin_work();
+        $db->do("UPDATE [$type] SET _last = 1 WHERE ROWID IN (SELECT ROWID FROM [$type] T1 WHERE NOT EXISTS (SELECT 1 FROM [$type] T2 WHERE T2.[$key] = T1.[$key] AND T2._frame > T1._frame))");
+        $db->commit();
+    }
 
     printf("# %u\n", scalar @{$data{$type}->{r}});
 }

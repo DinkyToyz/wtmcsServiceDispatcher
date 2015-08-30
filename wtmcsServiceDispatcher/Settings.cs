@@ -22,6 +22,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public bool DispatchByDistrict = false;
 
         /// <summary>
+        /// Limit service building range.
+        /// </summary>
+        public bool DispatchByRange = true;
+
+        /// <summary>
         /// Wether garbage trucks should be handled or not.
         /// </summary>
         public bool DispatchGarbageTrucks = true;
@@ -32,14 +37,24 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public bool DispatchHearses = true;
 
         /// <summary>
-        /// Limit service building range.
-        /// </summary>
-        public bool LimitRange = true;
-
-        /// <summary>
         /// The minimum amount of garbage to dispatch a truck for.
         /// </summary>
         public ushort MinimumGarbageForDispatch = 1500;
+
+        /// <summary>
+        /// Limit buidling ranges.
+        /// </summary>
+        public bool RangeLimit = false;
+
+        /// <summary>
+        /// The maxiimum range (when limiting building ranges).
+        /// </summary>
+        public float RangeMaximum = 10000000;
+
+        /// <summary>
+        /// The minimum range (when limiting building ranges).
+        /// </summary>
+        public float RangeMinimum = 10000;
 
         /// <summary>
         /// The range modifier
@@ -124,8 +139,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 this.loadedVersion = settings.Version;
 
                 this.DispatchByDistrict = settings.DispatchByDistrict;
-                this.LimitRange = settings.LimitRange;
+                this.DispatchByRange = settings.DispatchByRange;
                 this.RangeModifier = settings.RangeModifier;
+                this.RangeLimit = settings.RangeLimit;
+                this.RangeMaximum = settings.RangeMaximum;
+                this.RangeMinimum = settings.RangeMinimum;
 
                 this.DispatchHearses = settings.DispatchHearses;
                 this.RemoveHearsesFromGrid = settings.RemoveHearsesFromGrid;
@@ -451,8 +469,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public void LogSettings()
         {
             Log.Debug(this, "LogSettings", "DispatchByDistrict", DispatchByDistrict);
-            Log.Debug(this, "LogSettings", "LimitRange", LimitRange);
+            Log.Debug(this, "LogSettings", "DispatchByRange", DispatchByRange);
+            Log.Debug(this, "LogSettings", "RangeLimit", RangeLimit); 
             Log.Debug(this, "LogSettings", "RangeModifier", RangeModifier);
+            Log.Debug(this, "LogSettings", "RangeMinimum", RangeMinimum);
+            Log.Debug(this, "LogSettings", "RangeMaximum", RangeMaximum);
 
             Log.Debug(this, "LogSettings", "DispatchHearses", DispatchHearses);
             Log.Debug(this, "LogSettings", "RemoveHearsesFromGrid", RemoveHearsesFromGrid);
@@ -507,8 +528,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     ServiceDispatcherSettings cfg = new ServiceDispatcherSettings();
 
                     cfg.DispatchByDistrict = this.DispatchByDistrict;
-                    cfg.LimitRange = this.LimitRange;
+                    cfg.DispatchByRange = this.DispatchByRange;
                     cfg.RangeModifier = this.RangeModifier;
+                    cfg.RangeLimit = this.RangeLimit;
+                    cfg.RangeMaximum = this.RangeMaximum;
+                    cfg.RangeMinimum = this.RangeMinimum;
 
                     cfg.RemoveHearsesFromGrid = this.RemoveHearsesFromGrid;
                     cfg.DispatchHearses = this.DispatchHearses;
@@ -580,6 +604,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             public Boolean DispatchByDistrict = false;
 
             /// <summary>
+            /// Limit service building range for target buildings without problems.
+            /// </summary>
+            public bool DispatchByRange = false;
+
+            /// <summary>
             /// Wether garbage trucks should be handled or not.
             /// </summary>
             public Boolean DispatchGarbageTrucks = true;
@@ -605,14 +634,24 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             public BuildingCheckOrder GarbageChecksPreset = BuildingCheckOrder.InRange;
 
             /// <summary>
-            /// Limit service building range for target buildings without problems.
-            /// </summary>
-            public bool LimitRange = false;
-
-            /// <summary>
             /// The minimum amount of garbage to dispatch a truck for.
             /// </summary>
             public ushort MinimumGarbageForDispatch = 2000;
+
+            /// <summary>
+            /// Limit buidling ranges.
+            /// </summary>
+            public bool RangeLimit = true;
+
+            /// <summary>
+            /// The maxiimum range (when limiting building ranges).
+            /// </summary>
+            public float RangeMaximum = 10000000;
+
+            /// <summary>
+            /// The minimum range (when limiting building ranges).
+            /// </summary>
+            public float RangeMinimum = 10000;
 
             /// <summary>
             /// The range modifier

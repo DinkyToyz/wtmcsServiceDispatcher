@@ -111,8 +111,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 // Add gernal dispatch group.
                 UIHelperBase dispatchGroup = helper.AddGroup("Central Services Dispatch");
                 dispatchGroup.AddCheckbox("Dispatch by district", Global.Settings.DispatchByDistrict, value => { Global.Settings.DispatchByDistrict = value; Global.Settings.Save(); });
-                dispatchGroup.AddCheckbox("Limit by building range", Global.Settings.LimitRange, value => { Global.Settings.LimitRange = value; Global.Settings.Save(); });
-                dispatchGroup.AddSlider("Range modifier (0.1 - 10)", 0.1f, 10.0f, 0.1f, Global.Settings.RangeModifier, value => { Global.Settings.RangeModifier = value; Global.Settings.Save(); });
+                dispatchGroup.AddCheckbox("Dispatch by building range", Global.Settings.DispatchByRange, value => { Global.Settings.DispatchByRange = value; Global.Settings.Save(); });
+                dispatchGroup.AddCheckbox("Limit building ranges", Global.Settings.RangeLimit, value => { Global.Settings.RangeLimit = value; Global.Settings.Save(); });
+                ////dispatchGroup.AddSlider("Range modifier (0.1 - 10)", 0.1f, 10.0f, 0.1f, Global.Settings.RangeModifier, value => { Global.Settings.RangeModifier = value; Global.Settings.Save(); });
+                ////dispatchGroup.AddSlider("Range minimum (0-100000000)", 0f, 100000000f, 1f, Global.Settings.RangeMinimum, value => { Global.Settings.RangeMinimum = value; Global.Settings.Save(); });
+                ////dispatchGroup.AddSlider("Range maximum (0-100000000)", 0f, 100000000f, 1f, Global.Settings.RangeMinimum, value => { Global.Settings.RangeMinimum = value; Global.Settings.Save(); });
 
                 // Add hearse group.
                 UIHelperBase hearseGroup = helper.AddGroup("Hearses");
