@@ -28,3 +28,30 @@ Create one or more the following files in order to enable debug log stuff (wich 
 
 - `wtmcsServiceDispatcher.debug.lists`
   Log object debug lists to mod log file at startup. What this actually does, if anything, may differ between builds.
+
+## Dispatch Strategies
+
+At the time of writing, the following dispatch strategies are available.
+
+ - **First first**
+   All buldings regardless of range.
+
+ - **Forgotten first**
+   Forgotten buidlings in range, followed by forgotten buildings out of range, buildings in range and finally problematic buildings in or out of range.
+
+ - **In range**
+   Buildings in range followed by forgotten out of range.
+
+ - **In range first**
+   Buildings in range followed by problematic buildings in or out of range.
+
+ - **Problematic first**
+   Problematic buildings in range followed by problematic buildings out of range and finally buildings in range.
+
+ - **Very problematic first**
+   Problematic buildings in range followed by problematic buildings out of range and finally buildings in range.
+
+ - **Custom**
+   Custom strategy manually defined in the configuration file.
+
+Services are dispatched based on problem magnitude within the strategy rules.
