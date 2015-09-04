@@ -42,4 +42,4 @@ The config file, wtmcsServiceDispatcher.xml, is stored in the folder "ModConfig"
 I made this for myself, and use it. Hopefully it works for others as well, but I make no promises.
 I also make no promises about updating or fixing things fast, as that depends on how busy I am with work and other stuff.
 
-[url=https://github.com/DinkyToyz/wtmcsConfigurableSlopeLimits]Source Code[/url]
+[url=https://github.com/DinkyToyz/wtmcsServiceDispatcher]Source Code[/url]
