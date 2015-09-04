@@ -33,25 +33,25 @@ Create one or more the following files in order to enable debug log stuff (wich 
 
 At the time of writing, the following dispatch strategies are available.
 
- - **First first**
+ - **First first**:
    All buldings regardless of range.
 
- - **Forgotten first**
+ - **Forgotten first**:
    Forgotten buidlings in range, followed by forgotten buildings out of range, buildings in range and finally problematic buildings in or out of range.
 
- - **In range**
+ - **In range**:
    Buildings in range followed by forgotten out of range.
 
- - **In range first**
+ - **In range first**:
    Buildings in range followed by problematic buildings in or out of range.
 
- - **Problematic first**
+ - **Problematic first**:
    Problematic buildings in range followed by problematic buildings out of range and finally buildings in range.
 
- - **Very problematic first**
+ - **Very problematic first**:
    Problematic buildings in range followed by problematic buildings out of range and finally buildings in range.
 
- - **Custom**
+ - **Custom**:
    Custom strategy manually defined in the configuration file.
 
 Services are dispatched based on problem magnitude within the strategy rules.
