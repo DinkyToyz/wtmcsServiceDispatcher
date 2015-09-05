@@ -4,6 +4,14 @@ Dispatches Cities: Skylines services.
 
 This mod is experimental. It might work, but it also might not. It should not affect saves, but it may well wreak havoc with services while enabled.
 
+[h1]Services[/h1]
+
+Currently, the mod can dispatch garbage trucks and hearses.
+
+I have vague plans to add road and rail clean-up crews (to remove stuck vehicles, including forgotten trailers and railway cars), house wrecking crews (bulldozers), and might decide to look at ambulances as well.
+
+There is absolutely no time table for any additional services, and I'm not promising they'll ever get added.
+
 [h1]Configuration[/h1]
 
 Which services should be dispatched by Central Services can be configured, as can the dispatch strategy, in the mod options in the content manager (unfortunately the options controls are quite limited, so there's a bunch of sliders without any display of the numeric values for now), or a configuration file.
@@ -28,7 +36,7 @@ Buildings in range followed by problematic buildings in or out of range.
 Problematic buildings in range followed by problematic buildings out of range and finally buildings in range.
 
 [b]Very problematic first[/b]
-Problematic buildings in range followed by problematic buildings out of range and finally buildings in range.
+Very problematic buildings in range followed by very problematic buildings out of range, buildings in range and finally problematic buildings in or out of range.
 
 [b]Custom[/b]
 Custom strategy manually defined in the configuration file.
@@ -42,4 +50,4 @@ The config file, wtmcsServiceDispatcher.xml, is stored in the folder "ModConfig"
 I made this for myself, and use it. Hopefully it works for others as well, but I make no promises.
 I also make no promises about updating or fixing things fast, as that depends on how busy I am with work and other stuff.
 
-[url=https://github.com/DinkyToyz/wtmcsServiceDispatcher]Source Code[/url]
+[url=https://github.com/DinkyToyz/wtmcsServiceDispatcher]Source code[/url] is realesed with MIT license.

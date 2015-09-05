@@ -49,7 +49,7 @@ At the time of writing, the following dispatch strategies are available.
    Problematic buildings in range followed by problematic buildings out of range and finally buildings in range.
 
  - **Very problematic first**:
-   Problematic buildings in range followed by problematic buildings out of range and finally buildings in range.
+   Very problematic buildings in range followed by very problematic buildings out of range, buildings in range and finally problematic buildings in or out of range.
 
  - **Custom**:
    Custom strategy manually defined in the configuration file.
