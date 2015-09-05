@@ -27,7 +27,7 @@ All buldings regardless of range.
 Forgotten buidlings in range, followed by forgotten buildings out of range, buildings in range and finally problematic buildings in or out of range.
 
 [b]In range[/b]
-Buildings in range followed by forgotten out of range.
+Buildings in range followed by forgotten buildings out of range.
 
 [b]In range first[/b]
 Buildings in range followed by problematic buildings in or out of range.

@@ -83,7 +83,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             { BuildingCheckOrder.FirstFirst, "All buldings regardless of range." },
             { BuildingCheckOrder.ForgottenFirst, "Forgotten buidlings in range, followed by forgotten buildings out of range, buildings in range and finally problematic buildings in or out of range." },
-            { BuildingCheckOrder.InRange, "Buildings in range followed by forgotten out of range." },
+            { BuildingCheckOrder.InRange, "Buildings in range followed by forgotten buildings out of range." },
             { BuildingCheckOrder.InRangeFirst, "Buildings in range followed by problematic buildings in or out of range." },
             { BuildingCheckOrder.ProblematicFirst, "Problematic buildings in range followed by problematic buildings out of range and finally buildings in range." },
             { BuildingCheckOrder.VeryProblematicFirst, "Very problematic buildings in range followed by very problematic buildings out of range, buildings in range and finally problematic buildings in or out of range." }

@@ -40,7 +40,7 @@ At the time of writing, the following dispatch strategies are available.
    Forgotten buidlings in range, followed by forgotten buildings out of range, buildings in range and finally problematic buildings in or out of range.
 
  - **In range**:
-   Buildings in range followed by forgotten out of range.
+   Buildings in range followed by forgotten buildings out of range.
 
  - **In range first**:
    Buildings in range followed by problematic buildings in or out of range.
