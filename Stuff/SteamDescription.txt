@@ -18,7 +18,45 @@ Which services should be dispatched by Central Services can be configured, as ca
 
 If no services are set to be dispatch by the mod, it should not affect the game.
 
-At the time of writing, the following dispatch strategies are available:
+[u]Global Options[/u]
+
+[b]Dispatch by district[/b]
+All buildings in the same district as a service building are considered to be in it's range.
+
+[b]Dispatch by building range[/b]
+All buildings within a certain distince from a service buidling are considered to be in it's range. The distance is a property of the building asset.
+
+[b]Limit building ranges[/b]
+Limit the minimum and maximum range of service bulding (mitigates effects of assets with extreme range).
+
+[b]Range modifier[/b]
+A value with wich service buildings ranges are multiplied. Only available i the config file at the moment.
+
+[b]Range minimum[/b]
+Minimum service bulting range value when limiting building ranges. Only available i the config file at the moment.
+
+[b]Range maximum[/b]
+Maximum service bulting range value when limiting building ranges. Only available i the config file at the moment.
+
+[u]Service options[/u]
+
+These options are set separately for different service vehicles (garbage trucks and hearses).
+
+[b]Dispatch[/b] <service vehicles>
+Handle dispatching for these service vehicles.
+
+[b]Pass through[/b] <service vehicles>
+Remove these vehicles from grid when stopped so traffic can pass.
+
+<Service vehicle> [b]dispatch strategy[/b]
+Choose the dispatch strategy to use for these vehicles.
+
+[b]Garbage amount limit[/b]
+Only available for garbage trucks. Sets the amount of garbage a bulding must accumulate before a garbage truck is dispatch do take care of it.
+
+[u]Dispatch Strategies[/u]
+
+Services are dispatched based on problem magnitude within the strategy rules.
 
 [b]First first[/b]
 All buldings regardless of range.
@@ -41,7 +79,7 @@ Very problematic buildings in range followed by very problematic buildings out o
 [b]Custom[/b]
 Custom strategy manually defined in the configuration file.
 
-Services are dispatched based on problem magnitude within the strategy rules.
+[u]Config File[/u]
 
 The config file, wtmcsServiceDispatcher.xml, is stored in the folder "ModConfig" wherever the game points to with <DataLocation.localApplicationData>. On a Windows system that'd usually be some where like "C:\Users\<UserName>\AppData\Local\Colossal Order\Cities_Skylines\ModConfig".
 
