@@ -4,6 +4,10 @@ Dispatches Cities: Skylines services.
 
 This mod is experimental. It might work, but it also might not. It should not affect saves, but it may well wreak havoc with services while enabled.
 
+[h1]Known Bugs[/h1]
+
+When changing options in-game the new settings are saved but not applied correctly to the current game.
+
 [h1]Services[/h1]
 
 Currently, the mod can dispatch garbage trucks and hearses.
@@ -11,6 +15,12 @@ Currently, the mod can dispatch garbage trucks and hearses.
 I have vague plans to add road and rail clean-up crews (to remove stuck vehicles, including forgotten trailers and railway cars), house wrecking crews (bulldozers), and might decide to look at ambulances as well.
 
 There is absolutely no time table for any additional services, and I'm not promising they'll ever get added.
+
+[h1]Dispatching[/h1]
+
+When a building needs to be serviced, the dispatcher will start looking for a free vehicle from the closest available service building first, and then the next closest and so on. When it finds a service building with free vehicles, it will send the one closest to the buidling needing service.
+
+Not all service budlings are willing to serve all buildings, and there are a number of strategies, wich in turn uses a set of rules, that can be chosen in order do define what bulsings a service buildings will serve.
 
 [h1]Configuration[/h1]
 
