@@ -6,7 +6,9 @@ This mod is experimental. It might work, but it also might not. It should not af
 
 [h1]Known Bugs[/h1]
 
-When changing options in-game the new settings are saved but not applied correctly to the current game.
+[list]
+[*]When changing options in-game the new settings are saved but not applied correctly to the current game.
+[/list]
 
 [h1]Services[/h1]
 
@@ -30,64 +32,70 @@ If no services are set to be dispatch by the mod, it should not affect the game.
 
 [u]Global Options[/u]
 
-[b]Dispatch by district[/b]
-All buildings in the same district as a service building are considered to be in it's range.
+[list]
+[*][b]Dispatch by district[/b]
+   All buildings in the same district as a service building are considered to be in it's range.
 
-[b]Dispatch by building range[/b]
-All buildings within a certain distince from a service buidling are considered to be in it's range. The distance is a property of the building asset.
+[*][b]Dispatch by building range[/b]
+   All buildings within a certain distince from a service buidling are considered to be in it's range. The distance is a property of the building asset.
 
-[b]Limit building ranges[/b]
-Limit the minimum and maximum range of service bulding (mitigates effects of assets with extreme range).
+[*][b]Limit building ranges[/b]
+   Limit the minimum and maximum range of service bulding (mitigates effects of assets with extreme range).
 
-[b]Range modifier[/b]
-A value with wich service buildings ranges are multiplied. Only available i the config file at the moment.
+[*][b]Range modifier[/b]
+   A value with wich service buildings ranges are multiplied. Only available i the config file at the moment.
 
-[b]Range minimum[/b]
-Minimum service bulting range value when limiting building ranges. Only available i the config file at the moment.
+[*][b]Range minimum[/b]
+   Minimum service bulting range value when limiting building ranges. Only available i the config file at the moment.
 
-[b]Range maximum[/b]
-Maximum service bulting range value when limiting building ranges. Only available i the config file at the moment.
+[*][b]Range maximum[/b]
+   Maximum service bulting range value when limiting building ranges. Only available i the config file at the moment.
+[/list]
 
 [u]Service options[/u]
 
 These options are set separately for different service vehicles (garbage trucks and hearses).
 
-[b]Dispatch[/b] <service vehicles>
-Handle dispatching for these service vehicles.
+[list]
+[*][b]Dispatch[/b] <service vehicles>
+   Handle dispatching for these service vehicles.
 
-[b]Pass through[/b] <service vehicles>
-Remove these vehicles from grid when stopped so traffic can pass.
+[*][b]Pass through[/b] <service vehicles>
+   Remove these vehicles from grid when stopped so traffic can pass.
 
-<Service vehicle> [b]dispatch strategy[/b]
-Choose the dispatch strategy to use for these vehicles.
+[*]<Service vehicle> [b]dispatch strategy[/b]
+   Choose the dispatch strategy to use for these vehicles.
 
-[b]Garbage amount limit[/b]
-Only available for garbage trucks. Sets the amount of garbage a bulding must accumulate before a garbage truck is dispatch do take care of it.
+[*][b]Garbage amount limit[/b]
+   Only available for garbage trucks. Sets the amount of garbage a bulding must accumulate before a garbage truck is dispatch do take care of it.
+[/list]
 
 [u]Dispatch Strategies[/u]
 
 Services are dispatched based on problem magnitude within the strategy rules.
 
-[b]First first[/b]
-All buldings regardless of range.
+[list]
+[*][b]First first[/b]
+   All buldings regardless of range.
 
-[b]Forgotten first[/b]
-Forgotten buidlings in range, followed by forgotten buildings out of range, buildings in range and finally problematic buildings in or out of range.
+[*][b]Forgotten first[/b]
+   Forgotten buidlings in range, followed by forgotten buildings out of range, buildings in range and finally problematic buildings in or out of range.
 
-[b]In range[/b]
-Buildings in range followed by forgotten buildings out of range.
+[*][b]In range[/b]
+   Buildings in range followed by forgotten buildings out of range.
 
-[b]In range first[/b]
-Buildings in range followed by problematic buildings in or out of range.
+[*][b]In range first[/b]
+   Buildings in range followed by problematic buildings in or out of range.
 
-[b]Problematic first[/b]
-Problematic buildings in range followed by problematic buildings out of range and finally buildings in range.
+[*][b]Problematic first[/b]
+   Problematic buildings in range followed by problematic buildings out of range and finally buildings in range.
 
-[b]Very problematic first[/b]
-Very problematic buildings in range followed by very problematic buildings out of range, buildings in range and finally problematic buildings in or out of range.
+[*][b]Very problematic first[/b]
+   Very problematic buildings in range followed by very problematic buildings out of range, buildings in range and finally problematic buildings in or out of range.
 
-[b]Custom[/b]
-Custom strategy manually defined in the configuration file.
+[*][b]Custom[/b]
+   Custom strategy manually defined in the configuration file.
+[/list]
 
 [u]Config File[/u]
 
@@ -101,17 +109,28 @@ The mod logs to [url=http://steamcommunity.com/sharedfiles/filedetails/?id=46364
 
 Create one or more the following files in the same directory in order to enable debug log stuff (wich might slow things down quite a bit) and logging to file.
 
-[b]wtmcsServiceDispatcher.debug[/b]
-Enables logging debug data to mod log file, and slightly more logging to the games standard log destinations.
+[list]
+[*][b]wtmcsServiceDispatcher.debug[/b]
+   Enables logging debug data to mod log file, and slightly more logging to the games standard log destinations.
 
-[b]wtmcsServiceDispatcher.debug.dev[/b]
-Log more stuff to mod log file.
+[*][b]wtmcsServiceDispatcher.debug.dev[/b]
+   Log more stuff to mod log file.
 
-[b]wtmcsServiceDispatcher.debug.names[/b]
-Log object names in some debug log entries.
+[*][b]wtmcsServiceDispatcher.debug.names[/b]
+   Log object names in some debug log entries.
 
-[b]wtmcsServiceDispatcher.debug.lists[/b]
-Log object debug lists to mod log file at startup. What this actually does, if anything, may differ between builds.
+[*][b]wtmcsServiceDispatcher.debug.lists[/b]
+   Log object debug lists to mod log file at startup. What this actually does, if anything, may differ between builds.
+[/list]
+
+[h1]To-do[/h1]
+
+[list]
+[*]Fix: In-game options changes.
+[*]New: Make service building send out needed vehicles instead of keeping some in building.
+[*]Road and rail clean-up crews.
+[*]House wrecking crews.
+[/list]
 
 [h1]Whatever[/h1]
 

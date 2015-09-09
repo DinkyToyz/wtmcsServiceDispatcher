@@ -1,6 +1,5 @@
 #Additions and fixes
 
-- basic dispatch info in description
 - in-game option changes
 - road and rail clean-up crews (to remove stuck vehicles, including forgotten trailers and railway cars)
 - house wrecking crews (bulldozers)
