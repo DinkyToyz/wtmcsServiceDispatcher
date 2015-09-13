@@ -2,7 +2,7 @@
 
 use strict;
 use Text::CSV;
-#use YAML;
+use YAML;
 use DBI;
 
 my $appdata = $ENV{LOCALAPPDATA};
@@ -24,6 +24,8 @@ while (my $l = <F>)
     my $frame = $2;
     my $type = $3;
     next unless ($scsv->parse($4));
+
+    $type =~ s/Keeper$//;
 
     $data{$type} =
     {

@@ -10,7 +10,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// The buildings.
         /// </summary>
-        public static Buildings Buildings = null;
+        public static BuildingKeeper Buildings = null;
 
         /// <summary>
         /// The current frame.
@@ -18,9 +18,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public static uint CurrentFrame = 0;
 
         /// <summary>
-        /// Wether updates should be framed or complete.
+        /// Whether updates should be framed or complete.
         /// </summary>
-        public static bool FramedUpdates = false;
+        public static bool FramedUpdates = true;
 
         /// <summary>
         /// The garbage truck dispatcher.
@@ -55,7 +55,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// The service building information priority comparer.
         /// </summary>
-        public static Buildings.ServiceBuildingInfo.PriorityComparer ServiceBuildingInfoPriorityComparer = null;
+        public static ServiceBuildingInfo.PriorityComparer ServiceBuildingInfoPriorityComparer = null;
 
         /// <summary>
         /// The settings.
@@ -65,12 +65,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// The target building information priority comparer.
         /// </summary>
-        public static Buildings.TargetBuildingInfo.PriorityComparer TargetBuildingInfoPriorityComparer = null;
+        public static TargetBuildingInfo.PriorityComparer TargetBuildingInfoPriorityComparer = null;
 
         /// <summary>
         /// The vehicles.
         /// </summary>
-        public static Vehicles Vehicles = null;
+        public static VehicleKeeper Vehicles = null;
 
         /// <summary>
         /// Initializes the settings.

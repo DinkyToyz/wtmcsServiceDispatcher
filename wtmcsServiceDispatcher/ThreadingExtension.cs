@@ -16,7 +16,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// The last debug list log stamp.
         /// </summary>
-        private uint LastDebugListLog = 0;
+        private uint lastDebugListLog = 0;
 
         /// <summary>
         /// The game has started.
@@ -54,13 +54,13 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
-        /// Called when gane updates.
+        /// Called when game updates.
         /// </summary>
         /// <param name="realTimeDelta">The real time delta.</param>
         /// <param name="simulationTimeDelta">The simulation time delta.</param>
         public override void OnUpdate(float realTimeDelta, float simulationTimeDelta)
         {
-            if (isBroken)
+            if (this.isBroken)
             {
                 return;
             }
@@ -81,13 +81,13 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 if (Global.CurrentFrame == 0 && Log.LogDebugLists)
                 {
-                    Vehicles.DebugListLog();
-                    Buildings.DebugListLog();
+                    VehicleHelper.DebugListLog();
+                    BuildingHelper.DebugListLog();
                 }
 
                 if (Global.CurrentFrame == 0 && simulationFrame > 0)
                 {
-                    LastDebugListLog = simulationFrame;
+                    this.lastDebugListLog = simulationFrame;
                 }
 
                 Global.CurrentFrame = simulationFrame;
@@ -117,26 +117,26 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         Global.GarbageTruckDispatcher.Dispatch();
                     }
 
-                    if (Log.LogDebugLists && Global.CurrentFrame - LastDebugListLog >= 1800)
+                    if (Log.LogDebugLists && Global.CurrentFrame - this.lastDebugListLog >= 1800)
                     {
-                        LastDebugListLog = Global.CurrentFrame;
+                        this.lastDebugListLog = Global.CurrentFrame;
 
                         Global.Buildings.DebugListLogBuildings();
                         Log.FlushBuffer();
                     }
                 }
 
-                if (!started || (Global.CurrentFrame - Log.LastFlush >= 600))
+                if (!this.started || (Global.CurrentFrame - Log.LastFlush >= 600))
                 {
                     Log.FlushBuffer();
                 }
 
-                started = true;
+                this.started = true;
             }
             catch (Exception ex)
             {
                 Log.Error(this, "OnUpdate", ex);
-                isBroken = true;
+                this.isBroken = true;
             }
             finally
             {

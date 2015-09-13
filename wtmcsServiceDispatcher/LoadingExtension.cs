@@ -46,9 +46,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     // Initialize dispatch objects.
                     if (Global.Settings.DispatchHearses || Global.Settings.DispatchGarbageTrucks)
                     {
-                        Global.Buildings = new Buildings();
-                        Global.TargetBuildingInfoPriorityComparer = new Buildings.TargetBuildingInfo.PriorityComparer();
-                        Global.ServiceBuildingInfoPriorityComparer = new Buildings.ServiceBuildingInfo.PriorityComparer();
+                        Global.Buildings = new BuildingKeeper();
+                        Global.TargetBuildingInfoPriorityComparer = new TargetBuildingInfo.PriorityComparer();
+                        Global.ServiceBuildingInfoPriorityComparer = new ServiceBuildingInfo.PriorityComparer();
 
                         // Initialize hearse objects.
                         if (Global.Settings.DispatchHearses)
@@ -66,7 +66,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     // Initialize vehicle objects.
                     if (Global.Settings.DispatchHearses || Global.Settings.DispatchGarbageTrucks || Global.Settings.RemoveHearsesFromGrid || Global.Settings.RemoveGarbageTrucksFromGrid)
                     {
-                        Global.Vehicles = new Vehicles();
+                        Global.Vehicles = new VehicleKeeper();
                     }
 
                     Global.LevelLoaded = true;
@@ -80,7 +80,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 Log.Error(this, "OnLevelLoaded", ex);
                 try
                 {
-                    DeInitialize();
+                    this.DeInitialize();
                 }
                 catch (Exception exnull)
                 {
@@ -105,7 +105,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             try
             {
-                DeInitialize();
+                this.DeInitialize();
             }
             catch (Exception ex)
             {
@@ -130,7 +130,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             try
             {
-                DeInitialize();
+                this.DeInitialize();
             }
             catch (Exception ex)
             {
@@ -147,7 +147,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
-        /// Deinitializes data.
+        /// Uninitializes data.
         /// </summary>
         private void DeInitialize()
         {

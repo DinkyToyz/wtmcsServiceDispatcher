@@ -11,7 +11,7 @@
         public const string Description = "Dispatches Cities: Skylines services.";
 
         /// <summary>
-        /// The name;
+        /// The name.
         /// </summary>
         public const string Name = "wtmcsServiceDispatcher";
 

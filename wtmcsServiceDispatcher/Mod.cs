@@ -13,7 +13,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// The target building check strings for dropdown.
         /// </summary>
-        private Dictionary<byte, string> TargetBuildingChecks = null;
+        private Dictionary<byte, string> targetBuildingChecks = null;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Mod"/> class.
@@ -37,7 +37,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <value>
         /// The description.
         /// </value>
-        /// <exception cref="System.NotImplementedException"></exception>
         public string Description
         {
             get
@@ -91,9 +90,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 // Load settings.
                 Global.InitSettings();
 
-                if (TargetBuildingChecks == null)
+                if (this.targetBuildingChecks == null)
                 {
-                    TargetBuildingChecks = new Dictionary<byte, string>();
+                    this.targetBuildingChecks = new Dictionary<byte, string>();
                     foreach (Settings.BuildingCheckOrder checks in Enum.GetValues(typeof(Settings.BuildingCheckOrder)))
                     {
                         if (Log.LogALot || Library.IsDebugBuild) Log.Debug(this, "OnSettingsUI", "Init", "BuildingCheckOrder", (byte)checks, checks, Settings.GetBuildingCheckOrderName(checks));
@@ -104,7 +103,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                             name = checks.ToString();
                         }
 
-                        TargetBuildingChecks.Add((byte)checks, name);
+                        this.targetBuildingChecks.Add((byte)checks, name);
                     }
                 }
 
@@ -121,7 +120,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 UIHelperBase hearseGroup = helper.AddGroup("Hearses");
                 hearseGroup.AddCheckbox("Dispatch hearses", Global.Settings.DispatchHearses, value => { Global.Settings.DispatchHearses = value; Global.Settings.Save(); });
                 hearseGroup.AddCheckbox("Pass through hearses", Global.Settings.RemoveHearsesFromGrid, value => { Global.Settings.RemoveHearsesFromGrid = value; Global.Settings.Save(); });
-                hearseGroup.AddDropdown("Hearse dispatch strategy", TargetBuildingChecks.OrderBy(bco => bco.Key).Select(bco => bco.Value).ToArray(), (int)Global.Settings.DeathChecksPreset,
+                hearseGroup.AddDropdown(
+                    "Hearse dispatch strategy",
+                    this.targetBuildingChecks.OrderBy(bco => bco.Key).Select(bco => bco.Value).ToArray(),
+                    (int)Global.Settings.DeathChecksPreset,
                     value =>
                     {
                         if (Log.LogALot || Library.IsDebugBuild) Log.Debug(this, "OnSettingsUI", "Set", "DeathChecksPreset", value);
@@ -147,7 +149,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 UIHelperBase garbageGroup = helper.AddGroup("Garbage Trucks");
                 garbageGroup.AddCheckbox("Dispatch garbage trucks", Global.Settings.DispatchGarbageTrucks, value => { Global.Settings.DispatchGarbageTrucks = value; Global.Settings.Save(); });
                 garbageGroup.AddCheckbox("Pass through garbage trucks", Global.Settings.RemoveGarbageTrucksFromGrid, value => { Global.Settings.RemoveGarbageTrucksFromGrid = value; Global.Settings.Save(); });
-                garbageGroup.AddDropdown("Garbage truck dispatch strategy", TargetBuildingChecks.OrderBy(bco => bco.Key).Select(bco => bco.Value).ToArray(), (int)Global.Settings.GarbageChecksPreset,
+                garbageGroup.AddDropdown(
+                    "Garbage truck dispatch strategy",
+                    this.targetBuildingChecks.OrderBy(bco => bco.Key).Select(bco => bco.Value).ToArray(),
+                    (int)Global.Settings.GarbageChecksPreset,
                     value =>
                     {
                         if (Log.LogALot || Library.IsDebugBuild) Log.Debug(this, "OnSettingsUI", "Set", "GarbageChecksPreset", value);

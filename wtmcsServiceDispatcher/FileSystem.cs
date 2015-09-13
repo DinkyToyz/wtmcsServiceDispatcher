@@ -24,7 +24,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
-        /// Check if file exists, with file name automagic.
+        /// Check if file exists, with file name automatic.
         /// </summary>
         /// <param name="fileName">Name of the file.</param>
         /// <returns>True if file exists.</returns>
@@ -45,9 +45,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// Gets the name of the file.
         /// </summary>
-        /// <value>
-        /// The name of the file.
-        /// </value>
+        /// <param name="extension">The extension.</param>
+        /// <returns>The name of the file.</returns>
         public static string FileName(string extension = "")
         {
             return Library.Name + extension;
@@ -56,9 +55,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// Gets the complete path.
         /// </summary>
-        /// <value>
-        /// The complete path.
-        /// </value>
+        /// <param name="fileName">Name of the file.</param>
+        /// <returns>The complete path.</returns>
         public static string FilePathName(string fileName = null)
         {
             if (String.IsNullOrEmpty(fileName))

@@ -42,7 +42,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// The number of lines to buffer.
         /// </summary>
-        private static int BufferLines = 5120;
+        private static int bufferLines = 5120;
 
         /// <summary>
         /// The line buffer.
@@ -52,7 +52,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// The log info all to file.
         /// </summary>
-        private static bool LogAllToFile = false;
+        private static bool logAllToFile = false;
 
         /// <summary>
         /// True when log file has been created.
@@ -60,7 +60,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         private static bool logFileCreated = false;
 
         /// <summary>
-        /// Initializes the <see cref="Log"/> class.
+        /// Initializes static members of the <see cref="Log"/> class.
         /// </summary>
         static Log()
         {
@@ -70,9 +70,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             Log.LogDebugLists = FileSystem.Exists(".debug.lists");
             Log.LogALot = FileSystem.Exists(".debug.dev");
 
-            bool LogDebug = (Library.IsDebugBuild || FileSystem.Exists(".debug"));
+            bool logDebug = Library.IsDebugBuild || FileSystem.Exists(".debug");
 
-            if (LogDebug)
+            if (logDebug)
             {
                 Log.LogLevel = Log.Level.Info;
             }
@@ -81,10 +81,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 Log.LogLevel = Log.Level.Warning;
             }
 
-            if (LogDebug || Log.LogALot || Log.LogDebugLists)
+            if (logDebug || Log.LogALot || Log.LogDebugLists)
             {
                 Log.LogToFile = true;
-                Log.LogAllToFile = true;
+                Log.logAllToFile = true;
                 Log.lineBuffer = new List<string>();
             }
 
@@ -93,7 +93,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 AssemblyName name = Assembly.GetExecutingAssembly().GetName();
                 Output(Level.None, null, null, null, name.Name + " " + name.Version);
             }
-            catch { }
+            catch
+            {
+            }
         }
 
         /// <summary>
@@ -142,8 +144,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             get
             {
-                return (lineBuffer != null);
+                return lineBuffer != null;
             }
+
             set
             {
                 if (value)
@@ -164,7 +167,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
-        /// The last flush of buffer.
+        /// Gets the last flush of buffer stamp.
         /// </summary>
         public static uint LastFlush { get; private set; }
 
@@ -223,7 +226,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                         logFileCreated = true;
                     }
-                    catch { }
+                    catch
+                    {
+                    }
                     finally
                     {
                         LastFlush = Global.CurrentFrame;
@@ -231,7 +236,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     }
                 }
             }
-            catch { }
+            catch
+            {
+            }
         }
 
         /// <summary>
@@ -246,10 +253,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
-        /// Comvert log level to message type.
+        /// Convert log level to message type.
         /// </summary>
         /// <param name="level">The level.</param>
-        /// <returns></returns>
+        /// <returns>The message type.</returns>
         public static PluginManager.MessageType MessageType(this Level level)
         {
             switch (level)
@@ -267,10 +274,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
-        /// Do nothing (except trigger the class constructor unless it has run allready).
+        /// Do nothing (except trigger the class constructor unless it has run already).
         /// </summary>
         public static void NoOp()
-        { }
+        {
+        }
 
         /// <summary>
         /// Outputs the specified message.
@@ -282,7 +290,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <param name="messages">The messages.</param>
         public static void Output(Level level, object sourceObject, string sourceBlock, Exception exception, params object[] messages)
         {
-            if (level > LogLevel && !LogAllToFile)
+            if (level > LogLevel && !logAllToFile)
             {
                 return;
             }
@@ -399,7 +407,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     {
                         DebugOutputPanel.AddMessage(level.MessageType(), msg.CleanNewLines());
                     }
-                    catch { }
+                    catch
+                    {
+                    }
                 }
 
                 if (exception != null)
@@ -442,7 +452,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                             break;
                     }
                 }
-                catch { }
+                catch
+                {
+                }
 
                 if (LogToFile)
                 {
@@ -454,7 +466,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         if (lineBuffer != null)
                         {
                             lineBuffer.Add(msg.ConformNewlines());
-                            if (level <= Level.Warning || lineBuffer.Count >= BufferLines)
+                            if (level <= Level.Warning || lineBuffer.Count >= bufferLines)
                             {
                                 FlushBuffer();
                             }
@@ -470,10 +482,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                             logFileCreated = true;
                         }
                     }
-                    catch { }
+                    catch
+                    {
+                    }
                 }
             }
-            catch { }
+            catch
+            {
+            }
         }
 
         /// <summary>
@@ -511,7 +527,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             {
                 if (data.Length == 0)
                 {
-                    AddNameOrSeparator(name);
+                    this.AddNameOrSeparator(name);
                     return;
                 }
 
@@ -536,11 +552,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                             if (!sa)
                             {
-                                AddNameOrSeparator(name, dc);
+                                this.AddNameOrSeparator(name, dc);
                                 sa = true;
                             }
 
-                            info.Append(escapeRex.Replace(str.Trim(), "^$1"));
+                            this.info.Append(escapeRex.Replace(str.Trim(), "^$1"));
                         }
 
                         if (!sa)
@@ -550,19 +566,19 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     }
                     else if (data[i] is string)
                     {
-                        AddNameOrSeparator(name, dc);
-                        info.Append(escapeRex.Replace(((string)data[i]).Trim(), "^$1"));
+                        this.AddNameOrSeparator(name, dc);
+                        this.info.Append(escapeRex.Replace(((string)data[i]).Trim(), "^$1"));
                     }
                     else if (data[i] is float)
                     {
-                        AddNameOrSeparator(name, dc);
-                        info.Append(((float)data[i]).ToString("#,0.##", CultureInfo.InvariantCulture));
+                        this.AddNameOrSeparator(name, dc);
+                        this.info.Append(((float)data[i]).ToString("#,0.##", CultureInfo.InvariantCulture));
                     }
                     else if (data[i] is int || data[i] is Int16 || data[i] is Int32 || data[i] is Int64 || data[i] is short || data[i] is byte ||
                              data[i] is uint || data[i] is UInt16 || data[i] is UInt32 || data[i] is UInt64 || data[i] is ushort)
                     {
-                        AddNameOrSeparator(name, dc);
-                        info.Append(data[i].ToString());
+                        this.AddNameOrSeparator(name, dc);
+                        this.info.Append(data[i].ToString());
                     }
                     else
                     {
@@ -572,8 +588,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                             continue;
                         }
 
-                        AddNameOrSeparator(name, dc);
-                        info.Append(escapeRex.Replace(text.Trim(), "^$1"));
+                        this.AddNameOrSeparator(name, dc);
+                        this.info.Append(escapeRex.Replace(text.Trim(), "^$1"));
                     }
 
                     dc++;
@@ -588,7 +604,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             /// </returns>
             public override string ToString()
             {
-                return info.ToString();
+                return this.info.ToString();
             }
 
             /// <summary>
@@ -600,21 +616,21 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             {
                 if (paramPos <= 0)
                 {
-                    if (info.Length > 0)
+                    if (this.info.Length > 0)
                     {
-                        info.Append("; ");
+                        this.info.Append("; ");
                     }
 
-                    info.Append(escapeRex.Replace(name, "^$1"));
+                    this.info.Append(escapeRex.Replace(name, "^$1"));
 
                     if (paramPos == 0)
                     {
-                        info.Append('=');
+                        this.info.Append('=');
                     }
                 }
                 else
                 {
-                    info.Append(", ");
+                    this.info.Append(", ");
                 }
             }
         }

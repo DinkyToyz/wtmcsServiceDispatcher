@@ -17,7 +17,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public readonly int Version = 1;
 
         /// <summary>
-        /// Wether dispatchers should care about districts or not.
+        /// Whether dispatchers should care about districts or not.
         /// </summary>
         public bool DispatchByDistrict = false;
 
@@ -27,12 +27,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public bool DispatchByRange = true;
 
         /// <summary>
-        /// Wether garbage trucks should be handled or not.
+        /// Whether garbage trucks should be handled or not.
         /// </summary>
         public bool DispatchGarbageTrucks = true;
 
         /// <summary>
-        /// Wether hearses should be handled or not.
+        /// Whether hearses should be handled or not.
         /// </summary>
         public bool DispatchHearses = true;
 
@@ -42,12 +42,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public ushort MinimumGarbageForDispatch = 1500;
 
         /// <summary>
-        /// Limit buidling ranges.
+        /// Limit building ranges.
         /// </summary>
         public bool RangeLimit = false;
 
         /// <summary>
-        /// The maxiimum range (when limiting building ranges).
+        /// The maximum range (when limiting building ranges).
         /// </summary>
         public float RangeMaximum = 10000000;
 
@@ -57,17 +57,17 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public float RangeMinimum = 10000;
 
         /// <summary>
-        /// The range modifier
+        /// The range modifier.
         /// </summary>
         public float RangeModifier = 1.0f;
 
         /// <summary>
-        /// Wether stopped garbage trucks should be removed from grid or not.
+        /// Whether stopped garbage trucks should be removed from grid or not.
         /// </summary>
         public bool RemoveGarbageTrucksFromGrid = false;
 
         /// <summary>
-        /// Wether stopped hearses should be removed from grid or not.
+        /// Whether stopped hearses should be removed from grid or not.
         /// </summary>
         public bool RemoveHearsesFromGrid = true;
 
@@ -167,7 +167,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
-        /// Order of builting checks.
+        /// Order of building checks.
         /// </summary>
         public enum BuildingCheckOrder
         {
@@ -296,15 +296,16 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             get
             {
-                return deathChecksPreset;
+                return this.deathChecksPreset;
             }
+
             set
             {
-                deathChecksPreset = value;
+                this.deathChecksPreset = value;
 
-                if (value == BuildingCheckOrder.Custom && (deathChecksCustom == null || deathChecksCustom.Length == 0))
+                if (value == BuildingCheckOrder.Custom && (this.deathChecksCustom == null || this.deathChecksCustom.Length == 0))
                 {
-                    deathChecksCustom = GetBuildingChecksParameters(BuildingCheckOrder.InRange);
+                    this.deathChecksCustom = GetBuildingChecksParameters(BuildingCheckOrder.InRange);
                 }
             }
         }
@@ -333,15 +334,16 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             get
             {
-                return garbageChecksPreset;
+                return this.garbageChecksPreset;
             }
+
             set
             {
-                garbageChecksPreset = value;
+                this.garbageChecksPreset = value;
 
-                if (value == BuildingCheckOrder.Custom && (garbageChecksCustom == null || garbageChecksCustom.Length == 0))
+                if (value == BuildingCheckOrder.Custom && (this.garbageChecksCustom == null || this.garbageChecksCustom.Length == 0))
                 {
-                    garbageChecksCustom = GetBuildingChecksParameters(BuildingCheckOrder.InRange);
+                    this.garbageChecksCustom = GetBuildingChecksParameters(BuildingCheckOrder.InRange);
                 }
             }
         }
@@ -356,7 +358,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             get
             {
-                return (loadedVersion == null || !loadedVersion.HasValue) ? 0 : loadedVersion.Value;
+                return (this.loadedVersion == null || !this.loadedVersion.HasValue) ? 0 : this.loadedVersion.Value;
             }
         }
 
@@ -468,33 +470,33 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// </summary>
         public void LogSettings()
         {
-            Log.Debug(this, "LogSettings", "DispatchByDistrict", DispatchByDistrict);
-            Log.Debug(this, "LogSettings", "DispatchByRange", DispatchByRange);
-            Log.Debug(this, "LogSettings", "RangeLimit", RangeLimit); 
-            Log.Debug(this, "LogSettings", "RangeModifier", RangeModifier);
-            Log.Debug(this, "LogSettings", "RangeMinimum", RangeMinimum);
-            Log.Debug(this, "LogSettings", "RangeMaximum", RangeMaximum);
+            Log.Debug(this, "LogSettings", "DispatchByDistrict", this.DispatchByDistrict);
+            Log.Debug(this, "LogSettings", "DispatchByRange", this.DispatchByRange);
+            Log.Debug(this, "LogSettings", "RangeLimit", this.RangeLimit);
+            Log.Debug(this, "LogSettings", "RangeModifier", this.RangeModifier);
+            Log.Debug(this, "LogSettings", "RangeMinimum", this.RangeMinimum);
+            Log.Debug(this, "LogSettings", "RangeMaximum", this.RangeMaximum);
 
-            Log.Debug(this, "LogSettings", "DispatchHearses", DispatchHearses);
-            Log.Debug(this, "LogSettings", "RemoveHearsesFromGrid", RemoveHearsesFromGrid);
-            Log.Debug(this, "LogSettings", "DeathChecks", (byte)deathChecksPreset, deathChecksPreset, GetBuildingCheckOrderName(deathChecksPreset));
-            Log.Debug(this, "LogSettings", "DeathChecksParameters", String.Join(", ", DeathChecksParameters.Select(bc => bc.ToString()).ToArray()));
-            if (deathChecksCustom != null)
+            Log.Debug(this, "LogSettings", "DispatchHearses", this.DispatchHearses);
+            Log.Debug(this, "LogSettings", "RemoveHearsesFromGrid", this.RemoveHearsesFromGrid);
+            Log.Debug(this, "LogSettings", "DeathChecks", (byte)this.deathChecksPreset, this.deathChecksPreset, GetBuildingCheckOrderName(this.deathChecksPreset));
+            Log.Debug(this, "LogSettings", "DeathChecksParameters", String.Join(", ", this.DeathChecksParameters.Select(bc => bc.ToString()).ToArray()));
+            if (this.deathChecksCustom != null)
             {
-                Log.Debug(this, "LogSettings", "DeathChecksCustom", String.Join(", ", deathChecksCustom.Select(bc => bc.ToString()).ToArray()));
+                Log.Debug(this, "LogSettings", "DeathChecksCustom", String.Join(", ", this.deathChecksCustom.Select(bc => bc.ToString()).ToArray()));
             }
 
-            Log.Debug(this, "LogSettings", "DispatchGarbageTrucks", DispatchGarbageTrucks);
-            Log.Debug(this, "LogSettings", "RemoveGarbageTrucksFromGrid", RemoveGarbageTrucksFromGrid);
-            Log.Debug(this, "LogSettings", "MinimumGarbageForDispatch", MinimumGarbageForDispatch);
-            Log.Debug(this, "LogSettings", "GarbageChecks", (byte)garbageChecksPreset, garbageChecksPreset, GetBuildingCheckOrderName(garbageChecksPreset));
-            Log.Debug(this, "LogSettings", "GarbageChecksParameters", String.Join(", ", GarbageChecksParameters.Select(bc => bc.ToString()).ToArray()));
-            if (garbageChecksCustom != null)
+            Log.Debug(this, "LogSettings", "DispatchGarbageTrucks", this.DispatchGarbageTrucks);
+            Log.Debug(this, "LogSettings", "RemoveGarbageTrucksFromGrid", this.RemoveGarbageTrucksFromGrid);
+            Log.Debug(this, "LogSettings", "MinimumGarbageForDispatch", this.MinimumGarbageForDispatch);
+            Log.Debug(this, "LogSettings", "GarbageChecks", (byte)this.garbageChecksPreset, this.garbageChecksPreset, GetBuildingCheckOrderName(this.garbageChecksPreset));
+            Log.Debug(this, "LogSettings", "GarbageChecksParameters", String.Join(", ", this.GarbageChecksParameters.Select(bc => bc.ToString()).ToArray()));
+            if (this.garbageChecksCustom != null)
             {
-                Log.Debug(this, "LogSettings", "GarbageChecksCustom", String.Join(", ", garbageChecksCustom.Select(bc => bc.ToString()).ToArray()));
+                Log.Debug(this, "LogSettings", "GarbageChecksCustom", String.Join(", ", this.garbageChecksCustom.Select(bc => bc.ToString()).ToArray()));
             }
 
-            Log.Debug(this, "LogSettings", Version, LoadedVersion, SaveCount);
+            Log.Debug(this, "LogSettings", this.Version, this.LoadedVersion, this.SaveCount);
         }
 
         /// <summary>
@@ -505,7 +507,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             Log.Debug(this, "Save", "Begin");
 
-            if (Log.LogALot || Library.IsDebugBuild) LogSettings();
+            if (Log.LogALot || Library.IsDebugBuild) this.LogSettings();
 
             try
             {
@@ -522,7 +524,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 Log.Info(this, "Save", fileName);
 
-                SaveCount++;
+                this.SaveCount++;
                 using (FileStream file = File.Create(fileName))
                 {
                     ServiceDispatcherSettings cfg = new ServiceDispatcherSettings();
@@ -551,7 +553,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     cfg.BuildingChecksPossible = (Enum.GetValues(typeof(BuildingCheckParameters)) as BuildingCheckParameters[]).Where(bcp => bcp != BuildingCheckParameters.Custom).ToArray();
 
                     cfg.Version = this.Version;
-                    cfg.SaveCount = SaveCount;
+                    cfg.SaveCount = this.SaveCount;
 
                     XmlSerializer ser = new XmlSerializer(typeof(ServiceDispatcherSettings));
                     ser.Serialize(file, cfg);
@@ -599,7 +601,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             public BuildingCheckOrder DeathChecksPreset = BuildingCheckOrder.InRange;
 
             /// <summary>
-            /// Wether the dispatch should be limited by district or not.
+            /// Whether the dispatch should be limited by district or not.
             /// </summary>
             public Boolean DispatchByDistrict = false;
 
@@ -609,12 +611,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             public bool DispatchByRange = false;
 
             /// <summary>
-            /// Wether garbage trucks should be handled or not.
+            /// Whether garbage trucks should be handled or not.
             /// </summary>
             public Boolean DispatchGarbageTrucks = true;
 
             /// <summary>
-            /// Wether hearses should be handled or not.
+            /// Whether hearses should be handled or not.
             /// </summary>
             public Boolean DispatchHearses = true;
 
@@ -639,12 +641,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             public ushort MinimumGarbageForDispatch = 2000;
 
             /// <summary>
-            /// Limit buidling ranges.
+            /// Limit building ranges.
             /// </summary>
             public bool RangeLimit = true;
 
             /// <summary>
-            /// The maxiimum range (when limiting building ranges).
+            /// The maximum range (when limiting building ranges).
             /// </summary>
             public float RangeMaximum = 10000000;
 
@@ -654,17 +656,17 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             public float RangeMinimum = 10000;
 
             /// <summary>
-            /// The range modifier
+            /// The range modifier.
             /// </summary>
             public float RangeModifier = 1.0f;
 
             /// <summary>
-            /// Wether stopped garbage trucks should be removed from grid or not.
+            /// Whether stopped garbage trucks should be removed from grid or not.
             /// </summary>
             public bool RemoveGarbageTrucksFromGrid = false;
 
             /// <summary>
-            /// Wether stopped hearses should be removed from grid or not.
+            /// Whether stopped hearses should be removed from grid or not.
             /// </summary>
             public bool RemoveHearsesFromGrid = false;
 
@@ -694,12 +696,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 public string Description;
 
                 /// <summary>
-                /// The identifier
+                /// The identifier.
                 /// </summary>
                 public BuildingCheckOrder Identifier;
 
                 /// <summary>
-                /// The name
+                /// The name.
                 /// </summary>
                 public string Name;
 
@@ -708,8 +710,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 /// </summary>
                 public BuildingChecksPresetInfo()
                 {
-                    Identifier = BuildingCheckOrder.Custom;
-                    BuildingChecks = new BuildingCheckParameters[] { BuildingCheckParameters.Any };
+                    this.Identifier = BuildingCheckOrder.Custom;
+                    this.BuildingChecks = new BuildingCheckParameters[] { BuildingCheckParameters.Any };
                 }
 
                 /// <summary>
@@ -721,7 +723,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     this.Identifier = buildingCheckOrder;
                     this.Name = GetBuildingCheckOrderName(buildingCheckOrder);
                     this.Description = GetBuildingCheckOrderDescription(buildingCheckOrder);
-                    this.BuildingChecks = GetBuildingChecksParameters(Identifier);
+                    this.BuildingChecks = GetBuildingChecksParameters(this.Identifier);
                 }
             }
         }

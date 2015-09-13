@@ -77,7 +77,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// Conforms the newlines to the environment.
         /// </summary>
         /// <param name="text">The text.</param>
-        /// <returns>The comforming text.</returns>
+        /// <returns>The conforming text.</returns>
         public static string ConformNewlines(this string text)
         {
             return Regex.Replace(text, "[\r\n]+", Environment.NewLine);
@@ -87,7 +87,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// Conforms the newlines to the environment.
         /// </summary>
         /// <param name="text">The text.</param>
-        /// <returns>The comforming text.</returns>
+        /// <returns>The conforming text.</returns>
         public static string ConformNewlines(this StringBuilder text)
         {
             return text.ToString().ConformNewlines();
