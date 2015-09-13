@@ -1,6 +1,7 @@
 #Additions and fixes
 
 - in-game option changes
+- Possibility to turn of or tweak garbage trucks picking up garbage from buildings they pass on the way.
 - road and rail clean-up crews (to remove stuck vehicles, including forgotten trailers and railway cars)
 - house wrecking crews (bulldozers)
 - ambulances?

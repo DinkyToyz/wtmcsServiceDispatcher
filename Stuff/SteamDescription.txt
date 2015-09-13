@@ -22,7 +22,13 @@ There is absolutely no time table for any additional services, and I'm not promi
 
 When a building needs to be serviced, the dispatcher will start looking for a free vehicle from the closest available service building first, and then the next closest and so on. When it finds a service building with free vehicles, it will send the one closest to the buidling needing service.
 
-Not all service budlings are willing to serve all buildings, and there are a number of strategies, wich in turn uses a set of rules, that can be chosen in order do define what bulsings a service buildings will serve.
+Not all service budlings are willing to dispatch to all buildings, and there are a number of strategies, wich in turn uses a set of rules, that can be chosen in order do define what buildings a service buildings will dispatch to.
+
+[u]Garbage Trucks[/u]
+
+Garbage trucks picks up garabge from buildings they pass as well as the building they are dispatched to (this is part of the game, not of this mod).
+
+One result of this is that if the trucks have to travel a long or convoluted way, and passes many buildings with garbage on the way to their target, they might have to turn back to unload before ever reaching their detsination.
 
 [h1]Configuration[/h1]
 
