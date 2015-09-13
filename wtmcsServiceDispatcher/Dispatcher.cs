@@ -201,6 +201,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             if (this.HasTargetBuildings)
             {
                 bool initialized = false;
+
+                Building[] buildings = null;
+
                 foreach (BuldingCheckParameters checkParams in this.buildingChecks)
                 {
                     if (Log.LogALot) Log.DevDebug(this, "Dispatch", checkParams.Setting, checkParams.OnlyProblematic, checkParams.MinProblemValue, checkParams.IgnoreRange);
@@ -211,8 +214,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         if (!initialized)
                         {
                             initialized = true;
+                            buildings = Singleton<BuildingManager>.instance.m_buildings.m_buffer;
 
-                            this.CollectVehicleData();
+                            this.CollectVehicleData(buildings);
                             if (this.freeVehicles < 1)
                             {
                                 if (Log.LogALot) Log.DevDebug(this, "Dispatch", "BreakCheck");
@@ -220,6 +224,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                             }
                         }
 
+                        // Skip missing buildings.
+                        if (buildings[targetBuilding.BuildingId].Info == null || (buildings[targetBuilding.BuildingId].m_flags & Building.Flags.Created) == Building.Flags.None || (buildings[targetBuilding.BuildingId].m_flags & (Building.Flags.Abandoned | Building.Flags.BurnedDown | Building.Flags.Deleted)) != Building.Flags.None)
+                        {
+                            continue;
+                        }
+                        
                         // Assign vehicles, unless allredy done.
                         if (this.assignedTargets.ContainsKey(targetBuilding.BuildingId))
                         {
@@ -428,7 +438,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// Collects the vehicle data.
         /// </summary>
-        private void CollectVehicleData()
+        /// <param name="buildings">The CS buildings.</param>
+        /// <exception cref="System.Exception">Loop counter too high.</exception>
+        private void CollectVehicleData(Building[] buildings)
         {
             this.freeVehicles = 0;
 
@@ -447,17 +459,25 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             // Loop through the service buildings.
             foreach (ServiceBuildingInfo serviceBuilding in this.serviceBuildings.Values)
             {
+                // Skip missing buildings.
+                if (buildings[serviceBuilding.BuildingId].Info == null || (buildings[serviceBuilding.BuildingId].m_flags & Building.Flags.Created) == Building.Flags.None || (buildings[serviceBuilding.BuildingId].m_flags & (Building.Flags.Abandoned | Building.Flags.BurnedDown | Building.Flags.Deleted)) != Building.Flags.None)
+                {
+                    serviceBuilding.CanReceive = false;
+                    continue;
+                }
+
                 // Loop through the vehicles.
                 vehiclesMade = 0;
                 vehiclesFree = 0;
 
                 count = 0;
+                serviceBuilding.FirstOwnVehicleId = buildings[serviceBuilding.BuildingId].m_ownVehicles;
                 vehicleId = serviceBuilding.FirstOwnVehicleId;
                 while (vehicleId != 0)
                 {
                     if (count >= ushort.MaxValue)
                     {
-                        throw new Exception("Loop counter too high!");
+                        throw new Exception("Loop counter too high");
                     }
                     count++;
 
