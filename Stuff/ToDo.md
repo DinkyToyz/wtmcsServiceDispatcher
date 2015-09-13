@@ -14,4 +14,4 @@
 	SetSource(...)
 - citizens?
 - Detour ProduceGoods???
-
+- To stop or limit garbage trucks from picking up what they pass: detour GarbageTruckAI.TryCollectGarbage
