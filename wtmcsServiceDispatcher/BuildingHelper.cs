@@ -18,10 +18,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             {
                 Building[] buildings = Singleton<BuildingManager>.instance.m_buildings.m_buffer;
                 Vehicle[] vehicles = Singleton<VehicleManager>.instance.m_vehicles.m_buffer;
+                DistrictManager districtManager = Singleton<DistrictManager>.instance;
 
                 for (ushort id = 0; id < buildings.Length; id++)
                 {
-                    DebugListLog(buildings, vehicles, id);
+                    DebugListLog(buildings, vehicles, districtManager, id);
                 }
             }
             catch (Exception ex)
@@ -38,10 +39,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             Building[] buildings = Singleton<BuildingManager>.instance.m_buildings.m_buffer;
             Vehicle[] vehicles = Singleton<VehicleManager>.instance.m_vehicles.m_buffer;
+            DistrictManager districtManager = Singleton<DistrictManager>.instance;
 
             foreach (ushort id in buildingIds)
             {
-                DebugListLog(buildings, vehicles, id);
+                DebugListLog(buildings, vehicles, districtManager, id);
             }
         }
 
@@ -53,10 +55,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             Building[] buildings = Singleton<BuildingManager>.instance.m_buildings.m_buffer;
             Vehicle[] vehicles = Singleton<VehicleManager>.instance.m_vehicles.m_buffer;
+            DistrictManager districtManager = Singleton<DistrictManager>.instance;
 
             foreach (TargetBuildingInfo building in targetBuildings)
             {
-                DebugListLog(buildings, vehicles, building.BuildingId);
+                DebugListLog(buildings, vehicles, districtManager, building.BuildingId);
             }
         }
 
@@ -68,10 +71,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             Building[] buildings = Singleton<BuildingManager>.instance.m_buildings.m_buffer;
             Vehicle[] vehicles = Singleton<VehicleManager>.instance.m_vehicles.m_buffer;
+            DistrictManager districtManager = Singleton<DistrictManager>.instance;
 
             foreach (ServiceBuildingInfo building in serviceBuildings)
             {
-                DebugListLog(buildings, vehicles, building.BuildingId);
+                DebugListLog(buildings, vehicles, districtManager, building.BuildingId);
             }
 
             foreach (ServiceBuildingInfo building in serviceBuildings)
@@ -127,12 +131,25 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Gets the name of the district.
+        /// </summary>
+        /// <param name="district">The district.</param>
+        /// <returns>The name of the district.</returns>
+        public static string GetDistrictName(int district)
+        {
+            DistrictManager districtManager = Singleton<DistrictManager>.instance;
+
+            return districtManager.GetDistrictName(district);
+        }
+
+        /// <summary>
         /// Logs building info for debug use.
         /// </summary>
         /// <param name="buildings">The buildings.</param>
         /// <param name="vehicles">The vehicles.</param>
+        /// <param name="districtManager">The district manager.</param>
         /// <param name="buildingId">The building identifier.</param>
-        private static void DebugListLog(Building[] buildings, Vehicle[] vehicles, ushort buildingId)
+        private static void DebugListLog(Building[] buildings, Vehicle[] vehicles, DistrictManager districtManager, ushort buildingId)
         {
             if (buildings[buildingId].Info != null && (buildings[buildingId].m_flags & Building.Flags.Created) == Building.Flags.Created)
             {
@@ -147,6 +164,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 {
                     info.Add("BuildingName", name);
                 }
+
+                byte district = districtManager.GetDistrict(buildings[buildingId].m_position);
+                info.Add("District", district);
+                info.Add("DistrictName", districtManager.GetDistrictName(district));
 
                 int serviceVehicleCount = 0;
                 if (buildings[buildingId].Info.m_buildingAI is CemeteryAI)

@@ -195,6 +195,20 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Gets the name of the district.
+        /// </summary>
+        /// <value>
+        /// The name of the district.
+        /// </value>
+        public string DistrictName
+        {
+            get
+            {
+                return BuildingHelper.GetDistrictName(this.District);
+            }
+        }
+
+        /// <summary>
         /// Gets a value indicating whether the building is updated.
         /// </summary>
         public bool Updated

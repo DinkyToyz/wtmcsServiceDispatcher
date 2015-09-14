@@ -92,38 +92,41 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 Global.CurrentFrame = simulationFrame;
 
-                // Do vehicle based stuff.
-                if (Global.Vehicles != null)
+                if (Global.Settings.DispatchGarbageTrucks || Global.Settings.DispatchHearses)
                 {
-                    // Update vehicles.
-                    Global.Vehicles.Update();
+                    // Do vehicle based stuff.
+                    if (Global.Vehicles != null)
+                    {
+                        // Update vehicles.
+                        Global.Vehicles.Update();
+                    }
+
+                    // Do building based stuff.
+                    if (Global.Buildings != null)
+                    {
+                        // Update buildings.
+                        Global.Buildings.Update();
+
+                        // Dispatch hearses.
+                        if (Global.Settings.DispatchHearses && Global.HearseDispatcher != null)
+                        {
+                            Global.HearseDispatcher.Dispatch();
+                        }
+
+                        // Dispatch garbage trucks;
+                        if (Global.Settings.DispatchGarbageTrucks && Global.GarbageTruckDispatcher != null)
+                        {
+                            Global.GarbageTruckDispatcher.Dispatch();
+                        }
+                    }
                 }
 
-                // Do bulding based stuff.
-                if (Global.Buildings != null)
+                if (Log.LogDebugLists && Global.CurrentFrame - this.lastDebugListLog >= 1800)
                 {
-                    // Update buildings.
-                    Global.Buildings.Update();
+                    this.lastDebugListLog = Global.CurrentFrame;
 
-                    // Dispatch hearses.
-                    if (Global.HearseDispatcher != null)
-                    {
-                        Global.HearseDispatcher.Dispatch();
-                    }
-
-                    // Dispatch garbage trucks;
-                    if (Global.GarbageTruckDispatcher != null)
-                    {
-                        Global.GarbageTruckDispatcher.Dispatch();
-                    }
-
-                    if (Log.LogDebugLists && Global.CurrentFrame - this.lastDebugListLog >= 1800)
-                    {
-                        this.lastDebugListLog = Global.CurrentFrame;
-
-                        Global.Buildings.DebugListLogBuildings();
-                        Log.FlushBuffer();
-                    }
+                    Global.Buildings.DebugListLogBuildings();
+                    Log.FlushBuffer();
                 }
 
                 if (!this.started || (Global.CurrentFrame - Log.LastFlush >= 600))

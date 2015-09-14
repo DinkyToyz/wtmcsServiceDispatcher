@@ -17,6 +17,16 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public readonly int Version = 1;
 
         /// <summary>
+        /// When to create spare garbage trucks.
+        /// </summary>
+        public SpareVehiclesCreation CreateSpareGarbageTrucks = SpareVehiclesCreation.WhenBuildingIsCloser;
+
+        /// <summary>
+        /// When to create spare hearses.
+        /// </summary>
+        public SpareVehiclesCreation CreateSpareHearses = SpareVehiclesCreation.WhenBuildingIsCloser;
+
+        /// <summary>
         /// Whether dispatchers should care about districts or not.
         /// </summary>
         public bool DispatchByDistrict = false;
@@ -61,10 +71,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// </summary>
         public float RangeModifier = 1.0f;
 
-        /// <summary>
-        /// Whether stopped garbage trucks should be removed from grid or not.
-        /// </summary>
-        public bool RemoveGarbageTrucksFromGrid = false;
+        /////// <summary>
+        /////// Whether stopped garbage trucks should be removed from grid or not.
+        /////// </summary>
+        ////public bool RemoveGarbageTrucksFromGrid = false;
 
         /// <summary>
         /// Whether stopped hearses should be removed from grid or not.
@@ -101,6 +111,26 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             { BuildingCheckOrder.InRangeFirst, "In range first" },
             { BuildingCheckOrder.ProblematicFirst, "Problematic first" },
             { BuildingCheckOrder.VeryProblematicFirst, "Very problematic first" }
+        };
+
+        /// <summary>
+        /// The descriptions for the vehicle creation options.
+        /// </summary>
+        private static Dictionary<SpareVehiclesCreation, string> spareVehiclesCreationDescriptions = new Dictionary<SpareVehiclesCreation, string>()
+        {
+            { SpareVehiclesCreation.Never, "Never send out spare vehicles." },
+            { SpareVehiclesCreation.WhenNoFree, "Send out spare vehicles when service building has no free vehicles." },
+            { SpareVehiclesCreation.WhenBuildingIsCloser, "Send out spare vehicles when service building is closer than all free vehicles." }
+        };
+
+        /// <summary>
+        /// The display names for the vehicle creation options.
+        /// </summary>
+        private static Dictionary<SpareVehiclesCreation, string> spareVehiclesCreationNames = new Dictionary<SpareVehiclesCreation, string>()
+        {
+            { SpareVehiclesCreation.Never, "Never" },
+            { SpareVehiclesCreation.WhenNoFree, "When none are free" },
+            { SpareVehiclesCreation.WhenBuildingIsCloser, "When building is closer" }
         };
 
         /// <summary>
@@ -146,6 +176,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 this.RangeMinimum = settings.RangeMinimum;
 
                 this.DispatchHearses = settings.DispatchHearses;
+                this.CreateSpareHearses = settings.CreateSpareHearses;
                 this.RemoveHearsesFromGrid = settings.RemoveHearsesFromGrid;
                 this.deathChecksPreset = settings.DeathChecksPreset;
                 this.deathChecksCustom = settings.DeathChecksCustom;
@@ -155,7 +186,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 }
 
                 this.DispatchGarbageTrucks = settings.DispatchGarbageTrucks;
-                this.RemoveGarbageTrucksFromGrid = settings.RemoveGarbageTrucksFromGrid;
+                this.CreateSpareGarbageTrucks = settings.CreateSpareGarbageTrucks;
+                ////this.RemoveGarbageTrucksFromGrid = settings.RemoveGarbageTrucksFromGrid;
                 this.MinimumGarbageForDispatch = settings.MinimumGarbageForDispatch;
                 this.garbageChecksPreset = settings.GarbageChecksPreset;
                 this.garbageChecksCustom = settings.GarbageChecksCustom;
@@ -256,6 +288,27 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             /// Forgotten buildings in or out of range.
             /// </summary>
             ForgottenIgnoreRange = 8
+        }
+
+        /// <summary>
+        /// Options for when to create spare vehicles.
+        /// </summary>
+        public enum SpareVehiclesCreation
+        {
+            /// <summary>
+            /// Never create spare vehicles.
+            /// </summary>
+            Never = 1,
+
+            /// <summary>
+            /// Create spare vehicles when service building has no free vehicles.
+            /// </summary>
+            WhenNoFree = 2,
+
+            /// <summary>
+            /// Create spare vehicles when service building is closer to target than all free vehicles.
+            /// </summary>
+            WhenBuildingIsCloser = 3
         }
 
         /// <summary>
@@ -421,6 +474,30 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Gets the display name of the vehicle creation option.
+        /// </summary>
+        /// <param name="option">The option.</param>
+        /// <returns>
+        /// The display name.
+        /// </returns>
+        public static string GetSpareVehiclesCreationDescription(SpareVehiclesCreation option)
+        {
+            return spareVehiclesCreationDescriptions.ContainsKey(option) ? spareVehiclesCreationDescriptions[option] : null;
+        }
+
+        /// <summary>
+        /// Gets the display name of the vehicle creation option.
+        /// </summary>
+        /// <param name="option">The option.</param>
+        /// <returns>
+        /// The display name.
+        /// </returns>
+        public static string GetSpareVehiclesCreationName(SpareVehiclesCreation option)
+        {
+            return spareVehiclesCreationNames.ContainsKey(option) ? spareVehiclesCreationNames[option] : null;
+        }
+
+        /// <summary>
         /// Loads settings from the specified file name.
         /// </summary>
         /// <param name="fileName">Name of the file.</param>
@@ -479,6 +556,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             Log.Debug(this, "LogSettings", "DispatchHearses", this.DispatchHearses);
             Log.Debug(this, "LogSettings", "RemoveHearsesFromGrid", this.RemoveHearsesFromGrid);
+            Log.Debug(this, "LogSettings", "CreateSpareHearses", this.CreateSpareHearses);
             Log.Debug(this, "LogSettings", "DeathChecks", (byte)this.deathChecksPreset, this.deathChecksPreset, GetBuildingCheckOrderName(this.deathChecksPreset));
             Log.Debug(this, "LogSettings", "DeathChecksParameters", String.Join(", ", this.DeathChecksParameters.Select(bc => bc.ToString()).ToArray()));
             if (this.deathChecksCustom != null)
@@ -487,7 +565,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             }
 
             Log.Debug(this, "LogSettings", "DispatchGarbageTrucks", this.DispatchGarbageTrucks);
-            Log.Debug(this, "LogSettings", "RemoveGarbageTrucksFromGrid", this.RemoveGarbageTrucksFromGrid);
+            ////Log.Debug(this, "LogSettings", "RemoveGarbageTrucksFromGrid", this.RemoveGarbageTrucksFromGrid);
+            Log.Debug(this, "LogSettings", "CreateSpareGarbageTrucks", this.CreateSpareGarbageTrucks);
             Log.Debug(this, "LogSettings", "MinimumGarbageForDispatch", this.MinimumGarbageForDispatch);
             Log.Debug(this, "LogSettings", "GarbageChecks", (byte)this.garbageChecksPreset, this.garbageChecksPreset, GetBuildingCheckOrderName(this.garbageChecksPreset));
             Log.Debug(this, "LogSettings", "GarbageChecksParameters", String.Join(", ", this.GarbageChecksParameters.Select(bc => bc.ToString()).ToArray()));
@@ -537,12 +616,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     cfg.RangeMinimum = this.RangeMinimum;
 
                     cfg.RemoveHearsesFromGrid = this.RemoveHearsesFromGrid;
+                    cfg.CreateSpareHearses = this.CreateSpareHearses;
                     cfg.DispatchHearses = this.DispatchHearses;
                     cfg.DeathChecksPreset = this.deathChecksPreset;
                     cfg.DeathChecksCustom = this.deathChecksCustom;
                     cfg.DeathChecksCurrent = this.DeathChecksParameters;
 
-                    cfg.RemoveGarbageTrucksFromGrid = this.RemoveGarbageTrucksFromGrid;
+                    ////cfg.RemoveGarbageTrucksFromGrid = this.RemoveGarbageTrucksFromGrid;
+                    cfg.CreateSpareGarbageTrucks = this.CreateSpareGarbageTrucks;
                     cfg.DispatchGarbageTrucks = this.DispatchGarbageTrucks;
                     cfg.MinimumGarbageForDispatch = this.MinimumGarbageForDispatch;
                     cfg.GarbageChecksPreset = this.garbageChecksPreset;
@@ -584,6 +665,16 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             /// The possible building checks presets.
             /// </summary>
             public BuildingChecksPresetInfo[] BuildingChecksPresets = null;
+
+            /// <summary>
+            /// When to create spare garbage trucks.
+            /// </summary>
+            public SpareVehiclesCreation CreateSpareGarbageTrucks = SpareVehiclesCreation.WhenBuildingIsCloser;
+
+            /// <summary>
+            /// When to create spare hearses.
+            /// </summary>
+            public SpareVehiclesCreation CreateSpareHearses = SpareVehiclesCreation.WhenBuildingIsCloser;
 
             /// <summary>
             /// The current dead people building checks.

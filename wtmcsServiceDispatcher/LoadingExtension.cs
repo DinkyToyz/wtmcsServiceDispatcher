@@ -44,30 +44,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     Global.InitSettings();
 
                     // Initialize dispatch objects.
-                    if (Global.Settings.DispatchHearses || Global.Settings.DispatchGarbageTrucks)
-                    {
-                        Global.Buildings = new BuildingKeeper();
-                        Global.TargetBuildingInfoPriorityComparer = new TargetBuildingInfo.PriorityComparer();
-                        Global.ServiceBuildingInfoPriorityComparer = new ServiceBuildingInfo.PriorityComparer();
-
-                        // Initialize hearse objects.
-                        if (Global.Settings.DispatchHearses)
-                        {
-                            Global.HearseDispatcher = new Dispatcher(Dispatcher.DispatcherTypes.HearseDispatcher);
-                        }
-
-                        // Initialize garbage truck objects.
-                        if (Global.Settings.DispatchGarbageTrucks)
-                        {
-                            Global.GarbageTruckDispatcher = new Dispatcher(Dispatcher.DispatcherTypes.GarbageTruckDispatcher);
-                        }
-                    }
-
-                    // Initialize vehicle objects.
-                    if (Global.Settings.DispatchHearses || Global.Settings.DispatchGarbageTrucks || Global.Settings.RemoveHearsesFromGrid || Global.Settings.RemoveGarbageTrucksFromGrid)
-                    {
-                        Global.Vehicles = new VehicleKeeper();
-                    }
+                    Global.InitHandlers();
 
                     Global.LevelLoaded = true;
                     Global.CurrentFrame = 0;

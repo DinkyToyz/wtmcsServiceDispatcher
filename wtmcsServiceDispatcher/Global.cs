@@ -104,5 +104,48 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 }
             }
         }
+
+        /// <summary>
+        /// Initializes the dispatchers.
+        /// </summary>
+        public static void InitHandlers()
+        {
+            // Initialize dispatch objects.
+            if (Settings.DispatchHearses || Settings.DispatchGarbageTrucks)
+            {
+                if (Buildings == null)
+                {
+                    Buildings = new BuildingKeeper();
+                }
+
+                if (TargetBuildingInfoPriorityComparer == null)
+                {
+                    TargetBuildingInfoPriorityComparer = new TargetBuildingInfo.PriorityComparer();
+                }
+
+                if (ServiceBuildingInfoPriorityComparer == null)
+                {
+                    ServiceBuildingInfoPriorityComparer = new ServiceBuildingInfo.PriorityComparer();
+                }
+
+                // Initialize hearse objects.
+                if (Settings.DispatchHearses && HearseDispatcher == null)
+                {
+                    HearseDispatcher = new Dispatcher(Dispatcher.DispatcherTypes.HearseDispatcher);
+                }
+
+                // Initialize garbage truck objects.
+                if (Settings.DispatchGarbageTrucks && GarbageTruckDispatcher == null)
+                {
+                    GarbageTruckDispatcher = new Dispatcher(Dispatcher.DispatcherTypes.GarbageTruckDispatcher);
+                }
+            }
+
+            // Initialize vehicle objects.
+            if ((Settings.DispatchHearses || Settings.DispatchGarbageTrucks || Settings.RemoveHearsesFromGrid /* || Settings.RemoveGarbageTrucksFromGrid */) && Vehicles == null)
+            {
+                Vehicles = new VehicleKeeper();
+            }
+        }
     }
 }

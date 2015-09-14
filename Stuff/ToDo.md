@@ -15,3 +15,6 @@
 - citizens?
 - Detour ProduceGoods???
 - To stop or limit garbage trucks from picking up what they pass: detour GarbageTruckAI.TryCollectGarbage
+- prefer create
+- sort by distance capacity %
+- see uncreated as distance to service building

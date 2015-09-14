@@ -12,7 +12,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// The building identifier.
         /// </summary>
-        public ushort BuildingId = 0;
+        public ushort BuildingId;
 
         /// <summary>
         /// The building can receive.
@@ -27,12 +27,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// The district the building is in.
         /// </summary>
-        public byte District = 0;
+        public byte District;
 
         /// <summary>
         /// The buildings first own vehicle.
         /// </summary>
-        public ushort FirstOwnVehicleId = 0;
+        public ushort FirstOwnVehicleId;
 
         /// <summary>
         /// The building is in target district.
@@ -131,6 +131,20 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             get
             {
                 return BuildingHelper.GetBuildingName(this.BuildingId);
+            }
+        }
+
+        /// <summary>
+        /// Gets the name of the district.
+        /// </summary>
+        /// <value>
+        /// The name of the district.
+        /// </value>
+        public string DistrictName
+        {
+            get
+            {
+                return BuildingHelper.GetDistrictName(this.District);
             }
         }
 
@@ -241,6 +255,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 {
                     this.District = districtManager.GetDistrict(this.Position);
                 }
+                else if (this.lastInfoUpdate == 0)
+                {
+                    this.District = 0;
+                }
 
                 if (Global.Settings.DispatchByRange)
                 {
@@ -259,19 +277,19 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     }
                 }
 
+                int productionRate = PlayerBuildingAI.GetProductionRate(100, Singleton<EconomyManager>.instance.GetBudget(building.Info.m_buildingAI.m_info.m_class));
+                if (building.Info.m_buildingAI is CemeteryAI)
+                {
+                    this.VehiclesTotal = ((CemeteryAI)building.Info.m_buildingAI).m_hearseCount;
+                }
+                else if (building.Info.m_buildingAI is LandfillSiteAI)
+                {
+                    this.VehiclesTotal = ((LandfillSiteAI)building.Info.m_buildingAI).m_garbageTruckCount;
+                }
+                this.VehiclesTotal = ((productionRate * this.VehiclesTotal) + 99) / 100;
+
                 this.lastInfoUpdate = Global.CurrentFrame;
             }
-
-            int productionRate = PlayerBuildingAI.GetProductionRate(100, Singleton<EconomyManager>.instance.GetBudget(building.Info.m_buildingAI.m_info.m_class));
-            if (building.Info.m_buildingAI is CemeteryAI)
-            {
-                this.VehiclesTotal = ((CemeteryAI)building.Info.m_buildingAI).m_hearseCount;
-            }
-            else if (building.Info.m_buildingAI is LandfillSiteAI)
-            {
-                this.VehiclesTotal = ((LandfillSiteAI)building.Info.m_buildingAI).m_garbageTruckCount;
-            }
-            this.VehiclesTotal = ((productionRate * this.VehiclesTotal) + 99) / 100;
 
             this.CanReceive = (building.m_flags & (Building.Flags.CapacityFull | Building.Flags.Downgrading | Building.Flags.Demolishing | Building.Flags.Deleted | Building.Flags.BurnedDown)) == Building.Flags.None &&
                               (building.m_flags & (Building.Flags.Created | Building.Flags.Created | Building.Flags.Active)) == (Building.Flags.Created | Building.Flags.Created | Building.Flags.Active) &&

@@ -176,13 +176,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// Updates data.
         /// </summary>
+        /// <exception cref="System.Exception">Update frame loop counter too high.</exception>
         public void Update()
         {
             // Get and categorize buildings.
             Building[] buildings = Singleton<BuildingManager>.instance.m_buildings.m_buffer;
 
             DistrictManager districtManager = null;
-            if (Global.Settings.DispatchByDistrict && districtManager != null)
+            if (Global.Settings.DispatchByDistrict || Log.LogNames || Log.LogALot)
             {
                 districtManager = Singleton<DistrictManager>.instance;
             }
@@ -201,7 +202,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 {
                     if (counter > 256)
                     {
-                        throw new Exception("Update frame loop counter too high!");
+                        throw new Exception("Update frame loop counter too high");
                     }
                     counter++;
 

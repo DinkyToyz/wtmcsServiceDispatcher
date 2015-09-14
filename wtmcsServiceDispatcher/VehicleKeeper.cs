@@ -35,6 +35,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// Updates data.
         /// </summary>
+        /// <exception cref="System.Exception">Update frame loop counter to high.</exception>
         public void Update()
         {
             // Get and categorize vehicles.
@@ -52,7 +53,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 {
                     if (counter > 256)
                     {
-                        throw new Exception("Update frame loop counter to high!");
+                        throw new Exception("Update frame loop counter to high");
                     }
                     counter++;
 
@@ -148,8 +149,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                                 this.removedFromGrid.Remove(id);
                             }
                         }
-                        else if (((Global.Settings.RemoveHearsesFromGrid && vehicles[id].Info.m_vehicleAI is HearseAI) ||
-                                  (Global.Settings.RemoveGarbageTrucksFromGrid && vehicles[id].Info.m_vehicleAI is GarbageTruckAI)) &&
+                        else if (((Global.Settings.RemoveHearsesFromGrid && vehicles[id].Info.m_vehicleAI is HearseAI) /* ||
+                                  (Global.Settings.RemoveGarbageTrucksFromGrid && vehicles[id].Info.m_vehicleAI is GarbageTruckAI)*/) &&
                                  !this.removedFromGrid.Contains(id))
                         {
                             if (Log.LogToFile) Log.Debug(this, "HandleVehicles", "RemoveFromGrid", id, vehicles[id].m_targetBuilding, vehicles[id].Info.name, VehicleHelper.GetVehicleName(id), vehicles[id].m_flags);
