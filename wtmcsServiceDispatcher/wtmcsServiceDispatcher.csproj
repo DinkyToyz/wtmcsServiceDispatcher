@@ -78,6 +78,20 @@
     <Compile Include="VehicleHelper.cs" />
     <Compile Include="VehicleKeeper.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Central Services Dispatcher.xcf" />
+    <None Include="PostBuild.cmd" />
+    <None Include="ReadMe.head.md" />
+    <None Include="SteamBBCode2MarkDown.pl" />
+    <None Include="ToDo.md" />
+    <None Include="wtmcsServiceDispatcherDebugLogImport.pl" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Info.txt" />
+    <Content Include="PreviewImage.png" />
+    <Content Include="SteamDescription.txt" />
+    <Content Include="VehicleCounts.sql" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>"$(ProjectDir)PostBuild.cmd" 512341354 $(SolutionName) $(TargetFileName)

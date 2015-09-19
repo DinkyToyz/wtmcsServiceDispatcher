@@ -19,6 +19,14 @@ IF NOT EXIST "%MODPATH%" MKDIR "%MODPATH%"
 
 :WORK
 
+IF NOT EXIST ..\..\SteamBBCode2MarkDown.pl GOTO NODESC
+IF NOT EXIST ..\..\SteamDescription.txt GOTO NODESC
+IF NOT EXIST ..\..\ReadMe.head.md GOTO NODESC
+
+..\..\SteamBBCode2MarkDown.pl ..\..\ReadMe.head.md ..\..\SteamDescription.txt > ..\..\..\README.md
+
+:NODESC
+
 IF NOT EXIST "%MODPATH%" GOTO END
 IF NOT EXIST "%TARGETFILENAME%" GOTO END
 
