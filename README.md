@@ -70,11 +70,27 @@ These options are set separately for different service vehicles (garbage trucks 
 - **Pass through** [`service vehicles`]: 
   Remove these vehicles from grid when stopped so traffic can pass.
 
+- **Send out spare** [`service vehicles`]: 
+  When to send out new vehicles from the service building instead of sending one that's already driving. 
+
 - [`Service vehicle`] **dispatch strategy**: 
   Choose the dispatch strategy to use for these vehicles.
 
 - **Garbage amount limit**: 
   Only available for garbage trucks. Sets the amount of garbage a bulding must accumulate before a garbage truck is dispatch do take care of it.
+
+### Sending Out Spare Vehicles
+
+The game will send out new vehicles when it deems it a good idea, but the dispatcher can be told to before the game would do it.
+
+- **Never**: 
+  Never send out new vehicles before the game would do it anyway.
+
+- **None are free**: 
+  Send out new vehicles from the closest available service building when that building has no free vehicles out driving.
+
+- **Building is closer**: 
+  Send out new vehicles from the closest available service building when the building is closer than it's nearest free vehicles.
 
 ### Dispatch Strategies
 
