@@ -1,8 +1,8 @@
-﻿using ICities;
+﻿using ColossalFramework.UI;
+using ICities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using ColossalFramework.UI;
 
 namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 {
@@ -132,93 +132,93 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 UIHelperBase dispatchGroup = helper.AddGroup("Central Services Dispatch");
 
                 dispatchGroup.AddCheckbox(
-                    "Dispatch by district", 
-                    Global.Settings.DispatchByDistrict, 
-                    value => 
-                    { 
-                        Global.Settings.DispatchByDistrict = value; 
-                        Global.Settings.Save(); 
+                    "Dispatch by district",
+                    Global.Settings.DispatchByDistrict,
+                    value =>
+                    {
+                        Global.Settings.DispatchByDistrict = value;
+                        Global.Settings.Save();
                     });
 
                 dispatchGroup.AddCheckbox(
-                    "Dispatch by building range", 
-                    Global.Settings.DispatchByRange, 
-                    value => 
-                    { 
-                        Global.Settings.DispatchByRange = value; 
-                        Global.Settings.Save(); 
+                    "Dispatch by building range",
+                    Global.Settings.DispatchByRange,
+                    value =>
+                    {
+                        Global.Settings.DispatchByRange = value;
+                        Global.Settings.Save();
                     });
 
                 dispatchGroup.AddCheckbox(
-                    "Limit building ranges", 
-                    Global.Settings.RangeLimit, 
-                    value => 
-                    { 
-                        Global.Settings.RangeLimit = value; 
-                        Global.Settings.Save(); 
+                    "Limit building ranges",
+                    Global.Settings.RangeLimit,
+                    value =>
+                    {
+                        Global.Settings.RangeLimit = value;
+                        Global.Settings.Save();
                     });
 
                 ////dispatchGroup.AddSlider(
-                ////    "Range modifier (0.1 - 10)", 
-                ////    0.1f, 
-                ////    10.0f, 
-                ////    0.1f, 
-                ////    Global.Settings.RangeModifier, 
-                ////    value => 
-                ////    { 
-                ////        Global.Settings.RangeModifier = value; 
-                ////        Global.Settings.Save(); 
+                ////    "Range modifier (0.1 - 10)",
+                ////    0.1f,
+                ////    10.0f,
+                ////    0.1f,
+                ////    Global.Settings.RangeModifier,
+                ////    value =>
+                ////    {
+                ////        Global.Settings.RangeModifier = value;
+                ////        Global.Settings.Save();
                 ////    });
 
                 ////dispatchGroup.AddSlider(
-                ////    "Range minimum (0-100000000)", 
-                ////    0f, 
-                ////    100000000f, 
-                ////    1f, 
-                ////    Global.Settings.RangeMinimum, 
-                ////    value => 
-                ////    { 
-                ////        Global.Settings.RangeMinimum = value; 
-                ////        Global.Settings.Save(); 
+                ////    "Range minimum (0-100000000)",
+                ////    0f,
+                ////    100000000f,
+                ////    1f,
+                ////    Global.Settings.RangeMinimum,
+                ////    value =>
+                ////    {
+                ////        Global.Settings.RangeMinimum = value;
+                ////        Global.Settings.Save();
                 ////    });
 
                 ////dispatchGroup.AddSlider(
-                ////    "Range maximum (0-100000000)", 
-                ////    0f, 
-                ////    100000000f, 
-                ////    1f, 
-                ////    Global.Settings.RangeMinimum, 
-                ////    value => 
-                ////    { 
-                ////        Global.Settings.RangeMinimum = value; 
-                ////        Global.Settings.Save(); 
+                ////    "Range maximum (0-100000000)",
+                ////    0f,
+                ////    100000000f,
+                ////    1f,
+                ////    Global.Settings.RangeMinimum,
+                ////    value =>
+                ////    {
+                ////        Global.Settings.RangeMinimum = value;
+                ////        Global.Settings.Save();
                 ////    });
 
                 // Add hearse group.
                 UIHelperBase hearseGroup = helper.AddGroup("Hearses");
 
                 hearseGroup.AddCheckbox(
-                    "Dispatch hearses", 
-                    Global.Settings.DispatchHearses, 
-                    value => 
-                    { 
-                        Global.Settings.DispatchHearses = value; 
+                    "Dispatch hearses",
+                    Global.Settings.DispatchHearses,
+                    value =>
+                    {
+                        Global.Settings.DispatchHearses = value;
                         Global.Settings.Save();
                         Global.InitHandlers();
                     });
 
                 hearseGroup.AddCheckbox(
-                    "Pass through hearses", 
-                    Global.Settings.RemoveHearsesFromGrid, 
-                    value => 
-                    { 
-                        Global.Settings.RemoveHearsesFromGrid = value; 
+                    "Pass through hearses",
+                    Global.Settings.RemoveHearsesFromGrid,
+                    value =>
+                    {
+                        Global.Settings.RemoveHearsesFromGrid = value;
                         Global.Settings.Save();
                         Global.InitHandlers();
                     });
 
                 hearseGroup.AddDropdown(
-                    "Send out spare hearses",
+                    "Send out spare hearses when",
                     this.vehicleCreationOptions.OrderBy(vco => vco.Key).Select(vco => vco.Value).ToArray(),
                     (int)Global.Settings.CreateSpareHearses,
                     value =>
@@ -271,27 +271,27 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 UIHelperBase garbageGroup = helper.AddGroup("Garbage Trucks");
 
                 garbageGroup.AddCheckbox(
-                    "Dispatch garbage trucks", 
-                    Global.Settings.DispatchGarbageTrucks, 
-                    value => 
-                    { 
-                        Global.Settings.DispatchGarbageTrucks = value; 
+                    "Dispatch garbage trucks",
+                    Global.Settings.DispatchGarbageTrucks,
+                    value =>
+                    {
+                        Global.Settings.DispatchGarbageTrucks = value;
                         Global.Settings.Save();
                         Global.InitHandlers();
                     });
 
                 ////garbageGroup.AddCheckbox(
-                ////    "Pass through garbage trucks", 
-                ////    Global.Settings.RemoveGarbageTrucksFromGrid, 
-                ////    value => 
-                ////    { 
-                ////        Global.Settings.RemoveGarbageTrucksFromGrid = value; 
+                ////    "Pass through garbage trucks",
+                ////    Global.Settings.RemoveGarbageTrucksFromGrid,
+                ////    value =>
+                ////    {
+                ////        Global.Settings.RemoveGarbageTrucksFromGrid = value;
                 ////        Global.Settings.Save();
                 ////        Global.InitHandlers();
                 ////    });
 
                 garbageGroup.AddDropdown(
-                    "Send out spare garbage trucks",
+                    "Send out spare garbage trucks when",
                     this.vehicleCreationOptions.OrderBy(vco => vco.Key).Select(vco => vco.Value).ToArray(),
                     (int)Global.Settings.CreateSpareGarbageTrucks,
                     value =>
@@ -341,43 +341,30 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     });
 
                 UILabel minimumGarbageForDispatchLabel = null;
-
                 object minimumGarbageForDispatchSlider =
                 garbageGroup.AddSlider(
-                    "Garbage amount limit (1-5000)", 
-                    1.0f, 
-                    5000.0f, 
-                    1.0f, 
-                    Global.Settings.MinimumGarbageForDispatch, 
-                    value => 
-                    { 
-                        Global.Settings.MinimumGarbageForDispatch = (ushort)value; 
-                        Global.Settings.Save(); 
+                    "Garbage amount limit",
+                    1.0f,
+                    5000.0f,
+                    1.0f,
+                    Global.Settings.MinimumGarbageForDispatch,
+                    value =>
+                    {
+                        Global.Settings.MinimumGarbageForDispatch = (ushort)value;
+                        Global.Settings.Save();
                         if (minimumGarbageForDispatchLabel != null)
                         {
-                            minimumGarbageForDispatchLabel.text = Global.Settings.MinimumGarbageForDispatch.ToString();
+                            try
+                            {
+                                minimumGarbageForDispatchLabel.text = Global.Settings.MinimumGarbageForDispatch.ToString();
+                            }
+                            catch (Exception ex)
+                            {
+                                Log.Error(this, "OnSettingsUI", ex, "SliderPanelLabel", "SetText");
+                            }
                         }
                     });
-
-                try
-                {
-                    if (minimumGarbageForDispatchSlider is UISlider)
-                    {
-                        object panel = garbageGroup.AddSpace((int)((UISlider)minimumGarbageForDispatchSlider).height);
-                        if (panel is UIPanel)
-                        {
-                            ((UIPanel)panel).AlignTo((UISlider)minimumGarbageForDispatchSlider, UIAlignAnchor.TopRight);
-                            ((UIPanel)panel).width = ((UISlider)minimumGarbageForDispatchSlider).width;
-                            minimumGarbageForDispatchLabel = ((UIPanel)panel).AddUIComponent<UILabel>();
-                            minimumGarbageForDispatchLabel.autoHeight = true;
-                            minimumGarbageForDispatchLabel.text = Global.Settings.MinimumGarbageForDispatch.ToString();
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Log.Error(this, "OnSettingsUI[SliderPanelLabelTest]", ex);
-                }
+                minimumGarbageForDispatchLabel = UI.CreateOptionsLabel(garbageGroup, minimumGarbageForDispatchSlider, "minimumGarbageForDispatchSlider", Global.Settings.MinimumGarbageForDispatch.ToString());
 
                 Log.FlushBuffer();
             }

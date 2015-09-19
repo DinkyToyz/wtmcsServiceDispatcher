@@ -129,8 +129,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         private static Dictionary<SpareVehiclesCreation, string> spareVehiclesCreationNames = new Dictionary<SpareVehiclesCreation, string>()
         {
             { SpareVehiclesCreation.Never, "Never" },
-            { SpareVehiclesCreation.WhenNoFree, "When none are free" },
-            { SpareVehiclesCreation.WhenBuildingIsCloser, "When building is closer" }
+            { SpareVehiclesCreation.WhenNoFree, "None are free" },
+            { SpareVehiclesCreation.WhenBuildingIsCloser, "Building is closer" }
         };
 
         /// <summary>

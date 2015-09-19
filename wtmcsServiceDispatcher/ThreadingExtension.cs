@@ -9,6 +9,16 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
     public class ThreadingExtension : ThreadingExtensionBase
     {
         /// <summary>
+        /// The maximum exception count before mod is considered broken.
+        /// </summary>
+        private static readonly int MaxExceptionCount = 1;
+
+        /// <summary>
+        /// The on update exception count.
+        /// </summary>
+        private int exceptionCount = 0;
+
+        /// <summary>
         /// The mod is broken.
         /// </summary>
         private bool isBroken = false;
@@ -135,11 +145,20 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 }
 
                 this.started = true;
+                if (this.exceptionCount > 0)
+                {
+                    this.exceptionCount--;
+                }
             }
             catch (Exception ex)
             {
+                this.exceptionCount++;
+                if (this.exceptionCount > MaxExceptionCount)
+                {
+                    this.isBroken = true;
+                }
+
                 Log.Error(this, "OnUpdate", ex);
-                this.isBroken = true;
             }
             finally
             {

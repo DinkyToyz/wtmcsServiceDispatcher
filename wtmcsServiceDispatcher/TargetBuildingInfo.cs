@@ -34,7 +34,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public Vector3 Position;
 
         /// <summary>
-        /// The problem timer.
+        /// The problem size.
+        /// </summary>
+        public int ProblemSize;
+
+        /// <summary>
+        /// The problem value.
         /// </summary>
         public int ProblemValue;
 
@@ -69,15 +74,13 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <param name="districtManager">The district manager.</param>
         /// <param name="buildingId">The building identifier.</param>
         /// <param name="building">The building.</param>
-        /// <param name="problemTimer">The problem timer.</param>
-        /// <param name="problemBuffer">The problem buffer.</param>
-        /// <param name="needsService">If set to <c>true</c> building needs service.</param>
         /// <param name="problemToCheck">The problem to check.</param>
-        public TargetBuildingInfo(DistrictManager districtManager, ushort buildingId, ref Building building, byte? problemTimer, ushort? problemBuffer, bool needsService, Notification.Problem problemToCheck)
+        /// <param name="needsService">If set to <c>true</c> building needs service.</param>
+        public TargetBuildingInfo(DistrictManager districtManager, ushort buildingId, ref Building building, Notification.Problem problemToCheck, bool needsService)
         {
             this.BuildingId = buildingId;
 
-            this.Update(districtManager, ref building, problemTimer, problemBuffer, needsService, problemToCheck);
+            this.Update(districtManager, ref building, problemToCheck, needsService);
         }
 
         /// <summary>
@@ -168,6 +171,20 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Gets the name of the district.
+        /// </summary>
+        /// <value>
+        /// The name of the district.
+        /// </value>
+        public string DistrictName
+        {
+            get
+            {
+                return BuildingHelper.GetDistrictName(this.District);
+            }
+        }
+
+        /// <summary>
         /// Gets or sets a value indicating whether this <see cref="TargetBuildingInfo"/> is handled.
         /// </summary>
         /// <value>
@@ -195,20 +212,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
-        /// Gets the name of the district.
-        /// </summary>
-        /// <value>
-        /// The name of the district.
-        /// </value>
-        public string DistrictName
-        {
-            get
-            {
-                return BuildingHelper.GetDistrictName(this.District);
-            }
-        }
-
-        /// <summary>
         /// Gets a value indicating whether the building is updated.
         /// </summary>
         public bool Updated
@@ -224,25 +227,28 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// </summary>
         /// <param name="districtManager">The district manager.</param>
         /// <param name="building">The building.</param>
-        /// <param name="problemTimer">The problem timer.</param>
-        /// <param name="problemBuffer">The problem buffer.</param>
-        /// <param name="needsService">If set to <c>true</c> building needs service.</param>
         /// <param name="problemToCheck">The problem to check.</param>
-        public void Update(DistrictManager districtManager, ref Building building, byte? problemTimer, ushort? problemBuffer, bool needsService, Notification.Problem problemToCheck)
+        /// <param name="needsService">If set to <c>true</c> building needs service.</param>
+        public void Update(DistrictManager districtManager, ref Building building, Notification.Problem problemToCheck, bool needsService)
         {
             this.lastUpdate = Global.CurrentFrame;
 
-            if (problemTimer != null && problemTimer.HasValue)
+            switch (problemToCheck)
             {
-                this.ProblemValue = (ushort)problemTimer.Value << 8;
-            }
-            else if (problemBuffer != null && problemBuffer.HasValue)
-            {
-                this.ProblemValue = problemBuffer.Value;
-            }
-            else
-            {
-                this.ProblemValue = 0;
+                case Notification.Problem.Death:
+                    this.ProblemValue = (ushort)building.m_deathProblemTimer << 8;
+                    this.ProblemSize = 1;
+                    break;
+
+                case Notification.Problem.Garbage:
+                    this.ProblemValue = building.m_garbageBuffer;
+                    this.ProblemSize = building.m_garbageBuffer;
+                    break;
+
+                default:
+                    this.ProblemValue = 0;
+                    this.ProblemSize = 0;
+                    break;
             }
 
             this.HasProblem = (building.m_problems & problemToCheck) == problemToCheck || this.ProblemValue >= Dispatcher.ProblemLimit;

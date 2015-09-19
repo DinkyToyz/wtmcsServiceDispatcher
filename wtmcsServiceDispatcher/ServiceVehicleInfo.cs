@@ -8,6 +8,16 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
     internal class ServiceVehicleInfo
     {
         /// <summary>
+        /// The free capacity.
+        /// </summary>
+        public int CapacityFree;
+
+        /// <summary>
+        /// The used capacity in percent.
+        /// </summary>
+        public float CapacityUsed;
+
+        /// <summary>
         /// The vehicle is free.
         /// </summary>
         public bool FreeToCollect;
@@ -70,6 +80,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             this.Position = vehicle.GetLastFramePosition();
             this.Target = vehicle.m_targetBuilding;
             this.FreeToCollect = freeToCollect;
+
+            string localeKey;
+            int bufCur, bufMax;
+            vehicle.Info.m_vehicleAI.GetBufferStatus(this.VehicleId, ref vehicle, out localeKey, out bufCur, out bufMax);
+            this.CapacityFree = bufMax - bufCur;
+            this.CapacityUsed = (float)bufCur / (float)bufMax;
         }
     }
 }

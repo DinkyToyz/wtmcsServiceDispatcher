@@ -41,6 +41,26 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public readonly DispatcherTypes DispatcherType;
 
         /// <summary>
+        /// The decent capacity proportion.
+        /// </summary>
+        private static readonly float CapacityProportionDecent = 0.5f;
+
+        /// <summary>
+        /// The ok capacity proportion.
+        /// </summary>
+        private static readonly float CapacityProportionOk = 1f / 3f;
+
+        /// <summary>
+        /// The decent used capacity percentage.
+        /// </summary>
+        private static readonly float CapacityUsedDecent = 0.75f;
+
+        /// <summary>
+        /// The ok used capacity percentage.
+        /// </summary>
+        private static readonly float CapacityUsedOk = 0.9f;
+
+        /// <summary>
         /// The assigned targets.
         /// </summary>
         private Dictionary<ushort, uint> assignedTargets = new Dictionary<ushort, uint>();
@@ -277,14 +297,46 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 serviceBuilding.SetTargetInfo(districtManager, targetBuilding, ignoreRange);
             }
 
+            // Found vehicle that has enough free capacity.
+            ushort foundVehicleId = 0;
+            float foundVehicleDistance = float.PositiveInfinity;
+            ServiceBuildingInfo foundVehicleBuilding = null;
+
+            // Found vehicle with decent free capacity.
+            ushort foundVehicleDecentId = 0;
+            float foundVehicleDecentDistance = float.PositiveInfinity;
+
+            // Found vehicle with ok free capacity.
+            ushort foundVehicleOkId = 0;
+            float foundVehicleOkDistance = float.PositiveInfinity;
+            ServiceBuildingInfo foundVehicleOkBuilding = null;
+            bool foundVehicleOkCheck;
+
+            // Found vehicle with any free capacity.
+            ushort foundVehicleLastResortId = 0;
+            float foundVehicleLastResortDistance = float.PositiveInfinity;
+            ServiceBuildingInfo foundVehicleLastResortBuilding = null;
+            bool foundVehicleLastResortCheck;
+
             // Loop through service buildings in priority order and assign a vehicle to the target.
             foreach (ServiceBuildingInfo serviceBuilding in this.serviceBuildings.Values.Where(sb => sb.CanReceive && sb.VehiclesFree > 0 && sb.InRange).OrderBy(sb => sb, Global.ServiceBuildingInfoPriorityComparer))
             {
-                ushort vehicleFoundId = 0;
-                float vehicleFoundDistance = float.PositiveInfinity;
+                // Found vehicle that has enough free capacity.
+                foundVehicleId = 0;
+                foundVehicleDistance = float.PositiveInfinity;
+
+                // Found vehicle with decent free capacity.
+                foundVehicleDecentId = 0;
+                foundVehicleDecentDistance = float.PositiveInfinity;
+
+                // Whether to check for vehicles with not so decent free capacity.
+                foundVehicleOkCheck = foundVehicleOkId == 0;
+                foundVehicleLastResortCheck = foundVehicleLastResortId == 0;
+
+                // If prefer to send new vehcile when building is closer.
                 if (this.createSpareVehicles == Settings.SpareVehiclesCreation.WhenBuildingIsCloser && serviceBuilding.VehiclesSpare > 0)
                 {
-                    vehicleFoundDistance = serviceBuilding.Distance;
+                    foundVehicleDistance = serviceBuilding.Distance;
                 }
 
                 // Loop through vehicles and save the closest free vehicle.
@@ -292,27 +344,60 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 {
                     float distance = (targetBuilding.Position - vehicleInfo.Position).sqrMagnitude;
 
-                    if (distance < vehicleFoundDistance)
+                    // Check for vehicle with enough free capacity.
+                    if (distance < foundVehicleDistance && vehicleInfo.CapacityFree >= targetBuilding.ProblemSize)
                     {
-                        vehicleFoundId = vehicleInfo.VehicleId;
-                        vehicleFoundDistance = distance;
+                        foundVehicleId = vehicleInfo.VehicleId;
+                        foundVehicleDistance = distance;
+                    }
+
+                    // Check for vehicle with decent free capacity.
+                    if (distance < foundVehicleDecentDistance && (vehicleInfo.CapacityUsed < CapacityUsedDecent || (float)vehicleInfo.CapacityFree >= (float)targetBuilding.ProblemSize * CapacityProportionDecent))
+                    {
+                        foundVehicleDecentId = vehicleInfo.VehicleId;
+                        foundVehicleDecentDistance = distance;
+                    }
+
+                    // Check for vehicle with ok free capacity.
+                    if (foundVehicleOkCheck && distance < foundVehicleOkDistance && (vehicleInfo.CapacityUsed < CapacityUsedOk || (float)vehicleInfo.CapacityFree >= (float)targetBuilding.ProblemSize * CapacityProportionOk))
+                    {
+                        foundVehicleOkId = vehicleInfo.VehicleId;
+                        foundVehicleOkDistance = distance;
+                        foundVehicleOkBuilding = serviceBuilding;
+                    }
+
+                    // Check for vehicle with any free capacity.
+                    if (foundVehicleLastResortCheck && distance < foundVehicleLastResortDistance && vehicleInfo.CapacityFree > 0)
+                    {
+                        foundVehicleLastResortId = vehicleInfo.VehicleId;
+                        foundVehicleLastResortDistance = distance;
+                        foundVehicleLastResortBuilding = serviceBuilding;
                     }
                 }
 
-                // No free vehicle found, but buidling has spare vehicles so we send one of those.
-                if (vehicleFoundId == 0 && this.createSpareVehicles != Settings.SpareVehiclesCreation.Never && serviceBuilding.VehiclesSpare > 0)
+                // If no vehicle with enough free capacity (including the spare vehicles in the building), use the closest with decent free capacity instead.
+                if (foundVehicleDistance == float.PositiveInfinity && foundVehicleDecentDistance < float.PositiveInfinity)
+                {
+                    foundVehicleId = foundVehicleDecentId;
+                    foundVehicleDistance = foundVehicleDecentDistance;
+
+                    Log.Debug(this, "AssignVehicle", "UsingDecent", targetBuilding.BuildingId, serviceBuilding.BuildingId, serviceBuilding.VehiclesSpare, foundVehicleId, foundVehicleDistance);
+                }
+
+                // No free vehicle found, but building has spare vehicles so we send one of those.
+                if (foundVehicleId == 0 && this.createSpareVehicles != Settings.SpareVehiclesCreation.Never && serviceBuilding.VehiclesSpare > 0)
                 {
                     Log.Debug(this, "AssignVehicle", "CreateSpare", targetBuilding.BuildingId, serviceBuilding.BuildingId, serviceBuilding.VehiclesSpare);
 
-                    vehicleFoundId = serviceBuilding.CreateVehicle(this.TransferType);
-                    if (vehicleFoundId == 0)
+                    foundVehicleId = serviceBuilding.CreateVehicle(this.TransferType);
+                    if (foundVehicleId == 0)
                     {
-                        Log.Debug(this, "AssignVehicle", "Not Created", targetBuilding.BuildingId, serviceBuilding.BuildingId);
+                        Log.Debug(this, "AssignVehicle", "SpareNotCreated", targetBuilding.BuildingId, serviceBuilding.BuildingId);
                     }
                     else
                     {
                         this.freeVehicles++;
-                        vehicleFoundDistance = serviceBuilding.Distance;
+                        foundVehicleDistance = serviceBuilding.Distance;
                         if (Log.LogALot)
                         {
                             Log.Debug(
@@ -322,131 +407,161 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                                 "C",
                                 targetBuilding.BuildingId,
                                 serviceBuilding.BuildingId,
-                                vehicleFoundId,
+                                foundVehicleId,
                                 serviceBuilding.VehiclesSpare,
                                 serviceBuilding.VehiclesFree,
                                 serviceBuilding.VehiclesTotal,
                                 targetBuilding.BuildingName,
                                 serviceBuilding.BuildingName,
-                                VehicleHelper.GetVehicleName(vehicleFoundId));
+                                VehicleHelper.GetVehicleName(foundVehicleId));
                         }
                     }
                 }
 
-                if (vehicleFoundId != 0)
+                if (foundVehicleId != 0)
                 {
-                    // A free vehicle was found, assign it to the target.
-                    targetBuilding.Handled = true;
-                    if (Log.LogToFile)
-                    {
-                        if (Log.LogALot)
-                        {
-                            Log.Debug(
-                                this,
-                                "AssignVehicle",
-                                "Assign",
-                                "T",
-                                targetBuilding.BuildingId,
-                                serviceBuilding.BuildingId,
-                                vehicleFoundId,
-                                targetBuilding.District,
-                                targetBuilding.HasProblem,
-                                targetBuilding.ProblemValue,
-                                targetBuilding.BuildingName,
-                                targetBuilding.DistrictName,
-                                targetBuilding.HasProblem ? "HasProblem" : (string)null,
-                                targetBuilding.ProblemValue >= ProblemLimit ? "ProblemLimit" : (string)null,
-                                targetBuilding.ProblemValue >= ProblemLimitMajor ? "ProblemLimitMajor" : (string)null,
-                                targetBuilding.ProblemValue >= ProblemLimitForgotten ? "ProblemLimitForgotten" : (string)null);
-                            Log.Debug(
-                                this,
-                                "AssignVehicle",
-                                "Assign",
-                                "S",
-                                targetBuilding.BuildingId,
-                                serviceBuilding.BuildingId,
-                                vehicleFoundId,
-                                serviceBuilding.District,
-                                serviceBuilding.InDistrict,
-                                serviceBuilding.InRange,
-                                serviceBuilding.Range,
-                                serviceBuilding.Distance,
-                                serviceBuilding.VehiclesTotal,
-                                serviceBuilding.VehiclesMade,
-                                serviceBuilding.VehiclesFree,
-                                serviceBuilding.VehiclesSpare,
-                                serviceBuilding.BuildingName,
-                                serviceBuilding.DistrictName,
-                                serviceBuilding.InDistrict ? "InDistrict" : (string)null,
-                                serviceBuilding.InRange ? "InRange" : "OutOfRange");
-                            Log.Debug(
-                                this,
-                                "AssignVehicle",
-                                "Assign",
-                                "V",
-                                targetBuilding.BuildingId,
-                                serviceBuilding.BuildingId,
-                                vehicleFoundId,
-                                vehicleFoundDistance,
-                                VehicleHelper.GetVehicleName(vehicleFoundId));
-                        }
-                        else if (Log.LogNames)
-                        {
-                            Log.Debug(
-                                this,
-                                "AssignVehicle",
-                                "Assign",
-                                targetBuilding.BuildingId,
-                                serviceBuilding.BuildingId,
-                                vehicleFoundId,
-                                targetBuilding.HasProblem,
-                                targetBuilding.ProblemValue,
-                                serviceBuilding.InDistrict,
-                                serviceBuilding.InRange,
-                                serviceBuilding.Range,
-                                serviceBuilding.Distance,
-                                vehicleFoundDistance,
-                                targetBuilding.BuildingName,
-                                targetBuilding.DistrictName,
-                                serviceBuilding.BuildingName,
-                                serviceBuilding.DistrictName,
-                                VehicleHelper.GetVehicleName(vehicleFoundId));
-                        }
-                        else
-                        {
-                            Log.Debug(
-                                this,
-                                "AssignVehicle",
-                                "Assign",
-                                targetBuilding.BuildingId,
-                                serviceBuilding.BuildingId,
-                                vehicleFoundId,
-                                targetBuilding.HasProblem,
-                                targetBuilding.ProblemValue,
-                                serviceBuilding.InDistrict,
-                                serviceBuilding.InRange,
-                                serviceBuilding.Range,
-                                serviceBuilding.Distance,
-                                vehicleFoundDistance);
-                        }
-                    }
-
-                    Vehicle[] vehicles = Singleton<VehicleManager>.instance.m_vehicles.m_buffer;
-
-                    vehicles[vehicleFoundId].Info.m_vehicleAI.SetTarget(vehicleFoundId, ref vehicles[vehicleFoundId], targetBuilding.BuildingId);
-
-                    this.assignedTargets[targetBuilding.BuildingId] = Global.CurrentFrame;
-                    serviceBuilding.Vehicles[vehicleFoundId].Target = targetBuilding.BuildingId;
-                    serviceBuilding.Vehicles[vehicleFoundId].FreeToCollect = false;
-
-                    this.freeVehicles--;
-                    serviceBuilding.VehiclesFree--;
-
-                    return true;
+                    foundVehicleBuilding = serviceBuilding;
+                    break;
                 }
             }
 
-            return false;
+            // If no vehicle with decent free capacity (including the spare vehicles in the buildings), use the closest with ok free capacity instead.
+            if (foundVehicleDistance == float.PositiveInfinity && foundVehicleOkDistance < float.PositiveInfinity)
+            {
+                foundVehicleId = foundVehicleDecentId;
+                foundVehicleDistance = foundVehicleDecentDistance;
+                foundVehicleBuilding = foundVehicleOkBuilding;
+
+                Log.Debug(this, "AssignVehicle", "UsingOk", targetBuilding.BuildingId, foundVehicleBuilding.BuildingId, foundVehicleBuilding.VehiclesSpare, foundVehicleId, foundVehicleDistance);
+            }
+
+            // If no vehicle with ok free capacity (including the spare vehicles in the buildings), use the closest with any free capacity instead.
+            if (foundVehicleDistance == float.PositiveInfinity && foundVehicleLastResortDistance < float.PositiveInfinity)
+            {
+                foundVehicleId = foundVehicleLastResortId;
+                foundVehicleDistance = foundVehicleLastResortDistance;
+                foundVehicleBuilding = foundVehicleLastResortBuilding;
+
+                Log.Debug(this, "AssignVehicle", "UsingLastResort", targetBuilding.BuildingId, foundVehicleBuilding.BuildingId, foundVehicleBuilding.VehiclesSpare, foundVehicleId, foundVehicleDistance);
+            }
+
+            // No free vehicle was found, return.
+            if (foundVehicleId == 0)
+            {
+                return false;
+            }
+
+            // A free vehicle was found, assign it to the target.
+            targetBuilding.Handled = true;
+            if (Log.LogToFile)
+            {
+                if (Log.LogALot)
+                {
+                    Log.Debug(
+                        this,
+                        "AssignVehicle",
+                        "Assign",
+                        "T",
+                        targetBuilding.BuildingId,
+                        foundVehicleBuilding.BuildingId,
+                        foundVehicleId,
+                        targetBuilding.District,
+                        targetBuilding.HasProblem,
+                        targetBuilding.ProblemValue,
+                        targetBuilding.ProblemSize,
+                        targetBuilding.BuildingName,
+                        targetBuilding.DistrictName,
+                        targetBuilding.HasProblem ? "HasProblem" : (string)null,
+                        targetBuilding.ProblemValue >= ProblemLimit ? "ProblemLimit" : (string)null,
+                        targetBuilding.ProblemValue >= ProblemLimitMajor ? "ProblemLimitMajor" : (string)null,
+                        targetBuilding.ProblemValue >= ProblemLimitForgotten ? "ProblemLimitForgotten" : (string)null);
+                    Log.Debug(
+                        this,
+                        "AssignVehicle",
+                        "Assign",
+                        "S",
+                        targetBuilding.BuildingId,
+                        foundVehicleBuilding.BuildingId,
+                        foundVehicleId,
+                        foundVehicleBuilding.District,
+                        foundVehicleBuilding.InDistrict,
+                        foundVehicleBuilding.InRange,
+                        foundVehicleBuilding.Range,
+                        foundVehicleBuilding.Distance,
+                        foundVehicleBuilding.VehiclesTotal,
+                        foundVehicleBuilding.VehiclesMade,
+                        foundVehicleBuilding.VehiclesFree,
+                        foundVehicleBuilding.VehiclesSpare,
+                        foundVehicleBuilding.BuildingName,
+                        foundVehicleBuilding.DistrictName,
+                        foundVehicleBuilding.InDistrict ? "InDistrict" : (string)null,
+                        foundVehicleBuilding.InRange ? "InRange" : "OutOfRange");
+                    Log.Debug(
+                        this,
+                        "AssignVehicle",
+                        "Assign",
+                        "V",
+                        targetBuilding.BuildingId,
+                        foundVehicleBuilding.BuildingId,
+                        foundVehicleId,
+                        foundVehicleDistance,
+                        foundVehicleBuilding.Vehicles[foundVehicleId].CapacityUsed,
+                        foundVehicleBuilding.Vehicles[foundVehicleId].CapacityFree,
+                        VehicleHelper.GetVehicleName(foundVehicleId));
+                }
+                else if (Log.LogNames)
+                {
+                    Log.Debug(
+                        this,
+                        "AssignVehicle",
+                        "Assign",
+                        targetBuilding.BuildingId,
+                        foundVehicleBuilding.BuildingId,
+                        foundVehicleId,
+                        targetBuilding.HasProblem,
+                        targetBuilding.ProblemValue,
+                        foundVehicleBuilding.InDistrict,
+                        foundVehicleBuilding.InRange,
+                        foundVehicleBuilding.Range,
+                        foundVehicleBuilding.Distance,
+                        foundVehicleBuilding.Distance,
+                        targetBuilding.BuildingName,
+                        targetBuilding.DistrictName,
+                        foundVehicleBuilding.BuildingName,
+                        foundVehicleBuilding.DistrictName,
+                        VehicleHelper.GetVehicleName(foundVehicleId));
+                }
+                else
+                {
+                    Log.Debug(
+                        this,
+                        "AssignVehicle",
+                        "Assign",
+                        targetBuilding.BuildingId,
+                        foundVehicleBuilding.BuildingId,
+                        foundVehicleId,
+                        targetBuilding.HasProblem,
+                        targetBuilding.ProblemValue,
+                        foundVehicleBuilding.InDistrict,
+                        foundVehicleBuilding.InRange,
+                        foundVehicleBuilding.Range,
+                        foundVehicleBuilding.Distance,
+                        foundVehicleDistance);
+                }
+            }
+
+            Vehicle[] vehicles = Singleton<VehicleManager>.instance.m_vehicles.m_buffer;
+
+            vehicles[foundVehicleId].Info.m_vehicleAI.SetTarget(foundVehicleId, ref vehicles[foundVehicleId], targetBuilding.BuildingId);
+
+            this.assignedTargets[targetBuilding.BuildingId] = Global.CurrentFrame;
+            foundVehicleBuilding.Vehicles[foundVehicleId].Target = targetBuilding.BuildingId;
+            foundVehicleBuilding.Vehicles[foundVehicleId].FreeToCollect = false;
+
+            this.freeVehicles--;
+            foundVehicleBuilding.VehiclesFree--;
+
+            return true;
         }
 
         /// <summary>

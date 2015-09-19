@@ -74,6 +74,7 @@
     <Compile Include="TargetBuildingInfo.cs" />
     <Compile Include="ThreadingExtension.cs" />
     <Compile Include="FrameBoundaries.cs" />
+    <Compile Include="UI.cs" />
     <Compile Include="VehicleHelper.cs" />
     <Compile Include="VehicleKeeper.cs" />
   </ItemGroup>
