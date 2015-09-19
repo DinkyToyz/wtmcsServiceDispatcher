@@ -12,10 +12,6 @@ Dispatches Cities: Skylines services.
 
 This mod is experimental. It might work, but it also might not. It should not affect saves, but it may well wreak havoc with services while enabled.
 
-## Known Bugs
-
-- When changing options in-game the new settings are saved but not applied correctly to the current game.
-
 ## Services
 
 Currently, the mod can dispatch garbage trucks and hearses.
@@ -129,8 +125,7 @@ Create one or more the following files in the same directory in order to enable 
 
 ## To-do
 
-- Fix: In-game options changes.
-- New: Make service building send out needed vehicles instead of keeping some in building.
+- Limiting of garbage trucks picking up garbage from buildings they pass on the way.
 - Road and rail clean-up crews.
 - House wrecking crews.
 
