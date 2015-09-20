@@ -13,6 +13,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public static BuildingKeeper Buildings = null;
 
         /// <summary>
+        /// A global building update is needed.
+        /// </summary>
+        public static bool BuildingUpdateNeeded = false;
+
+        /// <summary>
         /// The current frame.
         /// </summary>
         public static uint CurrentFrame = 0;
@@ -73,39 +78,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public static VehicleKeeper Vehicles = null;
 
         /// <summary>
-        /// Initializes the settings.
-        /// </summary>
-        public static void InitSettings()
-        {
-            if (Settings == null)
-            {
-                try
-                {
-                    try
-                    {
-                        Settings = Settings.Load();
-                    }
-                    catch (Exception ex)
-                    {
-                        Log.Error(typeof(Global), "InitSettings", ex);
-                        Settings = new Settings();
-                    }
-
-                    Settings.LogSettings();
-
-                    if (Settings.LoadedVersion < Settings.Version)
-                    {
-                        Settings.Save();
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Log.Error(typeof(Global), "InitSettings", ex);
-                }
-            }
-        }
-
-        /// <summary>
         /// Initializes the dispatchers.
         /// </summary>
         public static void InitHandlers()
@@ -145,6 +117,39 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             if ((Settings.DispatchHearses || Settings.DispatchGarbageTrucks || Settings.RemoveHearsesFromGrid /* || Settings.RemoveGarbageTrucksFromGrid */) && Vehicles == null)
             {
                 Vehicles = new VehicleKeeper();
+            }
+        }
+
+        /// <summary>
+        /// Initializes the settings.
+        /// </summary>
+        public static void InitSettings()
+        {
+            if (Settings == null)
+            {
+                try
+                {
+                    try
+                    {
+                        Settings = Settings.Load();
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error(typeof(Global), "InitSettings", ex);
+                        Settings = new Settings();
+                    }
+
+                    Settings.LogSettings();
+
+                    if (Settings.LoadedVersion < Settings.Version)
+                    {
+                        Settings.Save();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(typeof(Global), "InitSettings", ex);
+                }
             }
         }
     }

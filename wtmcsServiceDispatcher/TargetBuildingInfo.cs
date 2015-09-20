@@ -6,43 +6,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
     /// <summary>
     /// Info about a target building.
     /// </summary>
-    internal class TargetBuildingInfo
+    internal class TargetBuildingInfo : IBuildingInfo
     {
-        /// <summary>
-        /// The building identifier.
-        /// </summary>
-        public ushort BuildingId;
-
-        /// <summary>
-        /// The district the building is in.
-        /// </summary>
-        public byte District;
-
-        /// <summary>
-        /// The building has a problem.
-        /// </summary>
-        public bool HasProblem;
-
-        /// <summary>
-        /// The building needs service.
-        /// </summary>
-        public bool NeedsService;
-
-        /// <summary>
-        /// The position.
-        /// </summary>
-        public Vector3 Position;
-
-        /// <summary>
-        /// The problem size.
-        /// </summary>
-        public int ProblemSize;
-
-        /// <summary>
-        /// The problem value.
-        /// </summary>
-        public int ProblemValue;
-
         /// <summary>
         /// Whether this building should be checked or not.
         /// </summary>
@@ -96,6 +61,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 return BuildingHelper.GetBuilding(this.BuildingId);
             }
         }
+
+        /// <summary>
+        /// Gets the building identifier.
+        /// </summary>
+        public ushort BuildingId { get; private set; }
 
         /// <summary>
         /// Gets the CS building information.
@@ -171,6 +141,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Gets the district the building is in.
+        /// </summary>
+        public byte District { get; private set; }
+
+        /// <summary>
         /// Gets the name of the district.
         /// </summary>
         /// <value>
@@ -210,6 +185,43 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 }
             }
         }
+
+        /// <summary>
+        /// Gets a value indicating whether the building has a problem.
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if this instance has problem; otherwise, <c>false</c>.
+        /// </value>
+        public bool HasProblem { get; private set; }
+
+        /// <summary>
+        /// Gets a value indicating whether the building needs service.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if [needs service]; otherwise, <c>false</c>.
+        /// </value>
+        public bool NeedsService { get; private set; }
+
+        /// <summary>
+        /// Gets the position.
+        /// </summary>
+        public Vector3 Position { get; private set; }
+
+        /// <summary>
+        /// Gets the size of the problem.
+        /// </summary>
+        /// <value>
+        /// The size of the problem.
+        /// </value>
+        public int ProblemSize { get; private set; }
+
+        /// <summary>
+        /// Gets the problem value.
+        /// </summary>
+        /// <value>
+        /// The problem value.
+        /// </value>
+        public int ProblemValue { get; private set; }
 
         /// <summary>
         /// Gets a value indicating whether the building is updated.
@@ -254,7 +266,24 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             this.HasProblem = (building.m_problems & problemToCheck) == problemToCheck || this.ProblemValue >= Dispatcher.ProblemLimit;
             this.Position = building.m_position;
 
-            if (this.lastInfoUpdate == 0 || Global.CurrentFrame - this.lastInfoUpdate > Global.ObjectUpdateInterval)
+            this.UpdateValues(districtManager, ref building, false);
+
+            this.NeedsService = needsService || this.HasProblem;
+
+            this.checkThis = needsService &&
+                             ((Global.RecheckInterval == 0 || this.lastCheck == 0 || Global.CurrentFrame - this.lastCheck >= Global.RecheckInterval) &&
+                              (Global.RecheckHandledInterval == 0 || this.lastHandled == 0 || Global.CurrentFrame - this.lastHandled >= Global.RecheckHandledInterval));
+        }
+
+        /// <summary>
+        /// Updates the building values.
+        /// </summary>
+        /// <param name="districtManager">The district manager.</param>
+        /// <param name="building">The building.</param>
+        /// <param name="ignoreInterval">If set to <c>true</c> ignore object update interval.</param>
+        public void UpdateValues(DistrictManager districtManager, ref Building building, bool ignoreInterval = true)
+        {
+            if (this.lastInfoUpdate == 0 || (ignoreInterval && this.lastInfoUpdate != Global.CurrentFrame) || Global.CurrentFrame - this.lastInfoUpdate > Global.ObjectUpdateInterval)
             {
                 if (districtManager != null)
                 {
@@ -267,12 +296,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 this.lastInfoUpdate = Global.CurrentFrame;
             }
-
-            this.NeedsService = needsService || this.HasProblem;
-
-            this.checkThis = needsService &&
-                             ((Global.RecheckInterval == 0 || this.lastCheck == 0 || Global.CurrentFrame - this.lastCheck >= Global.RecheckInterval) &&
-                              (Global.RecheckHandledInterval == 0 || this.lastHandled == 0 || Global.CurrentFrame - this.lastHandled >= Global.RecheckHandledInterval));
         }
 
         /// <summary>

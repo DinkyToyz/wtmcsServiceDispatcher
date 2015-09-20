@@ -136,6 +136,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     Global.Settings.DispatchByDistrict,
                     value =>
                     {
+                        if (Global.Settings.DispatchByDistrict != value)
+                        {
+                            Global.BuildingUpdateNeeded = true;
+                        }
                         Global.Settings.DispatchByDistrict = value;
                         Global.Settings.Save();
                     });
@@ -145,6 +149,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     Global.Settings.DispatchByRange,
                     value =>
                     {
+                        if (Global.Settings.DispatchByRange != value)
+                        {
+                            Global.BuildingUpdateNeeded = true;
+                        }
                         Global.Settings.DispatchByRange = value;
                         Global.Settings.Save();
                     });
@@ -154,45 +162,82 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     Global.Settings.RangeLimit,
                     value =>
                     {
+                        if (Global.Settings.RangeLimit != value)
+                        {
+                            Global.BuildingUpdateNeeded = true;
+                        }
                         Global.Settings.RangeLimit = value;
                         Global.Settings.Save();
                     });
 
-                ////dispatchGroup.AddSlider(
-                ////    "Range modifier (0.1 - 10)",
-                ////    0.1f,
-                ////    10.0f,
-                ////    0.1f,
-                ////    Global.Settings.RangeModifier,
-                ////    value =>
-                ////    {
-                ////        Global.Settings.RangeModifier = value;
-                ////        Global.Settings.Save();
-                ////    });
+                UILabel rangeModifierLabel = null;
+                object rangeModifierSlider =
+                    dispatchGroup.AddSlider(
+                        "Range modifier",
+                        0.1f,
+                        10.0f,
+                        0.1f,
+                        Global.Settings.RangeModifier,
+                        value =>
+                        {
+                            if (Global.Settings.RangeModifier != value)
+                            {
+                                Global.BuildingUpdateNeeded = true;
+                            }
+                            Global.Settings.RangeModifier = value;
+                            Global.Settings.Save();
+                            if (rangeModifierLabel != null)
+                            {
+                                rangeModifierLabel.text = Global.Settings.RangeModifier.ToString();
+                            }
+                        });
+                rangeModifierLabel = UI.CreateOptionsLabel(dispatchGroup, rangeModifierSlider, "rangeModifierSlider", Global.Settings.RangeModifier.ToString());
 
-                ////dispatchGroup.AddSlider(
-                ////    "Range minimum (0-100000000)",
-                ////    0f,
-                ////    100000000f,
-                ////    1f,
-                ////    Global.Settings.RangeMinimum,
-                ////    value =>
-                ////    {
-                ////        Global.Settings.RangeMinimum = value;
-                ////        Global.Settings.Save();
-                ////    });
+                UILabel rangeMinimumLabel = null;
+                object rangeMinimumSlider =
+                    dispatchGroup.AddSlider(
+                        "Range minimum",
+                        0f,
+                        100000000f,
+                        1f,
+                        Global.Settings.RangeMinimum,
+                        value =>
+                        {
+                            if (Global.Settings.RangeMinimum != value)
+                            {
+                                Global.BuildingUpdateNeeded = true;
+                            }
+                            Global.Settings.RangeMinimum = value;
+                            Global.Settings.Save();
+                            if (rangeMinimumLabel != null)
+                            {
+                                rangeMinimumLabel.text = Global.Settings.RangeMinimum.ToString();
+                            }
+                        });
+                rangeMinimumLabel = UI.CreateOptionsLabel(dispatchGroup, rangeMinimumSlider, "rangeMinimumSlider", Global.Settings.RangeMinimum.ToString());
 
-                ////dispatchGroup.AddSlider(
-                ////    "Range maximum (0-100000000)",
-                ////    0f,
-                ////    100000000f,
-                ////    1f,
-                ////    Global.Settings.RangeMinimum,
-                ////    value =>
-                ////    {
-                ////        Global.Settings.RangeMinimum = value;
-                ////        Global.Settings.Save();
-                ////    });
+                UILabel rangeMaximumLabel = null;
+                object rangeMaximumSlider =
+                    dispatchGroup.AddSlider(
+                        "Range maximum",
+                        0f,
+                        100000000f,
+                        1f,
+                        Global.Settings.RangeMaximum,
+                        value =>
+                        {
+                            if (Global.Settings.RangeMaximum != value)
+                            {
+                                Global.BuildingUpdateNeeded = true;
+                            }
+                            Global.Settings.RangeMaximum = value;
+                            Global.Settings.Save();
+                            if (rangeMaximumLabel != null)
+                            {
+                                rangeMaximumLabel.text = Global.Settings.RangeMaximum.ToString();
+                            }
+                        });
+                rangeMaximumLabel = UI.CreateOptionsLabel(dispatchGroup, rangeMaximumSlider, "rangeMaximumSlider", Global.Settings.RangeMaximum.ToString());
 
                 // Add hearse group.
                 UIHelperBase hearseGroup = helper.AddGroup("Hearses");
@@ -342,28 +387,21 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 UILabel minimumGarbageForDispatchLabel = null;
                 object minimumGarbageForDispatchSlider =
-                garbageGroup.AddSlider(
-                    "Garbage amount limit",
-                    1.0f,
-                    5000.0f,
-                    1.0f,
-                    Global.Settings.MinimumGarbageForDispatch,
-                    value =>
-                    {
-                        Global.Settings.MinimumGarbageForDispatch = (ushort)value;
-                        Global.Settings.Save();
-                        if (minimumGarbageForDispatchLabel != null)
+                    garbageGroup.AddSlider(
+                        "Garbage amount limit",
+                        1.0f,
+                        5000.0f,
+                        1.0f,
+                        Global.Settings.MinimumGarbageForDispatch,
+                        value =>
                         {
-                            try
+                            Global.Settings.MinimumGarbageForDispatch = (ushort)value;
+                            Global.Settings.Save();
+                            if (minimumGarbageForDispatchLabel != null)
                             {
                                 minimumGarbageForDispatchLabel.text = Global.Settings.MinimumGarbageForDispatch.ToString();
                             }
-                            catch (Exception ex)
-                            {
-                                Log.Error(this, "OnSettingsUI", ex, "SliderPanelLabel", "SetText");
-                            }
-                        }
-                    });
+                        });
                 minimumGarbageForDispatchLabel = UI.CreateOptionsLabel(garbageGroup, minimumGarbageForDispatchSlider, "minimumGarbageForDispatchSlider", Global.Settings.MinimumGarbageForDispatch.ToString());
 
                 Log.FlushBuffer();

@@ -219,6 +219,35 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 this.buildingFrame = this.GetFrameEnd();
                 this.isInitialized = Global.FramedUpdates;
             }
+
+            if (Global.BuildingUpdateNeeded)
+            {
+                if (Global.Settings.DispatchHearses)
+                {
+                    if (this.HearseBuildings != null)
+                    {
+                        this.UpdateValues(this.HearseBuildings.Values);
+                    }
+
+                    if (this.DeadPeopleBuildings != null)
+                    {
+                        this.UpdateValues(this.DeadPeopleBuildings.Values);
+                    }
+                }
+
+                if (Global.Settings.DispatchGarbageTrucks)
+                {
+                    if (this.GarbageBuildings != null)
+                    {
+                        this.UpdateValues(this.GarbageBuildings.Values);
+                    }
+
+                    if (this.DirtyBuildings != null)
+                    {
+                        this.UpdateValues(this.DirtyBuildings.Values);
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -415,6 +444,27 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         private uint GetFrameNext(uint frame)
         {
             return frame & 255;
+        }
+
+        /// <summary>
+        /// Updates the building values.
+        /// </summary>
+        /// <typeparam name="T">The building class type.</typeparam>
+        /// <param name="infoBuildings">The buildings.</param>
+        private void UpdateValues<T>(IEnumerable<T> infoBuildings) where T : IBuildingInfo
+        {
+            Building[] buildings = Singleton<BuildingManager>.instance.m_buildings.m_buffer;
+
+            DistrictManager districtManager = null;
+            if (Global.Settings.DispatchByDistrict)
+            {
+                districtManager = Singleton<DistrictManager>.instance;
+            }
+
+            foreach (T building in infoBuildings)
+            {
+                building.UpdateValues(districtManager, ref buildings[building.BuildingId]);
+            }
         }
     }
 }
