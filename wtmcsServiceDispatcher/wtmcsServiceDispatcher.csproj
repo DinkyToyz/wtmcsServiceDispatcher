@@ -60,6 +60,7 @@
     <Compile Include="BuildingHelper.cs" />
     <Compile Include="BuildingKeeper.cs" />
     <Compile Include="Dispatcher.cs" />
+    <Compile Include="ExtendedSlider.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="FileSystem.cs" />
     <Compile Include="Global.cs" />
@@ -76,6 +77,7 @@
     <Compile Include="ThreadingExtension.cs" />
     <Compile Include="FrameBoundaries.cs" />
     <Compile Include="UI.cs" />
+    <Compile Include="UIExtensions.cs" />
     <Compile Include="VehicleHelper.cs" />
     <Compile Include="VehicleKeeper.cs" />
   </ItemGroup>

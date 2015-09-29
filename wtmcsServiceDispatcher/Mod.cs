@@ -1,8 +1,7 @@
-﻿using ColossalFramework.UI;
-using ICities;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using ICities;
 
 namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 {
@@ -101,7 +100,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     this.targetBuildingChecks = new Dictionary<byte, string>();
                     foreach (Settings.BuildingCheckOrder checks in Enum.GetValues(typeof(Settings.BuildingCheckOrder)))
                     {
-                        if (Log.LogALot || Library.IsDebugBuild) Log.Debug(this, "OnSettingsUI", "Init", "BuildingCheckOrder", (byte)checks, checks, Settings.GetBuildingCheckOrderName(checks));
+                        if (Log.LogALot || Library.IsDebugBuild)
+                            Log.Debug(this, "OnSettingsUI", "Init", "BuildingCheckOrder", (byte)checks, checks, Settings.GetBuildingCheckOrderName(checks));
 
                         string name = Settings.GetBuildingCheckOrderName(checks);
                         if (String.IsNullOrEmpty(name))
@@ -170,14 +170,15 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         Global.Settings.Save();
                     });
 
-                UILabel rangeModifierLabel = null;
                 object rangeModifierSlider =
-                    dispatchGroup.AddSlider(
+                    dispatchGroup.AddExtendedSlider(
                         "Range modifier",
                         0.1f,
                         10.0f,
                         0.1f,
                         Global.Settings.RangeModifier,
+                        true,
+                        "F1",
                         value =>
                         {
                             if (Global.Settings.RangeModifier != value)
@@ -186,21 +187,16 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                             }
                             Global.Settings.RangeModifier = value;
                             Global.Settings.Save();
-                            if (rangeModifierLabel != null)
-                            {
-                                rangeModifierLabel.text = Global.Settings.RangeModifier.ToString();
-                            }
                         });
-                rangeModifierLabel = UI.CreateOptionsLabel(dispatchGroup, rangeModifierSlider, "rangeModifierSlider", Global.Settings.RangeModifier.ToString());
 
-                UILabel rangeMinimumLabel = null;
                 object rangeMinimumSlider =
-                    dispatchGroup.AddSlider(
+                    dispatchGroup.AddExtendedSlider(
                         "Range minimum",
                         0f,
                         100000000f,
                         1f,
                         Global.Settings.RangeMinimum,
+                        false,
                         value =>
                         {
                             if (Global.Settings.RangeMinimum != value)
@@ -209,21 +205,16 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                             }
                             Global.Settings.RangeMinimum = value;
                             Global.Settings.Save();
-                            if (rangeMinimumLabel != null)
-                            {
-                                rangeMinimumLabel.text = Global.Settings.RangeMinimum.ToString();
-                            }
                         });
-                rangeMinimumLabel = UI.CreateOptionsLabel(dispatchGroup, rangeMinimumSlider, "rangeMinimumSlider", Global.Settings.RangeMinimum.ToString());
 
-                UILabel rangeMaximumLabel = null;
                 object rangeMaximumSlider =
-                    dispatchGroup.AddSlider(
+                    dispatchGroup.AddExtendedSlider(
                         "Range maximum",
                         0f,
                         100000000f,
                         1f,
                         Global.Settings.RangeMaximum,
+                        false,
                         value =>
                         {
                             if (Global.Settings.RangeMaximum != value)
@@ -232,12 +223,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                             }
                             Global.Settings.RangeMaximum = value;
                             Global.Settings.Save();
-                            if (rangeMaximumLabel != null)
-                            {
-                                rangeMaximumLabel.text = Global.Settings.RangeMaximum.ToString();
-                            }
                         });
-                rangeMaximumLabel = UI.CreateOptionsLabel(dispatchGroup, rangeMaximumSlider, "rangeMaximumSlider", Global.Settings.RangeMaximum.ToString());
 
                 // Add hearse group.
                 UIHelperBase hearseGroup = helper.AddGroup("Hearses");
@@ -268,13 +254,15 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     (int)Global.Settings.CreateSpareHearses,
                     value =>
                     {
-                        if (Log.LogALot || Library.IsDebugBuild) Log.Debug(this, "OnSettingsUI", "Set", "CreateSpareHearses", value);
+                        if (Log.LogALot || Library.IsDebugBuild)
+                            Log.Debug(this, "OnSettingsUI", "Set", "CreateSpareHearses", value);
 
                         foreach (Settings.SpareVehiclesCreation option in Enum.GetValues(typeof(Settings.SpareVehiclesCreation)))
                         {
                             if ((byte)option == value)
                             {
-                                if (Log.LogALot || Library.IsDebugBuild) Log.Debug(this, "OnSettingsUI", "Set", "CreateSpareHearses", value, option);
+                                if (Log.LogALot || Library.IsDebugBuild)
+                                    Log.Debug(this, "OnSettingsUI", "Set", "CreateSpareHearses", value, option);
 
                                 Global.Settings.CreateSpareHearses = option;
                                 if (Global.HearseDispatcher != null)
@@ -293,13 +281,15 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     (int)Global.Settings.DeathChecksPreset,
                     value =>
                     {
-                        if (Log.LogALot || Library.IsDebugBuild) Log.Debug(this, "OnSettingsUI", "Set", "DeathChecksPreset", value);
+                        if (Log.LogALot || Library.IsDebugBuild)
+                            Log.Debug(this, "OnSettingsUI", "Set", "DeathChecksPreset", value);
 
                         foreach (Settings.BuildingCheckOrder checks in Enum.GetValues(typeof(Settings.BuildingCheckOrder)))
                         {
                             if ((byte)checks == value)
                             {
-                                if (Log.LogALot || Library.IsDebugBuild) Log.Debug(this, "OnSettingsUI", "Set", "DeathChecksPreset", value, checks);
+                                if (Log.LogALot || Library.IsDebugBuild)
+                                    Log.Debug(this, "OnSettingsUI", "Set", "DeathChecksPreset", value, checks);
 
                                 Global.Settings.DeathChecksPreset = checks;
                                 if (Global.HearseDispatcher != null)
@@ -341,13 +331,15 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     (int)Global.Settings.CreateSpareGarbageTrucks,
                     value =>
                     {
-                        if (Log.LogALot || Library.IsDebugBuild) Log.Debug(this, "OnSettingsUI", "Set", "CreateSpareGarbageTrucks", value);
+                        if (Log.LogALot || Library.IsDebugBuild)
+                            Log.Debug(this, "OnSettingsUI", "Set", "CreateSpareGarbageTrucks", value);
 
                         foreach (Settings.SpareVehiclesCreation option in Enum.GetValues(typeof(Settings.SpareVehiclesCreation)))
                         {
                             if ((byte)option == value)
                             {
-                                if (Log.LogALot || Library.IsDebugBuild) Log.Debug(this, "OnSettingsUI", "Set", "CreateSpareGarbageTrucks", value, option);
+                                if (Log.LogALot || Library.IsDebugBuild)
+                                    Log.Debug(this, "OnSettingsUI", "Set", "CreateSpareGarbageTrucks", value, option);
 
                                 Global.Settings.CreateSpareGarbageTrucks = option;
                                 if (Global.GarbageTruckDispatcher != null)
@@ -366,13 +358,15 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     (int)Global.Settings.GarbageChecksPreset,
                     value =>
                     {
-                        if (Log.LogALot || Library.IsDebugBuild) Log.Debug(this, "OnSettingsUI", "Set", "GarbageChecksPreset", value);
+                        if (Log.LogALot || Library.IsDebugBuild)
+                            Log.Debug(this, "OnSettingsUI", "Set", "GarbageChecksPreset", value);
 
                         foreach (Settings.BuildingCheckOrder checks in Enum.GetValues(typeof(Settings.BuildingCheckOrder)))
                         {
                             if ((byte)checks == value)
                             {
-                                if (Log.LogALot || Library.IsDebugBuild) Log.Debug(this, "OnSettingsUI", "Set", "GarbageChecksPreset", value, checks);
+                                if (Log.LogALot || Library.IsDebugBuild)
+                                    Log.Debug(this, "OnSettingsUI", "Set", "GarbageChecksPreset", value, checks);
 
                                 Global.Settings.GarbageChecksPreset = checks;
                                 if (Global.GarbageTruckDispatcher != null)
@@ -385,24 +379,19 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         }
                     });
 
-                UILabel minimumGarbageForDispatchLabel = null;
                 object minimumGarbageForDispatchSlider =
-                    garbageGroup.AddSlider(
+                    garbageGroup.AddExtendedSlider(
                         "Garbage amount limit",
                         1.0f,
                         5000.0f,
                         1.0f,
                         Global.Settings.MinimumGarbageForDispatch,
+                        false,
                         value =>
                         {
                             Global.Settings.MinimumGarbageForDispatch = (ushort)value;
                             Global.Settings.Save();
-                            if (minimumGarbageForDispatchLabel != null)
-                            {
-                                minimumGarbageForDispatchLabel.text = Global.Settings.MinimumGarbageForDispatch.ToString();
-                            }
                         });
-                minimumGarbageForDispatchLabel = UI.CreateOptionsLabel(garbageGroup, minimumGarbageForDispatchSlider, "minimumGarbageForDispatchSlider", Global.Settings.MinimumGarbageForDispatch.ToString());
 
                 Log.FlushBuffer();
             }
