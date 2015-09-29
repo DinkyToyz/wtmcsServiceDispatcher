@@ -26,7 +26,7 @@ One result of this is that if the trucks have to travel a long or convoluted way
 
 [h1]Configuration[/h1]
 
-Which services should be dispatched by Central Services can be configured, as can the dispatch strategy, in the mod options in the content manager (unfortunately the options controls are quite limited, so there's a bunch of sliders without any display of the numeric values for now), or a configuration file.
+Which services should be dispatched by Central Services can be configured, as can the dispatch strategy, in the mod options in the content manager, or a configuration file.
 
 If no services are set to be dispatch by the mod, it should not affect the game.
 

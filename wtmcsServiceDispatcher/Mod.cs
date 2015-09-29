@@ -170,60 +170,57 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         Global.Settings.Save();
                     });
 
-                object rangeModifierSlider =
-                    dispatchGroup.AddExtendedSlider(
-                        "Range modifier",
-                        0.1f,
-                        10.0f,
-                        0.1f,
-                        Global.Settings.RangeModifier,
-                        true,
-                        "F1",
-                        value =>
+                dispatchGroup.AddExtendedSlider(
+                    "Range modifier",
+                    0.1f,
+                    10.0f,
+                    0.1f,
+                    Global.Settings.RangeModifier,
+                    true,
+                    "F1",
+                    value =>
+                    {
+                        if (Global.Settings.RangeModifier != value)
                         {
-                            if (Global.Settings.RangeModifier != value)
-                            {
-                                Global.BuildingUpdateNeeded = true;
-                            }
-                            Global.Settings.RangeModifier = value;
-                            Global.Settings.Save();
-                        });
+                            Global.BuildingUpdateNeeded = true;
+                        }
+                        Global.Settings.RangeModifier = value;
+                        Global.Settings.Save();
+                    });
 
-                object rangeMinimumSlider =
-                    dispatchGroup.AddExtendedSlider(
-                        "Range minimum",
-                        0f,
-                        100000000f,
-                        1f,
-                        Global.Settings.RangeMinimum,
-                        false,
-                        value =>
+                dispatchGroup.AddExtendedSlider(
+                    "Range minimum",
+                    0f,
+                    100000000f,
+                    1f,
+                    Global.Settings.RangeMinimum,
+                    false,
+                    value =>
+                    {
+                        if (Global.Settings.RangeMinimum != value)
                         {
-                            if (Global.Settings.RangeMinimum != value)
-                            {
-                                Global.BuildingUpdateNeeded = true;
-                            }
-                            Global.Settings.RangeMinimum = value;
-                            Global.Settings.Save();
-                        });
+                            Global.BuildingUpdateNeeded = true;
+                        }
+                        Global.Settings.RangeMinimum = value;
+                        Global.Settings.Save();
+                    });
 
-                object rangeMaximumSlider =
-                    dispatchGroup.AddExtendedSlider(
-                        "Range maximum",
-                        0f,
-                        100000000f,
-                        1f,
-                        Global.Settings.RangeMaximum,
-                        false,
-                        value =>
+                dispatchGroup.AddExtendedSlider(
+                    "Range maximum",
+                    0f,
+                    100000000f,
+                    1f,
+                    Global.Settings.RangeMaximum,
+                    false,
+                    value =>
+                    {
+                        if (Global.Settings.RangeMaximum != value)
                         {
-                            if (Global.Settings.RangeMaximum != value)
-                            {
-                                Global.BuildingUpdateNeeded = true;
-                            }
-                            Global.Settings.RangeMaximum = value;
-                            Global.Settings.Save();
-                        });
+                            Global.BuildingUpdateNeeded = true;
+                        }
+                        Global.Settings.RangeMaximum = value;
+                        Global.Settings.Save();
+                    });
 
                 // Add hearse group.
                 UIHelperBase hearseGroup = helper.AddGroup("Hearses");
@@ -379,19 +376,18 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         }
                     });
 
-                object minimumGarbageForDispatchSlider =
-                    garbageGroup.AddExtendedSlider(
-                        "Garbage amount limit",
-                        1.0f,
-                        5000.0f,
-                        1.0f,
-                        Global.Settings.MinimumGarbageForDispatch,
-                        false,
-                        value =>
-                        {
-                            Global.Settings.MinimumGarbageForDispatch = (ushort)value;
-                            Global.Settings.Save();
-                        });
+                garbageGroup.AddExtendedSlider(
+                    "Garbage amount limit",
+                    1.0f,
+                    5000.0f,
+                    1.0f,
+                    Global.Settings.MinimumGarbageForDispatch,
+                    false,
+                    value =>
+                    {
+                        Global.Settings.MinimumGarbageForDispatch = (ushort)value;
+                        Global.Settings.Save();
+                    });
 
                 Log.FlushBuffer();
             }
