@@ -65,7 +65,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// Gets the building identifier.
         /// </summary>
-        public ushort BuildingId { get; private set; }
+        public ushort BuildingId
+        {
+            get;
+            private set;
+        }
 
         /// <summary>
         /// Gets the CS building information.
@@ -143,7 +147,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// Gets the district the building is in.
         /// </summary>
-        public byte District { get; private set; }
+        public byte District
+        {
+            get;
+            private set;
+        }
 
         /// <summary>
         /// Gets the name of the district.
@@ -192,7 +200,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <value>
         /// <c>true</c> if this instance has problem; otherwise, <c>false</c>.
         /// </value>
-        public bool HasProblem { get; private set; }
+        public bool HasProblem
+        {
+            get;
+            private set;
+        }
 
         /// <summary>
         /// Gets a value indicating whether the building needs service.
@@ -200,12 +212,20 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <value>
         ///   <c>true</c> if [needs service]; otherwise, <c>false</c>.
         /// </value>
-        public bool NeedsService { get; private set; }
+        public bool NeedsService
+        {
+            get;
+            private set;
+        }
 
         /// <summary>
         /// Gets the position.
         /// </summary>
-        public Vector3 Position { get; private set; }
+        public Vector3 Position
+        {
+            get;
+            private set;
+        }
 
         /// <summary>
         /// Gets the size of the problem.
@@ -213,7 +233,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <value>
         /// The size of the problem.
         /// </value>
-        public int ProblemSize { get; private set; }
+        public int ProblemSize
+        {
+            get;
+            private set;
+        }
 
         /// <summary>
         /// Gets the problem value.
@@ -221,7 +245,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <value>
         /// The problem value.
         /// </value>
-        public int ProblemValue { get; private set; }
+        public int ProblemValue
+        {
+            get;
+            private set;
+        }
 
         /// <summary>
         /// Gets a value indicating whether the building is updated.
@@ -232,6 +260,13 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             {
                 return this.lastUpdate == Global.CurrentFrame;
             }
+        }
+
+        /// <summary>
+        /// Initializes this instance.
+        /// </summary>
+        public void ReInitialize()
+        {
         }
 
         /// <summary>

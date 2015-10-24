@@ -13,12 +13,18 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <value>
         /// The CS building.
         /// </value>
-        Building Building { get; }
+        Building Building
+        {
+            get;
+        }
 
         /// <summary>
         /// Gets the building identifier.
         /// </summary>
-        ushort BuildingId { get; }
+        ushort BuildingId
+        {
+            get;
+        }
 
         /// <summary>
         /// Gets the CS building information.
@@ -26,7 +32,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <value>
         /// The building CS information.
         /// </value>
-        BuildingInfo BuildingInfo { get; }
+        BuildingInfo BuildingInfo
+        {
+            get;
+        }
 
         /// <summary>
         /// Gets the name of the building.
@@ -34,12 +43,18 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <value>
         /// The name of the building.
         /// </value>
-        string BuildingName { get; }
+        string BuildingName
+        {
+            get;
+        }
 
         /// <summary>
         /// Gets the district the building is in.
         /// </summary>
-        byte District { get; }
+        byte District
+        {
+            get;
+        }
 
         /// <summary>
         /// Gets the name of the district.
@@ -47,17 +62,31 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <value>
         /// The name of the district.
         /// </value>
-        string DistrictName { get; }
+        string DistrictName
+        {
+            get;
+        }
 
         /// <summary>
         /// Gets the position.
         /// </summary>
-        Vector3 Position { get; }
+        Vector3 Position
+        {
+            get;
+        }
 
         /// <summary>
         /// Gets a value indicating whether the building is updated.
         /// </summary>
-        bool Updated { get; }
+        bool Updated
+        {
+            get;
+        }
+
+        /// <summary>
+        /// Reinitializes this instance.
+        /// </summary>
+        void ReInitialize();
 
         /// <summary>
         /// Updates the building values.

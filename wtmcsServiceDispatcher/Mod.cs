@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using ColossalFramework.UI;
 using ICities;
 
 namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
@@ -26,6 +27,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public Mod()
         {
             Log.NoOp();
+            Global.MethodDetours = new MethodDetours();
         }
 
         /// <summary>
@@ -132,32 +134,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 UIHelperBase dispatchGroup = helper.AddGroup("Central Services Dispatch");
 
                 dispatchGroup.AddCheckbox(
-                    "Dispatch by district",
-                    Global.Settings.DispatchByDistrict,
-                    value =>
-                    {
-                        if (Global.Settings.DispatchByDistrict != value)
-                        {
-                            Global.BuildingUpdateNeeded = true;
-                        }
-                        Global.Settings.DispatchByDistrict = value;
-                        Global.Settings.Save();
-                    });
-
-                dispatchGroup.AddCheckbox(
-                    "Dispatch by building range",
-                    Global.Settings.DispatchByRange,
-                    value =>
-                    {
-                        if (Global.Settings.DispatchByRange != value)
-                        {
-                            Global.BuildingUpdateNeeded = true;
-                        }
-                        Global.Settings.DispatchByRange = value;
-                        Global.Settings.Save();
-                    });
-
-                dispatchGroup.AddCheckbox(
                     "Limit building ranges",
                     Global.Settings.RangeLimit,
                     value =>
@@ -233,6 +209,32 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         Global.Settings.DispatchHearses = value;
                         Global.Settings.Save();
                         Global.InitHandlers();
+                    });
+
+                hearseGroup.AddCheckbox(
+                    "Dispatch by district",
+                    Global.Settings.DispatchHearsesByDistrict,
+                    value =>
+                    {
+                        if (Global.Settings.DispatchHearsesByDistrict != value)
+                        {
+                            Global.BuildingUpdateNeeded = true;
+                        }
+                        Global.Settings.DispatchHearsesByDistrict = value;
+                        Global.Settings.Save();
+                    });
+
+                hearseGroup.AddCheckbox(
+                    "Dispatch by building range",
+                    Global.Settings.DispatchHearsesByRange,
+                    value =>
+                    {
+                        if (Global.Settings.DispatchHearsesByRange != value)
+                        {
+                            Global.BuildingUpdateNeeded = true;
+                        }
+                        Global.Settings.DispatchHearsesByRange = value;
+                        Global.Settings.Save();
                     });
 
                 hearseGroup.AddCheckbox(
@@ -312,15 +314,45 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         Global.InitHandlers();
                     });
 
-                ////garbageGroup.AddCheckbox(
-                ////    "Pass through garbage trucks",
-                ////    Global.Settings.RemoveGarbageTrucksFromGrid,
-                ////    value =>
-                ////    {
-                ////        Global.Settings.RemoveGarbageTrucksFromGrid = value;
-                ////        Global.Settings.Save();
-                ////        Global.InitHandlers();
-                ////    });
+                garbageGroup.AddCheckbox(
+                    "Dispatch by district",
+                    Global.Settings.DispatchGarbageTrucksByDistrict,
+                    value =>
+                    {
+                        if (Global.Settings.DispatchGarbageTrucksByDistrict != value)
+                        {
+                            Global.BuildingUpdateNeeded = true;
+                        }
+                        Global.Settings.DispatchGarbageTrucksByDistrict = value;
+                        Global.Settings.Save();
+                    });
+
+                garbageGroup.AddCheckbox(
+                    "Dispatch by building range",
+                    Global.Settings.DispatchGarbageTrucksByRange,
+                    value =>
+                    {
+                        if (Global.Settings.DispatchGarbageTrucksByRange != value)
+                        {
+                            Global.BuildingUpdateNeeded = true;
+                        }
+                        Global.Settings.DispatchGarbageTrucksByRange = value;
+                        Global.Settings.Save();
+                    });
+
+                UIComponent LimitOpportunisticGarbageCollectionCheckBox = garbageGroup.AddCheckbox(
+                    "Prioritize assigned building",
+                    Global.Settings.LimitOpportunisticGarbageCollection,
+                    value =>
+                    {
+                        Global.Settings.LimitOpportunisticGarbageCollection = value;
+                        Global.Settings.Save();
+                        Global.InitHandlers();
+                    }) as UIComponent;
+                if (!Global.MethodDetours.Can_Detour_GarbageTruckAI_TryCollectGarbage)
+                {
+                    LimitOpportunisticGarbageCollectionCheckBox.Disable();
+                }
 
                 garbageGroup.AddDropdown(
                     "Send out spare garbage trucks when",

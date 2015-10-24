@@ -1,5 +1,5 @@
-﻿using ColossalFramework;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using ColossalFramework;
 using UnityEngine;
 
 namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
@@ -9,6 +9,21 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
     /// </summary>
     internal class ServiceBuildingInfo : IBuildingInfo
     {
+        /// <summary>
+        /// Dispatch services by district.
+        /// </summary>
+        private bool dispatchByDistrict = false;
+
+        /// <summary>
+        /// Dispatch services by range.
+        /// </summary>
+        private bool dispatchByRange = true;
+
+        /// <summary>
+        /// The dispatcher type.
+        /// </summary>
+        private Dispatcher.DispatcherTypes dispatcherType = Dispatcher.DispatcherTypes.None;
+
         /// <summary>
         /// The last info update stamp.
         /// </summary>
@@ -30,12 +45,13 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         private int vehiclesMade = 0;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ServiceBuildingInfo"/> class.
+        /// Initializes a new instance of the <see cref="ServiceBuildingInfo" /> class.
         /// </summary>
         /// <param name="districtManager">The district manager.</param>
         /// <param name="buildingId">The building identifier.</param>
         /// <param name="building">The building.</param>
-        public ServiceBuildingInfo(DistrictManager districtManager, ushort buildingId, ref Building building)
+        /// <param name="dispatcherType">Type of the dispatcher.</param>
+        public ServiceBuildingInfo(DistrictManager districtManager, ushort buildingId, ref Building building, Dispatcher.DispatcherTypes dispatcherType)
         {
             this.BuildingId = buildingId;
             this.Distance = float.PositiveInfinity;
@@ -44,6 +60,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             this.Range = 0;
             this.Vehicles = new Dictionary<ushort, ServiceVehicleInfo>();
             this.VehiclesFree = 0;
+            this.dispatcherType = dispatcherType;
+
+            this.Initialize();
 
             this.Update(districtManager, ref building);
         }
@@ -65,7 +84,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// Gets the building identifier.
         /// </summary>
-        public ushort BuildingId { get; private set; }
+        public ushort BuildingId
+        {
+            get;
+            private set;
+        }
 
         /// <summary>
         /// Gets the CS building information.
@@ -101,17 +124,29 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <value>
         /// <c>true</c> if this instance can receive; otherwise, <c>false</c>.
         /// </value>
-        public bool CanReceive { get; set; }
+        public bool CanReceive
+        {
+            get;
+            set;
+        }
 
         /// <summary>
         /// Gets the distance to the target.
         /// </summary>
-        public float Distance { get; private set; }
+        public float Distance
+        {
+            get;
+            private set;
+        }
 
         /// <summary>
         /// Gets the district the building is in.
         /// </summary>
-        public byte District { get; private set; }
+        public byte District
+        {
+            get;
+            private set;
+        }
 
         /// <summary>
         /// Gets the name of the district.
@@ -130,7 +165,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// Gets or sets the first link in the buildings list of own vehicles.
         /// </summary>
-        public ushort FirstOwnVehicleId { get; set; }
+        public ushort FirstOwnVehicleId
+        {
+            get;
+            set;
+        }
 
         /// <summary>
         /// Gets a value indicating whether the building is in target district.
@@ -138,7 +177,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <value>
         ///   <c>true</c> if [in district]; otherwise, <c>false</c>.
         /// </value>
-        public bool InDistrict { get; private set; }
+        public bool InDistrict
+        {
+            get;
+            private set;
+        }
 
         /// <summary>
         /// Gets a value indicating whether the target building is in service building's effective range.
@@ -146,17 +189,29 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <value>
         ///   <c>true</c> if [in range]; otherwise, <c>false</c>.
         /// </value>
-        public bool InRange { get; private set; }
+        public bool InRange
+        {
+            get;
+            private set;
+        }
 
         /// <summary>
         /// Gets the building's position.
         /// </summary>
-        public Vector3 Position { get; private set; }
+        public Vector3 Position
+        {
+            get;
+            private set;
+        }
 
         /// <summary>
         /// Gets the building's effect range.
         /// </summary>
-        public float Range { get; private set; }
+        public float Range
+        {
+            get;
+            private set;
+        }
 
         /// <summary>
         /// Gets a value indicating whether the building is updated.
@@ -172,12 +227,20 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// Gets the building's vehicles.
         /// </summary>
-        public Dictionary<ushort, ServiceVehicleInfo> Vehicles { get; private set; }
+        public Dictionary<ushort, ServiceVehicleInfo> Vehicles
+        {
+            get;
+            private set;
+        }
 
         /// <summary>
         /// Gets or sets the free vehicles count.
         /// </summary>
-        public int VehiclesFree { get; set; }
+        public int VehiclesFree
+        {
+            get;
+            set;
+        }
 
         /// <summary>
         /// Gets or sets the vehicle in use count.
@@ -202,12 +265,20 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// Gets the spare vehicles count.
         /// </summary>
-        public int VehiclesSpare { get; private set; }
+        public int VehiclesSpare
+        {
+            get;
+            private set;
+        }
 
         /// <summary>
         /// Gets the total vehicles count.
         /// </summary>
-        public int VehiclesTotal { get; private set; }
+        public int VehiclesTotal
+        {
+            get;
+            private set;
+        }
 
         /// <summary>
         /// Creates the vehicle.
@@ -235,6 +306,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Reinitializes this instance.
+        /// </summary>
+        public void ReInitialize()
+        {
+            this.Initialize();
+        }
+
+        /// <summary>
         /// Sets the target information.
         /// </summary>
         /// <param name="districtManager">The district manager.</param>
@@ -244,7 +323,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             this.Distance = (this.Position - building.Position).sqrMagnitude;
 
-            if (Global.Settings.DispatchByDistrict && districtManager != null)
+            if (this.dispatchByDistrict && districtManager != null)
             {
                 byte district = districtManager.GetDistrict(building.Position);
                 this.InDistrict = district == this.District;
@@ -254,7 +333,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 this.InDistrict = false;
             }
 
-            this.InRange = ignoreRange || this.InDistrict || (Global.Settings.DispatchByRange && this.Distance < this.Range) || (!Global.Settings.DispatchByDistrict && !Global.Settings.DispatchByRange);
+            this.InRange = ignoreRange || this.InDistrict || (this.dispatchByRange && this.Distance < this.Range) || (!this.dispatchByDistrict && !this.dispatchByRange);
         }
 
         /// <summary>
@@ -287,7 +366,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             if (this.lastInfoUpdate == 0 || (ignoreInterval && this.lastInfoUpdate != Global.CurrentFrame) || Global.CurrentFrame - this.lastInfoUpdate > Global.ObjectUpdateInterval)
             {
-                if (districtManager != null)
+                if (this.dispatchByDistrict && districtManager != null)
                 {
                     this.District = districtManager.GetDistrict(this.Position);
                 }
@@ -296,7 +375,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     this.District = 0;
                 }
 
-                if (Global.Settings.DispatchByRange)
+                if (this.dispatchByRange)
                 {
                     this.orgRange = building.Info.m_buildingAI.GetCurrentRange(this.BuildingId, ref building);
                     this.Range = this.orgRange * this.orgRange * Global.Settings.RangeModifier;
@@ -325,6 +404,25 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 this.VehiclesTotal = ((productionRate * this.VehiclesTotal) + 99) / 100;
 
                 this.lastInfoUpdate = Global.CurrentFrame;
+            }
+        }
+
+        /// <summary>
+        /// Initializes this instance.
+        /// </summary>
+        private void Initialize()
+        {
+            switch (this.dispatcherType)
+            {
+                case Dispatcher.DispatcherTypes.HearseDispatcher:
+                    this.dispatchByDistrict = Global.Settings.DispatchHearsesByDistrict;
+                    this.dispatchByRange = Global.Settings.DispatchHearsesByRange;
+                    break;
+
+                case Dispatcher.DispatcherTypes.GarbageTruckDispatcher:
+                    this.dispatchByDistrict = Global.Settings.DispatchGarbageTrucksByDistrict;
+                    this.dispatchByRange = Global.Settings.DispatchGarbageTrucksByRange;
+                    break;
             }
         }
 

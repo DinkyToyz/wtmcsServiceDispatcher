@@ -1,7 +1,7 @@
-﻿using ColossalFramework;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using ColossalFramework;
 
 namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 {
@@ -76,6 +76,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         private Settings.SpareVehiclesCreation createSpareVehicles = Settings.SpareVehiclesCreation.Never;
 
         /// <summary>
+        /// Dispatch services by district.
+        /// </summary>
+        private bool dispatchByDistrict = false;
+
+        /// <summary>
         /// The free vehicle count.
         /// </summary>
         private int freeVehicles = 0;
@@ -131,7 +136,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <value>
         /// The type of the transfer.
         /// </value>
-        public byte TransferType { get; protected set; }
+        public byte TransferType
+        {
+            get;
+            protected set;
+        }
 
         /// <summary>
         /// Gets a value indicating whether this service has target buildings.
@@ -168,26 +177,30 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             if (serviceBuilding == null)
             {
-                if (Log.LogALot) Log.DevDebug(this, "CheckVehicleTarget", "NewBuilding", vehicleId, vehicle.m_targetBuilding);
+                if (Log.LogALot)
+                    Log.DevDebug(this, "CheckVehicleTarget", "NewBuilding", vehicleId, vehicle.m_targetBuilding);
 
                 vehicle.Info.m_vehicleAI.SetTarget(vehicleId, ref vehicle, 0);
             }
             else if (!serviceBuilding.Vehicles.ContainsKey(vehicleId))
             {
-                if (Log.LogALot) Log.DevDebug(this, "CheckVehicleTarget", "NewVehicle", vehicleId, vehicle.m_targetBuilding);
+                if (Log.LogALot)
+                    Log.DevDebug(this, "CheckVehicleTarget", "NewVehicle", vehicleId, vehicle.m_targetBuilding);
 
                 vehicle.Info.m_vehicleAI.SetTarget(vehicleId, ref vehicle, (ushort)0); // DeAssignToSource ? vehicle.m_sourceBuilding : (ushort)0
             }
             else if (!this.targetBuildings.ContainsKey(vehicle.m_targetBuilding))
             {
-                if (Log.LogALot) Log.DevDebug(this, "CheckVehicleTarget", "NoNeed", vehicleId, vehicle.m_targetBuilding);
+                if (Log.LogALot)
+                    Log.DevDebug(this, "CheckVehicleTarget", "NoNeed", vehicleId, vehicle.m_targetBuilding);
 
                 vehicle.Info.m_vehicleAI.SetTarget(vehicleId, ref vehicle, (ushort)0); // DeAssignToSource ? vehicle.m_sourceBuilding : (ushort)0
                 serviceBuilding.Vehicles[vehicleId].Target = (ushort)0; // DeAssignToSource ? vehicle.m_sourceBuilding : (ushort)0
             }
             else if (vehicle.m_targetBuilding != serviceBuilding.Vehicles[vehicleId].Target)
             {
-                if (Log.LogALot) Log.DevDebug(this, "CheckVehicleTarget", "WrongTarget", vehicleId, vehicle.m_targetBuilding, serviceBuilding.Vehicles[vehicleId].Target);
+                if (Log.LogALot)
+                    Log.DevDebug(this, "CheckVehicleTarget", "WrongTarget", vehicleId, vehicle.m_targetBuilding, serviceBuilding.Vehicles[vehicleId].Target);
 
                 vehicle.Info.m_vehicleAI.SetTarget(vehicleId, ref vehicle, (ushort)0); // DeAssignToSource ? vehicle.m_sourceBuilding : (ushort)0
                 serviceBuilding.Vehicles[vehicleId].Target = (ushort)0; // DeAssignToSource ? vehicle.m_sourceBuilding : (ushort)0
@@ -208,7 +221,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 foreach (BuldingCheckParameters checkParams in this.buildingChecks)
                 {
-                    if (Log.LogALot) Log.DevDebug(this, "Dispatch", checkParams.Setting, checkParams.OnlyProblematic, checkParams.MinProblemValue, checkParams.IgnoreRange);
+                    if (Log.LogALot)
+                        Log.DevDebug(this, "Dispatch", checkParams.Setting, checkParams.OnlyProblematic, checkParams.MinProblemValue, checkParams.IgnoreRange);
 
                     foreach (TargetBuildingInfo targetBuilding in this.targetBuildings.Values.Where(tb => tb.CheckThis && tb.ProblemValue >= checkParams.MinProblemValue && (tb.HasProblem || !checkParams.OnlyProblematic)).OrderBy(tb => tb, Global.TargetBuildingInfoPriorityComparer))
                     {
@@ -221,7 +235,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                             this.CollectVehicleData(buildings);
                             if (this.freeVehicles < 1)
                             {
-                                if (Log.LogALot) Log.DevDebug(this, "Dispatch", "BreakCheck");
+                                if (Log.LogALot)
+                                    Log.DevDebug(this, "Dispatch", "BreakCheck");
                                 break;
                             }
                         }
@@ -243,7 +258,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                             {
                                 if (this.freeVehicles < 1)
                                 {
-                                    if (Log.LogALot) Log.DevDebug(this, "Dispatch", "BreakCheck");
+                                    if (Log.LogALot)
+                                        Log.DevDebug(this, "Dispatch", "BreakCheck");
                                     break;
                                 }
                             }
@@ -258,7 +274,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                     if (this.freeVehicles < 1)
                     {
-                        if (Log.LogALot) Log.DevDebug(this, "Dispatch", "BreakChecks");
+                        if (Log.LogALot)
+                            Log.DevDebug(this, "Dispatch", "BreakChecks");
 
                         break;
                     }
@@ -285,7 +302,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             // Get target district.
             DistrictManager districtManager = null;
             byte targetDistrict = 0;
-            if (Global.Settings.DispatchByDistrict && districtManager != null)
+            if (this.dispatchByDistrict)
             {
                 districtManager = Singleton<DistrictManager>.instance;
                 targetDistrict = districtManager.GetDistrict(targetBuilding.Position);
@@ -630,7 +647,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                             {
                                 if (collecting && !loading && vehicles[vehicleId].m_targetBuilding != 0 && vehicles[vehicleId].m_targetBuilding != serviceBuilding.Vehicles[vehicleId].Target)
                                 {
-                                    if (Log.LogALot) Log.DevDebug(this, "CollectVehicles", "WrongTarget", vehicleId, vehicles[vehicleId].m_targetBuilding, serviceBuilding.Vehicles[vehicleId].Target);
+                                    if (Log.LogALot)
+                                        Log.DevDebug(this, "CollectVehicles", "WrongTarget", vehicleId, vehicles[vehicleId].m_targetBuilding, serviceBuilding.Vehicles[vehicleId].Target);
 
                                     vehicles[vehicleId].Info.m_vehicleAI.SetTarget(vehicleId, ref vehicles[vehicleId], (ushort)0); // DeAssignToSource ? serviceBuilding.BuildingId : (ushort)0)
                                     hasTarget = false;
@@ -648,7 +666,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                                 }
 
                                 ServiceVehicleInfo serviceVehicle = new ServiceVehicleInfo(vehicleId, ref vehicles[vehicleId], canCollect && !hasTarget);
-                                if (Log.LogALot) Log.DevDebug(this, "CollectVehicles", "AddVehicle", serviceBuilding.BuildingId, vehicleId, vehicles[vehicleId].Info.name, serviceVehicle.VehicleName, serviceVehicle.FreeToCollect, collecting);
+                                if (Log.LogALot)
+                                    Log.DevDebug(this, "CollectVehicles", "AddVehicle", serviceBuilding.BuildingId, vehicleId, vehicles[vehicleId].Info.name, serviceVehicle.VehicleName, serviceVehicle.FreeToCollect, collecting);
 
                                 serviceBuilding.Vehicles[vehicleId] = serviceVehicle;
                             }
@@ -656,7 +675,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                             // If target doesn't need service, deassign...
                             if (collecting && !loading && vehicles[vehicleId].m_targetBuilding != 0 && vehicles[vehicleId].m_targetBuilding != serviceBuilding.BuildingId && !hasTarget)
                             {
-                                if (Log.LogALot) Log.DevDebug(this, "CollectVehicles", "NoNeed", vehicleId, vehicles[vehicleId].m_targetBuilding);
+                                if (Log.LogALot)
+                                    Log.DevDebug(this, "CollectVehicles", "NoNeed", vehicleId, vehicles[vehicleId].m_targetBuilding);
 
                                 vehicles[vehicleId].Info.m_vehicleAI.SetTarget(vehicleId, ref vehicles[vehicleId], (ushort)0); // DeAssignToSource ? serviceBuilding.BuildingId : (ushort)0)
                                 vehicles[vehicleId].m_targetBuilding = (ushort)0; // DeAssignToSource ? serviceBuilding.BuildingId : (ushort)0)
@@ -665,7 +685,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                             // Update assigned target status.
                             if (collecting && hasTarget)
                             {
-                                if (Log.LogALot && !this.assignedTargets.ContainsKey(vehicles[vehicleId].m_targetBuilding)) Log.DevDebug(this, "CollectVehicles", "AddAssigned", serviceBuilding.BuildingId, vehicleId, vehicles[vehicleId].m_targetBuilding);
+                                if (Log.LogALot && !this.assignedTargets.ContainsKey(vehicles[vehicleId].m_targetBuilding))
+                                    Log.DevDebug(this, "CollectVehicles", "AddAssigned", serviceBuilding.BuildingId, vehicleId, vehicles[vehicleId].m_targetBuilding);
 
                                 this.assignedTargets[vehicles[vehicleId].m_targetBuilding] = Global.CurrentFrame;
                             }
@@ -694,7 +715,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 {
                     if (vehicles[vehicleId].Info == null || (vehicles[vehicleId].m_flags & (Vehicle.Flags.Created | Vehicle.Flags.Spawned)) != (Vehicle.Flags.Created | Vehicle.Flags.Spawned) || vehicles[vehicleId].m_transferType != this.TransferType)
                     {
-                        if (Log.LogALot) Log.DevDebug(this, "CollectVehicles", "RemoveNonVehicle", serviceBuilding.BuildingId, id);
+                        if (Log.LogALot)
+                            Log.DevDebug(this, "CollectVehicles", "RemoveNonVehicle", serviceBuilding.BuildingId, id);
 
                         serviceBuilding.Vehicles.Remove(id);
                     }
@@ -702,7 +724,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     {
                         if (vehicles[vehicleId].m_sourceBuilding != serviceBuilding.BuildingId)
                         {
-                            if (Log.LogALot) Log.DevDebug(this, "CollectVehicles", "RemoveMovedVehicle", serviceBuilding.BuildingId, id);
+                            if (Log.LogALot)
+                                Log.DevDebug(this, "CollectVehicles", "RemoveMovedVehicle", serviceBuilding.BuildingId, id);
 
                             serviceBuilding.Vehicles.Remove(id);
                         }
@@ -716,7 +739,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             ushort[] removeTargets = this.assignedTargets.Where(at => at.Value != Global.CurrentFrame).Select(at => at.Key).ToArray();
             foreach (ushort id in removeTargets)
             {
-                if (Log.LogALot) Log.DevDebug(this, "CollectVehicles", "RemoveAssigned", id);
+                if (Log.LogALot)
+                    Log.DevDebug(this, "CollectVehicles", "RemoveAssigned", id);
 
                 this.assignedTargets.Remove(id);
             }
@@ -740,6 +764,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     }
                     this.buildingChecks = BuldingCheckParameters.GetBuldingCheckParameters(Global.Settings.DeathChecksParameters);
                     this.createSpareVehicles = Global.Settings.CreateSpareHearses;
+                    this.dispatchByDistrict = Global.Settings.DispatchHearsesByDistrict;
                     break;
 
                 case DispatcherTypes.GarbageTruckDispatcher:
@@ -751,6 +776,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     }
                     this.buildingChecks = BuldingCheckParameters.GetBuldingCheckParameters(Global.Settings.GarbageChecksParameters);
                     this.createSpareVehicles = Global.Settings.CreateSpareGarbageTrucks;
+                    this.dispatchByDistrict = Global.Settings.DispatchGarbageTrucksByDistrict;
                     break;
 
                 default:
@@ -849,7 +875,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             /// <value>
             /// <c>true</c> if the range should be ignored; otherwise, <c>false</c>.
             /// </value>
-            public bool IgnoreRange { get; private set; }
+            public bool IgnoreRange
+            {
+                get;
+                private set;
+            }
 
             /// <summary>
             /// Gets the minimum problem timer.
@@ -857,7 +887,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             /// <value>
             /// The minimum problem timer.
             /// </value>
-            public ushort MinProblemValue { get; private set; }
+            public ushort MinProblemValue
+            {
+                get;
+                private set;
+            }
 
             /// <summary>
             /// Gets a value indicating whether only problematic buildings should be checked.
@@ -865,7 +899,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             /// <value>
             ///   <c>true</c> if only problematic buildings should be checked; otherwise, <c>false</c>.
             /// </value>
-            public bool OnlyProblematic { get; private set; }
+            public bool OnlyProblematic
+            {
+                get;
+                private set;
+            }
 
             /// <summary>
             /// Gets the setting.
@@ -873,7 +911,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             /// <value>
             /// The setting.
             /// </value>
-            public Settings.BuildingCheckParameters Setting { get; private set; }
+            public Settings.BuildingCheckParameters Setting
+            {
+                get;
+                private set;
+            }
 
             /// <summary>
             /// Gets the dispatcher building check parameters.

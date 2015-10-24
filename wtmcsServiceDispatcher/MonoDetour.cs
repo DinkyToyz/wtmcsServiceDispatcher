@@ -1,0 +1,770 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using System.Text;
+
+namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
+{
+    /// <summary>
+    /// Method detour class for Mono.
+    /// </summary>
+    internal class MonoDetour
+    {
+        /// <summary>
+        /// The calling conventions indicating existence of a "this" parameter.
+        /// </summary>
+        private static readonly CallingConventions TheseCallingConventions = CallingConventions.HasThis | CallingConventions.ExplicitThis;
+
+        /// <summary>
+        /// The calling conventions that must be the same when comparing two methods.
+        /// </summary>
+        private static readonly CallingConventions ValidateCallingConventions = CallingConventions.Standard | CallingConventions.VarArgs | CallingConventions.Any;
+
+        /// <summary>
+        /// The original call info.
+        /// </summary>
+        private CallInfo originalCallInfo = CallInfo.Zero;
+
+        /// <summary>
+        /// The original call site.
+        /// </summary>
+        private CallSite originalCallSite = CallSite.Zero;
+
+        /// <summary>
+        /// The original method's name.
+        /// </summary>
+        private string originalMethodName;
+
+        /// <summary>
+        /// The original method's class type.
+        /// </summary>
+        private Type originalType;
+
+        /// <summary>
+        /// The replacement call site.
+        /// </summary>
+        private CallSite replacementCallSite = CallSite.Zero;
+
+        /// <summary>
+        /// The replacement method's name.
+        /// </summary>
+        private string replacementMethodName;
+
+        /// <summary>
+        /// The replacement method's class type.
+        /// </summary>
+        private Type replacementType;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="MonoDetour" /> class.
+        /// </summary>
+        /// <param name="originalClass">The original class.</param>
+        /// <param name="replacementClass">The replacement class.</param>
+        /// <param name="originalMethodName">Name of the original method.</param>
+        /// <param name="replacementMethodName">Name of the replacement method.</param>
+        /// <exception cref="System.ArgumentException">
+        /// Original method name not defined
+        /// or
+        /// Replacement method name not defined.
+        /// </exception>
+        /// <exception cref="System.NullReferenceException">
+        /// Replacement method not found
+        /// or
+        /// Original method not found
+        /// or
+        /// Original method address not found
+        /// or
+        /// Replacement method address not found
+        /// or
+        /// Original call info not found.
+        /// </exception>
+        public MonoDetour(Type originalClass, Type replacementClass, string originalMethodName, string replacementMethodName = null)
+        {
+            Log.Info(this, "MonoDetour", originalClass, replacementClass, originalMethodName, replacementMethodName);
+
+            this.IsDetoured = false;
+            this.originalType = originalClass;
+            this.replacementType = replacementClass;
+            this.originalMethodName = originalMethodName;
+            this.replacementMethodName = (replacementMethodName == null) ? originalMethodName : replacementMethodName;
+
+            if (String.IsNullOrEmpty(this.originalMethodName))
+            {
+                throw new ArgumentException("Original method name not defined");
+            }
+
+            if (String.IsNullOrEmpty(this.replacementMethodName))
+            {
+                throw new ArgumentException("Replacement method name not defined");
+            }
+
+            // Get info for the replacement method.
+            MethodInfo replacementMethod = replacementClass.GetMethod(
+                                            this.replacementMethodName,
+                                            BindingFlags.Default | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance);
+            if (replacementMethod == null)
+            {
+                throw new NullReferenceException("Replacement method not found");
+            }
+
+            // Find and get info for the original method by comparing all methods with the specified name to the replacement method.
+            MethodInfo originalMethod = null;
+            foreach (MethodInfo method in originalClass.GetMethods(BindingFlags.Default | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance))
+            {
+                Log.Debug(this, "MonoDetour", "CheckMethod", originalMethodName, method.Name);
+                if (method.Name == originalMethodName && this.ValidateSignatures(replacementMethod, method))
+                {
+                    originalMethod = method;
+                    break;
+                }
+            }
+
+            if (originalMethod == null)
+            {
+                throw new NullReferenceException("Original method not found");
+            }
+
+            this.originalCallSite = originalMethod.MethodHandle.GetFunctionPointer();
+            if (this.originalCallSite == CallSite.Zero)
+            {
+                throw new NullReferenceException("Original method address not found");
+            }
+
+            this.replacementCallSite = replacementMethod.MethodHandle.GetFunctionPointer();
+            if (this.replacementCallSite == CallSite.Zero)
+            {
+                throw new NullReferenceException("Replacement method address not found");
+            }
+
+            // Save call info to original code.
+            this.originalCallInfo = new CallInfo(this.originalCallSite);
+            if (this.originalCallInfo == CallInfo.Zero)
+            {
+                throw new NullReferenceException("Original call info not found");
+            }
+
+            Log.Info(this, "MonoDetour", this);
+        }
+
+        /// <summary>
+        /// Gets a value indicating whether the method is detoured.
+        /// </summary>
+        /// <value>
+        /// <c>True</c> if the method is detoured; otherwise, <c>false</c>.
+        /// </value>
+        public bool IsDetoured
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// Detours the method.
+        /// </summary>
+        /// <exception cref="System.NullReferenceException">
+        /// Original call site not defined
+        /// or
+        /// Replacement call site not defined.
+        /// </exception>
+        public void Detour()
+        {
+            if (this.originalCallSite == CallSite.Zero)
+            {
+                throw new NullReferenceException("Original call site not defined");
+            }
+
+            if (this.replacementCallSite == CallSite.Zero)
+            {
+                throw new NullReferenceException("Replacement call site not defined");
+            }
+
+            this.PatchCallSite(this.originalCallSite, this.replacementCallSite);
+
+            this.IsDetoured = true;
+        }
+
+        /// <summary>
+        /// Reverts the detour.
+        /// </summary>
+        /// <exception cref="System.NullReferenceException">
+        /// Original call site not defined
+        /// or
+        /// Original call info not defined.
+        /// </exception>
+        public void Revert()
+        {
+            if (this.originalCallSite == CallSite.Zero)
+            {
+                throw new NullReferenceException("Original call site not defined");
+            }
+
+            if (this.originalCallInfo == CallInfo.Zero)
+            {
+                throw new NullReferenceException("Original call info not defined");
+            }
+
+            this.IsDetoured = false;
+            this.PatchCallSite(this.originalCallSite, this.originalCallInfo);
+        }
+
+        /// <summary>
+        /// Returns a <see cref="System.String" /> that represents this instance.
+        /// </summary>
+        /// <returns>
+        /// A <see cref="System.String" /> that represents this instance.
+        /// </returns>
+        public override string ToString()
+        {
+            return (new StringBuilder())
+                    .Append("OC:").Append(this.originalType.ToString()).Append(", ")
+                    .Append("RC:").Append(this.replacementType.ToString()).Append(", ")
+                    .Append("OMN:").Append((this.originalMethodName == null) ? "~" : this.originalMethodName).Append(", ")
+                    .Append("RMN:").Append((this.replacementMethodName == null) ? "~" : this.replacementMethodName).Append(", ")
+                    .Append("OCS:").Append(this.originalCallSite).Append(", ")
+                    .Append("RCS:").Append(this.replacementCallSite).Append(", ")
+                    .Append("OCI:").Append(this.originalCallInfo.ToString()).Append(", ")
+                    .Append("D:").Append(this.IsDetoured.ToString())
+                    .ToString();
+        }
+
+        /// <summary>
+        /// Patches the call site.
+        /// </summary>
+        /// <param name="callSite">The call site.</param>
+        /// <param name="targetAddress">The target address pointer.</param>
+        /// <exception cref="System.NullReferenceException">
+        /// Call site not defined
+        /// or
+        /// Target address not defined.
+        /// </exception>
+        private void PatchCallSite(IntPtr callSite, IntPtr targetAddress)
+        {
+            if (callSite == IntPtr.Zero)
+            {
+                throw new NullReferenceException("Call site not defined");
+            }
+
+            if (targetAddress == IntPtr.Zero)
+            {
+                throw new NullReferenceException("Target address not defined");
+            }
+
+            Log.Debug(this, "PatchCallSite", callSite, targetAddress);
+
+            unsafe
+            {
+                byte* rawPointer = (byte*)callSite.ToPointer();
+
+                *rawPointer = 0x49;
+                *(rawPointer + 1) = 0xBB;
+                *((ulong*)(rawPointer + 2)) = (ulong)targetAddress.ToInt64();
+                *(rawPointer + 10) = 0x41;
+                *(rawPointer + 11) = 0xFF;
+                *(rawPointer + 12) = 0xE3;
+            }
+        }
+
+        /// <summary>
+        /// Patches the call site.
+        /// </summary>
+        /// <param name="callSite">The call site.</param>
+        /// <param name="callInfo">The call info.</param>
+        private void PatchCallSite(IntPtr callSite, CallInfo callInfo)
+        {
+            callInfo.PatchCallSite(callSite);
+        }
+
+        /// <summary>
+        /// Validates the method signatures.
+        /// </summary>
+        /// <param name="method1">The first method.</param>
+        /// <param name="method2">The second method2.</param>
+        /// <returns>True on success.</returns>
+        private bool ValidateSignatures(MethodInfo method1, MethodInfo method2)
+        {
+            Log.Debug(this, "ValidateSignatures", method1.Name, method2.Name, method1.DeclaringType, method2.DeclaringType, method1.ReflectedType, method2.ReflectedType);
+
+            // Validate method info.
+            if ((method1.ReturnType != method2.ReturnType) ||
+                (method1.IsGenericMethod != method2.IsGenericMethod) ||
+                ((method1.CallingConvention & ValidateCallingConventions) != (method2.CallingConvention & ValidateCallingConventions)))
+            {
+                Log.Debug(
+                    this,
+                    "ValidateSignatures",
+                    "Fail",
+                    "MethodInfo",
+                    method1.Name,
+                    method2.Name,
+                    method1.ReturnType,
+                    method2.ReturnType,
+                    method1.IsGenericMethod,
+                    method2.IsGenericMethod,
+                    method1.CallingConvention & ValidateCallingConventions,
+                    method2.CallingConvention & ValidateCallingConventions);
+
+                return false;
+            }
+
+            Log.Debug(this, "ValidateSignatures", "these", method1.CallingConvention & TheseCallingConventions, method2.CallingConvention & TheseCallingConventions);
+
+            // Get parameters.
+            List<ParameterInfo> params1 = method1.GetParameters().OrderBy(p => p.Position).ToList();
+            List<ParameterInfo> params2 = method2.GetParameters().OrderBy(p => p.Position).ToList();
+
+            int pos1Add = 0;
+
+            if ((method1.CallingConvention & TheseCallingConventions) == CallingConventions.HasThis &&
+                (method2.CallingConvention & TheseCallingConventions) != CallingConventions.HasThis &&
+                params2[0].Position == 0 &&
+                (params2[0].ParameterType == method1.DeclaringType || params2[0].ParameterType == method1.ReflectedType))
+            {
+                params2.RemoveAt(0);
+                pos1Add = +1;
+            }
+            else if ((method2.CallingConvention & TheseCallingConventions) == CallingConventions.HasThis &&
+                     (method1.CallingConvention & TheseCallingConventions) != CallingConventions.HasThis &&
+                     params1[0].Position == 0 &&
+                     (params1[0].ParameterType == method2.DeclaringType || params1[0].ParameterType == method2.ReflectedType))
+            {
+                params1.RemoveAt(0);
+                pos1Add = -1;
+            }
+
+            if (method1.ReturnParameter != null)
+            {
+                Log.Debug(this, "ValidateSignatures", "ReturnParameter", 1, method1.ReturnParameter);
+                params1.Add(method1.ReturnParameter);
+            }
+
+            if (method2.ReturnParameter != null)
+            {
+                Log.Debug(this, "ValidateSignatures", "ReturnParameter", 2, method2.ReturnParameter);
+                params2.Add(method2.ReturnParameter);
+            }
+
+            StringBuilder paramStr1 = new StringBuilder();
+            for (int i = 0; i < params1.Count; i++)
+            {
+                if (paramStr1.Length > 0)
+                {
+                    paramStr1.Append(", ");
+                }
+
+                paramStr1.Append('#').Append(params1[i].Position.ToString()).Append(' ').Append(params1[i].Name).Append(' ').Append(params1[i].ParameterType.ToString());
+            }
+
+            StringBuilder paramStr2 = new StringBuilder();
+            for (int i = 0; i < params2.Count; i++)
+            {
+                if (paramStr2.Length > 0)
+                {
+                    paramStr2.Append(", ");
+                }
+
+                paramStr2.Append('#').Append(params2[i].Position.ToString()).Append(' ').Append(params2[i].Name).Append(' ').Append(params2[i].ParameterType.ToString());
+            }
+
+            Log.Debug(this, "ValidateSignatures", "Params", 1, paramStr1);
+            Log.Debug(this, "ValidateSignatures", "Params", 2, paramStr2);
+
+            // Validate parameter count.
+            if (params1.Count != params2.Count)
+            {
+                Log.Debug(
+                    this,
+                    "ValidateSignatures",
+                    "Fail",
+                    "ParamCount",
+                    method1.Name,
+                    method2.Name,
+                    params1.Count,
+                    params2.Count);
+
+                return false;
+            }
+
+            // Validate parameters,
+            for (int i = 0; i < params1.Count; i++)
+            {
+                // Validate parameter info.
+                if ((params1[i].IsOut != params2[i].IsOut) ||
+                    (params1[i].IsRetval != params2[i].IsRetval) ||
+                    (params1[i].IsIn != params2[i].IsIn) ||
+                    (params1[i].IsLcid != params2[i].IsLcid) ||
+                    (params1[i].IsOptional != params2[i].IsOptional) ||
+                    (params1[i].ParameterType != params2[i].ParameterType) ||
+                    ((params1[i].DefaultValue == null) != (params2[i].DefaultValue == null)))
+                {
+                    Log.Debug(
+                        this,
+                        "ValidateSignatures",
+                        "Fail",
+                        "ParamInfo",
+                        method1.Name,
+                        method2.Name,
+                        params1[i].IsOut,
+                        params2[i].IsOut,
+                        params1[i].IsRetval,
+                        params2[i].IsRetval,
+                        params1[i].IsIn,
+                        params2[i].IsIn,
+                        params1[i].IsLcid,
+                        params2[i].IsLcid,
+                        params1[i].IsOptional,
+                        params2[i].IsOptional,
+                        params1[i].ParameterType,
+                        params2[i].ParameterType,
+                        params1[i].DefaultValue == null,
+                        params2[i].DefaultValue == null);
+
+                    return false;
+                }
+
+                // Validate parameter default values.
+                if ((params1[i].DefaultValue != null) && (params1[i].DefaultValue.ToString() != params2[i].DefaultValue.ToString()))
+                {
+                    Log.Debug(
+                        this,
+                        "ValidateSignatures",
+                        "Fail",
+                        "DefaultValue",
+                        method1.Name,
+                        method2.Name,
+                        params1[i].DefaultValue.ToString(),
+                        params2[i].DefaultValue.ToString());
+
+                    return false;
+                }
+
+                // Validate parameter position.
+                int pos1 = params1[i].Position + (params1[i].Position >= 0 ? pos1Add : 0);
+                if (pos1 != params2[i].Position)
+                {
+                    Log.Debug(
+                        this,
+                        "ValidateSignatures",
+                        "Fail",
+                        "ParamPos",
+                        pos1,
+                        params2[i].Position);
+
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Call info for method.
+        /// </summary>
+        private struct CallInfo
+        {
+            /// <summary>
+            /// The zero, or null, call info.
+            /// </summary>
+            public static readonly CallInfo Zero = new CallInfo(IntPtr.Zero);
+
+            /// <summary>
+            /// Byte at 0 bytes offset from the call site address.
+            /// </summary>
+            private readonly byte b00;
+
+            /// <summary>
+            /// Byte at 1 bytes offset from the call site address.
+            /// </summary>
+            private readonly byte b01;
+
+            /// <summary>
+            /// Byte at 10 bytes offset from the call site address.
+            /// </summary>
+            private readonly byte b10;
+
+            /// <summary>
+            /// Byte at 11 bytes offset from the call site address.
+            /// </summary>
+            private readonly byte b11;
+
+            /// <summary>
+            /// Byte at 12 bytes offset from the call site address.
+            /// </summary>
+            private readonly byte b12;
+
+            /// <summary>
+            /// Unsigned long at 2 bytes offset from the call site address.
+            /// </summary>
+            private readonly ulong ul02;
+
+            /// <summary>
+            /// Initializes a new instance of the <see cref="CallInfo" /> struct.
+            /// </summary>
+            /// <param name="callSite">The call site address.</param>
+            public CallInfo(IntPtr callSite)
+            {
+                if (callSite == IntPtr.Zero)
+                {
+                    this.b00 = 0;
+                    this.b01 = 0;
+                    this.ul02 = 0;
+                    this.b10 = 0;
+                    this.b11 = 0;
+                    this.b12 = 0;
+                }
+                else
+                {
+                    unsafe
+                    {
+                        byte* rawPointer = (byte*)callSite.ToPointer();
+
+                        this.b00 = *rawPointer;
+                        this.b01 = *(rawPointer + 1);
+                        this.ul02 = *((ulong*)(rawPointer + 2));
+                        this.b10 = *(rawPointer + 10);
+                        this.b11 = *(rawPointer + 11);
+                        this.b12 = *(rawPointer + 12);
+                    }
+                }
+            }
+
+            /// <summary>
+            /// Implements the operator !=.
+            /// </summary>
+            /// <param name="callInfo1">The first call info.</param>
+            /// <param name="callInfo2">The second call info.</param>
+            /// <returns>
+            /// The result of the operator.
+            /// </returns>
+            public static bool operator !=(CallInfo callInfo1, CallInfo callInfo2)
+            {
+                return !callInfo1.Equals(callInfo2);
+            }
+
+            /// <summary>
+            /// Implements the operator ==.
+            /// </summary>
+            /// <param name="callInfo1">The first call info.</param>
+            /// <param name="callInfo2">The second call info.</param>
+            /// <returns>
+            /// The result of the operator.
+            /// </returns>
+            public static bool operator ==(CallInfo callInfo1, CallInfo callInfo2)
+            {
+                return callInfo1.Equals(callInfo2);
+            }
+
+            /// <summary>
+            /// Determines whether the specified <see cref="System.Object" />, is equal to this instance.
+            /// </summary>
+            /// <param name="obj">The <see cref="System.Object" /> to compare with this instance.</param>
+            /// <returns>
+            ///   <c>true</c> if the specified <see cref="System.Object" /> is equal to this instance; otherwise, <c>false</c>.
+            /// </returns>
+            public override bool Equals(object obj)
+            {
+                return
+                    obj is CallInfo && obj != null &&
+                    this.b00 == ((CallInfo)obj).b00 &&
+                    this.b01 == ((CallInfo)obj).b01 &&
+                    this.ul02 == ((CallInfo)obj).ul02 &&
+                    this.b10 == ((CallInfo)obj).b10 &&
+                    this.b11 == ((CallInfo)obj).b11 &&
+                    this.b12 == ((CallInfo)obj).b12;
+            }
+
+            /// <summary>
+            /// Returns a hash code for this instance.
+            /// </summary>
+            /// <returns>
+            /// A hash code for this instance, suitable for use in hashing algorithms and data structures like a hash table.
+            /// </returns>
+            public override int GetHashCode()
+            {
+                return this.ToString().GetHashCode();
+            }
+
+            /// <summary>
+            /// Patches the call site.
+            /// </summary>
+            /// <param name="callSite">The call site.</param>
+            /// <exception cref="System.NullReferenceException">
+            /// Call info defined
+            /// or
+            /// Call site not defined.
+            /// </exception>
+            public void PatchCallSite(IntPtr callSite)
+            {
+                if (this == CallInfo.Zero)
+                {
+                    throw new NullReferenceException("Call info defined");
+                }
+
+                if (callSite == IntPtr.Zero)
+                {
+                    throw new NullReferenceException("Call site not defined");
+                }
+
+                unsafe
+                {
+                    byte* rawPointer = (byte*)callSite.ToPointer();
+
+                    *rawPointer = this.b00;
+                    *(rawPointer + 1) = this.b01;
+                    *((ulong*)(rawPointer + 2)) = this.ul02;
+                    *(rawPointer + 10) = this.b10;
+                    *(rawPointer + 11) = this.b11;
+                    *(rawPointer + 12) = this.b12;
+                }
+            }
+
+            /// <summary>
+            /// Returns a <see cref="System.String" /> that represents this instance.
+            /// </summary>
+            /// <returns>
+            /// A <see cref="System.String" /> that represents this instance.
+            /// </returns>
+            public override string ToString()
+            {
+                return (new StringBuilder())
+                        .Append(this.b00.ToString("X2"))
+                        .Append(this.b01.ToString("X2"))
+                        .Append(this.ul02.ToString("X16"))
+                        .Append(this.b10.ToString("X2"))
+                        .Append(this.b11.ToString("X2"))
+                        .Append(this.b12.ToString("X2"))
+                        .ToString();
+            }
+        }
+
+        /// <summary>
+        /// Integer pointer wrapper for call site.
+        /// </summary>
+        private struct CallSite
+        {
+            /// <summary>
+            /// The zero, or null, call site.
+            /// </summary>
+            public static readonly CallSite Zero = new CallSite(IntPtr.Zero);
+
+            /// <summary>
+            /// The pointer.
+            /// </summary>
+            private IntPtr pointer;
+
+            /// <summary>
+            /// Initializes a new instance of the <see cref="CallSite"/> struct.
+            /// </summary>
+            /// <param name="pointer">The pointer.</param>
+            public CallSite(IntPtr pointer)
+            {
+                this.pointer = pointer;
+            }
+
+            /// <summary>
+            /// Performs an implicit conversion from <see cref="IntPtr"/> to <see cref="CallSite"/>.
+            /// </summary>
+            /// <param name="pointer">The pointer.</param>
+            /// <returns>
+            /// The result of the conversion.
+            /// </returns>
+            public static implicit operator CallSite(IntPtr pointer)
+            {
+                return new CallSite(pointer);
+            }
+
+            /// <summary>
+            /// Performs an implicit conversion from <see cref="CallSite"/> to <see cref="IntPtr"/>.
+            /// </summary>
+            /// <param name="callSite">The call site.</param>
+            /// <returns>
+            /// The result of the conversion.
+            /// </returns>
+            public static implicit operator IntPtr(CallSite callSite)
+            {
+                return callSite.pointer;
+            }
+
+            /// <summary>
+            /// Implements the operator !=.
+            /// </summary>
+            /// <param name="callSite1">The first call site.</param>
+            /// <param name="callSite2">The second call site.</param>
+            /// <returns>
+            /// The result of the operator.
+            /// </returns>
+            public static bool operator !=(CallSite callSite1, CallSite callSite2)
+            {
+                return callSite1.pointer != callSite2.pointer;
+            }
+
+            /// <summary>
+            /// Implements the operator ==.
+            /// </summary>
+            /// <param name="callSite1">The first call site.</param>
+            /// <param name="callSite2">The second call site.</param>
+            /// <returns>
+            /// The result of the operator.
+            /// </returns>
+            public static bool operator ==(CallSite callSite1, CallSite callSite2)
+            {
+                return callSite1.pointer == callSite2.pointer;
+            }
+
+            /// <summary>
+            /// Determines whether the specified <see cref="System.Object" />, is equal to this instance.
+            /// </summary>
+            /// <param name="obj">The <see cref="System.Object" /> to compare with this instance.</param>
+            /// <returns>
+            ///   <c>true</c> if the specified <see cref="System.Object" /> is equal to this instance; otherwise, <c>false</c>.
+            /// </returns>
+            public override bool Equals(object obj)
+            {
+                if (obj is CallSite)
+                {
+                    return ((CallSite)obj).pointer.Equals(this.pointer);
+                }
+
+                if (obj is IntPtr)
+                {
+                    return obj.Equals(this.pointer);
+                }
+
+                return false;
+            }
+
+            /// <summary>
+            /// Returns a hash code for this instance.
+            /// </summary>
+            /// <returns>
+            /// A hash code for this instance, suitable for use in hashing algorithms and data structures like a hash table.
+            /// </returns>
+            public override int GetHashCode()
+            {
+                return this.pointer.ToString().GetHashCode();
+            }
+
+            /// <summary>
+            /// Returns a <see cref="System.String" /> that represents this instance.
+            /// </summary>
+            /// <returns>
+            /// A <see cref="System.String" /> that represents this instance.
+            /// </returns>
+            public override string ToString()
+            {
+                if (this.pointer == IntPtr.Zero)
+                {
+                    return this.pointer.ToString("X16");
+                }
+
+                CallInfo callInfo = new CallInfo(this);
+                if (callInfo == CallInfo.Zero)
+                {
+                    return this.pointer.ToString("X16");
+                }
+
+                return this.pointer.ToString("X16") + "(" + callInfo.ToString() + ")";
+            }
+        }
+    }
+}

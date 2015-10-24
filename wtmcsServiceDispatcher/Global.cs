@@ -43,6 +43,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public static bool LevelLoaded = false;
 
         /// <summary>
+        /// The method detours.
+        /// </summary>
+        public static MethodDetours MethodDetours = null;
+
+        /// <summary>
         /// The minimum object update interval.
         /// </summary>
         public static uint ObjectUpdateInterval = 120;
@@ -107,10 +112,30 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 }
 
                 // Initialize garbage truck objects.
-                if (Settings.DispatchGarbageTrucks && GarbageTruckDispatcher == null)
+                if (Settings.DispatchGarbageTrucks)
                 {
-                    GarbageTruckDispatcher = new Dispatcher(Dispatcher.DispatcherTypes.GarbageTruckDispatcher);
+                    if (GarbageTruckDispatcher == null)
+                    {
+                        GarbageTruckDispatcher = new Dispatcher(Dispatcher.DispatcherTypes.GarbageTruckDispatcher);
+                    }
+
+                    if (Settings.LimitOpportunisticGarbageCollection)
+                    {
+                        MethodDetours.Detour_GarbageTruckAI_TryCollectGarbage();
+                    }
+                    else
+                    {
+                        MethodDetours.Revert_GarbageTruckAI_TryCollectGarbage();
+                    }
                 }
+                else
+                {
+                    MethodDetours.Revert_GarbageTruckAI_TryCollectGarbage();
+                }
+            }
+            else
+            {
+                MethodDetours.Revert();
             }
 
             // Initialize vehicle objects.

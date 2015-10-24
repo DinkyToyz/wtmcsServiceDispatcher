@@ -1,6 +1,6 @@
-﻿using ColossalFramework;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using ColossalFramework;
 
 namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 {
@@ -55,17 +55,29 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// Gets the dead people buildings.
         /// </summary>
-        public Dictionary<ushort, TargetBuildingInfo> DeadPeopleBuildings { get; private set; }
+        public Dictionary<ushort, TargetBuildingInfo> DeadPeopleBuildings
+        {
+            get;
+            private set;
+        }
 
         /// <summary>
         /// Gets the dirty buildings.
         /// </summary>
-        public Dictionary<ushort, TargetBuildingInfo> DirtyBuildings { get; private set; }
+        public Dictionary<ushort, TargetBuildingInfo> DirtyBuildings
+        {
+            get;
+            private set;
+        }
 
         /// <summary>
         /// Gets the garbage buildings.
         /// </summary>
-        public Dictionary<ushort, ServiceBuildingInfo> GarbageBuildings { get; private set; }
+        public Dictionary<ushort, ServiceBuildingInfo> GarbageBuildings
+        {
+            get;
+            private set;
+        }
 
         /// <summary>
         /// Gets a value indicating whether this instance has dead people buildings that should be checked.
@@ -73,7 +85,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <value>
         /// <c>true</c> if this instance has dead people buildings to check; otherwise, <c>false</c>.
         /// </value>
-        public bool HasDeadPeopleBuildingsToCheck { get; private set; }
+        public bool HasDeadPeopleBuildingsToCheck
+        {
+            get;
+            private set;
+        }
 
         /// <summary>
         /// Gets a value indicating whether this instance has dirty buildings that should be checked.
@@ -81,12 +97,20 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <value>
         /// <c>true</c> if this instance has dirty buildings to check; otherwise, <c>false</c>.
         /// </value>
-        public bool HasDirtyBuildingsToCheck { get; private set; }
+        public bool HasDirtyBuildingsToCheck
+        {
+            get;
+            private set;
+        }
 
         /// <summary>
         /// Gets the hearse buildings.
         /// </summary>
-        public Dictionary<ushort, ServiceBuildingInfo> HearseBuildings { get; private set; }
+        public Dictionary<ushort, ServiceBuildingInfo> HearseBuildings
+        {
+            get;
+            private set;
+        }
 
         /// <summary>
         /// Logs a list of service building info for debug use.
@@ -183,7 +207,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             Building[] buildings = Singleton<BuildingManager>.instance.m_buildings.m_buffer;
 
             DistrictManager districtManager = null;
-            if (Global.Settings.DispatchByDistrict || Log.LogNames || Log.LogALot)
+            if (Global.Settings.DispatchAnyByDistrict || Log.LogNames || Log.LogALot)
             {
                 districtManager = Singleton<DistrictManager>.instance;
             }
@@ -266,7 +290,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 {
                     if (!this.HearseBuildings.ContainsKey(buildingId))
                     {
-                        ServiceBuildingInfo hearseBuilding = new ServiceBuildingInfo(districtManager, buildingId, ref building);
+                        ServiceBuildingInfo hearseBuilding = new ServiceBuildingInfo(districtManager, buildingId, ref building, Dispatcher.DispatcherTypes.HearseDispatcher);
                         Log.Debug(this, "CategorizeBuilding", "Cemetary", buildingId, building.Info.name, hearseBuilding.BuildingName, hearseBuilding.Range, hearseBuilding.District);
 
                         this.HearseBuildings[buildingId] = hearseBuilding;
@@ -289,7 +313,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     if (!this.DeadPeopleBuildings.ContainsKey(buildingId))
                     {
                         TargetBuildingInfo deadPeopleBuilding = new TargetBuildingInfo(districtManager, buildingId, ref building, Notification.Problem.Death, true);
-                        if (Log.LogToFile) Log.Debug(this, "CategorizeBuilding", "Dead People", buildingId, building.Info.name, deadPeopleBuilding.BuildingName, building.m_deathProblemTimer, deadPeopleBuilding.ProblemValue, deadPeopleBuilding.HasProblem, deadPeopleBuilding.District);
+                        if (Log.LogToFile)
+                        {
+                            Log.Debug(this, "CategorizeBuilding", "Dead People", buildingId, building.Info.name, deadPeopleBuilding.BuildingName, building.m_deathProblemTimer, deadPeopleBuilding.ProblemValue, deadPeopleBuilding.HasProblem, deadPeopleBuilding.District);
+                        }
 
                         this.DeadPeopleBuildings[buildingId] = deadPeopleBuilding;
                         this.HasDeadPeopleBuildingsToCheck = true;
@@ -302,7 +329,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 }
                 else if (this.DeadPeopleBuildings.ContainsKey(buildingId))
                 {
-                    if (Log.LogToFile) Log.Debug(this, "CategorizeBuilding", "No Dead People", buildingId);
+                    if (Log.LogToFile)
+                    {
+                        Log.Debug(this, "CategorizeBuilding", "No Dead People", buildingId);
+                    }
 
                     this.DeadPeopleBuildings.Remove(buildingId);
                 }
@@ -315,7 +345,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 {
                     if (!this.GarbageBuildings.ContainsKey(buildingId))
                     {
-                        ServiceBuildingInfo garbageBuilding = new ServiceBuildingInfo(districtManager, buildingId, ref building);
+                        ServiceBuildingInfo garbageBuilding = new ServiceBuildingInfo(districtManager, buildingId, ref building, Dispatcher.DispatcherTypes.GarbageTruckDispatcher);
                         Log.Debug(this, "CategorizeBuilding", "Landfill", buildingId, building.Info.name, garbageBuilding.BuildingName, garbageBuilding.Range, garbageBuilding.District);
 
                         this.GarbageBuildings[buildingId] = garbageBuilding;
@@ -338,7 +368,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     if (!this.DirtyBuildings.ContainsKey(buildingId))
                     {
                         TargetBuildingInfo dirtyBuilding = new TargetBuildingInfo(districtManager, buildingId, ref building, Notification.Problem.Garbage, true);
-                        if (Log.LogToFile) Log.Debug(this, "CategorizeBuilding", "Dirty", buildingId, building.Info.name, dirtyBuilding.BuildingName, building.m_garbageBuffer, dirtyBuilding.ProblemValue, dirtyBuilding.HasProblem, dirtyBuilding.District);
+                        if (Log.LogToFile)
+                        {
+                            Log.Debug(this, "CategorizeBuilding", "Dirty", buildingId, building.Info.name, dirtyBuilding.BuildingName, building.m_garbageBuffer, dirtyBuilding.ProblemValue, dirtyBuilding.HasProblem, dirtyBuilding.District);
+                        }
 
                         this.DirtyBuildings[buildingId] = dirtyBuilding;
                         this.HasDirtyBuildingsToCheck = true;
@@ -357,7 +390,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     }
                     else
                     {
-                        if (Log.LogToFile) Log.Debug(this, "CategorizeBuilding", "Not Dirty", buildingId);
+                        if (Log.LogToFile)
+                        {
+                            Log.Debug(this, "CategorizeBuilding", "Not Dirty", buildingId);
+                        }
 
                         this.DirtyBuildings.Remove(buildingId);
                     }
@@ -456,13 +492,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             Building[] buildings = Singleton<BuildingManager>.instance.m_buildings.m_buffer;
 
             DistrictManager districtManager = null;
-            if (Global.Settings.DispatchByDistrict)
+            if (Global.Settings.DispatchAnyByDistrict)
             {
                 districtManager = Singleton<DistrictManager>.instance;
             }
 
             foreach (T building in infoBuildings)
             {
+                building.ReInitialize();
                 building.UpdateValues(districtManager, ref buildings[building.BuildingId]);
             }
         }

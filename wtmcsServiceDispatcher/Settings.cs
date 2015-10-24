@@ -14,7 +14,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// The settings version.
         /// </summary>
-        public readonly int Version = 1;
+        public readonly int Version = 2;
 
         /// <summary>
         /// When to create spare garbage trucks.
@@ -27,24 +27,39 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public SpareVehiclesCreation CreateSpareHearses = SpareVehiclesCreation.WhenBuildingIsCloser;
 
         /// <summary>
-        /// Whether dispatchers should care about districts or not.
-        /// </summary>
-        public bool DispatchByDistrict = false;
-
-        /// <summary>
-        /// Limit service building range.
-        /// </summary>
-        public bool DispatchByRange = true;
-
-        /// <summary>
         /// Whether garbage trucks should be handled or not.
         /// </summary>
         public bool DispatchGarbageTrucks = true;
 
         /// <summary>
+        /// Whether garbage truck dispatchers should care about districts or not.
+        /// </summary>
+        public bool DispatchGarbageTrucksByDistrict = false;
+
+        /// <summary>
+        /// Limit garbage service building range.
+        /// </summary>
+        public bool DispatchGarbageTrucksByRange = true;
+
+        /// <summary>
         /// Whether hearses should be handled or not.
         /// </summary>
         public bool DispatchHearses = true;
+
+        /// <summary>
+        /// Whether hearse dispatchers should care about districts or not.
+        /// </summary>
+        public bool DispatchHearsesByDistrict = false;
+
+        /// <summary>
+        /// Limit hearse service building by range.
+        /// </summary>
+        public bool DispatchHearsesByRange = true;
+
+        /// <summary>
+        /// Limit opportunistic garbage collection.
+        /// </summary>
+        public bool LimitOpportunisticGarbageCollection = true;
 
         /// <summary>
         /// The minimum amount of garbage to dispatch a truck for.
@@ -70,11 +85,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// The range modifier.
         /// </summary>
         public float RangeModifier = 1.0f;
-
-        /////// <summary>
-        /////// Whether stopped garbage trucks should be removed from grid or not.
-        /////// </summary>
-        ////public bool RemoveGarbageTrucksFromGrid = false;
 
         /// <summary>
         /// Whether stopped hearses should be removed from grid or not.
@@ -168,14 +178,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             {
                 this.loadedVersion = settings.Version;
 
-                this.DispatchByDistrict = settings.DispatchByDistrict;
-                this.DispatchByRange = settings.DispatchByRange;
                 this.RangeModifier = settings.RangeModifier;
                 this.RangeLimit = settings.RangeLimit;
                 this.RangeMaximum = settings.RangeMaximum;
                 this.RangeMinimum = settings.RangeMinimum;
 
                 this.DispatchHearses = settings.DispatchHearses;
+                this.DispatchHearsesByDistrict = settings.DispatchHearsesByDistrict;
+                this.DispatchHearsesByRange = settings.DispatchHearsesByRange;
                 this.CreateSpareHearses = settings.CreateSpareHearses;
                 this.RemoveHearsesFromGrid = settings.RemoveHearsesFromGrid;
                 this.deathChecksPreset = settings.DeathChecksPreset;
@@ -186,8 +196,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 }
 
                 this.DispatchGarbageTrucks = settings.DispatchGarbageTrucks;
+                this.DispatchGarbageTrucksByDistrict = settings.DispatchGarbageTrucksByDistrict;
+                this.DispatchGarbageTrucksByRange = settings.DispatchGarbageTrucksByRange;
+                this.LimitOpportunisticGarbageCollection = settings.LimitOpportunisticGarbageCollection;
                 this.CreateSpareGarbageTrucks = settings.CreateSpareGarbageTrucks;
-                ////this.RemoveGarbageTrucksFromGrid = settings.RemoveGarbageTrucksFromGrid;
                 this.MinimumGarbageForDispatch = settings.MinimumGarbageForDispatch;
                 this.garbageChecksPreset = settings.GarbageChecksPreset;
                 this.garbageChecksCustom = settings.GarbageChecksCustom;
@@ -364,6 +376,34 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Gets a value indicating whether any dispatchers cares about districts or not.
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if any dispatchers dispatches by district; otherwise, <c>false</c>.
+        /// </value>
+        public bool DispatchAnyByDistrict
+        {
+            get
+            {
+                return this.DispatchHearsesByDistrict || this.DispatchGarbageTrucksByDistrict;
+            }
+        }
+
+        /// <summary>
+        /// Gets a value indicating whether any dispatcher limits service building dispatch by range.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if any dispatch dispatches by range; otherwise, <c>false</c>.
+        /// </value>
+        public bool DispatchAnyByRange
+        {
+            get
+            {
+                return this.DispatchHearsesByRange || this.DispatchGarbageTrucksByRange;
+            }
+        }
+
+        /// <summary>
         /// Gets the garbage building checks parameters.
         /// </summary>
         /// <value>
@@ -525,6 +565,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         {
                             Log.Debug(typeof(Settings), "Load", "Loaded");
 
+                            if (cfg.Version < 2)
+                            {
+                                cfg.DispatchHearsesByDistrict = cfg.DispatchByDistrict;
+                                cfg.DispatchHearsesByRange = cfg.DispatchByRange;
+                                cfg.DispatchGarbageTrucksByDistrict = cfg.DispatchByDistrict;
+                                cfg.DispatchGarbageTrucksByRange = cfg.DispatchByRange;
+                            }
+
                             Settings sets = new Settings(cfg);
 
                             Log.Debug(typeof(Settings), "Load", "End");
@@ -547,14 +595,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// </summary>
         public void LogSettings()
         {
-            Log.Debug(this, "LogSettings", "DispatchByDistrict", this.DispatchByDistrict);
-            Log.Debug(this, "LogSettings", "DispatchByRange", this.DispatchByRange);
             Log.Debug(this, "LogSettings", "RangeLimit", this.RangeLimit);
             Log.Debug(this, "LogSettings", "RangeModifier", this.RangeModifier);
             Log.Debug(this, "LogSettings", "RangeMinimum", this.RangeMinimum);
             Log.Debug(this, "LogSettings", "RangeMaximum", this.RangeMaximum);
 
             Log.Debug(this, "LogSettings", "DispatchHearses", this.DispatchHearses);
+            Log.Debug(this, "LogSettings", "DispatchHearsesByDistrict", this.DispatchHearsesByDistrict);
+            Log.Debug(this, "LogSettings", "DispatchHearsesByRange", this.DispatchHearsesByRange);
             Log.Debug(this, "LogSettings", "RemoveHearsesFromGrid", this.RemoveHearsesFromGrid);
             Log.Debug(this, "LogSettings", "CreateSpareHearses", this.CreateSpareHearses);
             Log.Debug(this, "LogSettings", "DeathChecks", (byte)this.deathChecksPreset, this.deathChecksPreset, GetBuildingCheckOrderName(this.deathChecksPreset));
@@ -565,7 +613,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             }
 
             Log.Debug(this, "LogSettings", "DispatchGarbageTrucks", this.DispatchGarbageTrucks);
-            ////Log.Debug(this, "LogSettings", "RemoveGarbageTrucksFromGrid", this.RemoveGarbageTrucksFromGrid);
+            Log.Debug(this, "LogSettings", "DispatchGarbageTrucksByDistrict", this.DispatchGarbageTrucksByDistrict);
+            Log.Debug(this, "LogSettings", "DispatchGarbageTrucksByRange", this.DispatchGarbageTrucksByRange);
+            Log.Debug(this, "LogSettings", "LimitOportunisticGarbageCollection", this.LimitOpportunisticGarbageCollection);
             Log.Debug(this, "LogSettings", "CreateSpareGarbageTrucks", this.CreateSpareGarbageTrucks);
             Log.Debug(this, "LogSettings", "MinimumGarbageForDispatch", this.MinimumGarbageForDispatch);
             Log.Debug(this, "LogSettings", "GarbageChecks", (byte)this.garbageChecksPreset, this.garbageChecksPreset, GetBuildingCheckOrderName(this.garbageChecksPreset));
@@ -586,7 +636,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             Log.Debug(this, "Save", "Begin");
 
-            if (Log.LogALot || Library.IsDebugBuild) this.LogSettings();
+            if (Log.LogALot || Library.IsDebugBuild)
+                this.LogSettings();
 
             try
             {
@@ -608,23 +659,25 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 {
                     ServiceDispatcherSettings cfg = new ServiceDispatcherSettings();
 
-                    cfg.DispatchByDistrict = this.DispatchByDistrict;
-                    cfg.DispatchByRange = this.DispatchByRange;
                     cfg.RangeModifier = this.RangeModifier;
                     cfg.RangeLimit = this.RangeLimit;
                     cfg.RangeMaximum = this.RangeMaximum;
                     cfg.RangeMinimum = this.RangeMinimum;
 
+                    cfg.DispatchHearses = this.DispatchHearses;
+                    cfg.DispatchHearsesByDistrict = this.DispatchHearsesByDistrict;
+                    cfg.DispatchHearsesByRange = this.DispatchHearsesByRange;
                     cfg.RemoveHearsesFromGrid = this.RemoveHearsesFromGrid;
                     cfg.CreateSpareHearses = this.CreateSpareHearses;
-                    cfg.DispatchHearses = this.DispatchHearses;
                     cfg.DeathChecksPreset = this.deathChecksPreset;
                     cfg.DeathChecksCustom = this.deathChecksCustom;
                     cfg.DeathChecksCurrent = this.DeathChecksParameters;
 
-                    ////cfg.RemoveGarbageTrucksFromGrid = this.RemoveGarbageTrucksFromGrid;
-                    cfg.CreateSpareGarbageTrucks = this.CreateSpareGarbageTrucks;
                     cfg.DispatchGarbageTrucks = this.DispatchGarbageTrucks;
+                    cfg.DispatchGarbageTrucksByDistrict = this.DispatchGarbageTrucksByDistrict;
+                    cfg.DispatchGarbageTrucksByRange = this.DispatchGarbageTrucksByRange;
+                    cfg.LimitOpportunisticGarbageCollection = this.LimitOpportunisticGarbageCollection;
+                    cfg.CreateSpareGarbageTrucks = this.CreateSpareGarbageTrucks;
                     cfg.MinimumGarbageForDispatch = this.MinimumGarbageForDispatch;
                     cfg.GarbageChecksPreset = this.garbageChecksPreset;
                     cfg.GarbageChecksCustom = this.garbageChecksCustom;
@@ -707,9 +760,29 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             public Boolean DispatchGarbageTrucks = true;
 
             /// <summary>
+            /// Whether garbage truck dispatchers should care about districts or not.
+            /// </summary>
+            public bool DispatchGarbageTrucksByDistrict = false;
+
+            /// <summary>
+            /// Limit garbage service buildings by range.
+            /// </summary>
+            public bool DispatchGarbageTrucksByRange = true;
+
+            /// <summary>
             /// Whether hearses should be handled or not.
             /// </summary>
             public Boolean DispatchHearses = true;
+
+            /// <summary>
+            /// Whether hearse dispatchers should care about districts or not.
+            /// </summary>
+            public bool DispatchHearsesByDistrict = false;
+
+            /// <summary>
+            /// Limit hearse service buildings by range.
+            /// </summary>
+            public bool DispatchHearsesByRange = true;
 
             /// <summary>
             /// The current garbage building checks.
@@ -725,6 +798,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             /// The dirty building checks presets.
             /// </summary>
             public BuildingCheckOrder GarbageChecksPreset = BuildingCheckOrder.InRange;
+
+            /// <summary>
+            /// Limit opportunistic garbage collection.
+            /// </summary>
+            public bool LimitOpportunisticGarbageCollection = true;
 
             /// <summary>
             /// The minimum amount of garbage to dispatch a truck for.

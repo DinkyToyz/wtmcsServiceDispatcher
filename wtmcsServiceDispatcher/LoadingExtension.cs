@@ -1,5 +1,5 @@
-﻿using ICities;
-using System;
+﻿using System;
+using ICities;
 
 namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 {
@@ -82,6 +82,15 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             try
             {
+                try
+                {
+                    Global.MethodDetours.Revert();
+                }
+                catch (Exception dex)
+                {
+                    Log.Error(this, "OnLevelUnloading", dex, "DetourTest");
+                }
+
                 this.DeInitialize();
             }
             catch (Exception ex)
@@ -131,6 +140,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             Global.LevelLoaded = false;
 
             Log.Info(this, "DeInitialize");
+
+            Global.MethodDetours.Dispose();
 
             Global.GarbageTruckDispatcher = null;
             Global.HearseDispatcher = null;

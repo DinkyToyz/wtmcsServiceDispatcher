@@ -24,15 +24,15 @@ There is absolutely no time table for any additional services, and I'm not promi
 
 ## Dispatching
 
-When a building needs to be serviced, the dispatcher will start looking for a free vehicle from the closest available service building first, and then the next closest and so on. When it finds a service building with free vehicles, it will send the one closest to the buidling needing service.
+When a building needs to be serviced, the dispatcher will start looking for a free vehicle from the closest available service building first, and then the next closest and so on. When it finds a service building with free vehicles, it will send the one closest to the building needing service.
 
-Not all service budlings are willing to dispatch to all buildings, and there are a number of strategies, wich in turn uses a set of rules, that can be chosen in order do define what buildings a service buildings will dispatch to.
+Not all service buildings are willing to dispatch to all buildings, and there are a number of strategies, which in turn uses a set of rules, that can be chosen in order do define what buildings a service buildings will dispatch to.
 
 ### Garbage Trucks
 
-Garbage trucks picks up garabge from buildings they pass as well as the building they are dispatched to (this is part of the game, not of this mod).
+Garbage trucks picks up garbage from buildings they pass as well as the building they are dispatched to (this is part of the game, not of this mod).
 
-One result of this is that if the trucks have to travel a long or convoluted way, and passes many buildings with garbage on the way to their target, they might have to turn back to unload before ever reaching their detsination.
+One result of this is that if the trucks have to travel a long or convoluted way, and passes many buildings with garbage on the way to their target, they might have to turn back to unload before ever reaching their destination.
 
 ## Configuration
 
@@ -46,19 +46,19 @@ If no services are set to be dispatch by the mod, it should not affect the game.
   All buildings in the same district as a service building are considered to be in it's range.
 
 - **Dispatch by building range**: 
-  All buildings within a certain distince from a service buidling are considered to be in it's range. The distance is a property of the building asset.
+  All buildings within a certain distance from a service building are considered to be in it's range. The distance is a property of the building asset.
 
 - **Limit building ranges**: 
-  Limit the minimum and maximum range of service bulding (mitigates effects of assets with extreme range).
+  Limit the minimum and maximum range of service building (mitigates effects of assets with extreme range).
 
 - **Range modifier**: 
-  A value with wich service buildings ranges are multiplied. Only available i the config file at the moment.
+  A value with which service buildings ranges are multiplied. Only available i the config file at the moment.
 
 - **Range minimum**: 
-  Minimum service bulting range value when limiting building ranges. Only available i the config file at the moment.
+  Minimum service building range value when limiting building ranges. Only available i the config file at the moment.
 
 - **Range maximum**: 
-  Maximum service bulting range value when limiting building ranges. Only available i the config file at the moment.
+  Maximum service building range value when limiting building ranges. Only available i the config file at the moment.
 
 ### Service options
 
@@ -77,7 +77,7 @@ These options are set separately for different service vehicles (garbage trucks 
   Choose the dispatch strategy to use for these vehicles.
 
 - **Garbage amount limit**: 
-  Only available for garbage trucks. Sets the amount of garbage a bulding must accumulate before a garbage truck is dispatch do take care of it.
+  Only available for garbage trucks. Sets the amount of garbage a building must accumulate before a garbage truck is dispatch do take care of it.
 
 ### Sending Out Spare Vehicles
 
@@ -97,10 +97,10 @@ The game will send out new vehicles when it deems it a good idea, but the dispat
 Services are dispatched based on problem magnitude within the strategy rules.
 
 - **First first**: 
-  All buldings regardless of range.
+  All buildings regardless of range.
 
 - **Forgotten first**: 
-  Forgotten buidlings in range, followed by forgotten buildings out of range, buildings in range and finally problematic buildings in or out of range.
+  Forgotten buildings in range, followed by forgotten buildings out of range, buildings in range and finally problematic buildings in or out of range.
 
 - **In range**: 
   Buildings in range followed by forgotten buildings out of range.
@@ -119,7 +119,7 @@ Services are dispatched based on problem magnitude within the strategy rules.
 
 ### Config File
 
-The config file, wtmcsServiceDispatcher.xml, is stored in the folder "ModConfig" wherever the game points to with [`DataLocation.localApplicationData`]. On a Windows system that'd usually be some where like "C:\Users\[`UserName`]\AppData\Local\Colossal Order\Cities\_Skylines\ModConfig".
+The config file, wtmcsServiceDispatcher.xml, is stored in the folder "ModConfig" wherever the game points to with [`DataLocation.localApplicationData`]. On a Windows system that'll usually be some where like "C:\Users\[`UserName`]\AppData\Local\Colossal Order\Cities\_Skylines\ModConfig".
 
 ## Errors & Logging
 
@@ -127,7 +127,7 @@ When reporting severe errors, please upload [the games complete log file](http:/
 
 The mod logs to [the games normal output log](http://steamcommunity.com/sharedfiles/filedetails/?id=463645931), and can also log to a separate log file, wtmcsServiceDispatcher.log, stored in the same directory as the settings.
 
-Create one or more the following files in the same directory in order to enable debug log stuff (wich might slow things down quite a bit) and logging to file.
+Create one or more the following files in the same directory in order to enable debug log stuff (which might slow things down quite a bit) and logging to file.
 
 - **wtmcsServiceDispatcher.debug**: 
   Enables logging debug data to mod log file, and slightly more logging to the games standard log destinations.
@@ -152,4 +152,4 @@ Create one or more the following files in the same directory in order to enable 
 I made this for myself, and use it. Hopefully it works for others as well, but I make no promises.
 I also make no promises about updating or fixing things fast, as that depends on how busy I am with work and other stuff.
 
-[Source code](https://github.com/DinkyToyz/wtmcsServiceDispatcher) is realesed with MIT license.
+[Source code](https://github.com/DinkyToyz/wtmcsServiceDispatcher) is released with MIT license.
