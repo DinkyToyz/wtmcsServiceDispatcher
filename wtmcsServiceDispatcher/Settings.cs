@@ -659,6 +659,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 {
                     ServiceDispatcherSettings cfg = new ServiceDispatcherSettings();
 
+                    cfg.DispatchByDistrict = this.DispatchHearsesByDistrict && this.DispatchGarbageTrucksByDistrict;
+                    cfg.DispatchByRange = this.DispatchHearsesByRange || this.DispatchGarbageTrucksByRange;
                     cfg.RangeModifier = this.RangeModifier;
                     cfg.RangeLimit = this.RangeLimit;
                     cfg.RangeMaximum = this.RangeMaximum;

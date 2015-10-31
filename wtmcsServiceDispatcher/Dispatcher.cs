@@ -192,7 +192,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             else if (!this.targetBuildings.ContainsKey(vehicle.m_targetBuilding))
             {
                 if (Log.LogALot)
+                {
                     Log.DevDebug(this, "CheckVehicleTarget", "NoNeed", vehicleId, vehicle.m_targetBuilding);
+                }
 
                 vehicle.Info.m_vehicleAI.SetTarget(vehicleId, ref vehicle, (ushort)0); // DeAssignToSource ? vehicle.m_sourceBuilding : (ushort)0
                 serviceBuilding.Vehicles[vehicleId].Target = (ushort)0; // DeAssignToSource ? vehicle.m_sourceBuilding : (ushort)0
@@ -676,7 +678,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                             if (collecting && !loading && vehicles[vehicleId].m_targetBuilding != 0 && vehicles[vehicleId].m_targetBuilding != serviceBuilding.BuildingId && !hasTarget)
                             {
                                 if (Log.LogALot)
+                                {
                                     Log.DevDebug(this, "CollectVehicles", "NoNeed", vehicleId, vehicles[vehicleId].m_targetBuilding);
+                                }
 
                                 vehicles[vehicleId].Info.m_vehicleAI.SetTarget(vehicleId, ref vehicles[vehicleId], (ushort)0); // DeAssignToSource ? serviceBuilding.BuildingId : (ushort)0)
                                 vehicles[vehicleId].m_targetBuilding = (ushort)0; // DeAssignToSource ? serviceBuilding.BuildingId : (ushort)0)

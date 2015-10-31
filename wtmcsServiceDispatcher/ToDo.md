@@ -1,14 +1,14 @@
 #Additions and fixes
 
-- Possibility to turn of or tweak garbage trucks picking up garbage from buildings they pass on the way.
 - road and rail clean-up crews (to remove stuck vehicles, including forgotten trailers and railway cars)
 - house wrecking crews (bulldozers)
-- ambulances?
+- ambulance services?
+- fire fighting services?
+- law enforcement services?
 - send service now button on buildings?
 
 #Changes and experiments
 
 - citizens?
 - Detour ProduceGoods???
-- To stop or limit garbage trucks from picking up what they pass: detour GarbageTruckAI.TryCollectGarbage
 - sort by distance capacity %?

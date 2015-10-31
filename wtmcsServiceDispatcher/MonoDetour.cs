@@ -24,7 +24,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// The original call info.
         /// </summary>
-        private CallInfo originalCallInfo = CallInfo.Zero;
+        private CodeStart originalCodeStart = CodeStart.Zero;
 
         /// <summary>
         /// The original call site.
@@ -112,11 +112,20 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             MethodInfo originalMethod = null;
             foreach (MethodInfo method in originalClass.GetMethods(BindingFlags.Default | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance))
             {
-                Log.Debug(this, "MonoDetour", "CheckMethod", originalMethodName, method.Name);
-                if (method.Name == originalMethodName && this.ValidateSignatures(replacementMethod, method))
+                if (Log.LogALot)
                 {
-                    originalMethod = method;
-                    break;
+                    Log.Debug(this, "MonoDetour", "SearchMethods", originalMethodName, method.Name);
+                }
+
+                if (method.Name == originalMethodName)
+                {
+                    Log.Debug(this, "MonoDetour", "CheckMethod", originalMethodName, method.Name);
+
+                    if (this.ValidateSignatures(replacementMethod, method))
+                    {
+                        originalMethod = method;
+                        break;
+                    }
                 }
             }
 
@@ -138,8 +147,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             }
 
             // Save call info to original code.
-            this.originalCallInfo = new CallInfo(this.originalCallSite);
-            if (this.originalCallInfo == CallInfo.Zero)
+            this.originalCodeStart = new CodeStart(this.originalCallSite);
+            if (this.originalCodeStart == CodeStart.Zero)
             {
                 throw new NullReferenceException("Original call info not found");
             }
@@ -199,13 +208,13 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 throw new NullReferenceException("Original call site not defined");
             }
 
-            if (this.originalCallInfo == CallInfo.Zero)
+            if (this.originalCodeStart == CodeStart.Zero)
             {
                 throw new NullReferenceException("Original call info not defined");
             }
 
             this.IsDetoured = false;
-            this.PatchCallSite(this.originalCallSite, this.originalCallInfo);
+            this.PatchCallSite(this.originalCallSite, this.originalCodeStart);
         }
 
         /// <summary>
@@ -223,7 +232,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     .Append("RMN:").Append((this.replacementMethodName == null) ? "~" : this.replacementMethodName).Append(", ")
                     .Append("OCS:").Append(this.originalCallSite).Append(", ")
                     .Append("RCS:").Append(this.replacementCallSite).Append(", ")
-                    .Append("OCI:").Append(this.originalCallInfo.ToString()).Append(", ")
+                    .Append("OCI:").Append(this.originalCodeStart.ToString()).Append(", ")
                     .Append("D:").Append(this.IsDetoured.ToString())
                     .ToString();
         }
@@ -269,10 +278,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// Patches the call site.
         /// </summary>
         /// <param name="callSite">The call site.</param>
-        /// <param name="callInfo">The call info.</param>
-        private void PatchCallSite(IntPtr callSite, CallInfo callInfo)
+        /// <param name="codeStart">The call info.</param>
+        private void PatchCallSite(IntPtr callSite, CodeStart codeStart)
         {
-            callInfo.PatchCallSite(callSite);
+            codeStart.PatchCallSite(callSite);
         }
 
         /// <summary>
@@ -283,7 +292,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <returns>True on success.</returns>
         private bool ValidateSignatures(MethodInfo method1, MethodInfo method2)
         {
-            Log.Debug(this, "ValidateSignatures", method1.Name, method2.Name, method1.DeclaringType, method2.DeclaringType, method1.ReflectedType, method2.ReflectedType);
+            if (Log.LogALot)
+            {
+                Log.Debug(this, "ValidateSignatures", method1.Name, method2.Name, method1.DeclaringType, method2.DeclaringType, method1.ReflectedType, method2.ReflectedType);
+            }
 
             // Validate method info.
             if ((method1.ReturnType != method2.ReturnType) ||
@@ -307,7 +319,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 return false;
             }
 
-            Log.Debug(this, "ValidateSignatures", "these", method1.CallingConvention & TheseCallingConventions, method2.CallingConvention & TheseCallingConventions);
+            if (Log.LogALot)
+            {
+                Log.Debug(this, "ValidateSignatures", "these", method1.CallingConvention & TheseCallingConventions, method2.CallingConvention & TheseCallingConventions);
+            }
 
             // Get parameters.
             List<ParameterInfo> params1 = method1.GetParameters().OrderBy(p => p.Position).ToList();
@@ -334,40 +349,51 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             if (method1.ReturnParameter != null)
             {
-                Log.Debug(this, "ValidateSignatures", "ReturnParameter", 1, method1.ReturnParameter);
+                if (Log.LogALot)
+                {
+                    Log.Debug(this, "ValidateSignatures", "ReturnParameter", 1, method1.ReturnParameter);
+                }
+
                 params1.Add(method1.ReturnParameter);
             }
 
             if (method2.ReturnParameter != null)
             {
-                Log.Debug(this, "ValidateSignatures", "ReturnParameter", 2, method2.ReturnParameter);
+                if (Log.LogALot)
+                {
+                    Log.Debug(this, "ValidateSignatures", "ReturnParameter", 2, method2.ReturnParameter);
+                }
+
                 params2.Add(method2.ReturnParameter);
             }
 
-            StringBuilder paramStr1 = new StringBuilder();
-            for (int i = 0; i < params1.Count; i++)
+            if (Log.LogALot)
             {
-                if (paramStr1.Length > 0)
+                StringBuilder paramStr1 = new StringBuilder();
+                for (int i = 0; i < params1.Count; i++)
                 {
-                    paramStr1.Append(", ");
+                    if (paramStr1.Length > 0)
+                    {
+                        paramStr1.Append(", ");
+                    }
+
+                    paramStr1.Append('#').Append(params1[i].Position.ToString()).Append(' ').Append(params1[i].Name).Append(' ').Append(params1[i].ParameterType.ToString());
                 }
 
-                paramStr1.Append('#').Append(params1[i].Position.ToString()).Append(' ').Append(params1[i].Name).Append(' ').Append(params1[i].ParameterType.ToString());
-            }
-
-            StringBuilder paramStr2 = new StringBuilder();
-            for (int i = 0; i < params2.Count; i++)
-            {
-                if (paramStr2.Length > 0)
+                StringBuilder paramStr2 = new StringBuilder();
+                for (int i = 0; i < params2.Count; i++)
                 {
-                    paramStr2.Append(", ");
+                    if (paramStr2.Length > 0)
+                    {
+                        paramStr2.Append(", ");
+                    }
+
+                    paramStr2.Append('#').Append(params2[i].Position.ToString()).Append(' ').Append(params2[i].Name).Append(' ').Append(params2[i].ParameterType.ToString());
                 }
 
-                paramStr2.Append('#').Append(params2[i].Position.ToString()).Append(' ').Append(params2[i].Name).Append(' ').Append(params2[i].ParameterType.ToString());
+                Log.Debug(this, "ValidateSignatures", "Params", 1, paramStr1);
+                Log.Debug(this, "ValidateSignatures", "Params", 2, paramStr2);
             }
-
-            Log.Debug(this, "ValidateSignatures", "Params", 1, paramStr1);
-            Log.Debug(this, "ValidateSignatures", "Params", 2, paramStr2);
 
             // Validate parameter count.
             if (params1.Count != params2.Count)
@@ -460,12 +486,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// Call info for method.
         /// </summary>
-        private struct CallInfo
+        private struct CodeStart
         {
             /// <summary>
             /// The zero, or null, call info.
             /// </summary>
-            public static readonly CallInfo Zero = new CallInfo(IntPtr.Zero);
+            public static readonly CodeStart Zero = new CodeStart(IntPtr.Zero);
 
             /// <summary>
             /// Byte at 0 bytes offset from the call site address.
@@ -498,10 +524,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             private readonly ulong ul02;
 
             /// <summary>
-            /// Initializes a new instance of the <see cref="CallInfo" /> struct.
+            /// Initializes a new instance of the <see cref="CodeStart" /> struct.
             /// </summary>
             /// <param name="callSite">The call site address.</param>
-            public CallInfo(IntPtr callSite)
+            public CodeStart(IntPtr callSite)
             {
                 if (callSite == IntPtr.Zero)
                 {
@@ -531,27 +557,27 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             /// <summary>
             /// Implements the operator !=.
             /// </summary>
-            /// <param name="callInfo1">The first call info.</param>
-            /// <param name="callInfo2">The second call info.</param>
+            /// <param name="codeStart1">The first call info.</param>
+            /// <param name="codeStart2">The second call info.</param>
             /// <returns>
             /// The result of the operator.
             /// </returns>
-            public static bool operator !=(CallInfo callInfo1, CallInfo callInfo2)
+            public static bool operator !=(CodeStart codeStart1, CodeStart codeStart2)
             {
-                return !callInfo1.Equals(callInfo2);
+                return !codeStart1.Equals(codeStart2);
             }
 
             /// <summary>
             /// Implements the operator ==.
             /// </summary>
-            /// <param name="callInfo1">The first call info.</param>
-            /// <param name="callInfo2">The second call info.</param>
+            /// <param name="codeStart1">The first call info.</param>
+            /// <param name="codeStart2">The second call info.</param>
             /// <returns>
             /// The result of the operator.
             /// </returns>
-            public static bool operator ==(CallInfo callInfo1, CallInfo callInfo2)
+            public static bool operator ==(CodeStart codeStart1, CodeStart codeStart2)
             {
-                return callInfo1.Equals(callInfo2);
+                return codeStart1.Equals(codeStart2);
             }
 
             /// <summary>
@@ -564,13 +590,13 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             public override bool Equals(object obj)
             {
                 return
-                    obj is CallInfo && obj != null &&
-                    this.b00 == ((CallInfo)obj).b00 &&
-                    this.b01 == ((CallInfo)obj).b01 &&
-                    this.ul02 == ((CallInfo)obj).ul02 &&
-                    this.b10 == ((CallInfo)obj).b10 &&
-                    this.b11 == ((CallInfo)obj).b11 &&
-                    this.b12 == ((CallInfo)obj).b12;
+                    obj is CodeStart && obj != null &&
+                    this.b00 == ((CodeStart)obj).b00 &&
+                    this.b01 == ((CodeStart)obj).b01 &&
+                    this.ul02 == ((CodeStart)obj).ul02 &&
+                    this.b10 == ((CodeStart)obj).b10 &&
+                    this.b11 == ((CodeStart)obj).b11 &&
+                    this.b12 == ((CodeStart)obj).b12;
             }
 
             /// <summary>
@@ -589,15 +615,15 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             /// </summary>
             /// <param name="callSite">The call site.</param>
             /// <exception cref="System.NullReferenceException">
-            /// Call info defined
+            /// Call info not defined
             /// or
             /// Call site not defined.
             /// </exception>
             public void PatchCallSite(IntPtr callSite)
             {
-                if (this == CallInfo.Zero)
+                if (this == CodeStart.Zero)
                 {
-                    throw new NullReferenceException("Call info defined");
+                    throw new NullReferenceException("Call info not defined");
                 }
 
                 if (callSite == IntPtr.Zero)
@@ -757,13 +783,13 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     return this.pointer.ToString("X16");
                 }
 
-                CallInfo callInfo = new CallInfo(this);
-                if (callInfo == CallInfo.Zero)
+                CodeStart codeStart = new CodeStart(this);
+                if (codeStart == CodeStart.Zero)
                 {
                     return this.pointer.ToString("X16");
                 }
 
-                return this.pointer.ToString("X16") + "(" + callInfo.ToString() + ")";
+                return this.pointer.ToString("X16") + "(" + codeStart.ToString() + ")";
             }
         }
     }

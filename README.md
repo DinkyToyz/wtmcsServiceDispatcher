@@ -14,11 +14,13 @@ Dispatches Cities: Skylines services.
 
 This mod is experimental. It might work, but it also might not. It should not affect saves, but it may well wreak havoc with services while enabled.
 
+Except when specificaly noted (see options below), the mod does not override any game code, wich should minimize incompatibilities with other mods.
+
 ## Services
 
 Currently, the mod can dispatch garbage trucks and hearses.
 
-I have vague plans to add road and rail clean-up crews (to remove stuck vehicles, including forgotten trailers and railway cars), house wrecking crews (bulldozers), and might decide to look at ambulances as well.
+I have vague plans to add road and rail clean-up crews (to remove stuck vehicles, including forgotten trailers and railway cars), house wrecking crews (bulldozers), and might decide to look at ambulance, fire and police services as well.
 
 There is absolutely no time table for any additional services, and I'm not promising they'll ever get added.
 
@@ -42,12 +44,6 @@ If no services are set to be dispatch by the mod, it should not affect the game.
 
 ### Global Options
 
-- **Dispatch by district**: 
-  All buildings in the same district as a service building are considered to be in it's range.
-
-- **Dispatch by building range**: 
-  All buildings within a certain distance from a service building are considered to be in it's range. The distance is a property of the building asset.
-
 - **Limit building ranges**: 
   Limit the minimum and maximum range of service building (mitigates effects of assets with extreme range).
 
@@ -60,15 +56,21 @@ If no services are set to be dispatch by the mod, it should not affect the game.
 - **Range maximum**: 
   Maximum service building range value when limiting building ranges. Only available i the config file at the moment.
 
-### Service options
+### Standard Service Options
 
 These options are set separately for different service vehicles (garbage trucks and hearses).
 
 - **Dispatch** [`service vehicles`]: 
   Handle dispatching for these service vehicles.
 
-- **Pass through** [`service vehicles`]: 
-  Remove these vehicles from grid when stopped so traffic can pass.
+- **Dispatch by district**: 
+  All buildings in the same district as a service building are considered to be in it's range.
+
+- **Dispatch by building range**: 
+  All buildings within a certain distance from a service building are considered to be in it's range. The distance is a property of the building asset.
+
+- **Prioritize assigned buildings**: 
+  Only pickup garbage from buildings on the way as long as there will still be room for garbage from the assigned building.
 
 - **Send out spare** [`service vehicles`]: 
   When to send out new vehicles from the service building instead of sending one that's already driving. 
@@ -76,12 +78,9 @@ These options are set separately for different service vehicles (garbage trucks 
 - [`Service vehicle`] **dispatch strategy**: 
   Choose the dispatch strategy to use for these vehicles.
 
-- **Garbage amount limit**: 
-  Only available for garbage trucks. Sets the amount of garbage a building must accumulate before a garbage truck is dispatch do take care of it.
-
 ### Sending Out Spare Vehicles
 
-The game will send out new vehicles when it deems it a good idea, but the dispatcher can be told to before the game would do it.
+The game will send out new vehicles when it deems it a good idea, but the dispatcher can be told to do it before the game would.
 
 - **Never**: 
   Never send out new vehicles before the game would do it anyway.
@@ -91,6 +90,24 @@ The game will send out new vehicles when it deems it a good idea, but the dispat
 
 - **Building is closer**: 
   Send out new vehicles from the closest available service building when the building is closer than it's nearest free vehicles.
+
+### Hearse Service Options
+
+These options are only available for hearses.
+
+- **Pass through** hearses
+  Only available for hearses. Remove these vehicles from grid when stopped so traffic can pass.
+
+### Garbage Truck Service Options
+
+These options are only available for garbage trucks.
+
+- **Prioritize assigned buildings**: 
+  *This option overrides original game code*
+  Limits the amount of garbage picked up from buildings the trucks passes by, in order to leave room for garbage from their assigned buildings.
+
+- **Garbage amount limit**: 
+  Only available for garbage trucks. Sets the amount of garbage a building must accumulate before a garbage truck is dispatch do take care of it.
 
 ### Dispatch Strategies
 
@@ -143,7 +160,6 @@ Create one or more the following files in the same directory in order to enable 
 
 ## To-do
 
-- Limiting of garbage trucks picking up garbage from buildings they pass on the way.
 - Road and rail clean-up crews.
 - House wrecking crews.
 

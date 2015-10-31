@@ -212,7 +212,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     });
 
                 hearseGroup.AddCheckbox(
-                    "Dispatch by district",
+                    "Dispatch hearses by district",
                     Global.Settings.DispatchHearsesByDistrict,
                     value =>
                     {
@@ -225,7 +225,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     });
 
                 hearseGroup.AddCheckbox(
-                    "Dispatch by building range",
+                    "Dispatch hearses by building range",
                     Global.Settings.DispatchHearsesByRange,
                     value =>
                     {
@@ -315,7 +315,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     });
 
                 garbageGroup.AddCheckbox(
-                    "Dispatch by district",
+                    "Dispatch garbage trucks by district",
                     Global.Settings.DispatchGarbageTrucksByDistrict,
                     value =>
                     {
@@ -328,7 +328,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     });
 
                 garbageGroup.AddCheckbox(
-                    "Dispatch by building range",
+                    "Dispatch garbage trucks by building range",
                     Global.Settings.DispatchGarbageTrucksByRange,
                     value =>
                     {
@@ -340,18 +340,27 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         Global.Settings.Save();
                     });
 
-                UIComponent LimitOpportunisticGarbageCollectionCheckBox = garbageGroup.AddCheckbox(
-                    "Prioritize assigned building",
-                    Global.Settings.LimitOpportunisticGarbageCollection,
-                    value =>
-                    {
-                        Global.Settings.LimitOpportunisticGarbageCollection = value;
-                        Global.Settings.Save();
-                        Global.InitHandlers();
-                    }) as UIComponent;
-                if (!Global.MethodDetours.Can_Detour_GarbageTruckAI_TryCollectGarbage)
+                if (Global.MethodDetours.Can_Detour_GarbageTruckAI_TryCollectGarbage)
                 {
-                    LimitOpportunisticGarbageCollectionCheckBox.Disable();
+                    garbageGroup.AddCheckbox(
+                        "Prioritize assigned buildings",
+                        Global.Settings.LimitOpportunisticGarbageCollection,
+                        value =>
+                        {
+                            Global.Settings.LimitOpportunisticGarbageCollection = value;
+                            Global.Settings.Save();
+                            Global.InitHandlers();
+                        });
+                }
+                else
+                {
+                    UIComponent limitOpportunisticGarbageCollectionCheckBox = garbageGroup.AddCheckbox(
+                        "Prioritize assigned buildings",
+                        false,
+                        value =>
+                        {
+                        }) as UIComponent;
+                    limitOpportunisticGarbageCollectionCheckBox.Disable();
                 }
 
                 garbageGroup.AddDropdown(
