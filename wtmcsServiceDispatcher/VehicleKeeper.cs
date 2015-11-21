@@ -10,6 +10,16 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
     internal class VehicleKeeper
     {
         /// <summary>
+        /// The current/last update bucket.
+        /// </summary>
+        private uint bucket;
+
+        /// <summary>
+        /// The vehicle object bucket manager.
+        /// </summary>
+        private Bucketeer bucketeer = new Bucketeer(15, 1024);
+
+        /// <summary>
         /// The data is initialized.
         /// </summary>
         private bool isInitialized = false;
@@ -18,11 +28,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// The vehicles that have been removed from grid.
         /// </summary>
         private HashSet<ushort> removedFromGrid = new HashSet<ushort>();
-
-        /// <summary>
-        /// The current/last building frame.
-        /// </summary>
-        private uint vehicleFrame;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="VehicleKeeper"/> class.
@@ -35,7 +40,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// Updates data.
         /// </summary>
-        /// <exception cref="System.Exception">Update frame loop counter to high.</exception>
+        /// <exception cref="System.Exception">Update bucket loop counter to high.</exception>
         public void Update()
         {
             // Get and categorize vehicles.
@@ -44,19 +49,19 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             if (this.isInitialized)
             {
                 // Data is initialized. Just check buildings for this frame.
-                uint endFrame = this.GetFrameEnd();
+                uint endBucket = this.bucketeer.GetEnd();
 
                 uint counter = 0;
-                while (this.vehicleFrame != endFrame)
+                while (this.bucket != endBucket)
                 {
                     if (counter > 256)
                     {
-                        throw new Exception("Update frame loop counter to high");
+                        throw new Exception("Update bucket loop counter to high");
                     }
                     counter++;
 
-                    this.vehicleFrame = this.GetFrameNext(this.vehicleFrame + 1);
-                    FrameBoundaries bounds = this.GetFrameBoundaries(this.vehicleFrame);
+                    this.bucket = this.bucketeer.GetNext(this.bucket + 1);
+                    Bucketeer.Boundaries bounds = this.bucketeer.GetBoundaries(this.bucket);
 
                     this.HandleVehicles(bounds.FirstId, bounds.LastId);
                 }
@@ -66,40 +71,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 // Data is not initialized. Check all vehicles.
                 this.HandleVehicles();
 
-                this.vehicleFrame = this.GetFrameEnd();
-                this.isInitialized = Global.FramedUpdates;
+                this.bucket = this.bucketeer.GetEnd();
+                this.isInitialized = Global.BucketedUpdates;
             }
-        }
-
-        /// <summary>
-        /// Gets the frame boundaries.
-        /// </summary>
-        /// <param name="frame">The frame.</param>
-        /// <returns>The frame boundaries.</returns>
-        private FrameBoundaries GetFrameBoundaries(uint frame)
-        {
-            frame = frame & 15;
-
-            return new FrameBoundaries(frame * 1024, ((frame + 1) * 1024) - 1);
-        }
-
-        /// <summary>
-        /// Gets the end frame.
-        /// </summary>
-        /// <returns>The end frame.</returns>
-        private uint GetFrameEnd()
-        {
-            return Singleton<SimulationManager>.instance.m_currentFrameIndex & 15;
-        }
-
-        /// <summary>
-        /// Gets the next frame.
-        /// </summary>
-        /// <param name="frame">The current/last frame.</param>
-        /// <returns>The next frame.</returns>
-        private uint GetFrameNext(uint frame)
-        {
-            return frame & 15;
         }
 
         /// <summary>

@@ -10,9 +10,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
     internal class BuildingKeeper
     {
         /// <summary>
-        /// The current/last building frame.
+        /// The current/last update bucket.
         /// </summary>
-        private uint buildingFrame;
+        private uint bucket;
+
+        /// <summary>
+        /// The building object bucket manager.
+        /// </summary>
+        private Bucketeer bucketeer = new Bucketeer(255, 192);
 
         /// <summary>
         /// The data is initialized.
@@ -200,7 +205,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// Updates data.
         /// </summary>
-        /// <exception cref="System.Exception">Update frame loop counter too high.</exception>
+        /// <exception cref="System.Exception">Update bucket loop counter too high.</exception>
         public void Update()
         {
             // Get and categorize buildings.
@@ -211,19 +216,19 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             if (this.isInitialized)
             {
                 // Data is initialized. Just check buildings for this frame.
-                uint endFrame = this.GetFrameEnd();
+                uint endBucket = this.bucketeer.GetEnd();
 
                 uint counter = 0;
-                while (this.buildingFrame != endFrame)
+                while (this.bucket != endBucket)
                 {
                     if (counter > 256)
                     {
-                        throw new Exception("Update frame loop counter too high");
+                        throw new Exception("Update bucket loop counter too high");
                     }
                     counter++;
 
-                    this.buildingFrame = this.GetFrameNext(this.buildingFrame + 1);
-                    FrameBoundaries bounds = this.GetFrameBoundaries(this.buildingFrame);
+                    this.bucket = this.bucketeer.GetNext(this.bucket + 1);
+                    Bucketeer.Boundaries bounds = this.bucketeer.GetBoundaries(this.bucket);
 
                     this.CategorizeBuildings(bounds.FirstId, bounds.LastId);
                 }
@@ -232,8 +237,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             {
                 this.CategorizeBuildings();
 
-                this.buildingFrame = this.GetFrameEnd();
-                this.isInitialized = Global.FramedUpdates;
+                this.bucket = this.bucketeer.GetEnd();
+                this.isInitialized = Global.BucketedUpdates;
             }
 
             if (Global.BuildingUpdateNeeded)
@@ -450,37 +455,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     this.CategorizeBuilding(id, ref buildings[id]);
                 }
             }
-        }
-
-        /// <summary>
-        /// Gets the frame boundaries.
-        /// </summary>
-        /// <param name="frame">The frame.</param>
-        /// <returns>The frame boundaries.</returns>
-        private FrameBoundaries GetFrameBoundaries(uint frame)
-        {
-            frame = frame & 255;
-
-            return new FrameBoundaries(frame * 128, ((frame + 1) * 128) - 1);
-        }
-
-        /// <summary>
-        /// Gets the end frame.
-        /// </summary>
-        /// <returns>The end frame.</returns>
-        private uint GetFrameEnd()
-        {
-            return Singleton<SimulationManager>.instance.m_currentFrameIndex & 255;
-        }
-
-        /// <summary>
-        /// Gets the next frame.
-        /// </summary>
-        /// <param name="frame">The current/last frame.</param>
-        /// <returns>The next frame.</returns>
-        private uint GetFrameNext(uint frame)
-        {
-            return frame & 255;
         }
 
         /// <summary>

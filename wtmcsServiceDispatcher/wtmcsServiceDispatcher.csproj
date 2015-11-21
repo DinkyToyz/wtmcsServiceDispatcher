@@ -78,7 +78,7 @@
     <Compile Include="Settings.cs" />
     <Compile Include="TargetBuildingInfo.cs" />
     <Compile Include="ThreadingExtension.cs" />
-    <Compile Include="FrameBoundaries.cs" />
+    <Compile Include="Bucketeer.cs" />
     <Compile Include="UI.cs" />
     <Compile Include="UIExtensions.cs" />
     <Compile Include="VehicleHelper.cs" />

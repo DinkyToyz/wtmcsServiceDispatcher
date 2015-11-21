@@ -8,6 +8,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
     internal static class Global
     {
         /// <summary>
+        /// Whether updates should be framed or complete.
+        /// </summary>
+        public static bool BucketedUpdates = true;
+
+        /// <summary>
         /// The buildings.
         /// </summary>
         public static BuildingKeeper Buildings = null;
@@ -26,11 +31,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// The current frame.
         /// </summary>
         public static uint CurrentFrame = 0;
-
-        /// <summary>
-        /// Whether updates should be framed or complete.
-        /// </summary>
-        public static bool FramedUpdates = true;
 
         /// <summary>
         /// The garbage truck dispatcher.
