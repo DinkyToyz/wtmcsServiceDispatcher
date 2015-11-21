@@ -340,7 +340,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         Global.Settings.Save();
                     });
 
-                if (Global.MethodDetours.Can_Detour_GarbageTruckAI_TryCollectGarbage)
+                if (Global.MethodDetours.CanDetour_GarbageTruckAI_TryCollectGarbage)
                 {
                     garbageGroup.AddCheckbox(
                         "Prioritize assigned buildings",

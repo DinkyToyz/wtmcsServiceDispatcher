@@ -11,6 +11,27 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
     /// </summary>
     internal class MonoDetour
     {
+        public static bool CanDetour
+        {
+            get
+            {
+                try
+                {
+                    PortableExecutableKinds peKind;
+                    ImageFileMachine imgfMachine;
+                    typeof(object).Module.GetPEKind(out peKind, out imgfMachine);
+
+                    Log.Debug(typeof(MonoDetour), "CanDetour", peKind, imgfMachine);
+                    return imgfMachine == ImageFileMachine.IA64 || imgfMachine == ImageFileMachine.AMD64 || imgfMachine == ImageFileMachine.I386;
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(typeof(MonoDetour), "CanDetour", ex);
+                    return false;
+                }
+            }
+        }
+
         /// <summary>
         /// The calling conventions indicating existence of a "this" parameter.
         /// </summary>
@@ -188,7 +209,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 throw new NullReferenceException("Replacement call site not defined");
             }
 
-            this.PatchCallSite(this.originalCallSite, this.replacementCallSite);
+            this.PatchCallSiteWithJump(this.originalCallSite, this.replacementCallSite);
 
             this.IsDetoured = true;
         }
@@ -214,7 +235,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             }
 
             this.IsDetoured = false;
-            this.PatchCallSite(this.originalCallSite, this.originalCodeStart);
+            this.PatchCallSiteWithCodeStart(this.originalCallSite, this.originalCodeStart);
         }
 
         /// <summary>
@@ -238,7 +259,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
-        /// Patches the call site.
+        /// Patches the call site with an assembly jump to pointer.
         /// </summary>
         /// <param name="callSite">The call site.</param>
         /// <param name="targetAddress">The target address pointer.</param>
@@ -247,7 +268,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// or
         /// Target address not defined.
         /// </exception>
-        private void PatchCallSite(IntPtr callSite, IntPtr targetAddress)
+        private void PatchCallSiteWithJump(IntPtr callSite, IntPtr targetAddress)
         {
             if (callSite == IntPtr.Zero)
             {
@@ -265,21 +286,24 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             {
                 byte* rawPointer = (byte*)callSite.ToPointer();
 
-                *rawPointer = 0x49;
-                *(rawPointer + 1) = 0xBB;
-                *((ulong*)(rawPointer + 2)) = (ulong)targetAddress.ToInt64();
-                *(rawPointer + 10) = 0x41;
-                *(rawPointer + 11) = 0xFF;
-                *(rawPointer + 12) = 0xE3;
+                // Use temporary %r11 register.
+                *rawPointer = 0x49; //movabs
+                *(rawPointer + 1) = 0xBB; // %r11
+                *((ulong*)(rawPointer + 2)) = (ulong)targetAddress.ToInt64(); // jump target address
+
+                // jump
+                *(rawPointer + 10) = 0x41; // encoded ...
+                *(rawPointer + 11) = 0xFF; // ... uncondotional jump
+                *(rawPointer + 12) = 0xE3; // %r11
             }
         }
 
         /// <summary>
-        /// Patches the call site.
+        /// Patches the call site with whatever instructions are in code start.
         /// </summary>
         /// <param name="callSite">The call site.</param>
         /// <param name="codeStart">The call info.</param>
-        private void PatchCallSite(IntPtr callSite, CodeStart codeStart)
+        private void PatchCallSiteWithCodeStart(IntPtr callSite, CodeStart codeStart)
         {
             codeStart.PatchCallSite(callSite);
         }
@@ -484,7 +508,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
-        /// Call info for method.
+        /// Assembly code from start of call site.
         /// </summary>
         private struct CodeStart
         {
@@ -611,7 +635,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             }
 
             /// <summary>
-            /// Patches the call site.
+            /// Patches the call site with instructions.
             /// </summary>
             /// <param name="callSite">The call site.</param>
             /// <exception cref="System.NullReferenceException">

@@ -650,7 +650,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                                 if (collecting && !loading && vehicles[vehicleId].m_targetBuilding != 0 && vehicles[vehicleId].m_targetBuilding != serviceBuilding.Vehicles[vehicleId].Target)
                                 {
                                     if (Log.LogALot)
+                                    {
                                         Log.DevDebug(this, "CollectVehicles", "WrongTarget", vehicleId, vehicles[vehicleId].m_targetBuilding, serviceBuilding.Vehicles[vehicleId].Target);
+                                    }
 
                                     vehicles[vehicleId].Info.m_vehicleAI.SetTarget(vehicleId, ref vehicles[vehicleId], (ushort)0); // DeAssignToSource ? serviceBuilding.BuildingId : (ushort)0)
                                     hasTarget = false;
@@ -690,7 +692,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                             if (collecting && hasTarget)
                             {
                                 if (Log.LogALot && !this.assignedTargets.ContainsKey(vehicles[vehicleId].m_targetBuilding))
+                                {
                                     Log.DevDebug(this, "CollectVehicles", "AddAssigned", serviceBuilding.BuildingId, vehicleId, vehicles[vehicleId].m_targetBuilding);
+                                }
 
                                 this.assignedTargets[vehicles[vehicleId].m_targetBuilding] = Global.CurrentFrame;
                             }
@@ -720,7 +724,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     if (vehicles[vehicleId].Info == null || (vehicles[vehicleId].m_flags & (Vehicle.Flags.Created | Vehicle.Flags.Spawned)) != (Vehicle.Flags.Created | Vehicle.Flags.Spawned) || vehicles[vehicleId].m_transferType != this.TransferType)
                     {
                         if (Log.LogALot)
+                        {
                             Log.DevDebug(this, "CollectVehicles", "RemoveNonVehicle", serviceBuilding.BuildingId, id);
+                        }
 
                         serviceBuilding.Vehicles.Remove(id);
                     }
@@ -729,7 +735,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         if (vehicles[vehicleId].m_sourceBuilding != serviceBuilding.BuildingId)
                         {
                             if (Log.LogALot)
+                            {
                                 Log.DevDebug(this, "CollectVehicles", "RemoveMovedVehicle", serviceBuilding.BuildingId, id);
+                            }
 
                             serviceBuilding.Vehicles.Remove(id);
                         }
@@ -744,7 +752,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             foreach (ushort id in removeTargets)
             {
                 if (Log.LogALot)
+                {
                     Log.DevDebug(this, "CollectVehicles", "RemoveAssigned", id);
+                }
 
                 this.assignedTargets.Remove(id);
             }

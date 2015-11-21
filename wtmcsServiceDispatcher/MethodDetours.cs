@@ -50,11 +50,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <value>
         /// <c>true</c> if [can_ detour_ garbage truck a i_ try collect garbage]; otherwise, <c>false</c>.
         /// </value>
-        public bool Can_Detour_GarbageTruckAI_TryCollectGarbage
+        public bool CanDetour_GarbageTruckAI_TryCollectGarbage
         {
             get
             {
                 return !garbageTruckAI_TryCollectGarbage_Error &&
+                       MonoDetour.CanDetour && 
                        BuildConfig.APPLICATION_VERSION >= GarbageTruckAI_TryCollectGarbage_MinVer &&
                        BuildConfig.APPLICATION_VERSION < GarbageTruckAI_TryCollectGarbage_MaxVer;
             }
@@ -65,7 +66,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// </summary>
         public void Detour_GarbageTruckAI_TryCollectGarbage()
         {
-            if (this.Can_Detour_GarbageTruckAI_TryCollectGarbage)
+            if (this.CanDetour_GarbageTruckAI_TryCollectGarbage)
             {
                 try
                 {
@@ -219,7 +220,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             Building targetBuilding = buildings[vehicleData.m_targetBuilding];
 
             int targetBuildingAmount;
-            targetBuilding.Info.m_buildingAI.GetMaterialAmount(buildingID, ref building, (TransferManager.TransferReason)vehicleData.m_transferType, out targetBuildingAmount, out buildingMax);
+            targetBuilding.Info.m_buildingAI.GetMaterialAmount(vehicleData.m_targetBuilding, ref building, (TransferManager.TransferReason)vehicleData.m_transferType, out targetBuildingAmount, out buildingMax);
             logInfo.Add("TargetBuildingAmount", targetBuildingAmount);
 
             if (buildingAmount + targetBuildingAmount > freeCapacity)

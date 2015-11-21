@@ -384,7 +384,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 }
                 else if (this.DirtyBuildings.ContainsKey(buildingId))
                 {
-                    if (building.m_garbageBuffer >= Global.Settings.MinimumGarbageForDispatch / 10)
+                    if (building.m_garbageBuffer > 10 && building.m_garbageBuffer >= Global.Settings.MinimumGarbageForDispatch / 10)
                     {
                         this.DirtyBuildings[buildingId].Update(districtManager, ref building, Notification.Problem.Garbage, false);
                     }
