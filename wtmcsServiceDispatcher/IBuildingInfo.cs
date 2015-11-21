@@ -91,9 +91,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// Updates the building values.
         /// </summary>
-        /// <param name="districtManager">The district manager.</param>
         /// <param name="building">The building.</param>
         /// <param name="ignoreInterval">If set to <c>true</c> ignore object update interval.</param>
-        void UpdateValues(DistrictManager districtManager, ref Building building, bool ignoreInterval = true);
+        /// <returns>True if updated.</returns>
+        bool UpdateValues(ref Building building, bool ignoreInterval = false);
     }
 }

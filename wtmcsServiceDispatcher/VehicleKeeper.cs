@@ -39,8 +39,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public void Update()
         {
             // Get and categorize vehicles.
-            Vehicle[] vehicles = Singleton<VehicleManager>.instance.m_vehicles.m_buffer;
-            Building[] buildings = Singleton<BuildingManager>.instance.m_buildings.m_buffer;
 
             // First update?
             if (this.isInitialized)
@@ -60,13 +58,13 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     this.vehicleFrame = this.GetFrameNext(this.vehicleFrame + 1);
                     FrameBoundaries bounds = this.GetFrameBoundaries(this.vehicleFrame);
 
-                    this.HandleVehicles(ref vehicles, buildings, bounds.FirstId, bounds.LastId);
+                    this.HandleVehicles(bounds.FirstId, bounds.LastId);
                 }
             }
             else
             {
                 // Data is not initialized. Check all vehicles.
-                this.HandleVehicles(ref vehicles, buildings, 0, vehicles.Length);
+                this.HandleVehicles();
 
                 this.vehicleFrame = this.GetFrameEnd();
                 this.isInitialized = Global.FramedUpdates;
@@ -107,12 +105,21 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// Categorizes the vehicles.
         /// </summary>
-        /// <param name="vehicles">The vehicles.</param>
-        /// <param name="buildings">The buildings.</param>
+        private void HandleVehicles()
+        {
+            this.HandleVehicles(0, Singleton<VehicleManager>.instance.m_vehicles.m_buffer.Length);
+        }
+
+        /// <summary>
+        /// Categorizes the vehicles.
+        /// </summary>
         /// <param name="firstVehicleId">The first vehicle identifier.</param>
         /// <param name="lastVehicleId">The last vehicle identifier.</param>
-        private void HandleVehicles(ref Vehicle[] vehicles, Building[] buildings, ushort firstVehicleId, int lastVehicleId)
+        private void HandleVehicles(ushort firstVehicleId, int lastVehicleId)
         {
+            Vehicle[] vehicles = Singleton<VehicleManager>.instance.m_vehicles.m_buffer;
+            Building[] buildings = Singleton<BuildingManager>.instance.m_buildings.m_buffer;
+
             for (ushort id = firstVehicleId; id < lastVehicleId; id++)
             {
                 if (vehicles[id].m_leadingVehicle != 0 || vehicles[id].m_cargoParent != 0 || vehicles[id].Info == null || (vehicles[id].m_flags & Vehicle.Flags.Spawned) == Vehicle.Flags.None)

@@ -6,6 +6,10 @@ This mod is experimental. It might work, but it also might not. It should not af
 
 Except when specificaly noted (see options below), the mod does not override any game code, wich should minimize incompatibilities with other mods.
 
+[h1]Issues[/h1]
+
+Some people have observed a problem where hearses go to their target buildings but don't load dead bodies.
+
 [h1]Services[/h1]
 
 Currently, the mod can dispatch garbage trucks and hearses.
@@ -22,9 +26,11 @@ Not all service buildings are willing to dispatch to all buildings, and there ar
 
 [u]Garbage Trucks[/u]
 
-Garbage trucks picks up garbage from buildings they pass as well as the building they are dispatched to (this is part of the game, not of this mod).
+Garbage trucks picks up garbage from buildings they pass as well as the building they are dispatched to ([i]this is part of the game, not of this mod[/i]).
 
 One result of this is that if the trucks have to travel a long or convoluted way, and passes many buildings with garbage on the way to their target, they might have to turn back to unload before ever reaching their destination.
+
+The [i]Prioritize assigned buildings[/i] option limits this behaviour.
 
 [h1]Configuration[/h1]
 
@@ -165,6 +171,7 @@ Create one or more the following files in the same directory in order to enable 
 [h1]To-do[/h1]
 
 [list]
+[*]Separate garbage level for patrol and dirty target assignments.
 [*]Road and rail clean-up crews.
 [*]House wrecking crews.
 [/list]

@@ -11,27 +11,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
     /// </summary>
     internal class MonoDetour
     {
-        public static bool CanDetour
-        {
-            get
-            {
-                try
-                {
-                    PortableExecutableKinds peKind;
-                    ImageFileMachine imgfMachine;
-                    typeof(object).Module.GetPEKind(out peKind, out imgfMachine);
-
-                    Log.Debug(typeof(MonoDetour), "CanDetour", peKind, imgfMachine);
-                    return imgfMachine == ImageFileMachine.IA64 || imgfMachine == ImageFileMachine.AMD64 || imgfMachine == ImageFileMachine.I386;
-                }
-                catch (Exception ex)
-                {
-                    Log.Error(typeof(MonoDetour), "CanDetour", ex);
-                    return false;
-                }
-            }
-        }
-
         /// <summary>
         /// The calling conventions indicating existence of a "this" parameter.
         /// </summary>
@@ -43,14 +22,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         private static readonly CallingConventions ValidateCallingConventions = CallingConventions.Standard | CallingConventions.VarArgs | CallingConventions.Any;
 
         /// <summary>
-        /// The original call info.
-        /// </summary>
-        private CodeStart originalCodeStart = CodeStart.Zero;
-
-        /// <summary>
         /// The original call site.
         /// </summary>
         private CallSite originalCallSite = CallSite.Zero;
+
+        /// <summary>
+        /// The original call info.
+        /// </summary>
+        private CodeStart originalCodeStart = CodeStart.Zero;
 
         /// <summary>
         /// The original method's name.
@@ -178,6 +157,33 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Gets a value indicating whether methods can be detoured or not.
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if methods can be detoured; otherwise, <c>false</c>.
+        /// </value>
+        public static bool CanDetour
+        {
+            get
+            {
+                try
+                {
+                    PortableExecutableKinds exeKind;
+                    ImageFileMachine imgfMachine;
+                    typeof(object).Module.GetPEKind(out exeKind, out imgfMachine);
+
+                    Log.Debug(typeof(MonoDetour), "CanDetour", exeKind, imgfMachine);
+                    return imgfMachine == ImageFileMachine.IA64 || imgfMachine == ImageFileMachine.AMD64 || imgfMachine == ImageFileMachine.I386;
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(typeof(MonoDetour), "CanDetour", ex);
+                    return false;
+                }
+            }
+        }
+
+        /// <summary>
         /// Gets a value indicating whether the method is detoured.
         /// </summary>
         /// <value>
@@ -259,6 +265,16 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Patches the call site with whatever instructions are in code start.
+        /// </summary>
+        /// <param name="callSite">The call site.</param>
+        /// <param name="codeStart">The call info.</param>
+        private void PatchCallSiteWithCodeStart(IntPtr callSite, CodeStart codeStart)
+        {
+            codeStart.PatchCallSite(callSite);
+        }
+
+        /// <summary>
         /// Patches the call site with an assembly jump to pointer.
         /// </summary>
         /// <param name="callSite">The call site.</param>
@@ -287,7 +303,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 byte* rawPointer = (byte*)callSite.ToPointer();
 
                 // Use temporary %r11 register.
-                *rawPointer = 0x49; //movabs
+                *rawPointer = 0x49; // movabs
                 *(rawPointer + 1) = 0xBB; // %r11
                 *((ulong*)(rawPointer + 2)) = (ulong)targetAddress.ToInt64(); // jump target address
 
@@ -296,16 +312,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 *(rawPointer + 11) = 0xFF; // ... uncondotional jump
                 *(rawPointer + 12) = 0xE3; // %r11
             }
-        }
-
-        /// <summary>
-        /// Patches the call site with whatever instructions are in code start.
-        /// </summary>
-        /// <param name="callSite">The call site.</param>
-        /// <param name="codeStart">The call info.</param>
-        private void PatchCallSiteWithCodeStart(IntPtr callSite, CodeStart codeStart)
-        {
-            codeStart.PatchCallSite(callSite);
         }
 
         /// <summary>
@@ -508,6 +514,136 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Integer pointer wrapper for call site.
+        /// </summary>
+        private struct CallSite
+        {
+            /// <summary>
+            /// The zero, or null, call site.
+            /// </summary>
+            public static readonly CallSite Zero = new CallSite(IntPtr.Zero);
+
+            /// <summary>
+            /// The pointer.
+            /// </summary>
+            private IntPtr pointer;
+
+            /// <summary>
+            /// Initializes a new instance of the <see cref="CallSite"/> struct.
+            /// </summary>
+            /// <param name="pointer">The pointer.</param>
+            public CallSite(IntPtr pointer)
+            {
+                this.pointer = pointer;
+            }
+
+            /// <summary>
+            /// Performs an implicit conversion from <see cref="IntPtr"/> to <see cref="CallSite"/>.
+            /// </summary>
+            /// <param name="pointer">The pointer.</param>
+            /// <returns>
+            /// The result of the conversion.
+            /// </returns>
+            public static implicit operator CallSite(IntPtr pointer)
+            {
+                return new CallSite(pointer);
+            }
+
+            /// <summary>
+            /// Performs an implicit conversion from <see cref="CallSite"/> to <see cref="IntPtr"/>.
+            /// </summary>
+            /// <param name="callSite">The call site.</param>
+            /// <returns>
+            /// The result of the conversion.
+            /// </returns>
+            public static implicit operator IntPtr(CallSite callSite)
+            {
+                return callSite.pointer;
+            }
+
+            /// <summary>
+            /// Implements the operator !=.
+            /// </summary>
+            /// <param name="callSite1">The first call site.</param>
+            /// <param name="callSite2">The second call site.</param>
+            /// <returns>
+            /// The result of the operator.
+            /// </returns>
+            public static bool operator !=(CallSite callSite1, CallSite callSite2)
+            {
+                return callSite1.pointer != callSite2.pointer;
+            }
+
+            /// <summary>
+            /// Implements the operator ==.
+            /// </summary>
+            /// <param name="callSite1">The first call site.</param>
+            /// <param name="callSite2">The second call site.</param>
+            /// <returns>
+            /// The result of the operator.
+            /// </returns>
+            public static bool operator ==(CallSite callSite1, CallSite callSite2)
+            {
+                return callSite1.pointer == callSite2.pointer;
+            }
+
+            /// <summary>
+            /// Determines whether the specified <see cref="System.Object" />, is equal to this instance.
+            /// </summary>
+            /// <param name="obj">The <see cref="System.Object" /> to compare with this instance.</param>
+            /// <returns>
+            ///   <c>true</c> if the specified <see cref="System.Object" /> is equal to this instance; otherwise, <c>false</c>.
+            /// </returns>
+            public override bool Equals(object obj)
+            {
+                if (obj is CallSite)
+                {
+                    return ((CallSite)obj).pointer.Equals(this.pointer);
+                }
+
+                if (obj is IntPtr)
+                {
+                    return obj.Equals(this.pointer);
+                }
+
+                return false;
+            }
+
+            /// <summary>
+            /// Returns a hash code for this instance.
+            /// </summary>
+            /// <returns>
+            /// A hash code for this instance, suitable for use in hashing algorithms and data structures like a hash table.
+            /// </returns>
+            public override int GetHashCode()
+            {
+                return this.pointer.ToString().GetHashCode();
+            }
+
+            /// <summary>
+            /// Returns a <see cref="System.String" /> that represents this instance.
+            /// </summary>
+            /// <returns>
+            /// A <see cref="System.String" /> that represents this instance.
+            /// </returns>
+            public override string ToString()
+            {
+                if (this.pointer == IntPtr.Zero)
+                {
+                    return this.pointer.ToString("X16");
+                }
+
+                CodeStart codeStart = new CodeStart(this);
+                if (codeStart == CodeStart.Zero)
+                {
+                    return this.pointer.ToString("X16");
+                }
+
+                return this.pointer.ToString("X16") + "(" + codeStart.ToString() + ")";
+            }
+        }
+
+        /// <summary>
         /// Assembly code from start of call site.
         /// </summary>
         private struct CodeStart
@@ -684,136 +820,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         .Append(this.b11.ToString("X2"))
                         .Append(this.b12.ToString("X2"))
                         .ToString();
-            }
-        }
-
-        /// <summary>
-        /// Integer pointer wrapper for call site.
-        /// </summary>
-        private struct CallSite
-        {
-            /// <summary>
-            /// The zero, or null, call site.
-            /// </summary>
-            public static readonly CallSite Zero = new CallSite(IntPtr.Zero);
-
-            /// <summary>
-            /// The pointer.
-            /// </summary>
-            private IntPtr pointer;
-
-            /// <summary>
-            /// Initializes a new instance of the <see cref="CallSite"/> struct.
-            /// </summary>
-            /// <param name="pointer">The pointer.</param>
-            public CallSite(IntPtr pointer)
-            {
-                this.pointer = pointer;
-            }
-
-            /// <summary>
-            /// Performs an implicit conversion from <see cref="IntPtr"/> to <see cref="CallSite"/>.
-            /// </summary>
-            /// <param name="pointer">The pointer.</param>
-            /// <returns>
-            /// The result of the conversion.
-            /// </returns>
-            public static implicit operator CallSite(IntPtr pointer)
-            {
-                return new CallSite(pointer);
-            }
-
-            /// <summary>
-            /// Performs an implicit conversion from <see cref="CallSite"/> to <see cref="IntPtr"/>.
-            /// </summary>
-            /// <param name="callSite">The call site.</param>
-            /// <returns>
-            /// The result of the conversion.
-            /// </returns>
-            public static implicit operator IntPtr(CallSite callSite)
-            {
-                return callSite.pointer;
-            }
-
-            /// <summary>
-            /// Implements the operator !=.
-            /// </summary>
-            /// <param name="callSite1">The first call site.</param>
-            /// <param name="callSite2">The second call site.</param>
-            /// <returns>
-            /// The result of the operator.
-            /// </returns>
-            public static bool operator !=(CallSite callSite1, CallSite callSite2)
-            {
-                return callSite1.pointer != callSite2.pointer;
-            }
-
-            /// <summary>
-            /// Implements the operator ==.
-            /// </summary>
-            /// <param name="callSite1">The first call site.</param>
-            /// <param name="callSite2">The second call site.</param>
-            /// <returns>
-            /// The result of the operator.
-            /// </returns>
-            public static bool operator ==(CallSite callSite1, CallSite callSite2)
-            {
-                return callSite1.pointer == callSite2.pointer;
-            }
-
-            /// <summary>
-            /// Determines whether the specified <see cref="System.Object" />, is equal to this instance.
-            /// </summary>
-            /// <param name="obj">The <see cref="System.Object" /> to compare with this instance.</param>
-            /// <returns>
-            ///   <c>true</c> if the specified <see cref="System.Object" /> is equal to this instance; otherwise, <c>false</c>.
-            /// </returns>
-            public override bool Equals(object obj)
-            {
-                if (obj is CallSite)
-                {
-                    return ((CallSite)obj).pointer.Equals(this.pointer);
-                }
-
-                if (obj is IntPtr)
-                {
-                    return obj.Equals(this.pointer);
-                }
-
-                return false;
-            }
-
-            /// <summary>
-            /// Returns a hash code for this instance.
-            /// </summary>
-            /// <returns>
-            /// A hash code for this instance, suitable for use in hashing algorithms and data structures like a hash table.
-            /// </returns>
-            public override int GetHashCode()
-            {
-                return this.pointer.ToString().GetHashCode();
-            }
-
-            /// <summary>
-            /// Returns a <see cref="System.String" /> that represents this instance.
-            /// </summary>
-            /// <returns>
-            /// A <see cref="System.String" /> that represents this instance.
-            /// </returns>
-            public override string ToString()
-            {
-                if (this.pointer == IntPtr.Zero)
-                {
-                    return this.pointer.ToString("X16");
-                }
-
-                CodeStart codeStart = new CodeStart(this);
-                if (codeStart == CodeStart.Zero)
-                {
-                    return this.pointer.ToString("X16");
-                }
-
-                return this.pointer.ToString("X16") + "(" + codeStart.ToString() + ")";
             }
         }
     }

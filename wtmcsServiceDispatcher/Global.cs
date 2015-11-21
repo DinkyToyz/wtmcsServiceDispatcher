@@ -18,6 +18,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public static bool BuildingUpdateNeeded = false;
 
         /// <summary>
+        /// The minimum capacity update interval.
+        /// </summary>
+        public static uint CapacityUpdateInterval = 30u;
+
+        /// <summary>
         /// The current frame.
         /// </summary>
         public static uint CurrentFrame = 0;
@@ -50,7 +55,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// The minimum object update interval.
         /// </summary>
-        public static uint ObjectUpdateInterval = 120;
+        public static uint ObjectUpdateInterval = 120u;
 
         /// <summary>
         /// The minimum recheck interval for handled targets.

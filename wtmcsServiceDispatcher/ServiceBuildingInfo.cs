@@ -30,6 +30,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         private uint lastInfoUpdate = 0;
 
         /// <summary>
+        /// The last capacity update stamp.
+        /// </summary>
+        private uint lastCapacityUpdate = 0;
+
+        /// <summary>
         /// The last update stamp.
         /// </summary>
         private uint lastUpdate = 0;
@@ -47,11 +52,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// Initializes a new instance of the <see cref="ServiceBuildingInfo" /> class.
         /// </summary>
-        /// <param name="districtManager">The district manager.</param>
         /// <param name="buildingId">The building identifier.</param>
         /// <param name="building">The building.</param>
         /// <param name="dispatcherType">Type of the dispatcher.</param>
-        public ServiceBuildingInfo(DistrictManager districtManager, ushort buildingId, ref Building building, Dispatcher.DispatcherTypes dispatcherType)
+        public ServiceBuildingInfo(ushort buildingId, ref Building building, Dispatcher.DispatcherTypes dispatcherType)
         {
             this.BuildingId = buildingId;
             this.Distance = float.PositiveInfinity;
@@ -64,7 +68,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             this.Initialize();
 
-            this.Update(districtManager, ref building);
+            this.Update(ref building);
         }
 
         /// <summary>
@@ -128,6 +132,30 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             get;
             set;
+        }
+
+        /// <summary>
+        /// Gets the free capacity.
+        /// </summary>
+        /// <value>
+        /// The free capacity.
+        /// </value>
+        public int CapacityFree
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// Gets the capacity maximum.
+        /// </summary>
+        /// <value>
+        /// The capacity maximum.
+        /// </value>
+        public int CapacityMax
+        {
+            get;
+            private set;
         }
 
         /// <summary>
@@ -281,6 +309,18 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Gets or the capacity overflow.
+        /// </summary>
+        /// <value>
+        /// The capacity overflow.
+        /// </value>
+        public int CapacityOverflow
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
         /// Creates the vehicle.
         /// </summary>
         /// <param name="transferType">Type of the transfer.</param>
@@ -316,16 +356,20 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// Sets the target information.
         /// </summary>
-        /// <param name="districtManager">The district manager.</param>
         /// <param name="building">The building.</param>
         /// <param name="ignoreRange">If set to <c>true</c> ignore the range.</param>
-        public void SetTargetInfo(DistrictManager districtManager, TargetBuildingInfo building, bool ignoreRange)
+        public void SetTargetInfo(TargetBuildingInfo building, bool ignoreRange)
         {
+            if (this.lastUpdate != Global.CurrentFrame)
+            {
+                this.Update(ref Singleton<BuildingManager>.instance.m_buildings.m_buffer[this.BuildingId], true);
+            }
+
             this.Distance = (this.Position - building.Position).sqrMagnitude;
 
-            if (this.dispatchByDistrict && districtManager != null)
+            if (this.dispatchByDistrict)
             {
-                byte district = districtManager.GetDistrict(building.Position);
+                byte district = Singleton<DistrictManager>.instance.GetDistrict(building.Position);
                 this.InDistrict = district == this.District;
             }
             else
@@ -334,41 +378,74 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             }
 
             this.InRange = ignoreRange || this.InDistrict || (this.dispatchByRange && this.Distance < this.Range) || (!this.dispatchByDistrict && !this.dispatchByRange);
+
+            this.CapacityOverflow = (this.CapacityFree >= building.ProblemSize) ? 0 : building.ProblemSize - this.CapacityFree;
         }
 
         /// <summary>
         /// Updates the building info.
         /// </summary>
-        /// <param name="districtManager">The district manager.</param>
         /// <param name="building">The building.</param>
-        public void Update(DistrictManager districtManager, ref Building building)
+        /// <param name="checkCapacityInterval">If set to <c>true</c> update capacity if outside capacity interval.</param>
+        public void Update(ref Building building, bool checkCapacityInterval = false)
         {
             this.lastUpdate = Global.CurrentFrame;
 
             this.Position = building.m_position;
             this.FirstOwnVehicleId = building.m_ownVehicles;
 
-            this.UpdateValues(districtManager, ref building, false);
+            bool didUpdate = this.UpdateValues(ref building);
+
+            if (didUpdate || this.lastCapacityUpdate == 0 || (checkCapacityInterval && Global.CurrentFrame - this.lastCapacityUpdate > Global.CapacityUpdateInterval))
+            {
+                int max;
+                int amount;
+                int productionRate = PlayerBuildingAI.GetProductionRate(100, Singleton<EconomyManager>.instance.GetBudget(building.Info.m_buildingAI.m_info.m_class));
+                if (building.Info.m_buildingAI is CemeteryAI)
+                {
+                    this.VehiclesTotal = ((CemeteryAI)building.Info.m_buildingAI).m_hearseCount;
+                    building.Info.m_buildingAI.GetMaterialAmount(this.BuildingId, ref building, TransferManager.TransferReason.Dead, out amount, out max);
+                }
+                else if (building.Info.m_buildingAI is LandfillSiteAI)
+                {
+                    this.VehiclesTotal = ((LandfillSiteAI)building.Info.m_buildingAI).m_garbageTruckCount;
+                    building.Info.m_buildingAI.GetMaterialAmount(this.BuildingId, ref building, TransferManager.TransferReason.Garbage, out amount, out max);
+                }
+                else
+                {
+                    this.VehiclesTotal = 0;
+                    amount = 0;
+                    max = 0;
+                }
+                this.VehiclesTotal = ((productionRate * this.VehiclesTotal) + 99) / 100;
+                this.CapacityMax = max;
+                this.CapacityFree = max - amount;
+
+                didUpdate = true;
+                this.lastCapacityUpdate = Global.CurrentFrame;
+            }
 
             this.CanReceive = (building.m_flags & (Building.Flags.CapacityFull | Building.Flags.Downgrading | Building.Flags.Demolishing | Building.Flags.Deleted | Building.Flags.BurnedDown)) == Building.Flags.None &&
-                              (building.m_flags & (Building.Flags.Created | Building.Flags.Created | Building.Flags.Active)) == (Building.Flags.Created | Building.Flags.Created | Building.Flags.Active) &&
+                              (building.m_flags & (Building.Flags.Created | Building.Flags.Active)) == (Building.Flags.Created | Building.Flags.Active) &&
                               (building.m_problems & (Notification.Problem.Emptying | Notification.Problem.LandfillFull | Notification.Problem.RoadNotConnected | Notification.Problem.TurnedOff | Notification.Problem.FatalProblem)) == Notification.Problem.None &&
-                              !building.Info.m_buildingAI.IsFull(this.BuildingId, ref building);
+                              this.CapacityFree > 0 && !building.Info.m_buildingAI.IsFull(this.BuildingId, ref building);
         }
 
         /// <summary>
         /// Updates the building values.
         /// </summary>
-        /// <param name="districtManager">The district manager.</param>
         /// <param name="building">The building.</param>
         /// <param name="ignoreInterval">If set to <c>true</c> ignore object update interval.</param>
-        public void UpdateValues(DistrictManager districtManager, ref Building building, bool ignoreInterval = true)
+        /// <returns>
+        /// True if updated.
+        /// </returns>
+        public bool UpdateValues(ref Building building, bool ignoreInterval = false)
         {
             if (this.lastInfoUpdate == 0 || (ignoreInterval && this.lastInfoUpdate != Global.CurrentFrame) || Global.CurrentFrame - this.lastInfoUpdate > Global.ObjectUpdateInterval)
             {
-                if (this.dispatchByDistrict && districtManager != null)
+                if (this.dispatchByDistrict)
                 {
-                    this.District = districtManager.GetDistrict(this.Position);
+                    this.District = Singleton<DistrictManager>.instance.GetDistrict(this.Position);
                 }
                 else if (this.lastInfoUpdate == 0)
                 {
@@ -392,19 +469,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     }
                 }
 
-                int productionRate = PlayerBuildingAI.GetProductionRate(100, Singleton<EconomyManager>.instance.GetBudget(building.Info.m_buildingAI.m_info.m_class));
-                if (building.Info.m_buildingAI is CemeteryAI)
-                {
-                    this.VehiclesTotal = ((CemeteryAI)building.Info.m_buildingAI).m_hearseCount;
-                }
-                else if (building.Info.m_buildingAI is LandfillSiteAI)
-                {
-                    this.VehiclesTotal = ((LandfillSiteAI)building.Info.m_buildingAI).m_garbageTruckCount;
-                }
-                this.VehiclesTotal = ((productionRate * this.VehiclesTotal) + 99) / 100;
-
                 this.lastInfoUpdate = Global.CurrentFrame;
+
+                return true;
             }
+
+            return false;
         }
 
         /// <summary>
@@ -449,22 +519,28 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 {
                     return 1;
                 }
-                else
+
+                int c = x.CapacityOverflow - y.CapacityOverflow;
+                if (c < 0)
                 {
-                    float s = x.Distance - y.Distance;
-                    if (s < 0)
-                    {
-                        return -1;
-                    }
-                    else if (s > 0)
-                    {
-                        return 1;
-                    }
-                    else
-                    {
-                        return 0;
-                    }
+                    return -1;
                 }
+                else if (c > 0)
+                {
+                    return 1;
+                }
+
+                float s = x.Distance - y.Distance;
+                if (s < 0)
+                {
+                    return -1;
+                }
+                else if (s > 0)
+                {
+                    return 1;
+                }
+
+                return 0;
             }
         }
     }

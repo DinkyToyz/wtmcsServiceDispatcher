@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using ColossalFramework;
 using UnityEngine;
 
 namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
@@ -36,16 +38,15 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// Initializes a new instance of the <see cref="TargetBuildingInfo" /> class.
         /// </summary>
-        /// <param name="districtManager">The district manager.</param>
         /// <param name="buildingId">The building identifier.</param>
         /// <param name="building">The building.</param>
         /// <param name="problemToCheck">The problem to check.</param>
         /// <param name="needsService">If set to <c>true</c> building needs service.</param>
-        public TargetBuildingInfo(DistrictManager districtManager, ushort buildingId, ref Building building, Notification.Problem problemToCheck, bool needsService)
+        public TargetBuildingInfo(ushort buildingId, ref Building building, Notification.Problem problemToCheck, bool needsService)
         {
             this.BuildingId = buildingId;
 
-            this.Update(districtManager, ref building, problemToCheck, needsService);
+            this.Update(ref building, problemToCheck, needsService);
         }
 
         /// <summary>
@@ -272,19 +273,49 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// Updates the building.
         /// </summary>
-        /// <param name="districtManager">The district manager.</param>
         /// <param name="building">The building.</param>
         /// <param name="problemToCheck">The problem to check.</param>
         /// <param name="needsService">If set to <c>true</c> building needs service.</param>
-        public void Update(DistrictManager districtManager, ref Building building, Notification.Problem problemToCheck, bool needsService)
+        /// <exception cref="System.Exception">Loop counter too high.</exception>
+        public void Update(ref Building building, Notification.Problem problemToCheck, bool needsService)
         {
             this.lastUpdate = Global.CurrentFrame;
 
             switch (problemToCheck)
             {
                 case Notification.Problem.Death:
+                    CitizenManager citizenManager = Singleton<CitizenManager>.instance;
+
+                    int size = 0;
+                    int count = 0;
+                    uint unitId = building.m_citizenUnits;
+                    while (unitId != 0)
+                    {
+                        CitizenUnit unit = citizenManager.m_units.m_buffer[unitId];
+                        for (int i = 0; i < 5; i++)
+                        {
+                            uint citizenId = unit.GetCitizen(i);
+                            if (citizenId != 0)
+                            {
+                                Citizen citizen = citizenManager.m_citizens.m_buffer[citizenId];
+                                if (citizen.Dead && citizen.GetBuildingByLocation() == this.BuildingId)
+                                {
+                                    size++;
+                                }
+                            }
+                        }
+
+                        count++;
+                        if (count > ushort.MaxValue * 10)
+                        {
+                            throw new Exception("Loop counter too high");
+                        }
+
+                        unitId = unit.m_nextUnit;
+                    }
+
                     this.ProblemValue = (ushort)building.m_deathProblemTimer << 8;
-                    this.ProblemSize = 1;
+                    this.ProblemSize = size;
                     break;
 
                 case Notification.Problem.Garbage:
@@ -301,7 +332,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             this.HasProblem = (building.m_problems & problemToCheck) == problemToCheck || this.ProblemValue >= Dispatcher.ProblemLimit;
             this.Position = building.m_position;
 
-            this.UpdateValues(districtManager, ref building, false);
+            this.UpdateValues(ref building, false);
 
             this.NeedsService = needsService || this.HasProblem;
 
@@ -313,16 +344,18 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// Updates the building values.
         /// </summary>
-        /// <param name="districtManager">The district manager.</param>
         /// <param name="building">The building.</param>
         /// <param name="ignoreInterval">If set to <c>true</c> ignore object update interval.</param>
-        public void UpdateValues(DistrictManager districtManager, ref Building building, bool ignoreInterval = true)
+        /// <returns>
+        /// True if updated.
+        /// </returns>
+        public bool UpdateValues(ref Building building, bool ignoreInterval = true)
         {
             if (this.lastInfoUpdate == 0 || (ignoreInterval && this.lastInfoUpdate != Global.CurrentFrame) || Global.CurrentFrame - this.lastInfoUpdate > Global.ObjectUpdateInterval)
             {
-                if (districtManager != null)
+                if (Global.Settings.DispatchAnyByDistrict)
                 {
-                    this.District = districtManager.GetDistrict(this.Position);
+                    this.District = Singleton<DistrictManager>.instance.GetDistrict(this.Position);
                 }
                 else if (this.lastInfoUpdate == 0)
                 {
@@ -330,7 +363,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 }
 
                 this.lastInfoUpdate = Global.CurrentFrame;
+
+                return true;
             }
+
+            return false;
         }
 
         /// <summary>

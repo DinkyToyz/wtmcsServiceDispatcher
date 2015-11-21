@@ -178,14 +178,18 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             if (serviceBuilding == null)
             {
                 if (Log.LogALot)
+                {
                     Log.DevDebug(this, "CheckVehicleTarget", "NewBuilding", vehicleId, vehicle.m_targetBuilding);
+                }
 
                 vehicle.Info.m_vehicleAI.SetTarget(vehicleId, ref vehicle, 0);
             }
             else if (!serviceBuilding.Vehicles.ContainsKey(vehicleId))
             {
                 if (Log.LogALot)
+                {
                     Log.DevDebug(this, "CheckVehicleTarget", "NewVehicle", vehicleId, vehicle.m_targetBuilding);
+                }
 
                 vehicle.Info.m_vehicleAI.SetTarget(vehicleId, ref vehicle, (ushort)0); // DeAssignToSource ? vehicle.m_sourceBuilding : (ushort)0
             }
@@ -202,7 +206,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             else if (vehicle.m_targetBuilding != serviceBuilding.Vehicles[vehicleId].Target)
             {
                 if (Log.LogALot)
+                {
                     Log.DevDebug(this, "CheckVehicleTarget", "WrongTarget", vehicleId, vehicle.m_targetBuilding, serviceBuilding.Vehicles[vehicleId].Target);
+                }
 
                 vehicle.Info.m_vehicleAI.SetTarget(vehicleId, ref vehicle, (ushort)0); // DeAssignToSource ? vehicle.m_sourceBuilding : (ushort)0
                 serviceBuilding.Vehicles[vehicleId].Target = (ushort)0; // DeAssignToSource ? vehicle.m_sourceBuilding : (ushort)0
@@ -302,18 +308,16 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         private bool AssignVehicle(TargetBuildingInfo targetBuilding, bool ignoreRange)
         {
             // Get target district.
-            DistrictManager districtManager = null;
             byte targetDistrict = 0;
             if (this.dispatchByDistrict)
             {
-                districtManager = Singleton<DistrictManager>.instance;
-                targetDistrict = districtManager.GetDistrict(targetBuilding.Position);
+                targetDistrict = Singleton<DistrictManager>.instance.GetDistrict(targetBuilding.Position);
             }
 
             // Set target info on service buildings.
             foreach (ServiceBuildingInfo serviceBuilding in this.serviceBuildings.Values.Where(sb => sb.CanReceive && sb.VehiclesFree > 0))
             {
-                serviceBuilding.SetTargetInfo(districtManager, targetBuilding, ignoreRange);
+                serviceBuilding.SetTargetInfo(targetBuilding, ignoreRange);
             }
 
             // Found vehicle that has enough free capacity.
@@ -671,7 +675,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                                 ServiceVehicleInfo serviceVehicle = new ServiceVehicleInfo(vehicleId, ref vehicles[vehicleId], canCollect && !hasTarget);
                                 if (Log.LogALot)
+                                {
                                     Log.DevDebug(this, "CollectVehicles", "AddVehicle", serviceBuilding.BuildingId, vehicleId, vehicles[vehicleId].Info.name, serviceVehicle.VehicleName, serviceVehicle.FreeToCollect, collecting);
+                                }
 
                                 serviceBuilding.Vehicles[vehicleId] = serviceVehicle;
                             }

@@ -1,6 +1,6 @@
-﻿using ColossalFramework;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using ColossalFramework;
 
 namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 {
@@ -19,10 +19,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 Building[] buildings = Singleton<BuildingManager>.instance.m_buildings.m_buffer;
                 Vehicle[] vehicles = Singleton<VehicleManager>.instance.m_vehicles.m_buffer;
                 DistrictManager districtManager = Singleton<DistrictManager>.instance;
+                CitizenManager citizenManager = Singleton<CitizenManager>.instance;
 
                 for (ushort id = 0; id < buildings.Length; id++)
                 {
-                    DebugListLog(buildings, vehicles, districtManager, id);
+                    DebugListLog(buildings, vehicles, districtManager, citizenManager, id);
                 }
             }
             catch (Exception ex)
@@ -40,10 +41,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             Building[] buildings = Singleton<BuildingManager>.instance.m_buildings.m_buffer;
             Vehicle[] vehicles = Singleton<VehicleManager>.instance.m_vehicles.m_buffer;
             DistrictManager districtManager = Singleton<DistrictManager>.instance;
+            CitizenManager citizenManager = Singleton<CitizenManager>.instance;
 
             foreach (ushort id in buildingIds)
             {
-                DebugListLog(buildings, vehicles, districtManager, id);
+                DebugListLog(buildings, vehicles, districtManager, citizenManager, id);
             }
         }
 
@@ -56,10 +58,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             Building[] buildings = Singleton<BuildingManager>.instance.m_buildings.m_buffer;
             Vehicle[] vehicles = Singleton<VehicleManager>.instance.m_vehicles.m_buffer;
             DistrictManager districtManager = Singleton<DistrictManager>.instance;
+            CitizenManager citizenManager = Singleton<CitizenManager>.instance;
 
             foreach (TargetBuildingInfo building in targetBuildings)
             {
-                DebugListLog(buildings, vehicles, districtManager, building.BuildingId);
+                DebugListLog(buildings, vehicles, districtManager, citizenManager, building.BuildingId);
             }
         }
 
@@ -72,10 +75,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             Building[] buildings = Singleton<BuildingManager>.instance.m_buildings.m_buffer;
             Vehicle[] vehicles = Singleton<VehicleManager>.instance.m_vehicles.m_buffer;
             DistrictManager districtManager = Singleton<DistrictManager>.instance;
+            CitizenManager citizenManager = Singleton<CitizenManager>.instance;
 
             foreach (ServiceBuildingInfo building in serviceBuildings)
             {
-                DebugListLog(buildings, vehicles, districtManager, building.BuildingId);
+                DebugListLog(buildings, vehicles, districtManager, citizenManager, building.BuildingId);
             }
 
             foreach (ServiceBuildingInfo building in serviceBuildings)
@@ -148,8 +152,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <param name="buildings">The buildings.</param>
         /// <param name="vehicles">The vehicles.</param>
         /// <param name="districtManager">The district manager.</param>
+        /// <param name="citizenManager">The citizen manager.</param>
         /// <param name="buildingId">The building identifier.</param>
-        private static void DebugListLog(Building[] buildings, Vehicle[] vehicles, DistrictManager districtManager, ushort buildingId)
+        private static void DebugListLog(Building[] buildings, Vehicle[] vehicles, DistrictManager districtManager, CitizenManager citizenManager, ushort buildingId)
         {
             if (buildings[buildingId].Info != null && (buildings[buildingId].m_flags & Building.Flags.Created) == Building.Flags.Created)
             {
@@ -169,6 +174,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 info.Add("District", district);
                 info.Add("DistrictName", districtManager.GetDistrictName(district));
 
+                int materialMax = 0;
+                int materialAmount = 0;
                 int serviceVehicleCount = 0;
                 if (buildings[buildingId].Info.m_buildingAI is CemeteryAI)
                 {
@@ -178,11 +185,16 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     info.Add("CustomBuffer1", buildings[buildingId].m_customBuffer1); // GraveCapacity?
                     info.Add("CustomBuffer2", buildings[buildingId].m_customBuffer2);
                     info.Add("PR_HC_Calc", ((buildings[buildingId].m_productionRate * ((CemeteryAI)buildings[buildingId].Info.m_buildingAI).m_hearseCount) + 99) / 100); // Hearse capacity?
+                    buildings[buildingId].Info.m_buildingAI.GetMaterialAmount(buildingId, ref buildings[buildingId], TransferManager.TransferReason.Dead, out materialAmount, out materialMax);
                 }
                 else if (buildings[buildingId].Info.m_buildingAI is LandfillSiteAI)
                 {
                     serviceVehicleCount = ((LandfillSiteAI)buildings[buildingId].Info.m_buildingAI).m_garbageTruckCount;
+                    buildings[buildingId].Info.m_buildingAI.GetMaterialAmount(buildingId, ref buildings[buildingId], TransferManager.TransferReason.Garbage, out materialAmount, out materialMax);
                 }
+                info.Add("materialMax", materialMax);
+                info.Add("materialAmount", materialAmount);
+                info.Add("materialFree", materialMax - materialAmount);
 
                 int productionRate = buildings[buildingId].m_productionRate;
 
@@ -253,6 +265,35 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 info.Add("DeathProblemTimer", buildings[buildingId].m_deathProblemTimer);
                 info.Add("HealthProblemTimer", buildings[buildingId].m_healthProblemTimer);
                 info.Add("MajorProblemTimer", buildings[buildingId].m_majorProblemTimer);
+
+                int citizens = 0;
+                int count = 0;
+                uint unitId = buildings[buildingId].m_citizenUnits;
+                while (unitId != 0)
+                {
+                    CitizenUnit unit = citizenManager.m_units.m_buffer[unitId];
+                    for (int i = 0; i < 5; i++)
+                    {
+                        uint citizenId = unit.GetCitizen(i);
+                        if (citizenId != 0)
+                        {
+                            Citizen citizen = citizenManager.m_citizens.m_buffer[citizenId];
+                            if (citizen.Dead && citizen.GetBuildingByLocation() == buildingId)
+                            {
+                                citizens++;
+                            }
+                        }
+                    }
+
+                    count++;
+                    if (count > ushort.MaxValue * 10)
+                    {
+                        break;
+                    }
+
+                    unitId = unit.m_nextUnit;
+                }
+                info.Add("DeadCitizens", citizens);
 
                 info.Add("GarbageAmount", buildings[buildingId].Info.m_buildingAI.GetGarbageAmount(buildingId, ref buildings[buildingId]));
                 info.Add("GarbageBuffer", buildings[buildingId].m_garbageBuffer);
