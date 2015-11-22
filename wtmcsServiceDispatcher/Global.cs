@@ -28,9 +28,24 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public static uint CapacityUpdateInterval = 30u;
 
         /// <summary>
+        /// The minimum class check interval.
+        /// </summary>
+        public static uint ClassCheckInterval = 240;
+
+        /// <summary>
         /// The current frame.
         /// </summary>
         public static uint CurrentFrame = 0;
+
+        /// <summary>
+        /// A detour reinitialize is needed.
+        /// </summary>
+        public static bool DetourInitNeeded = true;
+
+        /// <summary>
+        /// The GarbageTruckAI.TryCollectGarbage detours.
+        /// </summary>
+        public static GarbageTruckAITryCollectGarbageDetour GarbageTruckAITryCollectGarbageDetour = null;
 
         /// <summary>
         /// The garbage truck dispatcher.
@@ -46,11 +61,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// A level is loaded.
         /// </summary>
         public static bool LevelLoaded = false;
-
-        /// <summary>
-        /// The method detours.
-        /// </summary>
-        public static MethodDetours MethodDetours = null;
 
         /// <summary>
         /// The minimum object update interval.
@@ -88,6 +98,56 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public static VehicleKeeper Vehicles = null;
 
         /// <summary>
+        /// Adds a garbage truck class to detours.
+        /// </summary>
+        /// <param name="originalClass">The original class.</param>
+        public static void AddGarbageTruckClass(Type originalClass)
+        {
+            GarbageTruckAITryCollectGarbageDetour.AddClass(originalClass);
+        }
+
+        /// <summary>
+        /// Disposes all detours.
+        /// </summary>
+        public static void DisposeDetours()
+        {
+            if (GarbageTruckAITryCollectGarbageDetour != null)
+            {
+                GarbageTruckAITryCollectGarbageDetour.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Disposes the dispatchers.
+        /// </summary>
+        public static void DisposeHandlers()
+        {
+            Global.GarbageTruckDispatcher = null;
+            Global.HearseDispatcher = null;
+            Global.ServiceBuildingInfoPriorityComparer = null;
+            Global.TargetBuildingInfoPriorityComparer = null;
+            Global.Buildings = null;
+            Global.Vehicles = null;
+        }
+
+        /// <summary>
+        /// Initializes the method detours.
+        /// </summary>
+        public static void InitDetours()
+        {
+            if (Settings.DispatchGarbageTrucks && Settings.LimitOpportunisticGarbageCollection)
+            {
+                GarbageTruckAITryCollectGarbageDetour.Detour();
+            }
+            else
+            {
+                GarbageTruckAITryCollectGarbageDetour.Revert();
+            }
+
+            DetourInitNeeded = false;
+        }
+
+        /// <summary>
         /// Initializes the dispatchers.
         /// </summary>
         public static void InitHandlers()
@@ -123,24 +183,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     {
                         GarbageTruckDispatcher = new Dispatcher(Dispatcher.DispatcherTypes.GarbageTruckDispatcher);
                     }
-
-                    if (Settings.LimitOpportunisticGarbageCollection)
-                    {
-                        MethodDetours.Detour_GarbageTruckAI_TryCollectGarbage();
-                    }
-                    else
-                    {
-                        MethodDetours.Revert_GarbageTruckAI_TryCollectGarbage();
-                    }
                 }
-                else
-                {
-                    MethodDetours.Revert_GarbageTruckAI_TryCollectGarbage();
-                }
-            }
-            else
-            {
-                MethodDetours.Revert();
             }
 
             // Initialize vehicle objects.
@@ -180,6 +223,17 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 {
                     Log.Error(typeof(Global), "InitSettings", ex);
                 }
+            }
+        }
+
+        /// <summary>
+        /// Reverts all detours.
+        /// </summary>
+        public static void RevertDetours()
+        {
+            if (GarbageTruckAITryCollectGarbageDetour != null)
+            {
+                GarbageTruckAITryCollectGarbageDetour.Revert();
             }
         }
     }

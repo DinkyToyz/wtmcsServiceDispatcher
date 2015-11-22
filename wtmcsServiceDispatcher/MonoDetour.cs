@@ -81,7 +81,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// </exception>
         public MonoDetour(Type originalClass, Type replacementClass, string originalMethodName, string replacementMethodName = null)
         {
-            Log.Info(this, "MonoDetour", originalClass, replacementClass, originalMethodName, replacementMethodName);
+            Log.Debug(this, "MonoDetour", "Construct", originalClass, replacementClass, originalMethodName, replacementMethodName);
 
             this.IsDetoured = false;
             this.originalType = originalClass;
@@ -119,10 +119,15 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 if (method.Name == originalMethodName)
                 {
-                    Log.Debug(this, "MonoDetour", "CheckMethod", originalMethodName, method.Name);
+                    if (Log.LogALot)
+                    {
+                        Log.Debug(this, "MonoDetour", "CheckMethod", originalMethodName, method.Name);
+                    }
 
                     if (this.ValidateSignatures(replacementMethod, method))
                     {
+                        Log.Debug(this, "MonoDetour", "MethodFound", originalMethodName, method.Name);
+
                         originalMethod = method;
                         break;
                     }
@@ -153,7 +158,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 throw new NullReferenceException("Original call info not found");
             }
 
-            Log.Info(this, "MonoDetour", this);
+            if (Log.LogALot)
+            {
+                Log.Debug(this, "MonoDetour", "Constructed", originalClass, replacementClass, originalMethodName, replacementMethodName);
+            }
         }
 
         /// <summary>
@@ -172,8 +180,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     ImageFileMachine imgfMachine;
                     typeof(object).Module.GetPEKind(out exeKind, out imgfMachine);
 
-                    Log.Debug(typeof(MonoDetour), "CanDetour", exeKind, imgfMachine);
-                    return imgfMachine == ImageFileMachine.IA64 || imgfMachine == ImageFileMachine.AMD64 || imgfMachine == ImageFileMachine.I386;
+                    bool canDetour = imgfMachine == ImageFileMachine.IA64 || imgfMachine == ImageFileMachine.AMD64 || imgfMachine == ImageFileMachine.I386;
+
+                    if (Log.LogALot)
+                    {
+                        Log.Debug(typeof(MonoDetour), "CanDetour", canDetour, exeKind, imgfMachine);
+                    }
+
+                    return canDetour;
                 }
                 catch (Exception ex)
                 {
@@ -332,19 +346,22 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 (method1.IsGenericMethod != method2.IsGenericMethod) ||
                 ((method1.CallingConvention & ValidateCallingConventions) != (method2.CallingConvention & ValidateCallingConventions)))
             {
-                Log.Debug(
-                    this,
-                    "ValidateSignatures",
-                    "Fail",
-                    "MethodInfo",
-                    method1.Name,
-                    method2.Name,
-                    method1.ReturnType,
-                    method2.ReturnType,
-                    method1.IsGenericMethod,
-                    method2.IsGenericMethod,
-                    method1.CallingConvention & ValidateCallingConventions,
-                    method2.CallingConvention & ValidateCallingConventions);
+                if (Log.LogALot)
+                {
+                    Log.Debug(
+                        this,
+                        "ValidateSignatures",
+                        "Fail",
+                        "MethodInfo",
+                        method1.Name,
+                        method2.Name,
+                        method1.ReturnType,
+                        method2.ReturnType,
+                        method1.IsGenericMethod,
+                        method2.IsGenericMethod,
+                        method1.CallingConvention & ValidateCallingConventions,
+                        method2.CallingConvention & ValidateCallingConventions);
+                }
 
                 return false;
             }
@@ -428,15 +445,18 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             // Validate parameter count.
             if (params1.Count != params2.Count)
             {
-                Log.Debug(
-                    this,
-                    "ValidateSignatures",
-                    "Fail",
-                    "ParamCount",
-                    method1.Name,
-                    method2.Name,
-                    params1.Count,
-                    params2.Count);
+                if (Log.LogALot)
+                {
+                    Log.Debug(
+                        this,
+                        "ValidateSignatures",
+                        "Fail",
+                        "ParamCount",
+                        method1.Name,
+                        method2.Name,
+                        params1.Count,
+                        params2.Count);
+                }
 
                 return false;
             }
@@ -453,27 +473,30 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     (params1[i].ParameterType != params2[i].ParameterType) ||
                     ((params1[i].DefaultValue == null) != (params2[i].DefaultValue == null)))
                 {
-                    Log.Debug(
-                        this,
-                        "ValidateSignatures",
-                        "Fail",
-                        "ParamInfo",
-                        method1.Name,
-                        method2.Name,
-                        params1[i].IsOut,
-                        params2[i].IsOut,
-                        params1[i].IsRetval,
-                        params2[i].IsRetval,
-                        params1[i].IsIn,
-                        params2[i].IsIn,
-                        params1[i].IsLcid,
-                        params2[i].IsLcid,
-                        params1[i].IsOptional,
-                        params2[i].IsOptional,
-                        params1[i].ParameterType,
-                        params2[i].ParameterType,
-                        params1[i].DefaultValue == null,
-                        params2[i].DefaultValue == null);
+                    if (Log.LogALot)
+                    {
+                        Log.Debug(
+                            this,
+                            "ValidateSignatures",
+                            "Fail",
+                            "ParamInfo",
+                            method1.Name,
+                            method2.Name,
+                            params1[i].IsOut,
+                            params2[i].IsOut,
+                            params1[i].IsRetval,
+                            params2[i].IsRetval,
+                            params1[i].IsIn,
+                            params2[i].IsIn,
+                            params1[i].IsLcid,
+                            params2[i].IsLcid,
+                            params1[i].IsOptional,
+                            params2[i].IsOptional,
+                            params1[i].ParameterType,
+                            params2[i].ParameterType,
+                            params1[i].DefaultValue == null,
+                            params2[i].DefaultValue == null);
+                    }
 
                     return false;
                 }
@@ -481,15 +504,18 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 // Validate parameter default values.
                 if ((params1[i].DefaultValue != null) && (params1[i].DefaultValue.ToString() != params2[i].DefaultValue.ToString()))
                 {
-                    Log.Debug(
-                        this,
-                        "ValidateSignatures",
-                        "Fail",
-                        "DefaultValue",
-                        method1.Name,
-                        method2.Name,
-                        params1[i].DefaultValue.ToString(),
-                        params2[i].DefaultValue.ToString());
+                    if (Log.LogALot)
+                    {
+                        Log.Debug(
+                            this,
+                            "ValidateSignatures",
+                            "Fail",
+                            "DefaultValue",
+                            method1.Name,
+                            method2.Name,
+                            params1[i].DefaultValue.ToString(),
+                            params2[i].DefaultValue.ToString());
+                    }
 
                     return false;
                 }
@@ -498,13 +524,16 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 int pos1 = params1[i].Position + (params1[i].Position >= 0 ? pos1Add : 0);
                 if (pos1 != params2[i].Position)
                 {
-                    Log.Debug(
-                        this,
-                        "ValidateSignatures",
-                        "Fail",
-                        "ParamPos",
-                        pos1,
-                        params2[i].Position);
+                    if (Log.LogALot)
+                    {
+                        Log.Debug(
+                            this,
+                            "ValidateSignatures",
+                            "Fail",
+                            "ParamPos",
+                            pos1,
+                            params2[i].Position);
+                    }
 
                     return false;
                 }

@@ -17,12 +17,17 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// The building object bucket manager.
         /// </summary>
-        private Bucketeer bucketeer = new Bucketeer(255, 192);
+        private Bucketeer bucketeer;
 
         /// <summary>
-        /// The data is initialized.
+        /// The bucket mask.
         /// </summary>
-        private bool isInitialized = false;
+        private uint bucketMask = 255;
+
+        /// <summary>
+        /// The bucket factor.
+        /// </summary>
+        private uint bucketFactor = 192;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="BuildingKeeper"/> class.
@@ -213,7 +218,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             this.HasDirtyBuildingsToCheck = false;
 
             // First update?
-            if (this.isInitialized)
+            if (this.bucketeer != null)
             {
                 // Data is initialized. Just check buildings for this frame.
                 uint endBucket = this.bucketeer.GetEnd();
@@ -235,10 +240,17 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             }
             else
             {
-                this.CategorizeBuildings();
+                if (Global.BucketedUpdates)
+                {
+                    uint length = (uint)Singleton<BuildingManager>.instance.m_buildings.m_buffer.Length;
+                    this.bucketFactor = length / (this.bucketMask + 1);
+                    Log.Debug(this, "Update", "bucketFactor", length, this.bucketMask, this.bucketFactor);
 
-                this.bucket = this.bucketeer.GetEnd();
-                this.isInitialized = Global.BucketedUpdates;
+                    this.bucketeer = new Bucketeer(this.bucketMask, this.bucketFactor);
+                    this.bucket = this.bucketeer.GetEnd();
+                }
+
+                this.CategorizeBuildings();
             }
 
             if (Global.BuildingUpdateNeeded)

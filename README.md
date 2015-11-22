@@ -40,7 +40,7 @@ Garbage trucks picks up garbage from buildings they pass as well as the building
 
 One result of this is that if the trucks have to travel a long or convoluted way, and passes many buildings with garbage on the way to their target, they might have to turn back to unload before ever reaching their destination.
 
-The *Prioritize assigned buildings* option limits this behaviour.
+The *prioritize assigned buildings* option limits this behaviour.
 
 ## Configuration
 
@@ -75,9 +75,6 @@ These options are set separately for different service vehicles (garbage trucks 
 - **Dispatch by building range**: 
   All buildings within a certain distance from a service building are considered to be in it's range. The distance is a property of the building asset.
 
-- **Prioritize assigned buildings**: 
-  Only pickup garbage from buildings on the way as long as there will still be room for garbage from the assigned building.
-
 - **Send out spare** [`service vehicles`]: 
   When to send out new vehicles from the service building instead of sending one that's already driving. 
 
@@ -109,7 +106,7 @@ These options are only available for hearses.
 These options are only available for garbage trucks.
 
 - **Prioritize assigned buildings**: 
-  *This option overrides original game code*
+  (*This option overrides original game code.*)
   Limits the amount of garbage picked up from buildings the trucks passes by, in order to leave room for garbage from their assigned buildings.
 
 - **Garbage amount limit**: 
@@ -144,13 +141,19 @@ Services are dispatched based on problem magnitude within the strategy rules.
 
 The config file, wtmcsServiceDispatcher.xml, is stored in the folder "ModConfig" wherever the game points to with [`DataLocation.localApplicationData`]. On a Windows system that'll usually be some where like "C:\Users\[`UserName`]\AppData\Local\Colossal Order\Cities\_Skylines\ModConfig".
 
+## Compatibility
+
+This mod should be compatible with most mods that doesn't affect target building assigment for service vehicles.
+
+The *prioritize assigned buildings* option does replace one method of the garbage truck ai, and may therefore be incompatible with any other mod that overrides or replaces the garbage truck ai.
+
 ## Errors & Logging
 
 When reporting severe errors, please upload [the games complete log file](http://steamcommunity.com/sharedfiles/filedetails/?id=463645931) and/or the separate log file (see below) somewhere and post a link.
 
 The mod logs to [the games normal output log](http://steamcommunity.com/sharedfiles/filedetails/?id=463645931), and can also log to a separate log file, wtmcsServiceDispatcher.log, stored in the same directory as the settings.
 
-Create one or more the following files in the same directory in order to enable debug log stuff (which might slow things down quite a bit) and logging to file.
+Create one or more of the following files in the same directory in order to enable debug log stuff (which might slow things down quite a bit) and logging to file.
 
 - **wtmcsServiceDispatcher.debug**: 
   Enables logging debug data to mod log file, and slightly more logging to the games standard log destinations.

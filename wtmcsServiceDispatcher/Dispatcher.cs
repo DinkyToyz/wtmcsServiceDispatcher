@@ -86,6 +86,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         private int freeVehicles = 0;
 
         /// <summary>
+        /// The last vehicle detour class check stamp.
+        /// </summary>
+        private int lastVehicleDetourClassCheck = 0;
+
+        /// <summary>
         /// The service buildings.
         /// </summary>
         private Dictionary<ushort, ServiceBuildingInfo> serviceBuildings;
@@ -608,6 +613,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             int vehiclesFree;
             int count;
 
+            HashSet<Type> vehicleAIs = null;
+            if (this.DispatcherType == DispatcherTypes.GarbageTruckDispatcher && (this.lastVehicleDetourClassCheck == 0 || Global.CurrentFrame - this.lastVehicleDetourClassCheck > Global.ClassCheckInterval))
+            {
+                vehicleAIs = new HashSet<Type>();
+            }
+
             // Loop through the service buildings.
             foreach (ServiceBuildingInfo serviceBuilding in this.serviceBuildings.Values)
             {
@@ -639,6 +650,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         if (vehicles[vehicleId].Info != null && (vehicles[vehicleId].m_flags & (Vehicle.Flags.Created | Vehicle.Flags.Spawned)) != Vehicle.Flags.None)
                         {
                             vehiclesMade++;
+
+                            if (vehicleAIs != null)
+                            {
+                                vehicleAIs.Add(vehicles[vehicleId].Info.m_vehicleAI.GetType());
+                            }
 
                             // Check if vehicle is free to dispatch and has free space.
                             vehicles[vehicleId].Info.m_vehicleAI.GetSize(vehicleId, ref vehicles[vehicleId], out loadSize, out loadMax);
@@ -763,6 +779,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 }
 
                 this.assignedTargets.Remove(id);
+            }
+
+            if (vehicleAIs != null && this.DispatcherType == DispatcherTypes.GarbageTruckDispatcher)
+            {
+                foreach (Type classType in vehicleAIs)
+                {
+                    Global.AddGarbageTruckClass(classType);
+                }
             }
         }
 

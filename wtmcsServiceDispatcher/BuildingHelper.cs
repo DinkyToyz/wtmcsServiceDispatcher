@@ -286,7 +286,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     }
 
                     count++;
-                    if (count > ushort.MaxValue * 10)
+                    if (count > (int)ushort.MaxValue * 10)
                     {
                         break;
                     }
@@ -330,6 +330,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     info.Add("Status", status);
                 }
 
+                info.Add("AI", buildings[buildingId].Info.m_buildingAI.GetType().AssemblyQualifiedName);
+                
                 Log.DevDebug(typeof(BuildingKeeper), "DebugListLog", info.ToString());
             }
         }

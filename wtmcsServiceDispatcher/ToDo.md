@@ -1,6 +1,5 @@
-#Additions and fixes
+# Additions and fixes
 
-- check source building capacity before assigning
 - separate garbage level for patrol reassign and dirty assign
 - road and rail clean-up crews (to remove stuck vehicles, including forgotten trailers and railway cars)
 - house wrecking crews (bulldozers)
@@ -9,8 +8,8 @@
 - law enforcement services?
 - send service now button on buildings?
 
-#Changes and experiments
+# Changes and experiments
 
 - citizens?
-- Detour ProduceGoods???
+- Detour ProduceGoods or transfer stuff???
 - sort by distance capacity %?

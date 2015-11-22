@@ -17,12 +17,17 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// The vehicle object bucket manager.
         /// </summary>
-        private Bucketeer bucketeer = new Bucketeer(15, 1024);
+        private Bucketeer bucketeer;
 
         /// <summary>
-        /// The data is initialized.
+        /// The bucket mask.
         /// </summary>
-        private bool isInitialized = false;
+        private uint bucketMask = 15;
+
+        /// <summary>
+        /// The bucket factor.
+        /// </summary>
+        private uint bucketFactor = 1024;
 
         /// <summary>
         /// The vehicles that have been removed from grid.
@@ -46,7 +51,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             // Get and categorize vehicles.
 
             // First update?
-            if (this.isInitialized)
+            if (this.bucketeer != null)
             {
                 // Data is initialized. Just check buildings for this frame.
                 uint endBucket = this.bucketeer.GetEnd();
@@ -68,11 +73,17 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             }
             else
             {
-                // Data is not initialized. Check all vehicles.
-                this.HandleVehicles();
+                if (Global.BucketedUpdates)
+                {
+                    uint length = (uint)Singleton<VehicleManager>.instance.m_vehicles.m_buffer.Length;
+                    this.bucketFactor = length / (this.bucketMask + 1);
+                    Log.Debug(this, "Update", "bucketFactor", length, this.bucketMask, this.bucketFactor);
 
-                this.bucket = this.bucketeer.GetEnd();
-                this.isInitialized = Global.BucketedUpdates;
+                    this.bucketeer = new Bucketeer(this.bucketMask, this.bucketFactor);
+                    this.bucket = this.bucketeer.GetEnd();
+                }
+
+                this.HandleVehicles();
             }
         }
 

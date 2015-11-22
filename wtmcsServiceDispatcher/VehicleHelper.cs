@@ -300,6 +300,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     info.Add("Status", status);
                 }
 
+                info.Add("AI", vehicles[vehicleId].Info.m_vehicleAI.GetType().AssemblyQualifiedName);
+
                 Log.DevDebug(typeof(VehicleKeeper), "DebugListLog", info.ToString());
             }
         }

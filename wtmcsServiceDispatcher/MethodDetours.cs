@@ -1,40 +1,31 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using ColossalFramework;
-using UnityEngine;
 
 namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 {
     /// <summary>
     /// Method detours.
     /// </summary>
-    internal class MethodDetours : IDisposable
+    internal abstract class MethodDetours : IDisposable
     {
         /// <summary>
-        /// The GarbageTruckAI.TryCollectGarbage key.
+        /// Error when detouring.
         /// </summary>
-        private static readonly string GarbageTruckAI_TryCollectGarbage_Key = "GarbageTruckAI_TryCollectGarbage";
-
-        /// <summary>
-        /// The maximum game version for detouring GarbageTruckAI.TryCollectGarbage.
-        /// </summary>
-        private static readonly uint GarbageTruckAI_TryCollectGarbage_MaxVer = BuildConfig.MakeVersionNumber(1, 3, 0, BuildConfig.ReleaseType.Final, 0, BuildConfig.BuildType.Unknown);
-
-        /// <summary>
-        /// The minimum game version for detouring GarbageTruckAI.TryCollectGarbage.
-        /// </summary>
-        private static readonly uint GarbageTruckAI_TryCollectGarbage_MinVer = BuildConfig.MakeVersionNumber(1, 2, 0, BuildConfig.ReleaseType.Final, 0, BuildConfig.BuildType.Unknown);
-
-        /// <summary>
-        /// Error when detouring GarbageTruckAI.TryCollectGarbage.
-        /// </summary>
-        private static bool garbageTruckAI_TryCollectGarbage_Error = false;
+        protected bool error = false;
 
         /// <summary>
         /// The detours.
         /// </summary>
-        private Dictionary<string, MonoDetour> detours = new Dictionary<string, MonoDetour>();
+        private Dictionary<Type, DetourInfo> detours = new Dictionary<Type, DetourInfo>();
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="MethodDetours"/> class.
+        /// </summary>
+        public MethodDetours()
+        {
+            this.AddClass(this.OriginalClassType);
+        }
 
         /// <summary>
         /// Finalizes an instance of the <see cref="MethodDetours"/> class.
@@ -45,37 +36,157 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
-        /// Gets a value indicating whether GarbageTruckAI.TryCollectGarbage can be detoured.
+        /// Gets a value indicating whether the method can be detoured.
         /// </summary>
         /// <value>
-        /// <c>true</c> if [can_ detour_ garbage truck a i_ try collect garbage]; otherwise, <c>false</c>.
+        /// <c>true</c> if the method can be detoured.; otherwise, <c>false</c>.
         /// </value>
-        public bool CanDetour_GarbageTruckAI_TryCollectGarbage
+        public bool CanDetour
         {
             get
             {
-                return !garbageTruckAI_TryCollectGarbage_Error &&
-                       MonoDetour.CanDetour && 
-                       BuildConfig.APPLICATION_VERSION >= GarbageTruckAI_TryCollectGarbage_MinVer &&
-                       BuildConfig.APPLICATION_VERSION < GarbageTruckAI_TryCollectGarbage_MaxVer;
+                return !this.error &&
+                       MonoDetour.CanDetour &&
+                       BuildConfig.APPLICATION_VERSION >= this.MinGameVersion &&
+                       BuildConfig.APPLICATION_VERSION < this.MaxGameVersion;
             }
         }
 
         /// <summary>
-        /// Detours GarbageTruckAI.TryCollectGarbage.
+        /// Gets a value indicating whether the method is detoured.
         /// </summary>
-        public void Detour_GarbageTruckAI_TryCollectGarbage()
+        /// <value>
+        /// <c>true</c> if the method is detoured; otherwise, <c>false</c>.
+        /// </value>
+        public bool IsDetoured
         {
-            if (this.CanDetour_GarbageTruckAI_TryCollectGarbage)
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// Gets the maximum game version for detouring.
+        /// </summary>
+        protected abstract uint MaxGameVersion
+        {
+            get;
+        }
+
+        /// <summary>
+        /// Gets the minimum game version for detouring.
+        /// </summary>
+        protected abstract uint MinGameVersion
+        {
+            get;
+        }
+
+        /// <summary>
+        /// Gets the original class type.
+        /// </summary>
+        protected abstract Type OriginalClassType
+        {
+            get;
+        }
+
+        /// <summary>
+        /// Gets the original method name.
+        /// </summary>
+        protected abstract string OriginalMethodName
+        {
+            get;
+        }
+
+        /// <summary>
+        /// Gets the replacement method name.
+        /// </summary>
+        protected abstract string ReplacementMethodName
+        {
+            get;
+        }
+
+        /// <summary>
+        /// Adds a class for which the method will be detoured.
+        /// </summary>
+        /// <param name="originalClass">The original class.</param>
+        public void AddClass(Type originalClass)
+        {
+            if (!this.detours.ContainsKey(originalClass))
             {
-                try
+                this.detours[originalClass] = new DetourInfo();
+
+                if (this.IsDetoured)
                 {
-                    this.Detour(GarbageTruckAI_TryCollectGarbage_Key, typeof(GarbageTruckAI), "TryCollectGarbage", "GarbageTruckAI_TryCollectGarbage_Override");
+                    this.Detour();
                 }
-                catch (Exception ex)
+            }
+        }
+
+        /// <summary>
+        /// Detours the method.
+        /// </summary>
+        public void Detour()
+        {
+            if (this.CanDetour)
+            {
+                bool revert = false;
+
+                foreach (Type originalClass in this.detours.Keys)
                 {
-                    garbageTruckAI_TryCollectGarbage_Error = true;
-                    Log.Error(this, "Detour_GarbageTruckAI_TryCollectGarbage", ex);
+                    if (this.CanDetourClass(originalClass) && !this.detours[originalClass].Error)
+                    {
+                        MonoDetour detour = null;
+
+                        try
+                        {
+                            detour = this.detours[originalClass].Detour;
+                            Log.Debug(this, "Detour", originalClass, detour);
+
+                            if (detour == null)
+                            {
+                                detour = new MonoDetour(originalClass, this.GetType(), this.OriginalMethodName, this.ReplacementMethodName);
+                                this.detours[originalClass].Detour = detour;
+                                Log.Debug(this, "Detour", "Created", originalClass, detour);
+                            }
+
+                            if (!detour.IsDetoured)
+                            {
+                                detour.Detour();
+                                Log.Info(this, "Detour", "Detoured", originalClass, OriginalMethodName, ReplacementMethodName);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            if (detour != null)
+                            {
+                                try
+                                {
+                                    detour.Revert();
+                                }
+                                catch
+                                {
+                                }
+                            }
+
+                            this.detours[originalClass].Detour = null;
+                            this.detours[originalClass].Error = true;
+
+                            if (originalClass == this.OriginalClassType)
+                            {
+                                this.error = true;
+                                revert = true;
+                                Log.Error(this, "Detour", ex, originalClass);
+                            }
+                            else
+                            {
+                                Log.Debug(this, "Detour", "NoDetour", ex.GetType(), ex.Message);
+                            }
+                        }
+                    }
+                }
+
+                if (revert)
+                {
+                    this.Revert();
                 }
             }
         }
@@ -89,6 +200,15 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Reverts all detours, releases the detour objects and sets the object to error state.
+        /// </summary>
+        public void Abort()
+        {
+            this.error = true;
+            this.Revert(true);
+        }
+
+        /// <summary>
         /// Reverts all detours.
         /// </summary>
         public void Revert()
@@ -97,175 +217,13 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
-        /// Reverts detours.
+        /// Determines whether this instance can detour the method for the specified original class.
         /// </summary>
-        /// <param name="key">The key.</param>
-        public void Revert(string key)
-        {
-            this.Revert(key, false);
-        }
-
-        /// <summary>
-        /// Reverts the GarbageTruckAI.TryCollectGarbage.
-        /// </summary>
-        public void Revert_GarbageTruckAI_TryCollectGarbage()
-        {
-            this.Revert(GarbageTruckAI_TryCollectGarbage_Key);
-        }
-
-        /// <summary>
-        /// Creates a new instance of an information list with garbage vehicle info.
-        /// </summary>
-        /// <param name="vehicleId">The vehicle identifier.</param>
-        /// <param name="vehicle">The vehicle.</param>
-        /// <param name="dirtyBuildingId">The dirty building identifier.</param>
-        /// <param name="dirtyBuilding">The dirty building.</param>
-        /// <returns>The information list.</returns>
-        private static Log.InfoList NewGarbageVehicleInfoList(ushort vehicleId, ref Vehicle vehicle, ushort dirtyBuildingId, ref Building dirtyBuilding)
-        {
-            Log.InfoList infoList = new Log.InfoList();
-            infoList.Add("SourceBuilding", vehicle.m_sourceBuilding, BuildingHelper.GetBuildingName(vehicle.m_sourceBuilding));
-            infoList.Add("Vehicle", vehicleId, VehicleHelper.GetVehicleName(vehicleId));
-            infoList.Add("DirtyBuilding", dirtyBuildingId, BuildingHelper.GetBuildingName(dirtyBuildingId));
-            infoList.Add("TargetBuilding", vehicle.m_targetBuilding, BuildingHelper.GetBuildingName(vehicle.m_targetBuilding));
-
-            return infoList;
-        }
-
-        /// <summary>
-        /// Copied from original game code at game version 1.2.0.
-        /// </summary>
-        /// <param name="garbageTruckAI">The garbage truck AI instance.</param>
-        /// <param name="vehicleID">The vehicle identifier.</param>
-        /// <param name="vehicleData">The vehicle data.</param>
-        /// <param name="frameData">The frame data.</param>
-        /// <param name="buildingID">The building identifier.</param>
-        /// <param name="building">The building.</param>
-        private static void GarbageTruckAI_TryCollectGarbage_Original(GarbageTruckAI garbageTruckAI, ushort vehicleID, ref Vehicle vehicleData, ref Vehicle.Frame frameData, ushort buildingID, ref Building building)
-        {
-            if ((double)Vector3.SqrMagnitude(building.CalculateSidewalkPosition() - frameData.m_position) >= 1024.0)
-                return;
-            int amountDelta = Mathf.Min(0, (int)vehicleData.m_transferSize - garbageTruckAI.m_cargoCapacity);
-            if (amountDelta == 0)
-                return;
-            building.Info.m_buildingAI.ModifyMaterialBuffer(buildingID, ref building, (TransferManager.TransferReason)vehicleData.m_transferType, ref amountDelta);
-            if (amountDelta == 0)
-                return;
-            vehicleData.m_transferSize += (ushort)Mathf.Max(0, -amountDelta);
-        }
-
-        /// <summary>
-        /// Method overriding GarbageTruckAI.TryCollectGarbage.
-        /// </summary>
-        /// <param name="garbageTruckAI">The garbage truck AI instance.</param>
-        /// <param name="vehicleID">The vehicle identifier.</param>
-        /// <param name="vehicleData">The vehicle data.</param>
-        /// <param name="frameData">The frame data.</param>
-        /// <param name="buildingID">The building identifier.</param>
-        /// <param name="building">The building.</param>
-        private static void GarbageTruckAI_TryCollectGarbage_Override(GarbageTruckAI garbageTruckAI, ushort vehicleID, ref Vehicle vehicleData, ref Vehicle.Frame frameData, ushort buildingID, ref Building building)
-        {
-            Log.InfoList logInfo = null;
-            if (Log.LogToFile && Log.LogALot)
-            {
-                logInfo = NewGarbageVehicleInfoList(vehicleID, ref vehicleData, buildingID, ref building);
-            }
-
-            if (vehicleData.m_targetBuilding == 0)
-            {
-                if (Log.LogToFile && Log.LogALot)
-                {
-                    Log.Debug(typeof(MethodDetours), "GarbageTruckAI_TryCollectGarbage_Override", "NoTarget", logInfo);
-                }
-
-                GarbageTruckAI_TryCollectGarbage_Original(garbageTruckAI, vehicleID, ref vehicleData, ref frameData, buildingID, ref building);
-                return;
-            }
-
-            if (vehicleData.m_targetBuilding == buildingID)
-            {
-                if (Log.LogToFile && Log.LogALot)
-                {
-                    Log.Debug(typeof(MethodDetours), "GarbageTruckAI_TryCollectGarbage_Override", "IsTarget", logInfo);
-                }
-
-                GarbageTruckAI_TryCollectGarbage_Original(garbageTruckAI, vehicleID, ref vehicleData, ref frameData, buildingID, ref building);
-                return;
-            }
-
-            int freeCapacity = garbageTruckAI.m_cargoCapacity - vehicleData.m_transferSize;
-            if (freeCapacity < 0)
-            {
-                freeCapacity = 0;
-            }
-            logInfo.Add("FreeCapacity", freeCapacity);
-
-            int buildingMax;
-            int buildingAmount;
-
-            building.Info.m_buildingAI.GetMaterialAmount(buildingID, ref building, (TransferManager.TransferReason)vehicleData.m_transferType, out buildingAmount, out buildingMax);
-            logInfo.Add("DirtyBuildingAmount", buildingAmount);
-
-            if (buildingAmount > freeCapacity)
-            {
-                if (Log.LogToFile && Log.LogALot)
-                {
-                    Log.Debug(typeof(MethodDetours), "GarbageTruckAI_TryCollectGarbage_Override", "NoCapacity", logInfo);
-                }
-
-                return;
-            }
-
-            Building[] buildings = Singleton<BuildingManager>.instance.m_buildings.m_buffer;
-            Building targetBuilding = buildings[vehicleData.m_targetBuilding];
-
-            int targetBuildingAmount;
-            targetBuilding.Info.m_buildingAI.GetMaterialAmount(vehicleData.m_targetBuilding, ref building, (TransferManager.TransferReason)vehicleData.m_transferType, out targetBuildingAmount, out buildingMax);
-            logInfo.Add("TargetBuildingAmount", targetBuildingAmount);
-
-            if (buildingAmount + targetBuildingAmount > freeCapacity)
-            {
-                if (Log.LogToFile && Log.LogALot)
-                {
-                    Log.Debug(typeof(MethodDetours), "GarbageTruckAI_TryCollectGarbage_Override", "NotEnoughCapacity", logInfo);
-                }
-
-                return;
-            }
-
-            if (Log.LogToFile && Log.LogALot)
-            {
-                Log.Debug(typeof(MethodDetours), "GarbageTruckAI_TryCollectGarbage_Override", "Default", logInfo);
-            }
-
-            GarbageTruckAI_TryCollectGarbage_Original(garbageTruckAI, vehicleID, ref vehicleData, ref frameData, buildingID, ref building);
-        }
-
-        /// <summary>
-        /// Detours the specified method.
-        /// </summary>
-        /// <param name="key">The key.</param>
         /// <param name="originalClass">The original class.</param>
-        /// <param name="originalMethodName">Name of the original method.</param>
-        /// <param name="replacementMethodName">Name of the replacement method.</param>
-        private void Detour(string key, Type originalClass, string originalMethodName, string replacementMethodName)
-        {
-            MonoDetour detour = this.detours.ContainsKey(key) ? this.detours[key] : null;
-            Log.Info(this, "Detour", key, detour);
-
-            if (detour == null)
-            {
-                detour = new MonoDetour(originalClass, typeof(MethodDetours), originalMethodName, replacementMethodName);
-                this.detours[key] = detour;
-                Log.Debug(this, "Detour", "Created", key, detour);
-            }
-
-            if (!detour.IsDetoured)
-            {
-                detour.Detour();
-                Log.Debug(this, "Detour", "Detoured", key, detour);
-            }
-        }
+        /// <returns>
+        ///   <c>true</c> if the method can be detoured for the class.; otherwise, <c>false</c>.
+        /// </returns>
+        protected abstract bool CanDetourClass(Type originalClass);
 
         /// <summary>
         /// Reverts all detours.
@@ -273,10 +231,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <param name="dispose">If set to <c>true</c> release the detour objects.</param>
         private void Revert(bool dispose = false)
         {
-            string[] keys = this.detours.Keys.ToArray();
-            foreach (string key in keys)
+            Type[] originalClasses = this.detours.Keys.ToArray();
+            foreach (Type originalClass in originalClasses)
             {
-                this.Revert(key);
+                this.Revert(originalClass);
             }
 
             if (dispose)
@@ -287,35 +245,54 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
-        /// Reverts all detours.
+        /// Reverts a detours.
         /// </summary>
-        /// <param name="key">The key.</param>
+        /// <param name="originalClass">The original class.</param>
         /// <param name="dispose">If set to <c>true</c> release the detour object.</param>
-        private void Revert(string key, bool dispose = false)
+        private void Revert(Type originalClass, bool dispose = false)
         {
-            if (this.detours.ContainsKey(key))
+            if (this.detours.ContainsKey(originalClass))
             {
-                if (this.detours[key].IsDetoured)
+                if (this.detours[originalClass].Detour != null && this.detours[originalClass].Detour.IsDetoured)
                 {
-                    Log.Info(this, "Revert", key, this.detours[key]);
+                    Log.Info(this, "Revert", originalClass, OriginalMethodName, ReplacementMethodName);
                     try
                     {
-                        this.detours[key].Revert();
+                        this.detours[originalClass].Detour.Revert();
                     }
                     catch (Exception ex)
                     {
-                        Log.Error(this, "Revert", ex, key, this.detours[key]);
-                        this.detours.Remove(key);
+                        Log.Error(this, "Revert", ex, originalClass, this.detours[originalClass].Detour);
+
+                        this.detours[originalClass].Detour = null;
+                        this.detours[originalClass].Error = true;
                     }
-                    Log.Info(this, "Reverted", key, this.detours[key]);
+                    Log.Debug(this, "Reverted", originalClass, this.detours[originalClass]);
                 }
 
                 if (dispose)
                 {
-                    Log.Debug(this, "Dispose", key);
-                    this.detours.Remove(key);
+                    Log.Debug(this, "Dispose", originalClass);
+                    this.detours[originalClass].Detour = null;
+                    this.detours.Remove(originalClass);
                 }
             }
+        }
+
+        /// <summary>
+        /// Detour info.
+        /// </summary>
+        private class DetourInfo
+        {
+            /// <summary>
+            /// The detour.
+            /// </summary>
+            public MonoDetour Detour = null;
+
+            /// <summary>
+            /// The error.
+            /// </summary>
+            public bool Error = false;
         }
     }
 }

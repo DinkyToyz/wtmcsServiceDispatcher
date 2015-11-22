@@ -82,15 +82,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             try
             {
-                try
-                {
-                    Global.MethodDetours.Revert();
-                }
-                catch (Exception dex)
-                {
-                    Log.Error(this, "OnLevelUnloading", dex, "DetourTest");
-                }
-
+                Global.GarbageTruckAITryCollectGarbageDetour.LogCounts();
                 this.DeInitialize();
             }
             catch (Exception ex)
@@ -141,14 +133,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             Log.Info(this, "DeInitialize");
 
-            Global.MethodDetours.Dispose();
-
-            Global.GarbageTruckDispatcher = null;
-            Global.HearseDispatcher = null;
-            Global.ServiceBuildingInfoPriorityComparer = null;
-            Global.TargetBuildingInfoPriorityComparer = null;
-            Global.Buildings = null;
-            Global.Vehicles = null;
+            Global.DisposeDetours();
+            Global.DisposeHandlers();
         }
     }
 }

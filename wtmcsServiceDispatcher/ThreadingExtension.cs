@@ -100,6 +100,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     this.lastDebugListLog = simulationFrame;
                 }
 
+                if (this.started && Global.DetourInitNeeded)
+                {
+                    Global.InitDetours();
+                }
+
                 Global.CurrentFrame = simulationFrame;
 
                 if (Global.Settings.DispatchGarbageTrucks || Global.Settings.DispatchHearses)
@@ -138,8 +143,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     Global.Buildings.DebugListLogBuildings();
                     Log.FlushBuffer();
                 }
-
-                if (!this.started || (Global.CurrentFrame - Log.LastFlush >= 600))
+                else if (!this.started || (Global.CurrentFrame - Log.LastFlush >= 600))
                 {
                     Log.FlushBuffer();
                 }
@@ -155,6 +159,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 this.exceptionCount++;
                 if (this.exceptionCount > MaxExceptionCount)
                 {
+                    Global.RevertDetours();
+
                     this.isBroken = true;
                 }
 

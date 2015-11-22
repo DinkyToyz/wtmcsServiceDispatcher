@@ -306,7 +306,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         }
 
                         count++;
-                        if (count > ushort.MaxValue * 10)
+                        if (count > (int)ushort.MaxValue * 10)
                         {
                             throw new Exception("Loop counter too high");
                         }
