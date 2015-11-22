@@ -10,13 +10,15 @@ The following is from the [steam description](http://steamcommunity.com/sharedfi
 
 Dispatches Cities: Skylines services.
 
-## Experimental
+## Experimentality & Compatibility
 
 This mod is experimental. It might work, but it also might not. It should not affect saves, but it may well wreak havoc with services while enabled.
 
-Except when specificaly noted (see options below), the mod does not override any game code, wich should minimize incompatibilities with other mods.
+Except when specificaly noted (see options below), the mod does not override any game code, which should minimize incompatibilities with other mods.
 
-## Issues
+The *prioritize assigned buildings* option does replace one method of the garbage truck ai, and may therefore be incompatible with any other mod that overrides or replaces the garbage truck ai.
+
+## Known Issues
 
 Some people have observed a problem where hearses go to their target buildings but don't load dead bodies.
 
@@ -24,9 +26,7 @@ Some people have observed a problem where hearses go to their target buildings b
 
 Currently, the mod can dispatch garbage trucks and hearses.
 
-I have vague plans to add road and rail clean-up crews (to remove stuck vehicles, including forgotten trailers and railway cars), house wrecking crews (bulldozers), and might decide to look at ambulance, fire and police services as well.
-
-There is absolutely no time table for any additional services, and I'm not promising they'll ever get added.
+I have vague plans to add functionality to remove stuck vehicles, including forgotten trailers and railway cars, bulldozers, and might decide to look at ambulance, fire and police services as well.
 
 ## Dispatching
 
@@ -141,12 +141,6 @@ Services are dispatched based on problem magnitude within the strategy rules.
 
 The config file, wtmcsServiceDispatcher.xml, is stored in the folder "ModConfig" wherever the game points to with [`DataLocation.localApplicationData`]. On a Windows system that'll usually be some where like "C:\Users\[`UserName`]\AppData\Local\Colossal Order\Cities\_Skylines\ModConfig".
 
-## Compatibility
-
-This mod should be compatible with most mods that doesn't affect target building assigment for service vehicles.
-
-The *prioritize assigned buildings* option does replace one method of the garbage truck ai, and may therefore be incompatible with any other mod that overrides or replaces the garbage truck ai.
-
 ## Errors & Logging
 
 When reporting severe errors, please upload [the games complete log file](http://steamcommunity.com/sharedfiles/filedetails/?id=463645931) and/or the separate log file (see below) somewhere and post a link.
@@ -166,12 +160,6 @@ Create one or more of the following files in the same directory in order to enab
 
 - **wtmcsServiceDispatcher.debug.lists**: 
   Log object debug lists to mod log file at startup. What this actually does, if anything, may differ between builds.
-
-## To-do
-
-- Separate garbage level for patrol and dirty target assignments.
-- Road and rail clean-up crews.
-- House wrecking crews.
 
 ## Whatever
 

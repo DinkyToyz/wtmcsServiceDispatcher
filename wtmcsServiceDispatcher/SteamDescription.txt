@@ -1,12 +1,14 @@
 Dispatches Cities: Skylines services.
 
-[h1]Experimental[/h1]
+[h1]Experimentality & Compatibility[/h1]
 
 This mod is experimental. It might work, but it also might not. It should not affect saves, but it may well wreak havoc with services while enabled.
 
-Except when specificaly noted (see options below), the mod does not override any game code, wich should minimize incompatibilities with other mods.
+Except when specificaly noted (see options below), the mod does not override any game code, which should minimize incompatibilities with other mods.
 
-[h1]Issues[/h1]
+The [i]prioritize assigned buildings[/i] option does replace one method of the garbage truck ai, and may therefore be incompatible with any other mod that overrides or replaces the garbage truck ai.
+
+[h1]Known Issues[/h1]
 
 Some people have observed a problem where hearses go to their target buildings but don't load dead bodies.
 
@@ -14,9 +16,7 @@ Some people have observed a problem where hearses go to their target buildings b
 
 Currently, the mod can dispatch garbage trucks and hearses.
 
-I have vague plans to add road and rail clean-up crews (to remove stuck vehicles, including forgotten trailers and railway cars), house wrecking crews (bulldozers), and might decide to look at ambulance, fire and police services as well.
-
-There is absolutely no time table for any additional services, and I'm not promising they'll ever get added.
+I have vague plans to add functionality to remove stuck vehicles, including forgotten trailers and railway cars, bulldozers, and might decide to look at ambulance, fire and police services as well.
 
 [h1]Dispatching[/h1]
 
@@ -143,12 +143,6 @@ Services are dispatched based on problem magnitude within the strategy rules.
 
 The config file, wtmcsServiceDispatcher.xml, is stored in the folder "ModConfig" wherever the game points to with <DataLocation.localApplicationData>. On a Windows system that'll usually be some where like "C:\Users\<UserName>\AppData\Local\Colossal Order\Cities_Skylines\ModConfig".
 
-[h1]Compatibility[/h1]
-
-This mod should be compatible with most mods that doesn't affect target building assigment for service vehicles.
-
-The [i]prioritize assigned buildings[/i] option does replace one method of the garbage truck ai, and may therefore be incompatible with any other mod that overrides or replaces the garbage truck ai.
-
 [h1]Errors & Logging[/h1]
 
 When reporting severe errors, please upload [url=http://steamcommunity.com/sharedfiles/filedetails/?id=463645931]the games complete log file[/url] and/or the separate log file (see below) somewhere and post a link.
@@ -169,14 +163,6 @@ Create one or more of the following files in the same directory in order to enab
 
 [*][b]wtmcsServiceDispatcher.debug.lists[/b]
    Log object debug lists to mod log file at startup. What this actually does, if anything, may differ between builds.
-[/list]
-
-[h1]To-do[/h1]
-
-[list]
-[*]Separate garbage level for patrol and dirty target assignments.
-[*]Road and rail clean-up crews.
-[*]House wrecking crews.
 [/list]
 
 [h1]Whatever[/h1]
