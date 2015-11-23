@@ -339,12 +339,19 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 }
                 else if (this.DeadPeopleBuildings.ContainsKey(buildingId))
                 {
-                    if (Log.LogToFile)
+                    if (this.DeadPeopleBuildings[buildingId].WantedService)
                     {
-                        Log.Debug(this, "CategorizeBuilding", "No Dead People", buildingId);
+                        this.DeadPeopleBuildings[buildingId].Update(ref building, Notification.Problem.Death, TargetBuildingInfo.Demand.None);
                     }
+                    else
+                    {
+                        if (Log.LogToFile)
+                        {
+                            Log.Debug(this, "CategorizeBuilding", "No Dead People", buildingId);
+                        }
 
-                    this.DeadPeopleBuildings.Remove(buildingId);
+                        this.DeadPeopleBuildings.Remove(buildingId);
+                    }
                 }
             }
 
@@ -408,7 +415,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 }
                 else if (this.DirtyBuildings.ContainsKey(buildingId))
                 {
-                    if (building.m_garbageBuffer > 10 && (building.m_garbageBuffer >= Global.Settings.MinimumGarbageForDispatch / 10 || building.m_garbageBuffer >= Global.Settings.MinimumGarbageForPatrol / 2))
+                    if (building.m_garbageBuffer > 10 && (building.m_garbageBuffer >= Global.Settings.MinimumGarbageForDispatch / 10 || building.m_garbageBuffer >= Global.Settings.MinimumGarbageForPatrol / 2) || this.DirtyBuildings[buildingId].WantedService)
                     {
                         this.DirtyBuildings[buildingId].Update(ref building, Notification.Problem.Garbage, TargetBuildingInfo.Demand.None);
                     }

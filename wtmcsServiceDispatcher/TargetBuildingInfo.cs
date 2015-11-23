@@ -200,11 +200,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <value>
         ///   <c>true</c> if building have no want for service; otherwise, <c>false</c>.
         /// </value>
-        public bool DontWantService
+        public bool WantedService
         {
             get
             {
-                return !this.WantsService && Global.CurrentFrame - this.lastWantStamp > Global.DemandLingerDelay;
+                return this.WantsService || Global.CurrentFrame - this.lastWantStamp <= Global.DemandLingerDelay;
             }
         }
 

@@ -198,7 +198,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 vehicle.Info.m_vehicleAI.SetTarget(vehicleId, ref vehicle, (ushort)0); // DeAssignToSource ? vehicle.m_sourceBuilding : (ushort)0
             }
-            else if (!this.targetBuildings.ContainsKey(vehicle.m_targetBuilding) || this.targetBuildings[vehicle.m_targetBuilding].DontWantService)
+            else if (!(this.targetBuildings.ContainsKey(vehicle.m_targetBuilding) && this.targetBuildings[vehicle.m_targetBuilding].WantedService))
             {
                 if (Log.LogALot)
                 {
@@ -674,7 +674,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                                 if (collecting && !loading && vehicles[vehicleId].m_targetBuilding != 0)
                                 {
-                                    if (!this.targetBuildings.ContainsKey(vehicles[vehicleId].m_targetBuilding) || this.targetBuildings[vehicles[vehicleId].m_targetBuilding].DontWantService)
+                                    if (!(this.targetBuildings.ContainsKey(vehicles[vehicleId].m_targetBuilding) && this.targetBuildings[vehicles[vehicleId].m_targetBuilding].WantedService))
                                     {
                                         if (Log.LogALot)
                                         {
