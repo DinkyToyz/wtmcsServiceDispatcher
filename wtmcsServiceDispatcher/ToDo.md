@@ -1,5 +1,6 @@
 # Additions and fixes
 
+- Put ((r/d)e)assign delay in vehicle, not building?
 - road and rail clean-up crews (to remove stuck vehicles, including forgotten trailers and railway cars)
 - house wrecking crews (bulldozers)
 - ambulance services?

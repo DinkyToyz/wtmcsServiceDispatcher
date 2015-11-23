@@ -196,27 +196,25 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     Log.DevDebug(this, "CheckVehicleTarget", "NewVehicle", vehicleId, vehicle.m_targetBuilding);
                 }
 
-                vehicle.Info.m_vehicleAI.SetTarget(vehicleId, ref vehicle, (ushort)0); // DeAssignToSource ? vehicle.m_sourceBuilding : (ushort)0
+                vehicle.Info.m_vehicleAI.SetTarget(vehicleId, ref vehicle, 0);
             }
             else if (!(this.targetBuildings.ContainsKey(vehicle.m_targetBuilding) && this.targetBuildings[vehicle.m_targetBuilding].WantedService))
             {
-                if (Log.LogALot)
+                bool deAssigned = serviceBuilding.Vehicles[vehicleId].DeAssign(ref vehicle);
+
+                if (deAssigned && Log.LogALot)
                 {
                     Log.DevDebug(this, "CheckVehicleTarget", "NoNeed", vehicleId, vehicle.m_targetBuilding);
                 }
-
-                vehicle.Info.m_vehicleAI.SetTarget(vehicleId, ref vehicle, (ushort)0); // DeAssignToSource ? vehicle.m_sourceBuilding : (ushort)0
-                serviceBuilding.Vehicles[vehicleId].Target = (ushort)0; // DeAssignToSource ? vehicle.m_sourceBuilding : (ushort)0
             }
             else if (vehicle.m_targetBuilding != serviceBuilding.Vehicles[vehicleId].Target)
             {
-                if (Log.LogALot)
+                bool deAssigned = serviceBuilding.Vehicles[vehicleId].DeAssign(ref vehicle);
+
+                if (deAssigned && Log.LogALot)
                 {
                     Log.DevDebug(this, "CheckVehicleTarget", "WrongTarget", vehicleId, vehicle.m_targetBuilding, serviceBuilding.Vehicles[vehicleId].Target);
                 }
-
-                vehicle.Info.m_vehicleAI.SetTarget(vehicleId, ref vehicle, (ushort)0); // DeAssignToSource ? vehicle.m_sourceBuilding : (ushort)0
-                serviceBuilding.Vehicles[vehicleId].Target = (ushort)0; // DeAssignToSource ? vehicle.m_sourceBuilding : (ushort)0
             }
         }
 
@@ -583,11 +581,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             Vehicle[] vehicles = Singleton<VehicleManager>.instance.m_vehicles.m_buffer;
 
-            vehicles[foundVehicleId].Info.m_vehicleAI.SetTarget(foundVehicleId, ref vehicles[foundVehicleId], targetBuilding.BuildingId);
+            foundVehicleBuilding.Vehicles[foundVehicleId].SetTarget(targetBuilding.BuildingId, ref vehicles[foundVehicleId]);
 
             this.assignedTargets[targetBuilding.BuildingId] = Global.CurrentFrame;
-            foundVehicleBuilding.Vehicles[foundVehicleId].Target = targetBuilding.BuildingId;
-            foundVehicleBuilding.Vehicles[foundVehicleId].FreeToCollect = false;
 
             this.freeVehicles--;
             foundVehicleBuilding.VehiclesFree--;
@@ -676,23 +672,31 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                                 {
                                     if (!(this.targetBuildings.ContainsKey(vehicles[vehicleId].m_targetBuilding) && this.targetBuildings[vehicles[vehicleId].m_targetBuilding].WantedService))
                                     {
-                                        if (Log.LogALot)
-                                        {
-                                            Log.DevDebug(this, "CollectVehicles", "NoNeed", vehicleId, vehicles[vehicleId].m_targetBuilding, serviceBuilding.Vehicles[vehicleId].Target);
-                                        }
+                                        bool deAssigned = serviceBuilding.Vehicles[vehicleId].DeAssign(ref vehicles[vehicleId]);
 
-                                        vehicles[vehicleId].Info.m_vehicleAI.SetTarget(vehicleId, ref vehicles[vehicleId], (ushort)0); // DeAssignToSource ? serviceBuilding.BuildingId : (ushort)0)
-                                        hasTarget = false;
+                                        if (deAssigned)
+                                        {
+                                            if (Log.LogALot)
+                                            {
+                                                Log.DevDebug(this, "CollectVehicles", "NoNeed", vehicleId, vehicles[vehicleId].m_targetBuilding, serviceBuilding.Vehicles[vehicleId].Target);
+                                            }
+
+                                            hasTarget = false;
+                                        }
                                     }
                                     else if (vehicles[vehicleId].m_targetBuilding != serviceBuilding.Vehicles[vehicleId].Target)
                                     {
-                                        if (Log.LogALot)
-                                        {
-                                            Log.DevDebug(this, "CollectVehicles", "WrongTarget", vehicleId, vehicles[vehicleId].m_targetBuilding, serviceBuilding.Vehicles[vehicleId].Target);
-                                        }
+                                        bool deAssigned = serviceBuilding.Vehicles[vehicleId].DeAssign(ref vehicles[vehicleId]);
 
-                                        vehicles[vehicleId].Info.m_vehicleAI.SetTarget(vehicleId, ref vehicles[vehicleId], (ushort)0); // DeAssignToSource ? serviceBuilding.BuildingId : (ushort)0)
-                                        hasTarget = false;
+                                        if (deAssigned)
+                                        {
+                                            if (Log.LogALot)
+                                            {
+                                                Log.DevDebug(this, "CollectVehicles", "WrongTarget", vehicleId, vehicles[vehicleId].m_targetBuilding, serviceBuilding.Vehicles[vehicleId].Target);
+                                            }
+
+                                            hasTarget = false;
+                                        }
                                     }
                                     else if (this.targetBuildings[vehicles[vehicleId].m_targetBuilding].NeedsService)
                                     {
