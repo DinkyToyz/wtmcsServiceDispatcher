@@ -20,14 +20,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         private Bucketeer bucketeer;
 
         /// <summary>
-        /// The bucket mask.
-        /// </summary>
-        private uint bucketMask = 255;
-
-        /// <summary>
         /// The bucket factor.
         /// </summary>
         private uint bucketFactor = 192;
+
+        /// <summary>
+        /// The bucket mask.
+        /// </summary>
+        private uint bucketMask = 255;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="BuildingKeeper"/> class.
@@ -322,7 +322,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 {
                     if (!this.DeadPeopleBuildings.ContainsKey(buildingId))
                     {
-                        TargetBuildingInfo deadPeopleBuilding = new TargetBuildingInfo(buildingId, ref building, Notification.Problem.Death, true);
+                        TargetBuildingInfo deadPeopleBuilding = new TargetBuildingInfo(buildingId, ref building, Notification.Problem.Death, TargetBuildingInfo.Demand.NeedsService);
                         if (Log.LogToFile)
                         {
                             Log.Debug(this, "CategorizeBuilding", "Dead People", buildingId, building.Info.name, deadPeopleBuilding.BuildingName, building.m_deathProblemTimer, deadPeopleBuilding.ProblemValue, deadPeopleBuilding.HasProblem, deadPeopleBuilding.District);
@@ -333,7 +333,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     }
                     else
                     {
-                        this.DeadPeopleBuildings[buildingId].Update(ref building, Notification.Problem.Death, true);
+                        this.DeadPeopleBuildings[buildingId].Update(ref building, Notification.Problem.Death, TargetBuildingInfo.Demand.NeedsService);
                         this.HasDeadPeopleBuildingsToCheck = this.HasDeadPeopleBuildingsToCheck || this.DeadPeopleBuildings[buildingId].CheckThis;
                     }
                 }
@@ -373,11 +373,25 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 }
 
                 // Check garbage.
-                if (building.m_garbageBuffer >= Global.Settings.MinimumGarbageForDispatch && !(building.Info.m_buildingAI is LandfillSiteAI))
+                TargetBuildingInfo.Demand demand;
+                if (building.m_garbageBuffer >= Global.Settings.MinimumGarbageForDispatch)
+                {
+                    demand = TargetBuildingInfo.Demand.NeedsService;
+                }
+                else if (building.m_garbageBuffer >= Global.Settings.MinimumGarbageForPatrol)
+                {
+                    demand = TargetBuildingInfo.Demand.WantsService;
+                }
+                else
+                {
+                    demand = TargetBuildingInfo.Demand.None;
+                }
+
+                if (demand != TargetBuildingInfo.Demand.None && !(building.Info.m_buildingAI is LandfillSiteAI))
                 {
                     if (!this.DirtyBuildings.ContainsKey(buildingId))
                     {
-                        TargetBuildingInfo dirtyBuilding = new TargetBuildingInfo(buildingId, ref building, Notification.Problem.Garbage, true);
+                        TargetBuildingInfo dirtyBuilding = new TargetBuildingInfo(buildingId, ref building, Notification.Problem.Garbage, demand);
                         if (Log.LogToFile)
                         {
                             Log.Debug(this, "CategorizeBuilding", "Dirty", buildingId, building.Info.name, dirtyBuilding.BuildingName, building.m_garbageBuffer, dirtyBuilding.ProblemValue, dirtyBuilding.HasProblem, dirtyBuilding.District);
@@ -388,15 +402,15 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     }
                     else
                     {
-                        this.DirtyBuildings[buildingId].Update(ref building, Notification.Problem.Garbage, true);
+                        this.DirtyBuildings[buildingId].Update(ref building, Notification.Problem.Garbage, demand);
                         this.HasDirtyBuildingsToCheck = this.HasDirtyBuildingsToCheck || this.DirtyBuildings[buildingId].CheckThis;
                     }
                 }
                 else if (this.DirtyBuildings.ContainsKey(buildingId))
                 {
-                    if (building.m_garbageBuffer > 10 && building.m_garbageBuffer >= Global.Settings.MinimumGarbageForDispatch / 10)
+                    if (building.m_garbageBuffer > 10 && (building.m_garbageBuffer >= Global.Settings.MinimumGarbageForDispatch / 10 || building.m_garbageBuffer >= Global.Settings.MinimumGarbageForPatrol / 2))
                     {
-                        this.DirtyBuildings[buildingId].Update(ref building, Notification.Problem.Garbage, false);
+                        this.DirtyBuildings[buildingId].Update(ref building, Notification.Problem.Garbage, TargetBuildingInfo.Demand.None);
                     }
                     else
                     {

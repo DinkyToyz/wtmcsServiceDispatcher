@@ -10,11 +10,9 @@ The following is from the [steam description](http://steamcommunity.com/sharedfi
 
 Dispatches Cities: Skylines services.
 
-## Experimentality & Compatibility
+## Compatibility
 
-This mod is experimental. It might work, but it also might not. It should not affect saves, but it may well wreak havoc with services while enabled.
-
-Except when specificaly noted (see options below), the mod does not override any game code, which should minimize incompatibilities with other mods.
+For most optons, this mod does not override any game code, which should minimize incompatibilities with other mods.
 
 The *prioritize assigned buildings* option does replace one method of the garbage truck ai, and may therefore be incompatible with any other mod that overrides or replaces the garbage truck ai.
 
@@ -26,7 +24,7 @@ Some people have observed a problem where hearses go to their target buildings b
 
 Currently, the mod can dispatch garbage trucks and hearses.
 
-I have vague plans to add functionality to remove stuck vehicles, including forgotten trailers and railway cars, bulldozers, and might decide to look at ambulance, fire and police services as well.
+I have vague plans to add functionality to remove stuck vehicles (including forgotten trailers and railway cars) and bulldozing, and might decide to look at ambulance, fire and police services as well.
 
 ## Dispatching
 
@@ -109,8 +107,11 @@ These options are only available for garbage trucks.
   (*This option overrides original game code.*)
   Limits the amount of garbage picked up from buildings the trucks passes by, in order to leave room for garbage from their assigned buildings.
 
-- **Garbage amount limit**: 
-  Only available for garbage trucks. Sets the amount of garbage a building must accumulate before a garbage truck is dispatch do take care of it.
+- **Garbage amount patrol limit**: 
+  Sets the amount of garbage a building must accumulate before a patrolling garbage truck is directed to it.
+
+- **Garbage amount dispatch limit**: 
+  Sets the amount of garbage a building must accumulate before a garbage truck is dispatch do take care of it.
 
 ### Dispatch Strategies
 

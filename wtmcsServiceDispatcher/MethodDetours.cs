@@ -139,19 +139,19 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         try
                         {
                             detour = this.detours[originalClass].Detour;
-                            Log.Debug(this, "Detour", originalClass, detour);
+                            Log.DevDebug(this, "Detour", originalClass, detour);
 
                             if (detour == null)
                             {
                                 detour = new MonoDetour(originalClass, this.GetType(), this.OriginalMethodName, this.ReplacementMethodName);
                                 this.detours[originalClass].Detour = detour;
-                                Log.Debug(this, "Detour", "Created", originalClass, detour);
+                                Log.DevDebug(this, "Detour", "Created", originalClass, detour);
                             }
 
                             if (!detour.IsDetoured)
                             {
                                 detour.Detour();
-                                Log.Info(this, "Detour", "Detoured", originalClass, OriginalMethodName, ReplacementMethodName);
+                                Log.Info(this, "Detour", "Detoured", originalClass, this.OriginalMethodName, this.ReplacementMethodName);
                             }
                         }
                         catch (Exception ex)
@@ -178,7 +178,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                             }
                             else
                             {
-                                Log.Debug(this, "Detour", "NoDetour", ex.GetType(), ex.Message);
+                                Log.DevDebug(this, "Detour", "NoDetour", ex.GetType(), ex.Message);
                             }
                         }
                     }
@@ -239,7 +239,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             if (dispose)
             {
-                Log.Debug(this, "Clear");
+                Log.DevDebug(this, "Clear");
                 this.detours.Clear();
             }
         }
@@ -255,7 +255,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             {
                 if (this.detours[originalClass].Detour != null && this.detours[originalClass].Detour.IsDetoured)
                 {
-                    Log.Info(this, "Revert", originalClass, OriginalMethodName, ReplacementMethodName);
+                    Log.Info(this, "Revert", originalClass, this.OriginalMethodName, this.ReplacementMethodName);
                     try
                     {
                         this.detours[originalClass].Detour.Revert();
@@ -267,12 +267,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         this.detours[originalClass].Detour = null;
                         this.detours[originalClass].Error = true;
                     }
-                    Log.Debug(this, "Reverted", originalClass, this.detours[originalClass]);
+                    Log.DevDebug(this, "Reverted", originalClass, this.detours[originalClass]);
                 }
 
                 if (dispose)
                 {
-                    Log.Debug(this, "Dispose", originalClass);
+                    Log.DevDebug(this, "Dispose", originalClass);
                     this.detours[originalClass].Detour = null;
                     this.detours.Remove(originalClass);
                 }

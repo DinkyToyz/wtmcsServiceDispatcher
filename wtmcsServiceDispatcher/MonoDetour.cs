@@ -114,19 +114,19 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             {
                 if (Log.LogALot)
                 {
-                    Log.Debug(this, "MonoDetour", "SearchMethods", originalMethodName, method.Name);
+                    Log.DevDebug(this, "MonoDetour", "SearchMethods", originalMethodName, method.Name);
                 }
 
                 if (method.Name == originalMethodName)
                 {
                     if (Log.LogALot)
                     {
-                        Log.Debug(this, "MonoDetour", "CheckMethod", originalMethodName, method.Name);
+                        Log.DevDebug(this, "MonoDetour", "CheckMethod", originalMethodName, method.Name);
                     }
 
                     if (this.ValidateSignatures(replacementMethod, method))
                     {
-                        Log.Debug(this, "MonoDetour", "MethodFound", originalMethodName, method.Name);
+                        Log.DevDebug(this, "MonoDetour", "MethodFound", originalMethodName, method.Name);
 
                         originalMethod = method;
                         break;
@@ -160,7 +160,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             if (Log.LogALot)
             {
-                Log.Debug(this, "MonoDetour", "Constructed", originalClass, replacementClass, originalMethodName, replacementMethodName);
+                Log.DevDebug(this, "MonoDetour", "Constructed", originalClass, replacementClass, originalMethodName, replacementMethodName);
             }
         }
 
@@ -184,7 +184,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                     if (Log.LogALot)
                     {
-                        Log.Debug(typeof(MonoDetour), "CanDetour", canDetour, exeKind, imgfMachine);
+                        Log.DevDebug(typeof(MonoDetour), "CanDetour", canDetour, exeKind, imgfMachine);
                     }
 
                     return canDetour;
@@ -338,7 +338,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             if (Log.LogALot)
             {
-                Log.Debug(this, "ValidateSignatures", method1.Name, method2.Name, method1.DeclaringType, method2.DeclaringType, method1.ReflectedType, method2.ReflectedType);
+                Log.DevDebug(this, "ValidateSignatures", method1.Name, method2.Name, method1.DeclaringType, method2.DeclaringType, method1.ReflectedType, method2.ReflectedType);
             }
 
             // Validate method info.
@@ -348,7 +348,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             {
                 if (Log.LogALot)
                 {
-                    Log.Debug(
+                    Log.DevDebug(
                         this,
                         "ValidateSignatures",
                         "Fail",
@@ -368,7 +368,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             if (Log.LogALot)
             {
-                Log.Debug(this, "ValidateSignatures", "these", method1.CallingConvention & TheseCallingConventions, method2.CallingConvention & TheseCallingConventions);
+                Log.DevDebug(this, "ValidateSignatures", "these", method1.CallingConvention & TheseCallingConventions, method2.CallingConvention & TheseCallingConventions);
             }
 
             // Get parameters.
@@ -398,7 +398,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             {
                 if (Log.LogALot)
                 {
-                    Log.Debug(this, "ValidateSignatures", "ReturnParameter", 1, method1.ReturnParameter);
+                    Log.DevDebug(this, "ValidateSignatures", "ReturnParameter", 1, method1.ReturnParameter);
                 }
 
                 params1.Add(method1.ReturnParameter);
@@ -408,7 +408,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             {
                 if (Log.LogALot)
                 {
-                    Log.Debug(this, "ValidateSignatures", "ReturnParameter", 2, method2.ReturnParameter);
+                    Log.DevDebug(this, "ValidateSignatures", "ReturnParameter", 2, method2.ReturnParameter);
                 }
 
                 params2.Add(method2.ReturnParameter);
@@ -438,8 +438,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     paramStr2.Append('#').Append(params2[i].Position.ToString()).Append(' ').Append(params2[i].Name).Append(' ').Append(params2[i].ParameterType.ToString());
                 }
 
-                Log.Debug(this, "ValidateSignatures", "Params", 1, paramStr1);
-                Log.Debug(this, "ValidateSignatures", "Params", 2, paramStr2);
+                Log.DevDebug(this, "ValidateSignatures", "Params", 1, paramStr1);
+                Log.DevDebug(this, "ValidateSignatures", "Params", 2, paramStr2);
             }
 
             // Validate parameter count.
@@ -447,7 +447,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             {
                 if (Log.LogALot)
                 {
-                    Log.Debug(
+                    Log.DevDebug(
                         this,
                         "ValidateSignatures",
                         "Fail",
@@ -475,7 +475,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 {
                     if (Log.LogALot)
                     {
-                        Log.Debug(
+                        Log.DevDebug(
                             this,
                             "ValidateSignatures",
                             "Fail",
@@ -506,7 +506,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 {
                     if (Log.LogALot)
                     {
-                        Log.Debug(
+                        Log.DevDebug(
                             this,
                             "ValidateSignatures",
                             "Fail",
@@ -526,7 +526,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 {
                     if (Log.LogALot)
                     {
-                        Log.Debug(
+                        Log.DevDebug(
                             this,
                             "ValidateSignatures",
                             "Fail",

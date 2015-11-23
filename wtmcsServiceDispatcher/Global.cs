@@ -38,6 +38,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public static uint CurrentFrame = 0;
 
         /// <summary>
+        /// The demand update delay.
+        /// </summary>
+        public static uint DemandLingerDelay = 480u;
+
+        /// <summary>
         /// A detour reinitialize is needed.
         /// </summary>
         public static bool DetourInitNeeded = true;

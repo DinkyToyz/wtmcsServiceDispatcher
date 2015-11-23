@@ -198,7 +198,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 vehicle.Info.m_vehicleAI.SetTarget(vehicleId, ref vehicle, (ushort)0); // DeAssignToSource ? vehicle.m_sourceBuilding : (ushort)0
             }
-            else if (!this.targetBuildings.ContainsKey(vehicle.m_targetBuilding))
+            else if (!this.targetBuildings.ContainsKey(vehicle.m_targetBuilding) || this.targetBuildings[vehicle.m_targetBuilding].DontWantService)
             {
                 if (Log.LogALot)
                 {
@@ -237,7 +237,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     if (Log.LogALot)
                         Log.DevDebug(this, "Dispatch", checkParams.Setting, checkParams.OnlyProblematic, checkParams.MinProblemValue, checkParams.IgnoreRange);
 
-                    foreach (TargetBuildingInfo targetBuilding in this.targetBuildings.Values.Where(tb => tb.CheckThis && tb.ProblemValue >= checkParams.MinProblemValue && (tb.HasProblem || !checkParams.OnlyProblematic)).OrderBy(tb => tb, Global.TargetBuildingInfoPriorityComparer))
+                    foreach (TargetBuildingInfo targetBuilding in this.targetBuildings.Values.Where(tb => checkParams.CheckThis(tb)).OrderBy(tb => tb, Global.TargetBuildingInfoPriorityComparer))
                     {
                         // Initialize vehicle data.
                         if (!initialized)
@@ -267,7 +267,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         }
                         else
                         {
-                            if (this.AssignVehicle(targetBuilding, checkParams.IgnoreRange))
+                            if (this.AssignVehicle(targetBuilding, checkParams.IgnoreRange, checkParams.AllowCreateSpares))
                             {
                                 if (this.freeVehicles < 1)
                                 {
@@ -309,8 +309,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// </summary>
         /// <param name="targetBuilding">The target building.</param>
         /// <param name="ignoreRange">If set to <c>true</c> ignore the building range.</param>
-        /// <returns>True if vehicle was assigned.</returns>
-        private bool AssignVehicle(TargetBuildingInfo targetBuilding, bool ignoreRange)
+        /// <param name="allowCreateSpares">If set to <c>true</c> allow creation of spare vehicles.</param>
+        /// <returns>
+        /// True if vehicle was assigned.
+        /// </returns>
+        private bool AssignVehicle(TargetBuildingInfo targetBuilding, bool ignoreRange, bool allowCreateSpares)
         {
             // Get target district.
             byte targetDistrict = 0;
@@ -362,7 +365,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 foundVehicleLastResortCheck = foundVehicleLastResortId == 0;
 
                 // If prefer to send new vehcile when building is closer.
-                if (this.createSpareVehicles == Settings.SpareVehiclesCreation.WhenBuildingIsCloser && serviceBuilding.VehiclesSpare > 0)
+                if (allowCreateSpares && this.createSpareVehicles == Settings.SpareVehiclesCreation.WhenBuildingIsCloser && serviceBuilding.VehiclesSpare > 0)
                 {
                     foundVehicleDistance = serviceBuilding.Distance;
                 }
@@ -413,7 +416,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 }
 
                 // No free vehicle found, but building has spare vehicles so we send one of those.
-                if (foundVehicleId == 0 && this.createSpareVehicles != Settings.SpareVehiclesCreation.Never && serviceBuilding.VehiclesSpare > 0)
+                if (foundVehicleId == 0 && allowCreateSpares && this.createSpareVehicles != Settings.SpareVehiclesCreation.Never && serviceBuilding.VehiclesSpare > 0)
                 {
                     Log.Debug(this, "AssignVehicle", "CreateSpare", targetBuilding.BuildingId, serviceBuilding.BuildingId, serviceBuilding.VehiclesSpare);
 
@@ -667,18 +670,37 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                             // Update vehicle status.
                             if (serviceBuilding.Vehicles.ContainsKey(vehicleId))
                             {
-                                if (collecting && !loading && vehicles[vehicleId].m_targetBuilding != 0 && vehicles[vehicleId].m_targetBuilding != serviceBuilding.Vehicles[vehicleId].Target)
-                                {
-                                    if (Log.LogALot)
-                                    {
-                                        Log.DevDebug(this, "CollectVehicles", "WrongTarget", vehicleId, vehicles[vehicleId].m_targetBuilding, serviceBuilding.Vehicles[vehicleId].Target);
-                                    }
+                                bool busy = false;
 
-                                    vehicles[vehicleId].Info.m_vehicleAI.SetTarget(vehicleId, ref vehicles[vehicleId], (ushort)0); // DeAssignToSource ? serviceBuilding.BuildingId : (ushort)0)
-                                    hasTarget = false;
+                                if (collecting && !loading && vehicles[vehicleId].m_targetBuilding != 0)
+                                {
+                                    if (!this.targetBuildings.ContainsKey(vehicles[vehicleId].m_targetBuilding) || this.targetBuildings[vehicles[vehicleId].m_targetBuilding].DontWantService)
+                                    {
+                                        if (Log.LogALot)
+                                        {
+                                            Log.DevDebug(this, "CollectVehicles", "NoNeed", vehicleId, vehicles[vehicleId].m_targetBuilding, serviceBuilding.Vehicles[vehicleId].Target);
+                                        }
+
+                                        vehicles[vehicleId].Info.m_vehicleAI.SetTarget(vehicleId, ref vehicles[vehicleId], (ushort)0); // DeAssignToSource ? serviceBuilding.BuildingId : (ushort)0)
+                                        hasTarget = false;
+                                    }
+                                    else if (vehicles[vehicleId].m_targetBuilding != serviceBuilding.Vehicles[vehicleId].Target)
+                                    {
+                                        if (Log.LogALot)
+                                        {
+                                            Log.DevDebug(this, "CollectVehicles", "WrongTarget", vehicleId, vehicles[vehicleId].m_targetBuilding, serviceBuilding.Vehicles[vehicleId].Target);
+                                        }
+
+                                        vehicles[vehicleId].Info.m_vehicleAI.SetTarget(vehicleId, ref vehicles[vehicleId], (ushort)0); // DeAssignToSource ? serviceBuilding.BuildingId : (ushort)0)
+                                        hasTarget = false;
+                                    }
+                                    else if (this.targetBuildings[vehicles[vehicleId].m_targetBuilding].NeedsService)
+                                    {
+                                        busy = true;
+                                    }
                                 }
 
-                                serviceBuilding.Vehicles[vehicleId].Update(ref vehicles[vehicleId], canCollect && !hasTarget);
+                                serviceBuilding.Vehicles[vehicleId].Update(ref vehicles[vehicleId], canCollect && !hasTarget && !busy);
                             }
                             else
                             {
@@ -806,9 +828,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         this.serviceBuildings = Global.Buildings.HearseBuildings;
                         this.targetBuildings = Global.Buildings.DeadPeopleBuildings;
                     }
+
                     this.buildingChecks = BuldingCheckParameters.GetBuldingCheckParameters(Global.Settings.DeathChecksParameters);
                     this.createSpareVehicles = Global.Settings.CreateSpareHearses;
                     this.dispatchByDistrict = Global.Settings.DispatchHearsesByDistrict;
+
                     break;
 
                 case DispatcherTypes.GarbageTruckDispatcher:
@@ -818,9 +842,19 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         this.serviceBuildings = Global.Buildings.GarbageBuildings;
                         this.targetBuildings = Global.Buildings.DirtyBuildings;
                     }
-                    this.buildingChecks = BuldingCheckParameters.GetBuldingCheckParameters(Global.Settings.GarbageChecksParameters);
+
+                    if (Global.Settings.MinimumGarbageForPatrol > 0 && Global.Settings.MinimumGarbageForPatrol < Global.Settings.MinimumGarbageForDispatch)
+                    {
+                        this.buildingChecks = BuldingCheckParameters.GetBuldingCheckParametersWithPatrol(Global.Settings.GarbageChecksParameters);
+                    }
+                    else
+                    {
+                        this.buildingChecks = BuldingCheckParameters.GetBuldingCheckParameters(Global.Settings.GarbageChecksParameters);
+                    }
+
                     this.createSpareVehicles = Global.Settings.CreateSpareGarbageTrucks;
                     this.dispatchByDistrict = Global.Settings.DispatchGarbageTrucksByDistrict;
+
                     break;
 
                 default:
@@ -834,17 +868,21 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public class BuldingCheckParameters
         {
             /// <summary>
-            /// Initializes a new instance of the <see cref="BuldingCheckParameters"/> class.
+            /// Initializes a new instance of the <see cref="BuldingCheckParameters" /> class.
             /// </summary>
             /// <param name="onlyProblematic">If set to <c>true</c> check only problematic buildings.</param>
+            /// <param name="includeUneedy">If set to <c>true</c> include buildings with wants but no needs.</param>
             /// <param name="ignoreRange">If set to <c>true</c> ignore range.</param>
-            /// <param name="minTimer">The minimum problem timer value.</param>
-            public BuldingCheckParameters(bool onlyProblematic, bool ignoreRange, byte minTimer)
+            /// <param name="minProblemValue">The minimum problem timer value.</param>
+            /// <param name="allowCreateSpares">If set to <c>true</c> allow creation of spare vehicles.</param>
+            public BuldingCheckParameters(bool onlyProblematic, bool includeUneedy, bool ignoreRange, byte minProblemValue, bool allowCreateSpares)
             {
                 this.Setting = Settings.BuildingCheckParameters.Custom;
                 this.OnlyProblematic = onlyProblematic;
+                this.IncludeUneedy = includeUneedy;
                 this.IgnoreRange = ignoreRange;
-                this.MinProblemValue = minTimer;
+                this.MinProblemValue = minProblemValue;
+                this.AllowCreateSpares = allowCreateSpares;
             }
 
             /// <summary>
@@ -854,6 +892,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             public BuldingCheckParameters(Settings.BuildingCheckParameters buildingCheckParameters)
             {
                 this.Setting = buildingCheckParameters;
+
+                this.IncludeUneedy = false;
+                this.AllowCreateSpares = true;
 
                 switch (buildingCheckParameters)
                 {
@@ -914,12 +955,36 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             }
 
             /// <summary>
+            /// Gets a value indicating whether to allow creation of spare vehicles.
+            /// </summary>
+            /// <value>
+            ///   <c>true</c> if creation of spare vehicles is allowed; otherwise, <c>false</c>.
+            /// </value>
+            public bool AllowCreateSpares
+            {
+                get;
+                private set;
+            }
+
+            /// <summary>
             /// Gets a value indicating whether to ignore range.
             /// </summary>
             /// <value>
             /// <c>true</c> if the range should be ignored; otherwise, <c>false</c>.
             /// </value>
             public bool IgnoreRange
+            {
+                get;
+                private set;
+            }
+
+            /// <summary>
+            /// Gets a value indicating whether buildings that wants, but does not need, service should be checked.
+            /// </summary>
+            /// <value>
+            ///   <c>true</c> if buildings with wants, but not needs, should be checked; otherwise, <c>false</c>.
+            /// </value>
+            public bool IncludeUneedy
             {
                 get;
                 private set;
@@ -971,6 +1036,31 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             public static BuldingCheckParameters[] GetBuldingCheckParameters(Settings.BuildingCheckParameters[] buildingCheckParameters)
             {
                 return buildingCheckParameters.Select(bcp => new BuldingCheckParameters(bcp)).ToArray();
+            }
+
+            /// <summary>
+            /// Gets the dispatcher building check parameters with an extra entry for patrolling vehicles.
+            /// </summary>
+            /// <param name="buildingCheckParameters">The building check parameters.</param>
+            /// <returns>
+            /// The dispatcher building check parameters.
+            /// </returns>
+            public static BuldingCheckParameters[] GetBuldingCheckParametersWithPatrol(Settings.BuildingCheckParameters[] buildingCheckParameters)
+            {
+                List<BuldingCheckParameters> parameters = buildingCheckParameters.Select(bcp => new BuldingCheckParameters(bcp)).ToList();
+                parameters.Add(new BuldingCheckParameters(false, true, false, 0, false));
+
+                return parameters.ToArray();
+            }
+
+            /// <summary>
+            /// Check whether this building should be checked.
+            /// </summary>
+            /// <param name="building">The building.</param>
+            /// <returns>True if the building should be checked.</returns>
+            public bool CheckThis(TargetBuildingInfo building)
+            {
+                return building.CheckThis && (building.NeedsService || (this.IncludeUneedy && building.WantsService)) && building.ProblemValue >= this.MinProblemValue && (building.HasProblem || !this.OnlyProblematic);
             }
         }
     }

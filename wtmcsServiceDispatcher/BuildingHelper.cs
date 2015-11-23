@@ -245,6 +245,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 List<string> needs = new List<string>();
                 if (buildings[buildingId].m_garbageBuffer >= Global.Settings.MinimumGarbageForDispatch)
                 {
+                    needs.Add("Filthy");
+                }
+                if (buildings[buildingId].m_garbageBuffer >= Global.Settings.MinimumGarbageForPatrol)
+                {
                     needs.Add("Dirty");
                 }
                 else if (buildings[buildingId].m_garbageBuffer > 0)
@@ -331,7 +335,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 }
 
                 info.Add("AI", buildings[buildingId].Info.m_buildingAI.GetType().AssemblyQualifiedName);
-                
+
                 Log.DevDebug(typeof(BuildingKeeper), "DebugListLog", info.ToString());
             }
         }

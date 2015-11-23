@@ -30,14 +30,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
-        /// Logs the counts.
-        /// </summary>
-        public void LogCounts()
-        {
-            Log.Debug(this, "Counts", Tries, Limitations);
-        }
-
-        /// <summary>
         /// The maximum game version for detouring.
         /// </summary>
         protected override uint MaxGameVersion
@@ -93,6 +85,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Logs the counts.
+        /// </summary>
+        public void LogCounts()
+        {
+            Log.Debug(this, "Counts", Tries, Limitations);
+        }
+
+        /// <summary>
         /// Determines whether this instance can detour the method for the specified original class.
         /// </summary>
         /// <param name="originalClass">The original class.</param>
@@ -143,7 +143,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 if (Log.LogALot)
                 {
-                    Log.Debug(typeof(GarbageTruckAITryCollectGarbageDetour), "GarbageTruckAI_TryCollectGarbage_Override", vehicleID, buildingID);
+                    Log.DevDebug(typeof(GarbageTruckAITryCollectGarbageDetour), "GarbageTruckAI_TryCollectGarbage_Override", vehicleID, buildingID);
                 }
 
                 if (garbageTruckAI == null || vehicleID == 0 || buildingID == 0)
@@ -161,7 +161,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 {
                     if (Log.LogToFile && Log.LogALot)
                     {
-                        Log.Debug(typeof(GarbageTruckAITryCollectGarbageDetour), "GarbageTruckAI_TryCollectGarbage_Override", "NoTarget", logInfo);
+                        Log.DevDebug(typeof(GarbageTruckAITryCollectGarbageDetour), "GarbageTruckAI_TryCollectGarbage_Override", "NoTarget", logInfo);
                     }
 
                     GarbageTruckAI_TryCollectGarbage_Original(garbageTruckAI, vehicleID, ref vehicleData, ref frameData, buildingID, ref building);
@@ -172,7 +172,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 {
                     if (Log.LogToFile && Log.LogALot)
                     {
-                        Log.Debug(typeof(GarbageTruckAITryCollectGarbageDetour), "GarbageTruckAI_TryCollectGarbage_Override", "IsTarget", logInfo);
+                        Log.DevDebug(typeof(GarbageTruckAITryCollectGarbageDetour), "GarbageTruckAI_TryCollectGarbage_Override", "IsTarget", logInfo);
                     }
 
                     GarbageTruckAI_TryCollectGarbage_Original(garbageTruckAI, vehicleID, ref vehicleData, ref frameData, buildingID, ref building);
@@ -202,7 +202,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 {
                     if (Log.LogToFile && Log.LogALot)
                     {
-                        Log.Debug(typeof(GarbageTruckAITryCollectGarbageDetour), "GarbageTruckAI_TryCollectGarbage_Override", "NoCapacity", logInfo);
+                        Log.DevDebug(typeof(GarbageTruckAITryCollectGarbageDetour), "GarbageTruckAI_TryCollectGarbage_Override", "NoCapacity", logInfo);
                     }
 
                     Limitations++;
@@ -224,7 +224,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 {
                     if (Log.LogToFile && Log.LogALot)
                     {
-                        Log.Debug(typeof(GarbageTruckAITryCollectGarbageDetour), "GarbageTruckAI_TryCollectGarbage_Override", "NotEnoughCapacity", logInfo);
+                        Log.DevDebug(typeof(GarbageTruckAITryCollectGarbageDetour), "GarbageTruckAI_TryCollectGarbage_Override", "NotEnoughCapacity", logInfo);
                     }
 
                     Limitations++;
@@ -234,7 +234,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 if (Log.LogToFile && Log.LogALot)
                 {
-                    Log.Debug(typeof(GarbageTruckAITryCollectGarbageDetour), "GarbageTruckAI_TryCollectGarbage_Override", "Default", logInfo);
+                    Log.DevDebug(typeof(GarbageTruckAITryCollectGarbageDetour), "GarbageTruckAI_TryCollectGarbage_Override", "Default", logInfo);
                 }
 
                 GarbageTruckAI_TryCollectGarbage_Original(garbageTruckAI, vehicleID, ref vehicleData, ref frameData, buildingID, ref building);

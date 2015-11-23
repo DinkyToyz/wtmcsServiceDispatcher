@@ -14,7 +14,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// The settings version.
         /// </summary>
-        public readonly int Version = 2;
+        public readonly int Version = 3;
 
         /// <summary>
         /// When to create spare garbage trucks.
@@ -65,6 +65,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// The minimum amount of garbage to dispatch a truck for.
         /// </summary>
         public ushort MinimumGarbageForDispatch = 1500;
+
+        /// <summary>
+        /// The minimum amount of garbage to direct a patrolling truck for.
+        /// </summary>
+        public ushort MinimumGarbageForPatrol = 200;
 
         /// <summary>
         /// Limit building ranges.
@@ -201,6 +206,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 this.LimitOpportunisticGarbageCollection = settings.LimitOpportunisticGarbageCollection;
                 this.CreateSpareGarbageTrucks = settings.CreateSpareGarbageTrucks;
                 this.MinimumGarbageForDispatch = settings.MinimumGarbageForDispatch;
+                this.MinimumGarbageForPatrol = settings.MinimumGarbageForPatrol;
                 this.garbageChecksPreset = settings.GarbageChecksPreset;
                 this.garbageChecksCustom = settings.GarbageChecksCustom;
                 if (this.garbageChecksPreset == BuildingCheckOrder.Custom && (this.garbageChecksCustom == null || this.garbageChecksCustom.Length == 0))
@@ -565,14 +571,33 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         {
                             Log.Debug(typeof(Settings), "Load", "Loaded");
 
-                            if (cfg.Version < 2)
+                            if (cfg.Version < 3)
                             {
-                                cfg.DispatchHearsesByDistrict = cfg.DispatchByDistrict;
-                                cfg.DispatchHearsesByRange = cfg.DispatchByRange;
-                                cfg.DispatchGarbageTrucksByDistrict = cfg.DispatchByDistrict;
-                                cfg.DispatchGarbageTrucksByRange = cfg.DispatchByRange;
-                            }
+                                if (cfg.Version < 2)
+                                {
+                                    cfg.DispatchHearsesByDistrict = cfg.DispatchByDistrict;
+                                    cfg.DispatchHearsesByRange = cfg.DispatchByRange;
+                                    cfg.DispatchGarbageTrucksByDistrict = cfg.DispatchByDistrict;
+                                    cfg.DispatchGarbageTrucksByRange = cfg.DispatchByRange;
+                                }
 
+                                if (cfg.MinimumGarbageForDispatch >= 2000)
+                                {
+                                    cfg.MinimumGarbageForPatrol = 200;
+                                }
+                                else if (cfg.MinimumGarbageForDispatch >= 300)
+                                {
+                                    cfg.MinimumGarbageForPatrol = 150;
+                                }
+                                else if (cfg.MinimumGarbageForDispatch >= 100)
+                                {
+                                    cfg.MinimumGarbageForPatrol = 100;
+                                }
+                                else
+                                {
+                                    cfg.MinimumGarbageForPatrol = cfg.MinimumGarbageForDispatch;
+                                }
+                            }
                             Settings sets = new Settings(cfg);
 
                             Log.Debug(typeof(Settings), "Load", "End");
@@ -618,6 +643,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             Log.Debug(this, "LogSettings", "LimitOportunisticGarbageCollection", this.LimitOpportunisticGarbageCollection);
             Log.Debug(this, "LogSettings", "CreateSpareGarbageTrucks", this.CreateSpareGarbageTrucks);
             Log.Debug(this, "LogSettings", "MinimumGarbageForDispatch", this.MinimumGarbageForDispatch);
+            Log.Debug(this, "LogSettings", "MinimumGarbageForPatrol", this.MinimumGarbageForPatrol);
             Log.Debug(this, "LogSettings", "GarbageChecks", (byte)this.garbageChecksPreset, this.garbageChecksPreset, GetBuildingCheckOrderName(this.garbageChecksPreset));
             Log.Debug(this, "LogSettings", "GarbageChecksParameters", String.Join(", ", this.GarbageChecksParameters.Select(bc => bc.ToString()).ToArray()));
             if (this.garbageChecksCustom != null)
@@ -681,6 +707,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     cfg.LimitOpportunisticGarbageCollection = this.LimitOpportunisticGarbageCollection;
                     cfg.CreateSpareGarbageTrucks = this.CreateSpareGarbageTrucks;
                     cfg.MinimumGarbageForDispatch = this.MinimumGarbageForDispatch;
+                    cfg.MinimumGarbageForPatrol = this.MinimumGarbageForPatrol;
                     cfg.GarbageChecksPreset = this.garbageChecksPreset;
                     cfg.GarbageChecksCustom = this.garbageChecksCustom;
                     cfg.GarbageChecksCurrent = this.GarbageChecksParameters;
@@ -809,7 +836,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             /// <summary>
             /// The minimum amount of garbage to dispatch a truck for.
             /// </summary>
-            public ushort MinimumGarbageForDispatch = 2000;
+            public ushort MinimumGarbageForDispatch = 1500;
+
+            /// <summary>
+            /// The minimum amount of garbage to direct a patrolling truck for.
+            /// </summary>
+            public ushort MinimumGarbageForPatrol = 200;
 
             /// <summary>
             /// Limit building ranges.

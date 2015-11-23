@@ -36,17 +36,43 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         private uint lastUpdate;
 
         /// <summary>
+        /// The last want frame stamp.
+        /// </summary>
+        private uint lastWantStamp = 0;
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="TargetBuildingInfo" /> class.
         /// </summary>
         /// <param name="buildingId">The building identifier.</param>
         /// <param name="building">The building.</param>
         /// <param name="problemToCheck">The problem to check.</param>
-        /// <param name="needsService">If set to <c>true</c> building needs service.</param>
-        public TargetBuildingInfo(ushort buildingId, ref Building building, Notification.Problem problemToCheck, bool needsService)
+        /// <param name="demand">The demand.</param>
+        public TargetBuildingInfo(ushort buildingId, ref Building building, Notification.Problem problemToCheck, Demand demand)
         {
             this.BuildingId = buildingId;
 
-            this.Update(ref building, problemToCheck, needsService);
+            this.Update(ref building, problemToCheck, demand);
+        }
+
+        /// <summary>
+        /// Building demand states.
+        /// </summary>
+        public enum Demand
+        {
+            /// <summary>
+            /// No demand.
+            /// </summary>
+            None = 0,
+
+            /// <summary>
+            /// Wants, but does not necessarily need, service.
+            /// </summary>
+            WantsService = 1,
+
+            /// <summary>
+            /// Needs service.
+            /// </summary>
+            NeedsService = 2
         }
 
         /// <summary>
@@ -169,6 +195,20 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Gets a value indicating whether the building have no want for service.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if building have no want for service; otherwise, <c>false</c>.
+        /// </value>
+        public bool DontWantService
+        {
+            get
+            {
+                return !this.WantsService && Global.CurrentFrame - this.lastWantStamp > Global.DemandLingerDelay;
+            }
+        }
+
+        /// <summary>
         /// Gets or sets a value indicating whether this <see cref="TargetBuildingInfo"/> is handled.
         /// </summary>
         /// <value>
@@ -211,7 +251,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// Gets a value indicating whether the building needs service.
         /// </summary>
         /// <value>
-        ///   <c>true</c> if [needs service]; otherwise, <c>false</c>.
+        ///   <c>true</c> if building needs service; otherwise, <c>false</c>.
         /// </value>
         public bool NeedsService
         {
@@ -264,6 +304,18 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Gets a value indicating whether the building wants service.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if building wants service; otherwise, <c>false</c>.
+        /// </value>
+        public bool WantsService
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
         /// Initializes this instance.
         /// </summary>
         public void ReInitialize()
@@ -275,9 +327,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// </summary>
         /// <param name="building">The building.</param>
         /// <param name="problemToCheck">The problem to check.</param>
-        /// <param name="needsService">If set to <c>true</c> building needs service.</param>
+        /// <param name="demand">The demand.</param>
         /// <exception cref="System.Exception">Loop counter too high.</exception>
-        public void Update(ref Building building, Notification.Problem problemToCheck, bool needsService)
+        public void Update(ref Building building, Notification.Problem problemToCheck, Demand demand)
         {
             this.lastUpdate = Global.CurrentFrame;
 
@@ -334,9 +386,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             this.UpdateValues(ref building, false);
 
-            this.NeedsService = needsService || this.HasProblem;
+            this.NeedsService = this.HasProblem || demand == Demand.NeedsService;
+            this.WantsService = this.NeedsService || demand == Demand.WantsService;
+            if (this.WantsService || this.lastWantStamp == 0)
+            {
+                this.lastWantStamp = Global.CurrentFrame;
+            }
 
-            this.checkThis = needsService &&
+            this.checkThis = this.WantsService &&
                              ((Global.RecheckInterval == 0 || this.lastCheck == 0 || Global.CurrentFrame - this.lastCheck >= Global.RecheckInterval) &&
                               (Global.RecheckHandledInterval == 0 || this.lastHandled == 0 || Global.CurrentFrame - this.lastHandled >= Global.RecheckHandledInterval));
         }
