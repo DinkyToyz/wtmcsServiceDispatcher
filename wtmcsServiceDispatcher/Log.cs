@@ -1,11 +1,11 @@
-﻿using ColossalFramework.Plugins;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
+using ColossalFramework.Plugins;
 
 namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 {
@@ -14,31 +14,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
     /// </summary>
     internal static class Log
     {
-        /// <summary>
-        /// Log a lot of stuff.
-        /// </summary>
-        public static readonly bool LogALot;
-
-        /// <summary>
-        /// Log the debug lists.
-        /// </summary>
-        public static bool LogDebugLists;
-
-        /// <summary>
-        /// The log level.
-        /// </summary>
-        public static Level LogLevel = Log.Level.Info;
-
-        /// <summary>
-        /// Log object names (slow).
-        /// </summary>
-        public static bool LogNames;
-
-        /// <summary>
-        /// True for logging to file.
-        /// </summary>
-        public static bool LogToFile = false;
-
         /// <summary>
         /// The number of lines to buffer.
         /// </summary>
@@ -52,12 +27,47 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// The log info all to file.
         /// </summary>
-        private static bool logAllToFile = false;
+        private static bool logAllToFile;
+
+        /// <summary>
+        /// Log a lot of stuff.
+        /// </summary>
+        private static bool logALot;
+
+        /// <summary>
+        /// Log debug stuff.
+        /// </summary>
+        private static bool logDebug;
+
+        /// <summary>
+        /// Log the debug lists.
+        /// </summary>
+        private static bool logDebugLists;
 
         /// <summary>
         /// True when log file has been created.
         /// </summary>
         private static bool logFileCreated = false;
+
+        /// <summary>
+        /// The log level.
+        /// </summary>
+        private static Level logLevel;
+
+        /// <summary>
+        /// Log object names (slow).
+        /// </summary>
+        private static bool logNames;
+
+        /// <summary>
+        /// True for logging to file.
+        /// </summary>
+        private static bool logToFile;
+
+        /// <summary>
+        /// The log to file value has been set.
+        /// </summary>
+        private static bool logToFileSet = false;
 
         /// <summary>
         /// Initializes static members of the <see cref="Log"/> class.
@@ -67,26 +77,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             Log.LastFlush = 0;
 
             Log.LogNames = FileSystem.Exists(".debug.names");
-            Log.LogDebugLists = FileSystem.Exists(".debug.lists");
-            Log.LogALot = FileSystem.Exists(".debug.dev");
+            Log.logDebugLists = FileSystem.Exists(".debug.lists");
+            Log.logALot = FileSystem.Exists(".debug.dev");
+            Log.logDebug = Library.IsDebugBuild || FileSystem.Exists(".debug");
 
-            bool logDebug = Library.IsDebugBuild || FileSystem.Exists(".debug");
-
-            if (logDebug)
-            {
-                Log.LogLevel = Log.Level.Info;
-            }
-            else
-            {
-                Log.LogLevel = Log.Level.Warning;
-            }
-
-            if (logDebug || Log.LogALot || Log.LogDebugLists)
-            {
-                Log.LogToFile = true;
-                Log.logAllToFile = true;
-                Log.lineBuffer = new List<string>();
-            }
+            SetLogValues();
 
             try
             {
@@ -135,41 +130,132 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
-        /// Gets or sets a value indicating whether this <see cref="Log"/> is buffered.
+        /// Gets the last flush of buffer stamp.
+        /// </summary>
+        public static uint LastFlush
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether to log a lot of stuff.
         /// </summary>
         /// <value>
-        ///   <c>true</c> if buffered; otherwise, <c>false</c>.
+        /// <c>true</c> if a lot should be logged; otherwise, <c>false</c>.
         /// </value>
-        public static bool Buffer
+        public static bool LogALot
         {
             get
             {
-                return lineBuffer != null;
+                return Log.logALot;
             }
 
             set
             {
-                if (value)
+                if (value != Log.logALot)
                 {
-                    if (lineBuffer == null)
-                    {
-                        lineBuffer = new List<string>();
-                    }
-                }
-                else
-                {
-                    if (lineBuffer != null)
-                    {
-                        lineBuffer = null;
-                    }
+                    Log.logALot = value;
+                    SetLogValues();
                 }
             }
         }
 
         /// <summary>
-        /// Gets the last flush of buffer stamp.
+        /// Gets or sets a value indicating whether to log debug stuff.
         /// </summary>
-        public static uint LastFlush { get; private set; }
+        /// <value>
+        ///   <c>true</c> if debug stuff should be logged; otherwise, <c>false</c>.
+        /// </value>
+        public static bool LogDebug
+        {
+            get
+            {
+                return logDebug;
+            }
+
+            set
+            {
+                if (value != logDebug)
+                {
+                    logDebug = value;
+                    SetLogValues();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether to log the debug lists.
+        /// </summary>
+        public static bool LogDebugLists
+        {
+            get
+            {
+                return Log.logDebugLists;
+            }
+
+            set
+            {
+                if (value != Log.logDebugLists)
+                {
+                    Log.logDebugLists = value;
+                    SetLogValues();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets the log level.
+        /// </summary>
+        public static Level LogLevel
+        {
+            get
+            {
+                return Log.logLevel;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether to object names (slow).
+        /// </summary>
+        public static bool LogNames
+        {
+            get
+            {
+                return Log.logNames;
+            }
+
+            set
+            {
+                if (value != Log.logNames)
+                {
+                    Log.logNames = value;
+                    SetLogValues();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether to log to file.
+        /// </summary>
+        public static bool LogToFile
+        {
+            get
+            {
+                return Log.logToFile;
+            }
+
+            set
+            {
+                logToFileSet = true;
+
+                if (value != Log.logToFile)
+                {
+                    Log.logToFile = value;
+                    SetLogValues();
+                }
+            }
+        }
 
         /// <summary>
         /// Outputs the specified debugging message.
@@ -218,7 +304,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     {
                         using (StreamWriter logFile = new StreamWriter(FileSystem.FilePathName(".log"), logFileCreated))
                         {
-                            if (Log.LogALot) lineBuffer.Add((DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") + " Flush\n").ConformNewlines());
+                            if (Log.logALot)
+                                lineBuffer.Add((DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") + " Flush\n").ConformNewlines());
 
                             logFile.Write(String.Join("", lineBuffer.ToArray()));
                             logFile.Close();
@@ -290,7 +377,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <param name="messages">The messages.</param>
         public static void Output(Level level, object sourceObject, string sourceBlock, Exception exception, params object[] messages)
         {
-            if (level > LogLevel && !logAllToFile)
+            if (level > logLevel && !logAllToFile)
             {
                 return;
             }
@@ -401,7 +488,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 msg.Insert(0, "] ").Insert(0, Library.Name).Insert(0, "[");
 
-                if (level != Level.None && level != Level.All && level <= LogLevel)
+                if (level != Level.None && level != Level.All && level <= logLevel)
                 {
                     try
                     {
@@ -428,17 +515,20 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     {
                         case Level.Info:
                             msg.Insert(0, "Info:    ");
-                            if (level <= LogLevel) UnityEngine.Debug.Log(msg.CleanNewLines());
+                            if (level <= logLevel)
+                                UnityEngine.Debug.Log(msg.CleanNewLines());
                             break;
 
                         case Level.Warning:
                             msg.Insert(0, "Warning: ");
-                            if (level <= LogLevel) UnityEngine.Debug.LogWarning(msg.CleanNewLines());
+                            if (level <= logLevel)
+                                UnityEngine.Debug.LogWarning(msg.CleanNewLines());
                             break;
 
                         case Level.Error:
                             msg.Insert(0, "Error:   ");
-                            if (level <= LogLevel) UnityEngine.Debug.LogError(msg.CleanNewLines());
+                            if (level <= logLevel)
+                                UnityEngine.Debug.LogError(msg.CleanNewLines());
                             break;
 
                         case Level.None:
@@ -448,7 +538,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                         default:
                             msg.Insert(0, "Debug:   ");
-                            if (level <= LogLevel) UnityEngine.Debug.Log(msg.CleanNewLines());
+                            if (level <= logLevel)
+                                UnityEngine.Debug.Log(msg.CleanNewLines());
                             break;
                     }
                 }
@@ -456,7 +547,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 {
                 }
 
-                if (LogToFile)
+                if (Log.logToFile)
                 {
                     try
                     {
@@ -501,6 +592,74 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public static void Warning(object sourceObject, string sourceBlock, params object[] messages)
         {
             Output(Level.Warning, sourceObject, sourceBlock, null, messages);
+        }
+
+        /// <summary>
+        /// Sets the log values.
+        /// </summary>
+        private static void SetLogValues()
+        {
+            if (Log.logALot)
+            {
+                Log.logDebug = true;
+            }
+
+            if (Log.logDebug)
+            {
+                Log.logLevel = Log.Level.Info;
+            }
+            else
+            {
+                Log.logLevel = Log.Level.Warning;
+            }
+
+            if (logDebug || Log.logALot || Log.logDebugLists)
+            {
+                if (!Log.logToFileSet)
+                {
+                    Log.logToFile = true;
+                }
+
+                Log.logAllToFile = Log.logToFile;
+            }
+            else
+            {
+                if (!Log.logToFileSet)
+                {
+                    Log.logToFile = false;
+                }
+
+                Log.logAllToFile = false;
+            }
+
+            try
+            {
+                if (Log.logToFile)
+                {
+                    if (lineBuffer == null)
+                    {
+                        Log.lineBuffer = new List<string>();
+                    }
+                }
+                else
+                {
+                    Log.logAllToFile = false;
+
+                    if (Log.lineBuffer != null)
+                    {
+                        Log.FlushBuffer();
+                        Log.lineBuffer = null;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.logAllToFile = false;
+                Log.logToFile = false;
+                Log.lineBuffer = null;
+
+                Log.Error(typeof(Log), "SetLogValues", ex);
+            }
         }
 
         /// <summary>

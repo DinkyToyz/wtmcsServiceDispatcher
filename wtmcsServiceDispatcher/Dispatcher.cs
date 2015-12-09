@@ -200,18 +200,18 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             }
             else if (!(this.targetBuildings.ContainsKey(vehicle.m_targetBuilding) && this.targetBuildings[vehicle.m_targetBuilding].WantedService))
             {
-                bool deAssigned = serviceBuilding.Vehicles[vehicleId].DeAssign(ref vehicle);
+                bool deassigned = serviceBuilding.Vehicles[vehicleId].DeAssign(ref vehicle);
 
-                if (deAssigned && Log.LogALot)
+                if (deassigned && Log.LogALot)
                 {
                     Log.DevDebug(this, "CheckVehicleTarget", "NoNeed", vehicleId, vehicle.m_targetBuilding);
                 }
             }
             else if (vehicle.m_targetBuilding != serviceBuilding.Vehicles[vehicleId].Target)
             {
-                bool deAssigned = serviceBuilding.Vehicles[vehicleId].DeAssign(ref vehicle);
+                bool deassigned = serviceBuilding.Vehicles[vehicleId].DeAssign(ref vehicle);
 
-                if (deAssigned && Log.LogALot)
+                if (deassigned && Log.LogALot)
                 {
                     Log.DevDebug(this, "CheckVehicleTarget", "WrongTarget", vehicleId, vehicle.m_targetBuilding, serviceBuilding.Vehicles[vehicleId].Target);
                 }
@@ -672,9 +672,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                                 {
                                     if (!(this.targetBuildings.ContainsKey(vehicles[vehicleId].m_targetBuilding) && this.targetBuildings[vehicles[vehicleId].m_targetBuilding].WantedService))
                                     {
-                                        bool deAssigned = serviceBuilding.Vehicles[vehicleId].DeAssign(ref vehicles[vehicleId]);
+                                        bool deassigned = serviceBuilding.Vehicles[vehicleId].DeAssign(ref vehicles[vehicleId]);
 
-                                        if (deAssigned)
+                                        if (deassigned)
                                         {
                                             if (Log.LogALot)
                                             {
@@ -686,9 +686,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                                     }
                                     else if (vehicles[vehicleId].m_targetBuilding != serviceBuilding.Vehicles[vehicleId].Target)
                                     {
-                                        bool deAssigned = serviceBuilding.Vehicles[vehicleId].DeAssign(ref vehicles[vehicleId]);
+                                        bool deassigned = serviceBuilding.Vehicles[vehicleId].DeAssign(ref vehicles[vehicleId]);
 
-                                        if (deAssigned)
+                                        if (deassigned)
                                         {
                                             if (Log.LogALot)
                                             {

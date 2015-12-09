@@ -8,67 +8,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
     internal class ServiceVehicleInfo
     {
         /// <summary>
-        /// The free capacity.
+        /// The last target stamp.
         /// </summary>
-        public int CapacityFree
-        {
-            get;
-            private set;
-        }
-
-        /// <summary>
-        /// The used capacity in percent.
-        /// </summary>
-        public float CapacityUsed
-        {
-            get;
-            private set;
-        }
-
-        /// <summary>
-        /// The vehicle is free.
-        /// </summary>
-        public bool FreeToCollect
-        {
-            get;
-            private set;
-        }
-
-        /// <summary>
-        /// The last seen stamp.
-        /// </summary>
-        public uint LastSeen
-        {
-            get;
-            private set;
-        }
-
-        /// <summary>
-        /// The position.
-        /// </summary>
-        public Vector3 Position
-        {
-            get;
-            private set;
-        }
-
-        /// <summary>
-        /// The target.
-        /// </summary>
-        public ushort Target
-        {
-            get;
-            private set;
-        }
-
-        /// <summary>
-        /// The vehicle identifier.
-        /// </summary>
-        public ushort VehicleId
-        {
-            get;
-            private set;
-        }
+        private uint lastTargetStamp = 0;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ServiceVehicleInfo" /> class.
@@ -81,6 +23,69 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             this.VehicleId = vehicleId;
 
             this.Update(ref vehicle, freeToCollect);
+        }
+
+        /// <summary>
+        /// Gets the free capacity.
+        /// </summary>
+        public int CapacityFree
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// Gets the used capacity in percent.
+        /// </summary>
+        public float CapacityUsed
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// Gets a value indicating whether the vehicle is free.
+        /// </summary>
+        public bool FreeToCollect
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// Gets the last seen stamp.
+        /// </summary>
+        public uint LastSeen
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// Gets the position.
+        /// </summary>
+        public Vector3 Position
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// Gets the target.
+        /// </summary>
+        public ushort Target
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// Gets the vehicle identifier.
+        /// </summary>
+        public ushort VehicleId
+        {
+            get;
+            private set;
         }
 
         /// <summary>
@@ -97,8 +102,27 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             }
         }
 
-        private uint lastTargetStamp = 0;
+        /// <summary>
+        /// De-assign target from vehicle.
+        /// </summary>
+        /// <param name="vehicle">The vehicle.</param>
+        /// <returns>True if target is or was de-assigned.</returns>
+        public bool DeAssign(ref Vehicle vehicle)
+        {
+            if (Global.CurrentFrame - this.lastTargetStamp > Global.TargetLingerDelay)
+            {
+                this.SetTarget(0, ref vehicle);
+                return true;
+            }
 
+            return this.Target == 0;
+        }
+
+        /// <summary>
+        /// Sets the target and updates the games vehicle object.
+        /// </summary>
+        /// <param name="targetBuildingId">The target building identifier.</param>
+        /// <param name="vehicle">The vehicle.</param>
         public void SetTarget(ushort targetBuildingId, ref Vehicle vehicle)
         {
             if (targetBuildingId != vehicle.m_targetBuilding)
@@ -109,26 +133,19 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             this.SetTarget(targetBuildingId);
         }
 
+        /// <summary>
+        /// Sets the target.
+        /// </summary>
+        /// <param name="targetBuildingId">The target building identifier.</param>
         public void SetTarget(ushort targetBuildingId)
         {
             if (targetBuildingId != 0)
             {
-                lastTargetStamp = Global.CurrentFrame;
+                this.lastTargetStamp = Global.CurrentFrame;
                 this.FreeToCollect = false;
             }
 
             this.Target = targetBuildingId;
-        }
-
-        public bool DeAssign(ref Vehicle vehicle)
-        {
-            if (Global.CurrentFrame - this.lastTargetStamp > Global.TargetLingerDelay)
-            {
-                this.SetTarget(0, ref vehicle);
-                return true;
-            }
-
-            return this.Target == 0;
         }
 
         /// <summary>

@@ -381,13 +381,13 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     break;
             }
 
-            this.HasProblem = (this.ProblemSize > 0) && (building.m_problems & problemToCheck) == problemToCheck || this.ProblemValue >= Dispatcher.ProblemLimit;
+            this.HasProblem = (this.ProblemSize > 0) && ((building.m_problems & problemToCheck) == problemToCheck || this.ProblemValue >= Dispatcher.ProblemLimit);
             this.Position = building.m_position;
 
             this.UpdateValues(ref building, false);
 
             this.NeedsService = (this.ProblemSize > 0) && (this.HasProblem || demand == Demand.NeedsService);
-            this.WantsService = (this.ProblemSize > 0) && this.NeedsService || demand == Demand.WantsService;
+            this.WantsService = (this.ProblemSize > 0) && (this.NeedsService || demand == Demand.WantsService);
             if (this.WantsService || this.lastWantStamp == 0)
             {
                 this.lastWantStamp = Global.CurrentFrame;

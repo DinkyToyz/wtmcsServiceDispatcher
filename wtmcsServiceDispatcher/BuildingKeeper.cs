@@ -415,7 +415,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 }
                 else if (this.DirtyBuildings.ContainsKey(buildingId))
                 {
-                    if (building.m_garbageBuffer > 10 && (building.m_garbageBuffer >= Global.Settings.MinimumGarbageForDispatch / 10 || building.m_garbageBuffer >= Global.Settings.MinimumGarbageForPatrol / 2) || this.DirtyBuildings[buildingId].WantedService)
+                    if ((building.m_garbageBuffer > 10 && (building.m_garbageBuffer >= Global.Settings.MinimumGarbageForDispatch / 10 || building.m_garbageBuffer >= Global.Settings.MinimumGarbageForPatrol / 2)) || this.DirtyBuildings[buildingId].WantedService)
                     {
                         this.DirtyBuildings[buildingId].Update(ref building, Notification.Problem.Garbage, TargetBuildingInfo.Demand.None);
                     }

@@ -43,7 +43,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public static uint DemandLingerDelay = 0u;
 
         /// <summary>
-        /// The target deassign delay.
+        /// The target de-assign delay.
         /// </summary>
         public static uint TargetLingerDelay = 480u;
 

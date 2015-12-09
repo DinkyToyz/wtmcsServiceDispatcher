@@ -17,6 +17,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         private Dictionary<byte, string> targetBuildingChecks = null;
 
         /// <summary>
+        /// The log controls are being updated.
+        /// </summary>
+        private bool updatingLogControls = false;
+
+        /// <summary>
         /// The vehicle creation options strings for dropdown.
         /// </summary>
         private Dictionary<byte, string> vehicleCreationOptions = null;
@@ -443,11 +448,128 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         Global.Settings.Save();
                     });
 
+                // Add logging group.
+                UIHelperBase logGroup = helper.AddGroup("Logging (not saved in settings)");
+
+                UIComponent debugLog = null;
+                UIComponent devLog = null;
+                UIComponent objectLog = null;
+                UIComponent namesLog = null;
+                UIComponent fileLog = null;
+
+                debugLog = logGroup.AddCheckbox(
+                    "Debug log",
+                    Log.LogDebug,
+                    value =>
+                    {
+                        if (!this.updatingLogControls)
+                        {
+                            Log.LogDebug = value;
+                            UpdateLogControls(debugLog, devLog, objectLog, namesLog, fileLog);
+                        }
+                    }) as UIComponent;
+
+                devLog = logGroup.AddCheckbox(
+                    "Developer log",
+                    Log.LogALot,
+                    value =>
+                    {
+                        if (!this.updatingLogControls)
+                        {
+                            Log.LogALot = value;
+                            UpdateLogControls(debugLog, devLog, objectLog, namesLog, fileLog);
+                        }
+                    }) as UIComponent;
+
+                objectLog = logGroup.AddCheckbox(
+                    "Object list log",
+                    Log.LogDebugLists,
+                    value =>
+                    {
+                        if (!this.updatingLogControls)
+                        {
+                            Log.LogDebugLists = value;
+                            UpdateLogControls(debugLog, devLog, objectLog, namesLog, fileLog);
+                        }
+                    }) as UIComponent;
+
+                namesLog = logGroup.AddCheckbox(
+                    "Log names",
+                    Log.LogNames,
+                    value =>
+                    {
+                        if (!this.updatingLogControls)
+                        {
+                            Log.LogNames = value;
+                            UpdateLogControls(debugLog, devLog, objectLog, namesLog, fileLog);
+                        }
+                    }) as UIComponent;
+
+                fileLog = logGroup.AddCheckbox(
+                    "Log to file",
+                    Log.LogToFile,
+                    value =>
+                    {
+                        if (!this.updatingLogControls)
+                        {
+                            Log.LogToFile = value;
+                            UpdateLogControls(debugLog, devLog, objectLog, namesLog, fileLog);
+                        }
+                    }) as UIComponent;
+
                 Log.FlushBuffer();
             }
             catch (System.Exception ex)
             {
                 Log.Error(this, "OnSettingsUI", ex);
+            }
+        }
+
+        /// <summary>
+        /// Updates the log controls.
+        /// </summary>
+        /// <param name="debugLog">The debug log control.</param>
+        /// <param name="devLog">The developer log control.</param>
+        /// <param name="objectLog">The object log control.</param>
+        /// <param name="namesLog">The names log control.</param>
+        /// <param name="fileLog">The file log control.</param>
+        private void UpdateLogControls(UIComponent debugLog, UIComponent devLog, UIComponent objectLog, UIComponent namesLog, UIComponent fileLog)
+        {
+            try
+            {
+                this.updatingLogControls = true;
+
+                if (debugLog != null && debugLog is UICheckBox)
+                {
+                    ((UICheckBox)debugLog).isChecked = Log.LogDebug;
+                }
+
+                if (devLog != null && devLog is UICheckBox)
+                {
+                    ((UICheckBox)devLog).isChecked = Log.LogALot;
+                }
+
+                if (objectLog != null && objectLog is UICheckBox)
+                {
+                    ((UICheckBox)objectLog).isChecked = Log.LogDebugLists;
+                }
+
+                if (namesLog != null && namesLog is UICheckBox)
+                {
+                    ((UICheckBox)namesLog).isChecked = Log.LogNames;
+                }
+
+                if (fileLog != null && fileLog is UICheckBox)
+                {
+                    ((UICheckBox)fileLog).isChecked = Log.LogToFile;
+                }
+            }
+            catch
+            {
+            }
+            finally
+            {
+                this.updatingLogControls = false;
             }
         }
     }

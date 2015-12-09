@@ -141,10 +141,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             {
                 Tries++;
 
-                if (Log.LogALot)
-                {
-                    Log.DevDebug(typeof(GarbageTruckAITryCollectGarbageDetour), "GarbageTruckAI_TryCollectGarbage_Override", vehicleID, buildingID);
-                }
+                ////if (Log.LogALot)
+                ////{
+                ////    Log.DevDebug(typeof(GarbageTruckAITryCollectGarbageDetour), "GarbageTruckAI_TryCollectGarbage_Override", vehicleID, buildingID);
+                ////}
 
                 if (garbageTruckAI == null || vehicleID == 0 || buildingID == 0)
                 {
@@ -159,10 +159,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 if (vehicleData.m_targetBuilding == 0)
                 {
-                    if (Log.LogToFile && Log.LogALot)
-                    {
-                        Log.DevDebug(typeof(GarbageTruckAITryCollectGarbageDetour), "GarbageTruckAI_TryCollectGarbage_Override", "NoTarget", logInfo);
-                    }
+                    ////if (Log.LogToFile && Log.LogALot)
+                    ////{
+                    ////    Log.DevDebug(typeof(GarbageTruckAITryCollectGarbageDetour), "GarbageTruckAI_TryCollectGarbage_Override", "NoTarget", logInfo);
+                    ////}
 
                     GarbageTruckAI_TryCollectGarbage_Original(garbageTruckAI, vehicleID, ref vehicleData, ref frameData, buildingID, ref building);
                     return;
@@ -170,10 +170,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 if (vehicleData.m_targetBuilding == buildingID)
                 {
-                    if (Log.LogToFile && Log.LogALot)
-                    {
-                        Log.DevDebug(typeof(GarbageTruckAITryCollectGarbageDetour), "GarbageTruckAI_TryCollectGarbage_Override", "IsTarget", logInfo);
-                    }
+                    ////if (Log.LogToFile && Log.LogALot)
+                    ////{
+                    ////    Log.DevDebug(typeof(GarbageTruckAITryCollectGarbageDetour), "GarbageTruckAI_TryCollectGarbage_Override", "IsTarget", logInfo);
+                    ////}
 
                     GarbageTruckAI_TryCollectGarbage_Original(garbageTruckAI, vehicleID, ref vehicleData, ref frameData, buildingID, ref building);
                     return;
@@ -232,10 +232,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     return;
                 }
 
-                if (Log.LogToFile && Log.LogALot)
-                {
-                    Log.DevDebug(typeof(GarbageTruckAITryCollectGarbageDetour), "GarbageTruckAI_TryCollectGarbage_Override", "Default", logInfo);
-                }
+                ////if (Log.LogToFile && Log.LogALot)
+                ////{
+                ////    Log.DevDebug(typeof(GarbageTruckAITryCollectGarbageDetour), "GarbageTruckAI_TryCollectGarbage_Override", "Default", logInfo);
+                ////}
 
                 GarbageTruckAI_TryCollectGarbage_Original(garbageTruckAI, vehicleID, ref vehicleData, ref frameData, buildingID, ref building);
             }
