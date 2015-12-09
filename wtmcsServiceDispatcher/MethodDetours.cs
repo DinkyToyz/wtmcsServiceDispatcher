@@ -112,6 +112,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             if (!this.detours.ContainsKey(originalClass))
             {
+                if (originalClass != this.OriginalClassType)
+                {
+                    Log.Warning(this, "Original AI replaced: ", this.OriginalClassType, originalClass);
+                }
+                
                 this.detours[originalClass] = new DetourInfo();
 
                 if (this.IsDetoured)
