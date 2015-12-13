@@ -105,6 +105,15 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Reverts all detours, releases the detour objects and sets the object to error state.
+        /// </summary>
+        public void Abort()
+        {
+            this.error = true;
+            this.Revert(true);
+        }
+
+        /// <summary>
         /// Adds a class for which the method will be detoured.
         /// </summary>
         /// <param name="originalClass">The original class.</param>
@@ -116,7 +125,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 {
                     Log.Warning(this, "Original AI replaced: ", this.OriginalClassType, originalClass);
                 }
-                
+
                 this.detours[originalClass] = new DetourInfo();
 
                 if (this.IsDetoured)
@@ -201,15 +210,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// </summary>
         public void Dispose()
         {
-            this.Revert(true);
-        }
-
-        /// <summary>
-        /// Reverts all detours, releases the detour objects and sets the object to error state.
-        /// </summary>
-        public void Abort()
-        {
-            this.error = true;
             this.Revert(true);
         }
 

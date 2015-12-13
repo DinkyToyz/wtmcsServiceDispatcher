@@ -43,11 +43,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public static uint DemandLingerDelay = 0u;
 
         /// <summary>
-        /// The target de-assign delay.
-        /// </summary>
-        public static uint TargetLingerDelay = 480u;
-
-        /// <summary>
         /// A detour reinitialize is needed.
         /// </summary>
         public static bool DetourInitNeeded = true;
@@ -103,6 +98,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public static TargetBuildingInfo.PriorityComparer TargetBuildingInfoPriorityComparer = null;
 
         /// <summary>
+        /// The target de-assign delay.
+        /// </summary>
+        public static uint TargetLingerDelay = 480u;
+
+        /// <summary>
         /// The vehicles.
         /// </summary>
         public static VehicleKeeper Vehicles = null;
@@ -155,6 +155,39 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             }
 
             DetourInitNeeded = false;
+        }
+
+        /// <summary>
+        /// Initializes the settings.
+        /// </summary>
+        public static void InitializeSettings()
+        {
+            if (Settings == null)
+            {
+                try
+                {
+                    try
+                    {
+                        Settings = Settings.Load();
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error(typeof(Global), "InitSettings", ex);
+                        Settings = new Settings();
+                    }
+
+                    Settings.LogSettings();
+
+                    if (Settings.LoadedVersion < Settings.Version)
+                    {
+                        Settings.Save();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(typeof(Global), "InitSettings", ex);
+                }
+            }
         }
 
         /// <summary>
@@ -234,39 +267,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             }
 
             BuildingUpdateNeeded = true;
-        }
-
-        /// <summary>
-        /// Initializes the settings.
-        /// </summary>
-        public static void InitializeSettings()
-        {
-            if (Settings == null)
-            {
-                try
-                {
-                    try
-                    {
-                        Settings = Settings.Load();
-                    }
-                    catch (Exception ex)
-                    {
-                        Log.Error(typeof(Global), "InitSettings", ex);
-                        Settings = new Settings();
-                    }
-
-                    Settings.LogSettings();
-
-                    if (Settings.LoadedVersion < Settings.Version)
-                    {
-                        Settings.Save();
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Log.Error(typeof(Global), "InitSettings", ex);
-                }
-            }
         }
 
         /// <summary>

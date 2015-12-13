@@ -8,7 +8,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
     /// <summary>
     /// Service vehicle dispatch base class.
     /// </summary>
-    internal class Dispatcher : HandlerPart
+    internal class Dispatcher : IHandlerPart
     {
         /// <summary>
         /// The problem buffer modifier.

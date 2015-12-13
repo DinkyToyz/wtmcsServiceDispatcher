@@ -7,7 +7,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
     /// <summary>
     /// Keeps track of interesting buildings.
     /// </summary>
-    internal class BuildingKeeper : HandlerPart
+    internal class BuildingKeeper : IHandlerPart
     {
         /// <summary>
         /// The current/last update bucket.
@@ -28,54 +28,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// The bucket mask.
         /// </summary>
         private uint bucketMask = 255;
-
-        public void ReInitialize()
-        {
-            this.Initialize(false);
-        }
-
-        private void Initialize(bool constructing)
-        {
-            if (Global.Settings.DispatchHearses)
-            {
-                if (constructing || this.DeadPeopleBuildings == null)
-                {
-                    this.HasDeadPeopleBuildingsToCheck = false;
-                    this.DeadPeopleBuildings = new Dictionary<ushort, TargetBuildingInfo>();
-                }
-
-                if (constructing || this.HearseBuildings == null)
-                {
-                    this.HasDeadPeopleBuildingsToCheck = false;
-                    this.HearseBuildings = new Dictionary<ushort, ServiceBuildingInfo>();
-                }
-            }
-            else
-            {
-                this.DeadPeopleBuildings = null;
-                this.HearseBuildings = null;
-            }
-
-            if (Global.Settings.DispatchGarbageTrucks)
-            {
-                if (constructing || this.DirtyBuildings == null)
-                {
-                    this.HasDirtyBuildingsToCheck = false;
-                    this.DirtyBuildings = new Dictionary<ushort, TargetBuildingInfo>();
-                }
-
-                if (constructing || this.GarbageBuildings == null)
-                {
-                    this.HasDirtyBuildingsToCheck = false;
-                    this.GarbageBuildings = new Dictionary<ushort, ServiceBuildingInfo>();
-                }
-            }
-            else
-            {
-                this.DirtyBuildings = null;
-                this.GarbageBuildings = null;
-            }
-        }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="BuildingKeeper"/> class.
@@ -229,6 +181,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             {
                 Log.Error(typeof(BuildingKeeper), "DebugListLogTargetBuildings", ex);
             }
+        }
+
+        /// <summary>
+        /// Re-initialize the part.
+        /// </summary>
+        public void ReInitialize()
+        {
+            this.Initialize(false);
         }
 
         /// <summary>
@@ -511,6 +471,53 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 {
                     this.CategorizeBuilding(id, ref buildings[id]);
                 }
+            }
+        }
+
+        /// <summary>
+        /// Initializes the data lists.
+        /// </summary>
+        /// <param name="constructing">If set to <c>true</c> object is being constructed.</param>
+        private void Initialize(bool constructing)
+        {
+            if (Global.Settings.DispatchHearses)
+            {
+                if (constructing || this.DeadPeopleBuildings == null)
+                {
+                    this.HasDeadPeopleBuildingsToCheck = false;
+                    this.DeadPeopleBuildings = new Dictionary<ushort, TargetBuildingInfo>();
+                }
+
+                if (constructing || this.HearseBuildings == null)
+                {
+                    this.HasDeadPeopleBuildingsToCheck = false;
+                    this.HearseBuildings = new Dictionary<ushort, ServiceBuildingInfo>();
+                }
+            }
+            else
+            {
+                this.DeadPeopleBuildings = null;
+                this.HearseBuildings = null;
+            }
+
+            if (Global.Settings.DispatchGarbageTrucks)
+            {
+                if (constructing || this.DirtyBuildings == null)
+                {
+                    this.HasDirtyBuildingsToCheck = false;
+                    this.DirtyBuildings = new Dictionary<ushort, TargetBuildingInfo>();
+                }
+
+                if (constructing || this.GarbageBuildings == null)
+                {
+                    this.HasDirtyBuildingsToCheck = false;
+                    this.GarbageBuildings = new Dictionary<ushort, ServiceBuildingInfo>();
+                }
+            }
+            else
+            {
+                this.DirtyBuildings = null;
+                this.GarbageBuildings = null;
             }
         }
 

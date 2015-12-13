@@ -25,14 +25,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         private Dispatcher.DispatcherTypes dispatcherType = Dispatcher.DispatcherTypes.None;
 
         /// <summary>
-        /// The last info update stamp.
-        /// </summary>
-        private uint lastInfoUpdate = 0;
-
-        /// <summary>
         /// The last capacity update stamp.
         /// </summary>
         private uint lastCapacityUpdate = 0;
+
+        /// <summary>
+        /// The last info update stamp.
+        /// </summary>
+        private uint lastInfoUpdate = 0;
 
         /// <summary>
         /// The last update stamp.
@@ -153,6 +153,18 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// The capacity maximum.
         /// </value>
         public int CapacityMax
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// Gets or the capacity overflow.
+        /// </summary>
+        /// <value>
+        /// The capacity overflow.
+        /// </value>
+        public int CapacityOverflow
         {
             get;
             private set;
@@ -303,18 +315,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// Gets the total vehicles count.
         /// </summary>
         public int VehiclesTotal
-        {
-            get;
-            private set;
-        }
-
-        /// <summary>
-        /// Gets or the capacity overflow.
-        /// </summary>
-        /// <value>
-        /// The capacity overflow.
-        /// </value>
-        public int CapacityOverflow
         {
             get;
             private set;
@@ -499,7 +499,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// Compares service buildings for priority sorting.
         /// </summary>
-        public class PriorityComparer : IComparer<ServiceBuildingInfo>, HandlerPart
+        public class PriorityComparer : IComparer<ServiceBuildingInfo>, IHandlerPart
         {
             /// <summary>
             /// Compares two buildings and returns a value indicating whether one is less than, equal to, or greater than the other.
@@ -543,6 +543,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 return 0;
             }
 
+            /// <summary>
+            /// Re-initialize the part.
+            /// </summary>
             public void ReInitialize()
             {
             }

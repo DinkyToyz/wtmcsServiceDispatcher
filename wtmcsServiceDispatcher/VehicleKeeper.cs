@@ -7,7 +7,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
     /// <summary>
     /// Vehicle data.
     /// </summary>
-    internal class VehicleKeeper : HandlerPart
+    internal class VehicleKeeper : IHandlerPart
     {
         /// <summary>
         /// The current/last update bucket.
@@ -40,6 +40,13 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public VehicleKeeper()
         {
             Log.Debug(this, "Constructed");
+        }
+
+        /// <summary>
+        /// Re-initialize the part.
+        /// </summary>
+        public void ReInitialize()
+        {
         }
 
         /// <summary>
@@ -158,10 +165,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     }
                 }
             }
-        }
-
-        public void ReInitialize()
-        {
         }
     }
 }

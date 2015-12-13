@@ -195,20 +195,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
-        /// Gets a value indicating whether the building have no want for service.
-        /// </summary>
-        /// <value>
-        ///   <c>true</c> if building have no want for service; otherwise, <c>false</c>.
-        /// </value>
-        public bool WantedService
-        {
-            get
-            {
-                return this.WantsService || Global.CurrentFrame - this.lastWantStamp <= Global.DemandLingerDelay;
-            }
-        }
-
-        /// <summary>
         /// Gets or sets a value indicating whether this <see cref="TargetBuildingInfo"/> is handled.
         /// </summary>
         /// <value>
@@ -300,6 +286,20 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             get
             {
                 return this.lastUpdate == Global.CurrentFrame;
+            }
+        }
+
+        /// <summary>
+        /// Gets a value indicating whether the building have no want for service.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if building have no want for service; otherwise, <c>false</c>.
+        /// </value>
+        public bool WantedService
+        {
+            get
+            {
+                return this.WantsService || Global.CurrentFrame - this.lastWantStamp <= Global.DemandLingerDelay;
             }
         }
 
@@ -430,7 +430,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// Compares target buildings for priority sorting.
         /// </summary>
-        public class PriorityComparer : IComparer<TargetBuildingInfo>, HandlerPart
+        public class PriorityComparer : IComparer<TargetBuildingInfo>, IHandlerPart
         {
             /// <summary>
             /// Compares two buildings and returns a value indicating whether one is less than, equal to, or greater than the other.
@@ -456,6 +456,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 }
             }
 
+            /// <summary>
+            /// Re-initialize the part.
+            /// </summary>
             public void ReInitialize()
             {
             }
