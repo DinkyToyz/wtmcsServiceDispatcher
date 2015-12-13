@@ -100,7 +100,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             try
             {
                 // Load settings.
-                Global.InitSettings();
+                Global.InitializeSettings();
 
                 if (this.targetBuildingChecks == null)
                 {
@@ -146,9 +146,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         if (Global.Settings.RangeLimit != value)
                         {
                             Global.BuildingUpdateNeeded = true;
+                            Global.Settings.RangeLimit = value;
+                            Global.Settings.Save();
                         }
-                        Global.Settings.RangeLimit = value;
-                        Global.Settings.Save();
                     });
 
                 dispatchGroup.AddExtendedSlider(
@@ -164,9 +164,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         if (Global.Settings.RangeModifier != value)
                         {
                             Global.BuildingUpdateNeeded = true;
+                            Global.Settings.RangeModifier = value;
+                            Global.Settings.Save();
                         }
-                        Global.Settings.RangeModifier = value;
-                        Global.Settings.Save();
                     });
 
                 dispatchGroup.AddExtendedSlider(
@@ -181,9 +181,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         if (Global.Settings.RangeMinimum != value)
                         {
                             Global.BuildingUpdateNeeded = true;
+                            Global.Settings.RangeMinimum = value;
+                            Global.Settings.Save();
                         }
-                        Global.Settings.RangeMinimum = value;
-                        Global.Settings.Save();
                     });
 
                 dispatchGroup.AddExtendedSlider(
@@ -198,9 +198,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         if (Global.Settings.RangeMaximum != value)
                         {
                             Global.BuildingUpdateNeeded = true;
+                            Global.Settings.RangeMaximum = value;
+                            Global.Settings.Save();
                         }
-                        Global.Settings.RangeMaximum = value;
-                        Global.Settings.Save();
                     });
 
                 // Add hearse group.
@@ -211,9 +211,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     Global.Settings.DispatchHearses,
                     value =>
                     {
-                        Global.Settings.DispatchHearses = value;
-                        Global.Settings.Save();
-                        Global.InitHandlers();
+                        if (Global.Settings.DispatchHearses != value)
+                        {
+                            Global.Settings.DispatchHearses = value;
+                            Global.Settings.Save();
+                            Global.ReInitializeHandlers();
+                        }
                     });
 
                 hearseGroup.AddCheckbox(
@@ -224,9 +227,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         if (Global.Settings.DispatchHearsesByDistrict != value)
                         {
                             Global.BuildingUpdateNeeded = true;
+                            Global.Settings.DispatchHearsesByDistrict = value;
+                            Global.Settings.Save();
                         }
-                        Global.Settings.DispatchHearsesByDistrict = value;
-                        Global.Settings.Save();
                     });
 
                 hearseGroup.AddCheckbox(
@@ -237,9 +240,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         if (Global.Settings.DispatchHearsesByRange != value)
                         {
                             Global.BuildingUpdateNeeded = true;
+                            Global.Settings.DispatchHearsesByRange = value;
+                            Global.Settings.Save();
                         }
-                        Global.Settings.DispatchHearsesByRange = value;
-                        Global.Settings.Save();
                     });
 
                 hearseGroup.AddCheckbox(
@@ -247,9 +250,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     Global.Settings.RemoveHearsesFromGrid,
                     value =>
                     {
-                        Global.Settings.RemoveHearsesFromGrid = value;
-                        Global.Settings.Save();
-                        Global.InitHandlers();
+                        if (Global.Settings.RemoveHearsesFromGrid != value)
+                        {
+                            Global.Settings.RemoveHearsesFromGrid = value;
+                            Global.Settings.Save();
+                            Global.ReInitializeHandlers();
+                        }
                     });
 
                 hearseGroup.AddDropdown(
@@ -265,15 +271,19 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         {
                             if ((byte)option == value)
                             {
-                                if (Log.LogALot || Library.IsDebugBuild)
-                                    Log.Debug(this, "OnSettingsUI", "Set", "CreateSpareHearses", value, option);
-
-                                Global.Settings.CreateSpareHearses = option;
-                                if (Global.HearseDispatcher != null)
+                                if (Global.Settings.CreateSpareHearses != option)
                                 {
-                                    Global.HearseDispatcher.ReInitialize();
+                                    if (Log.LogALot || Library.IsDebugBuild)
+                                        Log.Debug(this, "OnSettingsUI", "Set", "CreateSpareHearses", value, option);
+
+                                    Global.Settings.CreateSpareHearses = option;
+                                    if (Global.HearseDispatcher != null)
+                                    {
+                                        Global.HearseDispatcher.ReInitialize();
+                                    }
+                                    Global.Settings.Save();
                                 }
-                                Global.Settings.Save();
+
                                 break;
                             }
                         }
@@ -292,15 +302,18 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         {
                             if ((byte)checks == value)
                             {
-                                if (Log.LogALot || Library.IsDebugBuild)
-                                    Log.Debug(this, "OnSettingsUI", "Set", "DeathChecksPreset", value, checks);
-
-                                Global.Settings.DeathChecksPreset = checks;
-                                if (Global.HearseDispatcher != null)
+                                if (Global.Settings.DeathChecksPreset != checks)
                                 {
-                                    Global.HearseDispatcher.ReInitialize();
+                                    if (Log.LogALot || Library.IsDebugBuild)
+                                        Log.Debug(this, "OnSettingsUI", "Set", "DeathChecksPreset", value, checks);
+
+                                    Global.Settings.DeathChecksPreset = checks;
+                                    if (Global.HearseDispatcher != null)
+                                    {
+                                        Global.HearseDispatcher.ReInitialize();
+                                    }
+                                    Global.Settings.Save();
                                 }
-                                Global.Settings.Save();
                                 break;
                             }
                         }
@@ -314,9 +327,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     Global.Settings.DispatchGarbageTrucks,
                     value =>
                     {
-                        Global.Settings.DispatchGarbageTrucks = value;
-                        Global.Settings.Save();
-                        Global.InitHandlers();
+                        if (Global.Settings.DispatchGarbageTrucks != value)
+                        {
+                            Global.Settings.DispatchGarbageTrucks = value;
+                            Global.Settings.Save();
+                            Global.ReInitializeHandlers();
+                        }
                     });
 
                 garbageGroup.AddCheckbox(
@@ -327,9 +343,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         if (Global.Settings.DispatchGarbageTrucksByDistrict != value)
                         {
                             Global.BuildingUpdateNeeded = true;
+                            Global.Settings.DispatchGarbageTrucksByDistrict = value;
+                            Global.Settings.Save();
                         }
-                        Global.Settings.DispatchGarbageTrucksByDistrict = value;
-                        Global.Settings.Save();
                     });
 
                 garbageGroup.AddCheckbox(
@@ -340,9 +356,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         if (Global.Settings.DispatchGarbageTrucksByRange != value)
                         {
                             Global.BuildingUpdateNeeded = true;
+                            Global.Settings.DispatchGarbageTrucksByRange = value;
+                            Global.Settings.Save();
                         }
-                        Global.Settings.DispatchGarbageTrucksByRange = value;
-                        Global.Settings.Save();
                     });
 
                 if (Global.GarbageTruckAITryCollectGarbageDetour.CanDetour)
@@ -352,9 +368,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         Global.Settings.LimitOpportunisticGarbageCollection,
                         value =>
                         {
-                            Global.Settings.LimitOpportunisticGarbageCollection = value;
-                            Global.Settings.Save();
-                            Global.DetourInitNeeded = true;
+                            if (Global.Settings.LimitOpportunisticGarbageCollection != value)
+                            {
+                                Global.DetourInitNeeded = true;
+                                Global.Settings.LimitOpportunisticGarbageCollection = value;
+                                Global.Settings.Save();
+                            }
                         });
                 }
                 else
@@ -381,15 +400,18 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         {
                             if ((byte)option == value)
                             {
-                                if (Log.LogALot || Library.IsDebugBuild)
-                                    Log.Debug(this, "OnSettingsUI", "Set", "CreateSpareGarbageTrucks", value, option);
-
-                                Global.Settings.CreateSpareGarbageTrucks = option;
-                                if (Global.GarbageTruckDispatcher != null)
+                                if (Global.Settings.CreateSpareGarbageTrucks != option)
                                 {
-                                    Global.GarbageTruckDispatcher.ReInitialize();
+                                    if (Log.LogALot || Library.IsDebugBuild)
+                                        Log.Debug(this, "OnSettingsUI", "Set", "CreateSpareGarbageTrucks", value, option);
+
+                                    Global.Settings.CreateSpareGarbageTrucks = option;
+                                    if (Global.GarbageTruckDispatcher != null)
+                                    {
+                                        Global.GarbageTruckDispatcher.ReInitialize();
+                                    }
+                                    Global.Settings.Save();
                                 }
-                                Global.Settings.Save();
                                 break;
                             }
                         }
@@ -408,15 +430,18 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         {
                             if ((byte)checks == value)
                             {
-                                if (Log.LogALot || Library.IsDebugBuild)
-                                    Log.Debug(this, "OnSettingsUI", "Set", "GarbageChecksPreset", value, checks);
-
-                                Global.Settings.GarbageChecksPreset = checks;
-                                if (Global.GarbageTruckDispatcher != null)
+                                if (Global.Settings.GarbageChecksPreset != checks)
                                 {
-                                    Global.GarbageTruckDispatcher.ReInitialize();
+                                    if (Log.LogALot || Library.IsDebugBuild)
+                                        Log.Debug(this, "OnSettingsUI", "Set", "GarbageChecksPreset", value, checks);
+
+                                    Global.Settings.GarbageChecksPreset = checks;
+                                    if (Global.GarbageTruckDispatcher != null)
+                                    {
+                                        Global.GarbageTruckDispatcher.ReInitialize();
+                                    }
+                                    Global.Settings.Save();
                                 }
-                                Global.Settings.Save();
                                 break;
                             }
                         }
@@ -431,8 +456,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     false,
                     value =>
                     {
-                        Global.Settings.MinimumGarbageForPatrol = (ushort)value;
-                        Global.Settings.Save();
+                        if (Global.Settings.MinimumGarbageForPatrol != (ushort)value)
+                        {
+                            Global.BuildingUpdateNeeded = true;
+                            Global.Settings.MinimumGarbageForPatrol = (ushort)value;
+                            Global.Settings.Save();
+                        }
                     });
 
                 garbageGroup.AddExtendedSlider(
@@ -444,8 +473,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     false,
                     value =>
                     {
-                        Global.Settings.MinimumGarbageForDispatch = (ushort)value;
-                        Global.Settings.Save();
+                        if (Global.Settings.MinimumGarbageForDispatch != (ushort)value)
+                        {
+                            Global.BuildingUpdateNeeded = true;
+                            Global.Settings.MinimumGarbageForDispatch = (ushort)value;
+                            Global.Settings.Save();
+                        }
                     });
 
                 // Add logging group.

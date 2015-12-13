@@ -143,7 +143,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// Initializes the method detours.
         /// </summary>
-        public static void InitDetours()
+        public static void InitializeDetours()
         {
             if (Settings.DispatchGarbageTrucks && Settings.LimitOpportunisticGarbageCollection)
             {
@@ -160,30 +160,50 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// Initializes the dispatchers.
         /// </summary>
-        public static void InitHandlers()
+        public static void ReInitializeHandlers()
         {
             // Initialize dispatch objects.
             if (Settings.DispatchHearses || Settings.DispatchGarbageTrucks)
             {
+                // Initialize buildings.
                 if (Buildings == null)
                 {
                     Buildings = new BuildingKeeper();
+                }
+                else
+                {
+                    Buildings.ReInitialize();
                 }
 
                 if (TargetBuildingInfoPriorityComparer == null)
                 {
                     TargetBuildingInfoPriorityComparer = new TargetBuildingInfo.PriorityComparer();
                 }
+                else
+                {
+                    TargetBuildingInfoPriorityComparer.ReInitialize();
+                }
 
                 if (ServiceBuildingInfoPriorityComparer == null)
                 {
                     ServiceBuildingInfoPriorityComparer = new ServiceBuildingInfo.PriorityComparer();
                 }
+                else
+                {
+                    ServiceBuildingInfoPriorityComparer.ReInitialize();
+                }
 
                 // Initialize hearse objects.
-                if (Settings.DispatchHearses && HearseDispatcher == null)
+                if (Settings.DispatchHearses)
                 {
-                    HearseDispatcher = new Dispatcher(Dispatcher.DispatcherTypes.HearseDispatcher);
+                    if (HearseDispatcher == null)
+                    {
+                        HearseDispatcher = new Dispatcher(Dispatcher.DispatcherTypes.HearseDispatcher);
+                    }
+                    else
+                    {
+                        HearseDispatcher.ReInitialize();
+                    }
                 }
 
                 // Initialize garbage truck objects.
@@ -193,20 +213,33 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     {
                         GarbageTruckDispatcher = new Dispatcher(Dispatcher.DispatcherTypes.GarbageTruckDispatcher);
                     }
+                    else
+                    {
+                        GarbageTruckDispatcher.ReInitialize();
+                    }
                 }
             }
 
             // Initialize vehicle objects.
-            if ((Settings.DispatchHearses || Settings.DispatchGarbageTrucks || Settings.RemoveHearsesFromGrid /* || Settings.RemoveGarbageTrucksFromGrid */) && Vehicles == null)
+            if (Settings.DispatchHearses || Settings.DispatchGarbageTrucks || Settings.RemoveHearsesFromGrid /* || Settings.RemoveGarbageTrucksFromGrid */)
             {
-                Vehicles = new VehicleKeeper();
+                if (Vehicles == null)
+                {
+                    Vehicles = new VehicleKeeper();
+                }
+                else
+                {
+                    Vehicles.ReInitialize();
+                }
             }
+
+            BuildingUpdateNeeded = true;
         }
 
         /// <summary>
         /// Initializes the settings.
         /// </summary>
-        public static void InitSettings()
+        public static void InitializeSettings()
         {
             if (Settings == null)
             {

@@ -499,7 +499,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// Compares service buildings for priority sorting.
         /// </summary>
-        public class PriorityComparer : IComparer<ServiceBuildingInfo>
+        public class PriorityComparer : IComparer<ServiceBuildingInfo>, HandlerPart
         {
             /// <summary>
             /// Compares two buildings and returns a value indicating whether one is less than, equal to, or greater than the other.
@@ -541,6 +541,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 }
 
                 return 0;
+            }
+
+            public void ReInitialize()
+            {
             }
         }
     }

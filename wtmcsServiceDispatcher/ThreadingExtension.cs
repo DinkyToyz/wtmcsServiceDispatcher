@@ -102,7 +102,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 if (this.started && Global.DetourInitNeeded)
                 {
-                    Global.InitDetours();
+                    Global.InitializeDetours();
                 }
 
                 Global.CurrentFrame = simulationFrame;

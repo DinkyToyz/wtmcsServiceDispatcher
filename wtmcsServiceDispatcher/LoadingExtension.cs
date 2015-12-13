@@ -41,10 +41,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 if (mode == LoadMode.NewGame || mode == LoadMode.LoadGame)
                 {
                     // Load settings.
-                    Global.InitSettings();
+                    Global.InitializeSettings();
 
                     // Initialize dispatch objects.
-                    Global.InitHandlers();
+                    Global.ReInitializeHandlers();
 
                     Global.LevelLoaded = true;
                     Global.CurrentFrame = 0;
