@@ -63,6 +63,28 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             base.OnReleased();
         }
 
+        public void CleanTransferOffers(TransferManager.TransferReason material)
+        {
+            ////TransferManager transferManager = null;
+
+            // Get with reflection:
+              ////private TransferManager.TransferOffer[] m_outgoingOffers;
+              ////private TransferManager.TransferOffer[] m_incomingOffers;
+              ////private ushort[] m_outgoingCount;
+              ////private ushort[] m_incomingCount;
+              ////private int[] m_outgoingAmount;
+              ////private int[] m_incomingAmount;
+
+            ////for (int block = 0; block < 8; block++)
+            ////{
+            ////    int index = (int)material * 8 + block;
+            ////    transferManager
+            ////    this.m_incomingCount[index2] = (ushort)0;
+            ////    this.m_outgoingCount[index2] = (ushort)0;
+
+            ////}
+        }
+
         /// <summary>
         /// Called when game updates.
         /// </summary>
@@ -100,9 +122,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     this.lastDebugListLog = simulationFrame;
                 }
 
-                if (this.started && Global.DetourInitNeeded)
+                if (this.started && Detours.InitNeeded)
                 {
-                    Global.InitializeDetours();
+                    Detours.Initialize();
                 }
 
                 Global.CurrentFrame = simulationFrame;
@@ -159,7 +181,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 this.exceptionCount++;
                 if (this.exceptionCount > MaxExceptionCount)
                 {
-                    Global.RevertDetours();
+                    try
+                    {
+                        Detours.Revert();
+                    }
+                    catch (Exception rex)
+                    {
+                        Log.Error(this, "OnUpdate", rex);
+                    }
 
                     this.isBroken = true;
                 }

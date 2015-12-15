@@ -61,6 +61,9 @@
   <ItemGroup>
     <Compile Include="BuildingHelper.cs" />
     <Compile Include="BuildingKeeper.cs" />
+    <Compile Include="Detours.cs" />
+    <Compile Include="GarbageTruckAIAssistant.cs" />
+    <Compile Include="GarbageTruckAIShouldReturnToSourceDetour.cs" />
     <Compile Include="HandlerPart.cs" />
     <Compile Include="Dispatcher.cs" />
     <Compile Include="ExtendedSlider.cs" />
@@ -68,11 +71,13 @@
     <Compile Include="FileSystem.cs" />
     <Compile Include="GarbageTruckAITryCollectGarbageDetour.cs" />
     <Compile Include="Global.cs" />
+    <Compile Include="HearseAIAssistant.cs" />
+    <Compile Include="HearseAIShouldReturnToSourceDetour.cs" />
     <Compile Include="IBuildingInfo.cs" />
     <Compile Include="Library.cs" />
     <Compile Include="LoadingExtension.cs" />
     <Compile Include="Log.cs" />
-    <Compile Include="MethodDetours.cs" />
+    <Compile Include="MethodDetoursBase.cs" />
     <Compile Include="Mod.cs" />
     <Compile Include="MonoDetour.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

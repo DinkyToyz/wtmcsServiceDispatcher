@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using ColossalFramework;
+using UnityEngine;
 
 namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 {
@@ -8,9 +9,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
     internal class ServiceVehicleInfo
     {
         /// <summary>
-        /// The last target stamp.
+        /// The last target de-assign time stamp.
         /// </summary>
-        private uint lastTargetStamp = 0;
+        private uint lastDeAssignStamp = 0;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ServiceVehicleInfo" /> class.
@@ -21,6 +22,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public ServiceVehicleInfo(ushort vehicleId, ref Vehicle vehicle, bool freeToCollect)
         {
             this.VehicleId = vehicleId;
+            this.LastAssigned = 0;
 
             this.Update(ref vehicle, freeToCollect);
         }
@@ -47,6 +49,24 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// Gets a value indicating whether the vehicle is free.
         /// </summary>
         public bool FreeToCollect
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// Gets a value indicating whether the vehicle is going back the the service building.
+        /// </summary>
+        public bool GoingBack
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// Gets the last target assigned stamp.
+        /// </summary>
+        public uint LastAssigned
         {
             get;
             private set;
@@ -109,13 +129,63 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <returns>True if target is or was de-assigned.</returns>
         public bool DeAssign(ref Vehicle vehicle)
         {
-            if (Global.CurrentFrame - this.lastTargetStamp > Global.TargetLingerDelay)
+            this.lastDeAssignStamp = Global.CurrentFrame;
+
+            if (VehicleHelper.CanRecallVehicle(ref vehicle) && Global.CurrentFrame - this.LastAssigned > Global.RecallDelay)
             {
+                if (!(vehicle.m_targetBuilding == 0 && this.Target == 0 && this.GoingBack && (vehicle.m_flags & Vehicle.Flags.GoingBack) == Vehicle.Flags.GoingBack))
+                {
+                    this.Recall(ref vehicle);
+                }
+
+                return true;
+            }
+
+            if (vehicle.m_targetBuilding == 0 && this.Target == 0)
+            {
+                return true;
+            }
+
+            if (Global.CurrentFrame - this.LastAssigned > Global.TargetLingerDelay)
+            {
+                if (Log.LogALot)
+                {
+                    Log.DevDebug(this, "CheckVehicleTarget", "DeAssign", this.VehicleId);
+                }
+
                 this.SetTarget(0, ref vehicle);
                 return true;
             }
 
             return this.Target == 0;
+        }
+
+        /// <summary>
+        /// Recalls the vehicle to the service building.
+        /// </summary>
+        public void Recall()
+        {
+            // Get vehicle.
+            this.Recall(ref Singleton<VehicleManager>.instance.m_vehicles.m_buffer[this.VehicleId]);
+        }
+
+        /// <summary>
+        /// Recalls the vehicle to the service building.
+        /// </summary>
+        /// <param name="vehicle">The vehicle data.</param>
+        public void Recall(ref Vehicle vehicle)
+        {
+            // Set internal target.
+            this.Target = 0;
+            this.GoingBack = true;
+
+            if (Log.LogALot)
+            {
+                Log.DevDebug(this, "CheckVehicleTarget", "Recall", this.VehicleId);
+            }
+
+            // Recall the vehicle.
+            VehicleHelper.RecallVehicle(this.VehicleId, ref vehicle);
         }
 
         /// <summary>
@@ -125,24 +195,22 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <param name="vehicle">The vehicle.</param>
         public void SetTarget(ushort targetBuildingId, ref Vehicle vehicle)
         {
+            if (targetBuildingId == 0 && this.GoingBack)
+            {
+                this.Recall(ref vehicle);
+                return;
+            }
+
             if (targetBuildingId != vehicle.m_targetBuilding)
             {
                 vehicle.Info.m_vehicleAI.SetTarget(this.VehicleId, ref vehicle, targetBuildingId);
             }
 
-            this.SetTarget(targetBuildingId);
-        }
-
-        /// <summary>
-        /// Sets the target.
-        /// </summary>
-        /// <param name="targetBuildingId">The target building identifier.</param>
-        public void SetTarget(ushort targetBuildingId)
-        {
             if (targetBuildingId != 0)
             {
-                this.lastTargetStamp = Global.CurrentFrame;
+                this.LastAssigned = Global.CurrentFrame;
                 this.FreeToCollect = false;
+                this.GoingBack = false;
             }
 
             this.Target = targetBuildingId;
@@ -158,8 +226,27 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             this.LastSeen = Global.CurrentFrame;
             this.Position = vehicle.GetLastFramePosition();
             this.FreeToCollect = freeToCollect;
+            this.GoingBack = vehicle.m_targetBuilding == 0 && (vehicle.m_flags & Vehicle.Flags.GoingBack) == Vehicle.Flags.GoingBack;
+            this.Target = vehicle.m_targetBuilding;
 
-            this.SetTarget(vehicle.m_targetBuilding);
+            if (vehicle.m_targetBuilding == 0)
+            {
+                if (!this.GoingBack && Global.CurrentFrame - this.LastAssigned > Global.RecallDelay && VehicleHelper.CanRecallVehicle(ref vehicle))
+                {
+                    this.Recall(ref vehicle);
+                }
+            }
+            else
+            {
+                if (this.LastAssigned >= this.lastDeAssignStamp)
+                {
+                    this.LastAssigned = Global.CurrentFrame;
+                }
+                else if (Global.CurrentFrame - this.LastAssigned > Global.DemandLingerDelay)
+                {
+                    this.DeAssign(ref vehicle);
+                }
+            }
 
             string localeKey;
             int bufCur, bufMax;

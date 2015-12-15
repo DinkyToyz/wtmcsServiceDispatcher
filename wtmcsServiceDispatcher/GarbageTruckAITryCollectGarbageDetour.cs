@@ -7,7 +7,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
     /// <summary>
     /// Detour class for GarbageTruckAI.TryCollectGarbage.
     /// </summary>
-    internal class GarbageTruckAITryCollectGarbageDetour : MethodDetours
+    internal class GarbageTruckAITryCollectGarbageDetour : MethodDetoursBase
     {
         /// <summary>
         /// The number of limitations.
@@ -30,6 +30,17 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// The original class type.
+        /// </summary>
+        public override Type OriginalClassType
+        {
+            get
+            {
+                return typeof(GarbageTruckAI);
+            }
+        }
+
+        /// <summary>
         /// The maximum game version for detouring.
         /// </summary>
         protected override uint MaxGameVersion
@@ -48,17 +59,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             get
             {
                 return BuildConfig.MakeVersionNumber(1, 2, 0, BuildConfig.ReleaseType.Final, 0, BuildConfig.BuildType.Unknown);
-            }
-        }
-
-        /// <summary>
-        /// The original class type.
-        /// </summary>
-        protected override Type OriginalClassType
-        {
-            get
-            {
-                return typeof(GarbageTruckAI);
             }
         }
 
@@ -87,21 +87,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// Logs the counts.
         /// </summary>
-        public void LogCounts()
+        public override void LogCounts()
         {
             Log.Debug(this, "Counts", Tries, Limitations);
-        }
-
-        /// <summary>
-        /// Determines whether this instance can detour the method for the specified original class.
-        /// </summary>
-        /// <param name="originalClass">The original class.</param>
-        /// <returns>
-        ///   <c>true</c> if the method can be detoured for the class.; otherwise, <c>false</c>.
-        /// </returns>
-        protected override bool CanDetourClass(Type originalClass)
-        {
-            return originalClass == typeof(GarbageTruckAI) || originalClass.IsSubclassOf(typeof(GarbageTruckAI));
         }
 
         /// <summary>
@@ -243,7 +231,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             {
                 Log.Error(typeof(GarbageTruckAITryCollectGarbageDetour), "GarbageTruckAI_TryCollectGarbage_Override", ex);
 
-                Global.GarbageTruckAITryCollectGarbageDetour.Abort();
+                Detours.Abort(Detours.Methods.GarbageTruckAI_TryCollectGarbage);
             }
         }
 

@@ -12,3 +12,5 @@
 - citizens?
 - Detour ProduceGoods or transfer stuff???
 - sort by distance capacity %?
+- Override ServiceVehicleAI.ShouldReturnToSource: Allways true -> vehicle won't make transfer offer when trasferring to source.
+- When spawning, stop building from offering incoming transfers. Override ProduceGoods? Regularly remove offers (fast by zeroing m_incomingCount?)? Override something else to stop outgoing dead offers?

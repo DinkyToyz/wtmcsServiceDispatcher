@@ -1,6 +1,6 @@
-﻿using ColossalFramework;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using ColossalFramework;
 
 namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 {
@@ -9,6 +9,17 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
     /// </summary>
     internal static class VehicleHelper
     {
+        /// <summary>
+        /// Determines whether the vehicle can be recalled.
+        /// </summary>
+        /// <param name="vehicle">The vehicle.</param>
+        /// <returns>True if the vehicle can be recalled.</returns>
+        public static bool CanRecallVehicle(ref Vehicle vehicle)
+        {
+            return (vehicle.Info.m_vehicleAI is HearseAI && Global.Settings.RecallHearses) ||
+                   (vehicle.Info.m_vehicleAI is GarbageTruckAI && Global.Settings.RecallGarbageTrucks);
+        }
+
         /// <summary>
         /// Creates the service vehicle.
         /// </summary>
@@ -73,6 +84,29 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             info.m_vehicleAI.SetSource(vehicleId, ref vehicles[vehicleId], serviceBuilding.BuildingId);
 
             return new ServiceVehicleInfo(vehicleId, ref vehicles[vehicleId], true);
+        }
+
+        /// <summary>
+        /// De-assign target from vehicle.
+        /// </summary>
+        /// <param name="vehicleId">The vehicle identifier.</param>
+        public static void DeAssignVehicle(ushort vehicleId)
+        {
+            DeAssignVehicle(vehicleId, ref Singleton<VehicleManager>.instance.m_vehicles.m_buffer[vehicleId]);
+        }
+
+        /// <summary>
+        /// De-assign target from vehicle.
+        /// </summary>
+        /// <param name="vehicleId">The vehicle identifier.</param>
+        /// <param name="vehicle">The vehicle data.</param>
+        public static void DeAssignVehicle(ushort vehicleId, ref Vehicle vehicle)
+        {
+            if (vehicle.m_targetBuilding != 0)
+            {
+                vehicle.Info.m_vehicleAI.SetTarget(vehicleId, ref vehicle, 0);
+                vehicle.m_targetBuilding = 0;
+            }
         }
 
         /// <summary>
@@ -185,6 +219,44 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             catch
             {
                 return null;
+            }
+        }
+
+        /// <summary>
+        /// Recalls the vehicle to the service building.
+        /// </summary>
+        /// <param name="vehicleId">The vehicle identifier.</param>
+        public static void RecallVehicle(ushort vehicleId)
+        {
+            RecallVehicle(vehicleId, ref Singleton<VehicleManager>.instance.m_vehicles.m_buffer[vehicleId]);
+        }
+
+        /// <summary>
+        /// Recalls the vehicle to the service building.
+        /// </summary>
+        /// <param name="vehicleId">The vehicle identifier.</param>
+        /// <param name="vehicle">The vehicle data.</param>
+        /// <exception cref="System.InvalidOperationException">Vehicle is not using hearse of garbage truck ai.</exception>
+        public static void RecallVehicle(ushort vehicleId, ref Vehicle vehicle)
+        {
+            // If already going back, no need to do anything.
+            if (vehicle.m_targetBuilding == 0 && (vehicle.m_flags & Vehicle.Flags.GoingBack) == Vehicle.Flags.GoingBack)
+            {
+                return;
+            }
+
+            // Call recall for used AI.
+            if (vehicle.Info.m_vehicleAI is HearseAI)
+            {
+                ((HearseAIAssistant)vehicle.Info.m_vehicleAI).Recall(vehicleId, ref vehicle);
+            }
+            else if (vehicle.Info.m_vehicleAI is GarbageTruckAI)
+            {
+                ((GarbageTruckAIAssistant)vehicle.Info.m_vehicleAI).Recall(vehicleId, ref vehicle);
+            }
+            else
+            {
+                throw new InvalidOperationException("Vehicle is not using hearse of garbage truck ai.");
             }
         }
 

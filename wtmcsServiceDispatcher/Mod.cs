@@ -32,7 +32,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public Mod()
         {
             Log.NoOp();
-            Global.GarbageTruckAITryCollectGarbageDetour = new GarbageTruckAITryCollectGarbageDetour();
+            Detours.Create();
         }
 
         /// <summary>
@@ -361,7 +361,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         }
                     });
 
-                if (Global.GarbageTruckAITryCollectGarbageDetour.CanDetour)
+                if (Detours.CanDetour(Detours.Methods.GarbageTruckAI_TryCollectGarbage))
                 {
                     garbageGroup.AddCheckbox(
                         "Prioritize assigned buildings",
@@ -370,7 +370,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         {
                             if (Global.Settings.LimitOpportunisticGarbageCollection != value)
                             {
-                                Global.DetourInitNeeded = true;
+                                Detours.InitNeeded = true;
                                 Global.Settings.LimitOpportunisticGarbageCollection = value;
                                 Global.Settings.Save();
                             }

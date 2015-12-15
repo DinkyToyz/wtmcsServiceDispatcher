@@ -82,7 +82,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             try
             {
-                Global.GarbageTruckAITryCollectGarbageDetour.LogCounts();
+                Detours.LogCounts();
                 this.DeInitialize();
             }
             catch (Exception ex)
@@ -133,7 +133,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             Log.Info(this, "DeInitialize");
 
-            Global.DisposeDetours();
+            Detours.Dispose();
             Global.DisposeHandlers();
         }
     }

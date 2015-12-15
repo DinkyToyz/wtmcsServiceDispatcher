@@ -7,7 +7,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
     /// <summary>
     /// Method detours.
     /// </summary>
-    internal abstract class MethodDetours : IDisposable
+    internal abstract class MethodDetoursBase : IDisposable
     {
         /// <summary>
         /// Error when detouring.
@@ -20,17 +20,17 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         private Dictionary<Type, DetourInfo> detours = new Dictionary<Type, DetourInfo>();
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="MethodDetours"/> class.
+        /// Initializes a new instance of the <see cref="MethodDetoursBase"/> class.
         /// </summary>
-        public MethodDetours()
+        public MethodDetoursBase()
         {
             this.AddClass(this.OriginalClassType);
         }
 
         /// <summary>
-        /// Finalizes an instance of the <see cref="MethodDetours"/> class.
+        /// Finalizes an instance of the <see cref="MethodDetoursBase"/> class.
         /// </summary>
-        ~MethodDetours()
+        ~MethodDetoursBase()
         {
             this.Dispose();
         }
@@ -65,6 +65,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Gets the original class type.
+        /// </summary>
+        public abstract Type OriginalClassType
+        {
+            get;
+        }
+
+        /// <summary>
         /// Gets the maximum game version for detouring.
         /// </summary>
         protected abstract uint MaxGameVersion
@@ -76,14 +84,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// Gets the minimum game version for detouring.
         /// </summary>
         protected abstract uint MinGameVersion
-        {
-            get;
-        }
-
-        /// <summary>
-        /// Gets the original class type.
-        /// </summary>
-        protected abstract Type OriginalClassType
         {
             get;
         }
@@ -214,6 +214,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Logs the counts.
+        /// </summary>
+        public abstract void LogCounts();
+
+        /// <summary>
         /// Reverts all detours.
         /// </summary>
         public void Revert()
@@ -228,7 +233,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <returns>
         ///   <c>true</c> if the method can be detoured for the class.; otherwise, <c>false</c>.
         /// </returns>
-        protected abstract bool CanDetourClass(Type originalClass);
+        protected bool CanDetourClass(Type originalClass)
+        {
+            return originalClass == this.OriginalClassType || originalClass.IsSubclassOf(this.OriginalClassType);
+        }
 
         /// <summary>
         /// Reverts all detours.

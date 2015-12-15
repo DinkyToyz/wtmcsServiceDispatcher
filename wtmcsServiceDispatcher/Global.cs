@@ -30,27 +30,17 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// The minimum class check interval.
         /// </summary>
-        public static uint ClassCheckInterval = 240;
+        public static uint ClassCheckInterval = 240u;
 
         /// <summary>
         /// The current frame.
         /// </summary>
-        public static uint CurrentFrame = 0;
+        public static uint CurrentFrame = 0u;
 
         /// <summary>
         /// The demand update delay.
         /// </summary>
         public static uint DemandLingerDelay = 0u;
-
-        /// <summary>
-        /// A detour reinitialize is needed.
-        /// </summary>
-        public static bool DetourInitNeeded = true;
-
-        /// <summary>
-        /// The GarbageTruckAI.TryCollectGarbage detours.
-        /// </summary>
-        public static GarbageTruckAITryCollectGarbageDetour GarbageTruckAITryCollectGarbageDetour = null;
 
         /// <summary>
         /// The garbage truck dispatcher.
@@ -71,6 +61,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// The minimum object update interval.
         /// </summary>
         public static uint ObjectUpdateInterval = 120u;
+
+        /// <summary>
+        /// The delay before unused vehicles are recalled to service building.
+        /// </summary>
+        public static uint RecallDelay = 1200u;
 
         /// <summary>
         /// The minimum recheck interval for handled targets.
@@ -108,26 +103,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public static VehicleKeeper Vehicles = null;
 
         /// <summary>
-        /// Adds a garbage truck class to detours.
-        /// </summary>
-        /// <param name="originalClass">The original class.</param>
-        public static void AddGarbageTruckClass(Type originalClass)
-        {
-            GarbageTruckAITryCollectGarbageDetour.AddClass(originalClass);
-        }
-
-        /// <summary>
-        /// Disposes all detours.
-        /// </summary>
-        public static void DisposeDetours()
-        {
-            if (GarbageTruckAITryCollectGarbageDetour != null)
-            {
-                GarbageTruckAITryCollectGarbageDetour.Dispose();
-            }
-        }
-
-        /// <summary>
         /// Disposes the dispatchers.
         /// </summary>
         public static void DisposeHandlers()
@@ -138,23 +113,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             Global.TargetBuildingInfoPriorityComparer = null;
             Global.Buildings = null;
             Global.Vehicles = null;
-        }
-
-        /// <summary>
-        /// Initializes the method detours.
-        /// </summary>
-        public static void InitializeDetours()
-        {
-            if (Settings.DispatchGarbageTrucks && Settings.LimitOpportunisticGarbageCollection)
-            {
-                GarbageTruckAITryCollectGarbageDetour.Detour();
-            }
-            else
-            {
-                GarbageTruckAITryCollectGarbageDetour.Revert();
-            }
-
-            DetourInitNeeded = false;
         }
 
         /// <summary>
@@ -267,17 +225,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             }
 
             BuildingUpdateNeeded = true;
-        }
-
-        /// <summary>
-        /// Reverts all detours.
-        /// </summary>
-        public static void RevertDetours()
-        {
-            if (GarbageTruckAITryCollectGarbageDetour != null)
-            {
-                GarbageTruckAITryCollectGarbageDetour.Revert();
-            }
         }
     }
 }

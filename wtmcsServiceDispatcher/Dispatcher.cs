@@ -91,6 +91,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         private int lastVehicleDetourClassCheck = 0;
 
         /// <summary>
+        /// Recall vehicles when not used for a while.
+        /// </summary>
+        private bool recallVehicles;
+
+        /// <summary>
         /// The service buildings.
         /// </summary>
         private Dictionary<ushort, ServiceBuildingInfo> serviceBuildings;
@@ -182,38 +187,58 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             if (serviceBuilding == null)
             {
-                if (Log.LogALot)
+                if (vehicle.m_targetBuilding != 0 || (vehicle.m_flags & Vehicle.Flags.GoingBack) != Vehicle.Flags.GoingBack)
                 {
-                    Log.DevDebug(this, "CheckVehicleTarget", "NewBuilding", vehicleId, vehicle.m_targetBuilding);
-                }
+                    if (Log.LogALot)
+                    {
+                        Log.DevDebug(this, "CheckVehicleTarget", "NewBuilding", vehicleId, vehicle.m_targetBuilding);
+                    }
 
-                vehicle.Info.m_vehicleAI.SetTarget(vehicleId, ref vehicle, 0);
+                    VehicleHelper.RecallVehicle(vehicleId, ref vehicle);
+                }
             }
             else if (!serviceBuilding.Vehicles.ContainsKey(vehicleId))
             {
-                if (Log.LogALot)
+                if (vehicle.m_targetBuilding != 0 || (vehicle.m_flags & Vehicle.Flags.GoingBack) != Vehicle.Flags.GoingBack)
                 {
-                    Log.DevDebug(this, "CheckVehicleTarget", "NewVehicle", vehicleId, vehicle.m_targetBuilding);
-                }
+                    if (Log.LogALot)
+                    {
+                        Log.DevDebug(this, "CheckVehicleTarget", "NewVehicle", vehicleId, vehicle.m_targetBuilding);
+                    }
 
-                vehicle.Info.m_vehicleAI.SetTarget(vehicleId, ref vehicle, 0);
-            }
-            else if (!(this.targetBuildings.ContainsKey(vehicle.m_targetBuilding) && this.targetBuildings[vehicle.m_targetBuilding].WantedService))
-            {
-                bool deassigned = serviceBuilding.Vehicles[vehicleId].DeAssign(ref vehicle);
-
-                if (deassigned && Log.LogALot)
-                {
-                    Log.DevDebug(this, "CheckVehicleTarget", "NoNeed", vehicleId, vehicle.m_targetBuilding);
+                    VehicleHelper.RecallVehicle(vehicleId, ref vehicle);
                 }
             }
-            else if (vehicle.m_targetBuilding != serviceBuilding.Vehicles[vehicleId].Target)
+            else if (vehicle.m_targetBuilding != 0)
             {
-                bool deassigned = serviceBuilding.Vehicles[vehicleId].DeAssign(ref vehicle);
-
-                if (deassigned && Log.LogALot)
                 {
-                    Log.DevDebug(this, "CheckVehicleTarget", "WrongTarget", vehicleId, vehicle.m_targetBuilding, serviceBuilding.Vehicles[vehicleId].Target);
+                    if (!(this.targetBuildings.ContainsKey(vehicle.m_targetBuilding) && this.targetBuildings[vehicle.m_targetBuilding].WantedService))
+                    {
+                        if (serviceBuilding.Vehicles[vehicleId].DeAssign(ref vehicle) && Log.LogALot)
+                        {
+                            Log.DevDebug(this, "CheckVehicleTarget", "NoNeed", vehicleId, vehicle.m_targetBuilding);
+                        }
+                    }
+                    else if (vehicle.m_targetBuilding != serviceBuilding.Vehicles[vehicleId].Target)
+                    {
+                        if (serviceBuilding.Vehicles[vehicleId].DeAssign(ref vehicle) && Log.LogALot)
+                        {
+                            Log.DevDebug(this, "CheckVehicleTarget", "WrongTarget", vehicleId, vehicle.m_targetBuilding, serviceBuilding.Vehicles[vehicleId].Target);
+                        }
+                    }
+                }
+            }
+            else if (this.recallVehicles)
+            {
+                if (((vehicle.m_flags & Vehicle.Flags.GoingBack) != Vehicle.Flags.GoingBack || !serviceBuilding.Vehicles[vehicleId].GoingBack) &&
+                    (Global.RecallDelay - serviceBuilding.Vehicles[vehicleId].LastAssigned > Global.RecallDelay))
+                {
+                    if (Log.LogALot)
+                    {
+                        Log.DevDebug(this, "CheckVehicleTarget", "Unused", vehicleId);
+                    }
+
+                    serviceBuilding.Vehicles[vehicleId].Recall(ref vehicle);
                 }
             }
         }
@@ -613,7 +638,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             int count;
 
             HashSet<Type> vehicleAIs = null;
-            if (this.DispatcherType == DispatcherTypes.GarbageTruckDispatcher && (this.lastVehicleDetourClassCheck == 0 || Global.CurrentFrame - this.lastVehicleDetourClassCheck > Global.ClassCheckInterval))
+            if (this.lastVehicleDetourClassCheck == 0 || Global.CurrentFrame - this.lastVehicleDetourClassCheck > Global.ClassCheckInterval)
             {
                 vehicleAIs = new HashSet<Type>();
             }
@@ -672,9 +697,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                                 {
                                     if (!(this.targetBuildings.ContainsKey(vehicles[vehicleId].m_targetBuilding) && this.targetBuildings[vehicles[vehicleId].m_targetBuilding].WantedService))
                                     {
-                                        bool deassigned = serviceBuilding.Vehicles[vehicleId].DeAssign(ref vehicles[vehicleId]);
-
-                                        if (deassigned)
+                                        if (serviceBuilding.Vehicles[vehicleId].DeAssign(ref vehicles[vehicleId]))
                                         {
                                             if (Log.LogALot)
                                             {
@@ -686,9 +709,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                                     }
                                     else if (vehicles[vehicleId].m_targetBuilding != serviceBuilding.Vehicles[vehicleId].Target)
                                     {
-                                        bool deassigned = serviceBuilding.Vehicles[vehicleId].DeAssign(ref vehicles[vehicleId]);
-
-                                        if (deassigned)
+                                        if (serviceBuilding.Vehicles[vehicleId].DeAssign(ref vehicles[vehicleId]))
                                         {
                                             if (Log.LogALot)
                                             {
@@ -710,8 +731,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                             {
                                 if (collecting && !loading && vehicles[vehicleId].m_targetBuilding != 0)
                                 {
-                                    // DeAssignToSource ? serviceBuilding.BuildingId : (ushort)0
-                                    vehicles[vehicleId].Info.m_vehicleAI.SetTarget(vehicleId, ref vehicles[vehicleId], (ushort)0); // DeAssignToSource ? serviceBuilding.BuildingId : (ushort)0)
+                                    VehicleHelper.RecallVehicle(vehicleId, ref vehicles[vehicleId]);
                                     hasTarget = false;
                                 }
 
@@ -732,8 +752,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                                     Log.DevDebug(this, "CollectVehicles", "NoNeed", vehicleId, vehicles[vehicleId].m_targetBuilding);
                                 }
 
-                                vehicles[vehicleId].Info.m_vehicleAI.SetTarget(vehicleId, ref vehicles[vehicleId], (ushort)0); // DeAssignToSource ? serviceBuilding.BuildingId : (ushort)0)
-                                vehicles[vehicleId].m_targetBuilding = (ushort)0; // DeAssignToSource ? serviceBuilding.BuildingId : (ushort)0)
+                                serviceBuilding.Vehicles[vehicleId].DeAssign(ref vehicles[vehicleId]);
                             }
 
                             // Update assigned target status.
@@ -807,11 +826,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 this.assignedTargets.Remove(id);
             }
 
-            if (vehicleAIs != null && this.DispatcherType == DispatcherTypes.GarbageTruckDispatcher)
+            if (vehicleAIs != null)
             {
                 foreach (Type classType in vehicleAIs)
                 {
-                    Global.AddGarbageTruckClass(classType);
+                    Detours.AddClass(this.DispatcherType, classType);
                 }
             }
         }
@@ -836,6 +855,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     this.buildingChecks = BuldingCheckParameters.GetBuldingCheckParameters(Global.Settings.DeathChecksParameters);
                     this.createSpareVehicles = Global.Settings.CreateSpareHearses;
                     this.dispatchByDistrict = Global.Settings.DispatchHearsesByDistrict;
+                    this.recallVehicles = Global.Settings.RecallHearses;
 
                     break;
 
@@ -858,6 +878,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                     this.createSpareVehicles = Global.Settings.CreateSpareGarbageTrucks;
                     this.dispatchByDistrict = Global.Settings.DispatchGarbageTrucksByDistrict;
+                    this.recallVehicles = Global.Settings.RecallGarbageTrucks;
 
                     break;
 

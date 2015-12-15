@@ -124,7 +124,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 else
                 {
                     if ((vehicles[id].m_flags & Vehicle.Flags.TransferToSource) != Vehicle.Flags.None && (vehicles[id].m_flags & (Vehicle.Flags.TransferToTarget | Vehicle.Flags.Arriving | Vehicle.Flags.Stopped)) == Vehicle.Flags.None &&
-                        vehicles[id].m_targetBuilding != 0 && vehicles[id].m_targetBuilding != vehicles[id].m_sourceBuilding && (buildings[vehicles[id].m_sourceBuilding].m_flags & Building.Flags.Downgrading) == Building.Flags.None)
+                        vehicles[id].m_targetBuilding != vehicles[id].m_sourceBuilding && (buildings[vehicles[id].m_sourceBuilding].m_flags & Building.Flags.Downgrading) == Building.Flags.None)
                     {
                         if (Global.HearseDispatcher != null && vehicles[id].m_transferType == Global.HearseDispatcher.TransferType)
                         {
@@ -139,7 +139,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                     if (this.removedFromGrid != null)
                     {
-                        if ((vehicles[id].m_flags & Vehicle.Flags.Stopped) == Vehicle.Flags.None)
+                        if ((vehicles[id].m_flags & Vehicle.Flags.Stopped) == Vehicle.Flags.None && vehicles[id].Info.m_vehicleAI is HearseAI)
                         {
                             if (this.removedFromGrid.Contains(id))
                             {
@@ -151,8 +151,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                                 this.removedFromGrid.Remove(id);
                             }
                         }
-                        else if ((Global.Settings.RemoveHearsesFromGrid && vehicles[id].Info.m_vehicleAI is HearseAI) &&
-                                 !this.removedFromGrid.Contains(id))
+                        else if ((Global.Settings.RemoveHearsesFromGrid && vehicles[id].Info.m_vehicleAI is HearseAI) && !this.removedFromGrid.Contains(id))
                         {
                             if (Log.LogToFile)
                             {
