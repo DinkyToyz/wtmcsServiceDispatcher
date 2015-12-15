@@ -830,7 +830,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             {
                 foreach (Type classType in vehicleAIs)
                 {
-                    Detours.AddClass(this.DispatcherType, classType);
+                    Detours.AddClass(classType);
                 }
             }
         }

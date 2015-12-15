@@ -233,7 +233,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <returns>
         ///   <c>true</c> if the method can be detoured for the class.; otherwise, <c>false</c>.
         /// </returns>
-        protected bool CanDetourClass(Type originalClass)
+        public bool CanDetourClass(Type originalClass)
         {
             return originalClass == this.OriginalClassType || originalClass.IsSubclassOf(this.OriginalClassType);
         }

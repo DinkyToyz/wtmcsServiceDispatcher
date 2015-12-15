@@ -55,52 +55,16 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// Adds a class to detours.
         /// </summary>
-        /// <param name="dispatcherType">Type of the dispatcher.</param>
-        /// <param name="classType">The class.</param>
-        public static void AddClass(Dispatcher.DispatcherTypes dispatcherType, Type classType)
-        {
-            switch (dispatcherType)
-            {
-                case Dispatcher.DispatcherTypes.HearseDispatcher:
-                    AddHearseClass(classType);
-                    break;
-
-                case Dispatcher.DispatcherTypes.GarbageTruckDispatcher:
-                    AddGarbageTruckClass(classType);
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// Adds a garbage truck class to detours.
-        /// </summary>
-        /// <param name="garbageTruckClass">The garbage truck class.</param>
-        public static void AddGarbageTruckClass(Type garbageTruckClass)
+        /// <param name="classType">The class type.</param>
+        public static void AddClass(Type classType)
         {
             Assure();
 
             foreach (MethodDetoursBase detour in methodsDetours.Values)
             {
-                if (detour != null && detour.OriginalClassType == typeof(GarbageTruckAI))
+                if (detour != null && detour.CanDetourClass(classType))
                 {
-                    detour.AddClass(garbageTruckClass);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Adds a hearse class to detours.
-        /// </summary>
-        /// <param name="hearseClass">The hearse class.</param>
-        public static void AddHearseClass(Type hearseClass)
-        {
-            Assure();
-
-            foreach (MethodDetoursBase detour in methodsDetours.Values)
-            {
-                if (detour != null && detour.OriginalClassType == typeof(HearseAI))
-                {
-                    detour.AddClass(hearseClass);
+                    detour.AddClass(classType);
                 }
             }
         }

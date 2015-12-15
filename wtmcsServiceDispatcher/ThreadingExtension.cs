@@ -63,6 +63,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             base.OnReleased();
         }
 
+        /// <summary>
+        /// Cleans the transfer offers for the specified material.
+        /// </summary>
+        /// <param name="material">The material.</param>
         public void CleanTransferOffers(TransferManager.TransferReason material)
         {
             ////TransferManager transferManager = null;
