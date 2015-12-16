@@ -64,32 +64,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
-        /// Cleans the transfer offers for the specified material.
-        /// </summary>
-        /// <param name="material">The material.</param>
-        public void CleanTransferOffers(TransferManager.TransferReason material)
-        {
-            ////TransferManager transferManager = null;
-
-            // Get with reflection:
-              ////private TransferManager.TransferOffer[] m_outgoingOffers;
-              ////private TransferManager.TransferOffer[] m_incomingOffers;
-              ////private ushort[] m_outgoingCount;
-              ////private ushort[] m_incomingCount;
-              ////private int[] m_outgoingAmount;
-              ////private int[] m_incomingAmount;
-
-            ////for (int block = 0; block < 8; block++)
-            ////{
-            ////    int index = (int)material * 8 + block;
-            ////    transferManager
-            ////    this.m_incomingCount[index2] = (ushort)0;
-            ////    this.m_outgoingCount[index2] = (ushort)0;
-
-            ////}
-        }
-
-        /// <summary>
         /// Called when game updates.
         /// </summary>
         /// <param name="realTimeDelta">The real time delta.</param>
