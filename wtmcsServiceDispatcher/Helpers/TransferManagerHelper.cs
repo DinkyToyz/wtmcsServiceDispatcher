@@ -250,8 +250,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     info.Add("Priority", offer.Priority);
                     info.Add("Building", offer.Building, BuildingHelper.GetBuildingName(offer.Building), BuildingHelper.GetDistrictName(offer.Building));
                     info.Add("Vehicle", offer.Vehicle, VehicleHelper.GetVehicleName(offer.Vehicle));
-                    info.Add("Citizen", offer.Citizen, CitizenHelper.GetName(offer.Citizen));
-                    info.Add("TransportLine", offer.TransportLine, TransportLineHelper.GetName(offer.TransportLine));
+                    info.Add("Citizen", offer.Citizen, CitizenHelper.GetCitizenName(offer.Citizen));
+                    info.Add("TransportLine", offer.TransportLine, TransportLineHelper.GetLineName(offer.TransportLine));
 
                     Log.Debug(typeof(TransferManagerHelper), "LogTransferOffers", direction, material, info);
                 }

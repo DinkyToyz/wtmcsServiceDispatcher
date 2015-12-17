@@ -15,7 +15,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <returns>
         /// The name of the line.
         /// </returns>
-        public static string GetName(ushort lineId)
+        public static string GetLineName(ushort lineId)
         {
             if (!Log.LogNames)
             {

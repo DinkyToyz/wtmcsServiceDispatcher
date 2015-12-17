@@ -15,7 +15,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <returns>
         /// The name of the citizen.
         /// </returns>
-        public static string GetName(uint citizenId)
+        public static string GetCitizenName(uint citizenId)
         {
             if (!Log.LogNames)
             {
