@@ -60,6 +60,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Helpers\BuildingHelper.cs" />
+    <Compile Include="Helpers\CitizenHelper.cs" />
+    <Compile Include="Helpers\TransportLineHelper.cs" />
     <Compile Include="Pieces\BuildingKeeper.cs" />
     <Compile Include="Detouring\Detours.cs" />
     <Compile Include="Helpers\DistrictHelper.cs" />

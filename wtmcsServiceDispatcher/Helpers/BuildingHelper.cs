@@ -135,6 +135,36 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Gets the name of the district for a building.
+        /// </summary>
+        /// <param name="buildingId">The building identifier.</param>
+        /// <returns>
+        /// The name of the district.
+        /// </returns>
+        public static string GetDistrictName(ushort buildingId)
+        {
+            if (!Log.LogNames)
+            {
+                return null;
+            }
+
+            try
+            {
+                Building[] buildings = Singleton<BuildingManager>.instance.m_buildings.m_buffer;
+                if (buildings[buildingId].Info == null || (buildings[buildingId].m_flags & Building.Flags.Created) != Building.Flags.Created)
+                {
+                    return null;
+                }
+
+                return DistrictHelper.GetDistrictNameForPosition(buildings[buildingId].m_position);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
         /// Logs building info for debug use.
         /// </summary>
         /// <param name="buildings">The buildings.</param>

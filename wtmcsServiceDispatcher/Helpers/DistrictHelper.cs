@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using ColossalFramework;
+using UnityEngine;
 
 namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 {
@@ -16,9 +17,47 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <returns>The name of the district.</returns>
         public static string GetDistrictName(int district)
         {
-            DistrictManager districtManager = Singleton<DistrictManager>.instance;
+            if (!Log.LogNames)
+            {
+                return null;
+            }
 
-            return districtManager.GetDistrictName(district);
+            try
+            {
+                DistrictManager districtManager = Singleton<DistrictManager>.instance;
+                string name = districtManager.GetDistrictName(district);
+
+                return String.IsNullOrEmpty(name) ? (string)null : name;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Gets the name of the district for a position.
+        /// </summary>
+        /// <param name="position">The position.</param>
+        /// <returns>The name of the district.</returns>
+        public static string GetDistrictNameForPosition(Vector3 position)
+        {
+            if (!Log.LogNames)
+            {
+                return null;
+            }
+
+            try
+            {
+                DistrictManager districtManager = Singleton<DistrictManager>.instance;
+                string name = districtManager.GetDistrictName(districtManager.GetDistrict(position));
+
+                return String.IsNullOrEmpty(name) ? (string)null : name;
+            }
+            catch
+            {
+                return null;
+            }
         }
     }
 }

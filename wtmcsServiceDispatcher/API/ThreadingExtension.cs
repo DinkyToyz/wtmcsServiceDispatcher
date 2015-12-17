@@ -141,6 +141,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     this.lastDebugListLog = Global.CurrentFrame;
 
                     Global.Buildings.DebugListLogBuildings();
+                    TransferManagerHelper.LogTransferOffers();
                     Log.FlushBuffer();
                 }
                 else if (!this.started || (Global.CurrentFrame - Log.LastFlush >= 600))
