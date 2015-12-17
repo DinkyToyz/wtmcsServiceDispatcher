@@ -198,7 +198,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             get
             {
-                return BuildingHelper.GetDistrictName(this.District);
+                return DistrictHelper.GetDistrictName(this.District);
             }
         }
 

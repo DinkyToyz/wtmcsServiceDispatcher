@@ -135,18 +135,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
-        /// Gets the name of the district.
-        /// </summary>
-        /// <param name="district">The district.</param>
-        /// <returns>The name of the district.</returns>
-        public static string GetDistrictName(int district)
-        {
-            DistrictManager districtManager = Singleton<DistrictManager>.instance;
-
-            return districtManager.GetDistrictName(district);
-        }
-
-        /// <summary>
         /// Logs building info for debug use.
         /// </summary>
         /// <param name="buildings">The buildings.</param>

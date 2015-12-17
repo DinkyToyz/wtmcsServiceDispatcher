@@ -81,7 +81,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <param name="incomingAmount">The incoming amount.</param>
         /// <param name="material">The material.</param>
         private static void CleanTransferOffers(
-            TransferManager transferManager,
             TransferManager.TransferOffer[] outgoingOffers,
             TransferManager.TransferOffer[] incomingOffers,
             ushort[] outgoingCount,
@@ -108,7 +107,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// Cleans the transfer offers for the handled materials.
         /// </summary>
-        private static void CleanTransferOffers()
+        public static void CleanTransferOffers()
         {
             if (!error)
             {
@@ -130,13 +129,13 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         // Clean for hearses.
                         if (Global.Settings.DispatchHearses && Global.Settings.CreateSpareHearses != Settings.SpareVehiclesCreation.Never)
                         {
-                            CleanTransferOffers(transferManager, outgoingOffers, incomingOffers, outgoingCount, incomingCount, outgoingAmount, incomingAmount, TransferManager.TransferReason.Dead);
+                            CleanTransferOffers(outgoingOffers, incomingOffers, outgoingCount, incomingCount, outgoingAmount, incomingAmount, TransferManager.TransferReason.Dead);
                         }
 
                         // Clean for garbage trucks.
                         if (Global.Settings.DispatchGarbageTrucks && Global.Settings.CreateSpareGarbageTrucks != Settings.SpareVehiclesCreation.Never)
                         {
-                            CleanTransferOffers(transferManager, outgoingOffers, incomingOffers, outgoingCount, incomingCount, outgoingAmount, incomingAmount, TransferManager.TransferReason.Garbage);
+                            CleanTransferOffers(outgoingOffers, incomingOffers, outgoingCount, incomingCount, outgoingAmount, incomingAmount, TransferManager.TransferReason.Garbage);
                         }
                     }
                 }
@@ -144,6 +143,32 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 {
                     error = true;
                     Log.Error(typeof(TransferManagerHelper), "CleanTransferOffers", ex);
+                }
+            }
+        }
+
+        private static void LogTransferOffers(
+            string direction,
+            TransferManager.TransferOffer[] offers,
+            ushort[] count,
+            int[] amount,
+            TransferManager.TransferReason material)
+        {
+            for (int priority = 0; priority < 8; priority++)
+            {
+                int index = ((int)material * 8) + priority;
+                for (int i = 0; i < count[index]; i++)
+                {
+                    Log.InfoList info = new Log.InfoList();
+                    TransferManager.TransferOffer offer = offers[index * 256 + i];
+
+                    info.Add("Active", offer.Active);
+                    info.Add("Amount", offer.Amount);
+                    info.Add("Priority", offer.Priority);
+                    info.Add("Citizen", offer.Citizen);
+                    info.Add("Priority", offer.Building, BuildingHelper.GetBuildingName(offer.Building));
+                    
+                    Log.Debug(typeof(TransferManagerHelper), "LogTransferOffers", direction, material);
                 }
             }
         }

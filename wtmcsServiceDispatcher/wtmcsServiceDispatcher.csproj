@@ -60,8 +60,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BuildingHelper.cs" />
-    <Compile Include="BuildingKeeper.cs" />
+    <Compile Include="Helpers\BuildingKeeper.cs" />
     <Compile Include="Detours.cs" />
+    <Compile Include="Helpers\DistrictHelper.cs" />
     <Compile Include="GarbageTruckAIAssistant.cs" />
     <Compile Include="GarbageTruckAIShouldReturnToSourceDetour.cs" />
     <Compile Include="HandlerPart.cs" />
@@ -87,10 +88,10 @@
     <Compile Include="TargetBuildingInfo.cs" />
     <Compile Include="ThreadingExtension.cs" />
     <Compile Include="Bucketeer.cs" />
-    <Compile Include="TransferManagerHelper.cs" />
+    <Compile Include="Helpers\TransferManagerHelper.cs" />
     <Compile Include="UI.cs" />
     <Compile Include="UIExtensions.cs" />
-    <Compile Include="VehicleHelper.cs" />
+    <Compile Include="Helpers\VehicleHelper.cs" />
     <Compile Include="VehicleKeeper.cs" />
   </ItemGroup>
   <ItemGroup>
