@@ -92,7 +92,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <param name="vehicleID">The vehicle identifier.</param>
         /// <param name="data">The data.</param>
         /// <returns>Always true.</returns>
-        private static bool HearseAI_ShouldReturnToSource_Override(GarbageTruckAI garbageTruckAI, ushort vehicleID, ref Vehicle data)
+        private static bool HearseAI_ShouldReturnToSource_Override(HearseAI garbageTruckAI, ushort vehicleID, ref Vehicle data)
         {
             Calls++;
             return true;

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reflection;
 using ColossalFramework;
 
 namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
@@ -9,6 +10,16 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
     /// </summary>
     internal static class VehicleHelper
     {
+        /// <summary>
+        /// The start path find methods.
+        /// </summary>
+        private static Dictionary<Type, MethodInfo> startPathFindMethods = new Dictionary<Type, MethodInfo>();
+
+        /// <summary>
+        /// The unhandled AIs.
+        /// </summary>
+        private static HashSet<Type> unhandledAIs = new HashSet<Type>();
+
         /// <summary>
         /// Determines whether the vehicle can be recalled.
         /// </summary>
@@ -223,6 +234,15 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Initializes this class.
+        /// </summary>
+        public static void Initialize()
+        {
+            startPathFindMethods = new Dictionary<Type, MethodInfo>();
+            unhandledAIs = new HashSet<Type>();
+        }
+
+        /// <summary>
         /// Recalls the vehicle to the service building.
         /// </summary>
         /// <param name="vehicleId">The vehicle identifier.</param>
@@ -239,24 +259,75 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <exception cref="System.InvalidOperationException">Vehicle is not using hearse of garbage truck ai.</exception>
         public static void RecallVehicle(ushort vehicleId, ref Vehicle vehicle)
         {
-            // If already going back, no need to do anything.
-            if (vehicle.m_targetBuilding == 0 && (vehicle.m_flags & Vehicle.Flags.GoingBack) == Vehicle.Flags.GoingBack)
+            try
             {
-                return;
-            }
+                // If already going back, no need to do anything.
+                if (vehicle.m_targetBuilding == 0 && (vehicle.m_flags & Vehicle.Flags.GoingBack) == Vehicle.Flags.GoingBack)
+                {
+                    return;
+                }
 
-            // Call recall for used AI.
-            if (vehicle.Info.m_vehicleAI is HearseAI)
-            {
-                ((HearseAIAssistant)vehicle.Info.m_vehicleAI).Recall(vehicleId, ref vehicle);
+                // Make sure <AI>.StartPathFind is available.
+                if (!InitStartPathFind(vehicle.Info.m_vehicleAI))
+                {
+                    DeAssignVehicle(vehicleId, ref vehicle);
+                    return;
+                }
+
+                Log.Debug(typeof(VehicleHelper), "RecallVehicle", vehicleId, vehicle, vehicle.Info.m_vehicleAI);
+
+                try
+                {
+                    // From original GarbageTruckAI/HeasreAI.SetTarget and GarbageTruckAI/HearseAI.RemoveTarget code at game version 1.2.2 f3.
+                    Singleton<BuildingManager>.instance.m_buildings.m_buffer[(int)vehicle.m_targetBuilding].RemoveGuestVehicle(vehicleId, ref vehicle);
+                    vehicle.m_targetBuilding = 0;
+                    vehicle.m_flags &= ~Vehicle.Flags.WaitingTarget;
+                    vehicle.m_waitCounter = (byte)0;
+                    vehicle.m_flags |= Vehicle.Flags.GoingBack;
+
+                    if (CallStartPathFind(vehicleId, ref vehicle))
+                    {
+                        return;
+                    }
+
+                    Log.Debug(typeof(VehicleHelper), "RecallVehicle", "Unspawn");
+                    vehicle.Unspawn(vehicleId);
+                }
+                catch (Exception exp)
+                {
+                    Log.Error(typeof(VehicleHelper), "RecallVehicle", exp);
+                    FailStartPathFind(vehicle.Info.m_vehicleAI);
+
+                    DeAssignVehicle(vehicleId, ref vehicle);
+                    return;
+                }
             }
-            else if (vehicle.Info.m_vehicleAI is GarbageTruckAI)
+            catch (Exception ex)
             {
-                ((GarbageTruckAIAssistant)vehicle.Info.m_vehicleAI).Recall(vehicleId, ref vehicle);
+                Log.Error(typeof(VehicleHelper), "RecallVehicle", ex);
+            }
+        }
+
+        /// <summary>
+        /// Calls the the AIs StartPathFind.
+        /// </summary>
+        /// <param name="vehicleId">The vehicle identifier.</param>
+        /// <param name="vehicle">The vehicle.</param>
+        /// <returns>
+        /// AIs StartPathFind methods return value.
+        /// </returns>
+        /// <exception cref="System.NullReferenceException">Vehicle AI StartPathFind not initialized.</exception>
+        private static bool CallStartPathFind(ushort vehicleId, ref Vehicle vehicle)
+        {
+            MethodInfo methodInfo;
+            if (startPathFindMethods.TryGetValue(vehicle.Info.m_vehicleAI.GetType(), out methodInfo))
+            {
+                Log.DevDebug(typeof(VehicleHelper), "StartPathFind", vehicleId, vehicle, vehicle.Info.m_vehicleAI);
+                return (bool)methodInfo.Invoke(vehicle.Info.m_vehicleAI, new Object[] { vehicleId, vehicle });
             }
             else
             {
-                throw new InvalidOperationException("Vehicle is not using hearse of garbage truck ai.");
+                throw new NullReferenceException("Vehicle AI StartPathFind not initialized");
             }
         }
 
@@ -376,6 +447,79 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 Log.DevDebug(typeof(VehicleKeeper), "DebugListLog", info.ToString());
             }
+        }
+
+        /// <summary>
+        /// Mark the AIs StartPathFind as failed.
+        /// </summary>
+        /// <param name="vehicleAI">The vehicle AI.</param>
+        private static void FailStartPathFind(VehicleAI vehicleAI)
+        {
+            startPathFindMethods[vehicleAI.GetType()] = null;
+        }
+
+        /// <summary>
+        /// Initializes method info for the vehicle AIs StartPathFind.
+        /// </summary>
+        /// <param name="vehicleAI">The vehicle AI.</param>
+        /// <returns>True if method info initialized.</returns>
+        /// <exception cref="System.NullReferenceException">
+        /// Method info not returned.
+        /// </exception>
+        private static bool InitStartPathFind(VehicleAI vehicleAI)
+        {
+            if (vehicleAI is HearseAI || vehicleAI is GarbageTruckAI)
+            {
+                MethodInfo methodInfo;
+                if (startPathFindMethods.TryGetValue(vehicleAI.GetType(), out methodInfo))
+                {
+                    return methodInfo != null;
+                }
+
+                try
+                {
+                    Log.DevDebug(typeof(VehicleHelper), "InitStartPathFind", "FindMethod", vehicleAI);
+                    methodInfo = MonoDetour.FindMethod(vehicleAI.GetType(), "StartPathFind", typeof(VehicleHelper), "StartPathFind_Signature");
+
+                    if (methodInfo == null)
+                    {
+                        throw new NullReferenceException("Method info not returned");
+                    }
+
+                    startPathFindMethods[vehicleAI.GetType()] = methodInfo;
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    Log.Warning(typeof(VehicleHelper), "InitStartPathFind", "Failed", vehicleAI, ex.GetType().Name, ex.Message);
+                    startPathFindMethods[vehicleAI.GetType()] = null;
+
+                    return false;
+                }
+            }
+            else
+            {
+                if (!unhandledAIs.Contains(vehicleAI.GetType()))
+                {
+                    unhandledAIs.Add(vehicleAI.GetType());
+                    Log.Warning(typeof(VehicleHelper), "InitStartPathFind", "UnhandledAI", vehicleAI);
+                }
+
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// StartPathFind method signature.
+        /// </summary>
+        /// <param name="vehicleAI">The vehicle AI.</param>
+        /// <param name="vehicleID">The vehicle identifier.</param>
+        /// <param name="vehicleData">The vehicle data.</param>
+        /// <returns>True if path find worked.</returns>
+        /// <exception cref="System.NotImplementedException">Call to method signature.</exception>
+        private static bool StartPathFind_Signature(VehicleAI vehicleAI, ushort vehicleID, ref Vehicle vehicleData)
+        {
+            throw new NotImplementedException("Call to method signature");
         }
     }
 }

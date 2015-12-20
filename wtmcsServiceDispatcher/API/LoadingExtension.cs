@@ -24,6 +24,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public override void OnCreated(ILoading loading)
         {
             Log.Debug(this, "OnCreated", "Base");
+            Global.Initialize();
             Log.FlushBuffer();
             base.OnCreated(loading);
         }
@@ -40,11 +41,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             {
                 if (mode == LoadMode.NewGame || mode == LoadMode.LoadGame)
                 {
-                    // Load settings.
-                    Global.InitializeSettings();
-
-                    // Initialize dispatch objects.
-                    Global.ReInitializeHandlers();
+                    // Load settings and initialize stuff.
+                    Global.Initialize();
 
                     Global.LevelLoaded = true;
                     Global.CurrentFrame = 0;

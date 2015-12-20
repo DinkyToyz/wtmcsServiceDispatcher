@@ -93,6 +93,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 {
                     VehicleHelper.DebugListLog();
                     BuildingHelper.DebugListLog();
+                    TransferManagerHelper.DebugListLog();
                 }
 
                 if (Global.CurrentFrame == 0 && simulationFrame > 0)
@@ -141,7 +142,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     this.lastDebugListLog = Global.CurrentFrame;
 
                     Global.Buildings.DebugListLogBuildings();
-                    TransferManagerHelper.LogTransferOffers();
+                    TransferManagerHelper.DebugListLog();
                     Log.FlushBuffer();
                 }
                 else if (!this.started || (Global.CurrentFrame - Log.LastFlush >= 600))

@@ -102,37 +102,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             // Get info for the replacement method.
             MethodInfo replacementMethod = replacementClass.GetMethod(
                                             this.replacementMethodName,
-                                            BindingFlags.Default | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance);
+                                            BindingFlags.Default | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance | BindingFlags.FlattenHierarchy);
             if (replacementMethod == null)
             {
                 throw new NullReferenceException("Replacement method not found");
             }
 
             // Find and get info for the original method by comparing all methods with the specified name to the replacement method.
-            MethodInfo originalMethod = null;
-            foreach (MethodInfo method in originalClass.GetMethods(BindingFlags.Default | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance))
-            {
-                if (Log.LogALot)
-                {
-                    Log.DevDebug(this, "MonoDetour", "SearchMethods", originalMethodName, method.Name);
-                }
-
-                if (method.Name == originalMethodName)
-                {
-                    if (Log.LogALot)
-                    {
-                        Log.DevDebug(this, "MonoDetour", "CheckMethod", originalMethodName, method.Name);
-                    }
-
-                    if (this.ValidateSignatures(replacementMethod, method))
-                    {
-                        Log.DevDebug(this, "MonoDetour", "MethodFound", originalMethodName, method.Name);
-
-                        originalMethod = method;
-                        break;
-                    }
-                }
-            }
+            MethodInfo originalMethod = FindMethod(originalClass, originalMethodName, replacementMethod);
 
             if (originalMethod == null)
             {
@@ -210,6 +187,49 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Finds the method.
+        /// </summary>
+        /// <param name="sourceClass">The source class.</param>
+        /// <param name="methodName">Name of the method.</param>
+        /// <returns>
+        /// The method information.
+        /// </returns>
+        /// <exception cref="System.NullReferenceException">Signature method not found.</exception>
+        public static MethodInfo FindMethod(Type sourceClass, string methodName)
+        {
+            return FindMethod(sourceClass, methodName, null);
+        }
+
+        /// <summary>
+        /// Finds the method.
+        /// </summary>
+        /// <param name="sourceClass">The source class.</param>
+        /// <param name="methodName">Name of the method.</param>
+        /// <param name="signatureClass">The signature class.</param>
+        /// <param name="signatureMethodName">Name of the signature method.</param>
+        /// <returns>
+        /// The method information.
+        /// </returns>
+        /// <exception cref="System.NullReferenceException">Signature method not found.</exception>
+        public static MethodInfo FindMethod(Type sourceClass, string methodName, Type signatureClass, string signatureMethodName)
+        {
+            // Get info for the signature method.
+            MethodInfo signatureMethod = signatureClass.GetMethod(
+                                            signatureMethodName,
+                                            BindingFlags.Default | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance | BindingFlags.FlattenHierarchy);
+            if (signatureMethod == null)
+            {
+                throw new NullReferenceException("Signature method not found");
+            }
+
+            if (Log.LogALot)
+            {
+                Log.DevDebug(typeof(MonoDetour), "FindMethod", sourceClass, methodName, signatureClass, signatureMethodName, signatureMethod);
+            }
+            return FindMethod(sourceClass, methodName, signatureMethod);
+        }
+
+        /// <summary>
         /// Detours the method.
         /// </summary>
         /// <exception cref="System.NullReferenceException">
@@ -279,6 +299,291 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Checks if types are compatible.
+        /// </summary>
+        /// <param name="type1">The first type.</param>
+        /// <param name="type2">The second type.</param>
+        /// <returns>True if types are related or assignable.</returns>
+        private static bool CompatibleTypes(Type type1, Type type2)
+        {
+            return RelatedTypes(type1, type2) || type1.IsAssignableFrom(type2) || type2.IsAssignableFrom(type1);
+        }
+
+        /// <summary>
+        /// Finds the method.
+        /// </summary>
+        /// <param name="sourceClass">The source class.</param>
+        /// <param name="methodName">Name of the method.</param>
+        /// <param name="signatureMethod">The signature method.</param>
+        /// <returns>The method information.</returns>
+        private static MethodInfo FindMethod(Type sourceClass, string methodName, MethodInfo signatureMethod)
+        {
+            foreach (MethodInfo method in sourceClass.GetMethods(BindingFlags.Default | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance | BindingFlags.FlattenHierarchy))
+            {
+                if (Log.LogALot)
+                {
+                    Log.DevDebug(typeof(MonoDetour), "FindMethod", "SearchMethods", methodName, method.Name);
+                }
+
+                if (method.Name == methodName)
+                {
+                    if (Log.LogALot)
+                    {
+                        Log.DevDebug(typeof(MonoDetour), "FindMethod", "CheckMethod", methodName, method.Name);
+                    }
+
+                    if (ValidateSignatures(signatureMethod, method))
+                    {
+                        Log.DevDebug(typeof(MonoDetour), "FindMethod", "MethodFound", methodName, method.Name);
+
+                        return method;
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Check if types are related.
+        /// </summary>
+        /// <param name="type1">The first type.</param>
+        /// <param name="type2">The second type.</param>
+        /// <returns>True if types are related.</returns>
+        private static bool RelatedTypes(Type type1, Type type2)
+        {
+            return type1 == type2 || type1.IsSubclassOf(type2) || type2.IsSubclassOf(type1);
+        }
+
+        /// <summary>
+        /// Validates the method signatures.
+        /// </summary>
+        /// <param name="method1">The first method.</param>
+        /// <param name="method2">The second method2.</param>
+        /// <returns>True on success.</returns>
+        private static bool ValidateSignatures(MethodInfo method1, MethodInfo method2)
+        {
+            if (Log.LogALot)
+            {
+                Log.DevDebug(typeof(MonoDetour), "ValidateSignatures", method1.Name, method2.Name, method1.DeclaringType, method2.DeclaringType, method1.ReflectedType, method2.ReflectedType);
+            }
+
+            // Validate method info.
+            if ((method1.ReturnType != method2.ReturnType) ||
+                (method1.IsGenericMethod != method2.IsGenericMethod) ||
+                ((method1.CallingConvention & ValidateCallingConventions) != (method2.CallingConvention & ValidateCallingConventions)))
+            {
+                if (Log.LogALot)
+                {
+                    Log.DevDebug(
+                        typeof(MonoDetour),
+                        "ValidateSignatures",
+                        "Fail",
+                        "MethodInfo",
+                        method1.Name,
+                        method2.Name,
+                        method1.ReturnType,
+                        method2.ReturnType,
+                        method1.IsGenericMethod,
+                        method2.IsGenericMethod,
+                        method1.CallingConvention & ValidateCallingConventions,
+                        method2.CallingConvention & ValidateCallingConventions);
+                }
+
+                return false;
+            }
+
+            if (Log.LogALot)
+            {
+                Log.DevDebug(typeof(MonoDetour), "ValidateSignatures", "these", method1.CallingConvention & TheseCallingConventions, method2.CallingConvention & TheseCallingConventions);
+            }
+
+            // Get parameters.
+            List<ParameterInfo> params1 = method1.GetParameters().OrderBy(p => p.Position).ToList();
+            List<ParameterInfo> params2 = method2.GetParameters().OrderBy(p => p.Position).ToList();
+
+            int pos1Add = 0;
+
+            if ((method1.CallingConvention & TheseCallingConventions) == CallingConventions.HasThis &&
+                (method2.CallingConvention & TheseCallingConventions) != CallingConventions.HasThis &&
+                params2[0].Position == 0 &&
+                (RelatedTypes(params2[0].ParameterType, method1.DeclaringType) || RelatedTypes(params2[0].ParameterType, method1.ReflectedType)))
+            {
+                params2.RemoveAt(0);
+                pos1Add = +1;
+            }
+            else if ((method2.CallingConvention & TheseCallingConventions) == CallingConventions.HasThis &&
+                     (method1.CallingConvention & TheseCallingConventions) != CallingConventions.HasThis &&
+                     params1[0].Position == 0 &&
+                     (RelatedTypes(params1[0].ParameterType, method2.DeclaringType) || RelatedTypes(params1[0].ParameterType, method2.ReflectedType)))
+            {
+                params1.RemoveAt(0);
+                pos1Add = -1;
+            }
+
+            if (method1.ReturnParameter != null)
+            {
+                if (Log.LogALot)
+                {
+                    Log.DevDebug(typeof(MonoDetour), "ValidateSignatures", "ReturnParameter", 1, method1.ReturnParameter);
+                }
+
+                params1.Add(method1.ReturnParameter);
+            }
+
+            if (method2.ReturnParameter != null)
+            {
+                if (Log.LogALot)
+                {
+                    Log.DevDebug(typeof(MonoDetour), "ValidateSignatures", "ReturnParameter", 2, method2.ReturnParameter);
+                }
+
+                params2.Add(method2.ReturnParameter);
+            }
+
+            if (Log.LogALot)
+            {
+                StringBuilder paramStr1 = new StringBuilder();
+                for (int i = 0; i < params1.Count; i++)
+                {
+                    if (paramStr1.Length > 0)
+                    {
+                        paramStr1.Append(", ");
+                    }
+
+                    paramStr1.Append('#').Append(params1[i].Position.ToString()).Append(' ').Append(params1[i].Name).Append(' ').Append(params1[i].ParameterType.ToString());
+                }
+
+                StringBuilder paramStr2 = new StringBuilder();
+                for (int i = 0; i < params2.Count; i++)
+                {
+                    if (paramStr2.Length > 0)
+                    {
+                        paramStr2.Append(", ");
+                    }
+
+                    paramStr2.Append('#').Append(params2[i].Position.ToString()).Append(' ').Append(params2[i].Name).Append(' ').Append(params2[i].ParameterType.ToString());
+                }
+
+                Log.DevDebug(typeof(MonoDetour), "ValidateSignatures", "Params", 1, paramStr1);
+                Log.DevDebug(typeof(MonoDetour), "ValidateSignatures", "Params", 2, paramStr2);
+            }
+
+            // Validate parameter count.
+            if (params1.Count != params2.Count)
+            {
+                if (Log.LogALot)
+                {
+                    Log.DevDebug(
+                        typeof(MonoDetour),
+                        "ValidateSignatures",
+                        "Fail",
+                        "ParamCount",
+                        method1.Name,
+                        method2.Name,
+                        params1.Count,
+                        params2.Count);
+                }
+
+                return false;
+            }
+
+            // Validate parameters,
+            for (int i = 0; i < params1.Count; i++)
+            {
+                // Validate parameter info.
+                if ((params1[i].IsOut != params2[i].IsOut) ||
+                    (params1[i].IsRetval != params2[i].IsRetval) ||
+                    (params1[i].IsIn != params2[i].IsIn) ||
+                    (params1[i].IsLcid != params2[i].IsLcid) ||
+                    (params1[i].IsOptional != params2[i].IsOptional) ||
+                    ((params1[i].DefaultValue == null) != (params2[i].DefaultValue == null)))
+                {
+                    if (Log.LogALot)
+                    {
+                        Log.DevDebug(
+                            typeof(MonoDetour),
+                            "ValidateSignatures",
+                            "Fail",
+                            "ParamInfo",
+                            method1.Name,
+                            method2.Name,
+                            params1[i].IsOut,
+                            params2[i].IsOut,
+                            params1[i].IsRetval,
+                            params2[i].IsRetval,
+                            params1[i].IsIn,
+                            params2[i].IsIn,
+                            params1[i].IsLcid,
+                            params2[i].IsLcid,
+                            params1[i].IsOptional,
+                            params2[i].IsOptional,
+                            params1[i].DefaultValue == null,
+                            params2[i].DefaultValue == null);
+                    }
+
+                    return false;
+                }
+
+                // Validate parameter type.
+                if (!CompatibleTypes(params1[i].ParameterType, params2[i].ParameterType))
+                {
+                    if (Log.LogALot)
+                    {
+                        Log.DevDebug(
+                            typeof(MonoDetour),
+                            "ValidateSignatures",
+                            "Fail",
+                            "ParamType",
+                            params1[i].ParameterType,
+                            params2[i].ParameterType);
+                    }
+
+                    return false;
+                }
+
+                // Validate parameter default values.
+                if ((params1[i].DefaultValue != null) && (params1[i].DefaultValue.ToString() != params2[i].DefaultValue.ToString()))
+                {
+                    if (Log.LogALot)
+                    {
+                        Log.DevDebug(
+                            typeof(MonoDetour),
+                            "ValidateSignatures",
+                            "Fail",
+                            "DefaultValue",
+                            method1.Name,
+                            method2.Name,
+                            params1[i].DefaultValue.ToString(),
+                            params2[i].DefaultValue.ToString());
+                    }
+
+                    return false;
+                }
+
+                // Validate parameter position.
+                int pos1 = params1[i].Position + (params1[i].Position >= 0 ? pos1Add : 0);
+                if (pos1 != params2[i].Position)
+                {
+                    if (Log.LogALot)
+                    {
+                        Log.DevDebug(
+                            typeof(MonoDetour),
+                            "ValidateSignatures",
+                            "Fail",
+                            "ParamPos",
+                            pos1,
+                            params2[i].Position);
+                    }
+
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        /// <summary>
         /// Patches the call site with whatever instructions are in code start.
         /// </summary>
         /// <param name="callSite">The call site.</param>
@@ -326,220 +631,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 *(rawPointer + 11) = 0xFF; // ... uncondotional jump
                 *(rawPointer + 12) = 0xE3; // %r11
             }
-        }
-
-        /// <summary>
-        /// Validates the method signatures.
-        /// </summary>
-        /// <param name="method1">The first method.</param>
-        /// <param name="method2">The second method2.</param>
-        /// <returns>True on success.</returns>
-        private bool ValidateSignatures(MethodInfo method1, MethodInfo method2)
-        {
-            if (Log.LogALot)
-            {
-                Log.DevDebug(this, "ValidateSignatures", method1.Name, method2.Name, method1.DeclaringType, method2.DeclaringType, method1.ReflectedType, method2.ReflectedType);
-            }
-
-            // Validate method info.
-            if ((method1.ReturnType != method2.ReturnType) ||
-                (method1.IsGenericMethod != method2.IsGenericMethod) ||
-                ((method1.CallingConvention & ValidateCallingConventions) != (method2.CallingConvention & ValidateCallingConventions)))
-            {
-                if (Log.LogALot)
-                {
-                    Log.DevDebug(
-                        this,
-                        "ValidateSignatures",
-                        "Fail",
-                        "MethodInfo",
-                        method1.Name,
-                        method2.Name,
-                        method1.ReturnType,
-                        method2.ReturnType,
-                        method1.IsGenericMethod,
-                        method2.IsGenericMethod,
-                        method1.CallingConvention & ValidateCallingConventions,
-                        method2.CallingConvention & ValidateCallingConventions);
-                }
-
-                return false;
-            }
-
-            if (Log.LogALot)
-            {
-                Log.DevDebug(this, "ValidateSignatures", "these", method1.CallingConvention & TheseCallingConventions, method2.CallingConvention & TheseCallingConventions);
-            }
-
-            // Get parameters.
-            List<ParameterInfo> params1 = method1.GetParameters().OrderBy(p => p.Position).ToList();
-            List<ParameterInfo> params2 = method2.GetParameters().OrderBy(p => p.Position).ToList();
-
-            int pos1Add = 0;
-
-            if ((method1.CallingConvention & TheseCallingConventions) == CallingConventions.HasThis &&
-                (method2.CallingConvention & TheseCallingConventions) != CallingConventions.HasThis &&
-                params2[0].Position == 0 &&
-                (params2[0].ParameterType == method1.DeclaringType || params2[0].ParameterType == method1.ReflectedType))
-            {
-                params2.RemoveAt(0);
-                pos1Add = +1;
-            }
-            else if ((method2.CallingConvention & TheseCallingConventions) == CallingConventions.HasThis &&
-                     (method1.CallingConvention & TheseCallingConventions) != CallingConventions.HasThis &&
-                     params1[0].Position == 0 &&
-                     (params1[0].ParameterType == method2.DeclaringType || params1[0].ParameterType == method2.ReflectedType))
-            {
-                params1.RemoveAt(0);
-                pos1Add = -1;
-            }
-
-            if (method1.ReturnParameter != null)
-            {
-                if (Log.LogALot)
-                {
-                    Log.DevDebug(this, "ValidateSignatures", "ReturnParameter", 1, method1.ReturnParameter);
-                }
-
-                params1.Add(method1.ReturnParameter);
-            }
-
-            if (method2.ReturnParameter != null)
-            {
-                if (Log.LogALot)
-                {
-                    Log.DevDebug(this, "ValidateSignatures", "ReturnParameter", 2, method2.ReturnParameter);
-                }
-
-                params2.Add(method2.ReturnParameter);
-            }
-
-            if (Log.LogALot)
-            {
-                StringBuilder paramStr1 = new StringBuilder();
-                for (int i = 0; i < params1.Count; i++)
-                {
-                    if (paramStr1.Length > 0)
-                    {
-                        paramStr1.Append(", ");
-                    }
-
-                    paramStr1.Append('#').Append(params1[i].Position.ToString()).Append(' ').Append(params1[i].Name).Append(' ').Append(params1[i].ParameterType.ToString());
-                }
-
-                StringBuilder paramStr2 = new StringBuilder();
-                for (int i = 0; i < params2.Count; i++)
-                {
-                    if (paramStr2.Length > 0)
-                    {
-                        paramStr2.Append(", ");
-                    }
-
-                    paramStr2.Append('#').Append(params2[i].Position.ToString()).Append(' ').Append(params2[i].Name).Append(' ').Append(params2[i].ParameterType.ToString());
-                }
-
-                Log.DevDebug(this, "ValidateSignatures", "Params", 1, paramStr1);
-                Log.DevDebug(this, "ValidateSignatures", "Params", 2, paramStr2);
-            }
-
-            // Validate parameter count.
-            if (params1.Count != params2.Count)
-            {
-                if (Log.LogALot)
-                {
-                    Log.DevDebug(
-                        this,
-                        "ValidateSignatures",
-                        "Fail",
-                        "ParamCount",
-                        method1.Name,
-                        method2.Name,
-                        params1.Count,
-                        params2.Count);
-                }
-
-                return false;
-            }
-
-            // Validate parameters,
-            for (int i = 0; i < params1.Count; i++)
-            {
-                // Validate parameter info.
-                if ((params1[i].IsOut != params2[i].IsOut) ||
-                    (params1[i].IsRetval != params2[i].IsRetval) ||
-                    (params1[i].IsIn != params2[i].IsIn) ||
-                    (params1[i].IsLcid != params2[i].IsLcid) ||
-                    (params1[i].IsOptional != params2[i].IsOptional) ||
-                    (params1[i].ParameterType != params2[i].ParameterType) ||
-                    ((params1[i].DefaultValue == null) != (params2[i].DefaultValue == null)))
-                {
-                    if (Log.LogALot)
-                    {
-                        Log.DevDebug(
-                            this,
-                            "ValidateSignatures",
-                            "Fail",
-                            "ParamInfo",
-                            method1.Name,
-                            method2.Name,
-                            params1[i].IsOut,
-                            params2[i].IsOut,
-                            params1[i].IsRetval,
-                            params2[i].IsRetval,
-                            params1[i].IsIn,
-                            params2[i].IsIn,
-                            params1[i].IsLcid,
-                            params2[i].IsLcid,
-                            params1[i].IsOptional,
-                            params2[i].IsOptional,
-                            params1[i].ParameterType,
-                            params2[i].ParameterType,
-                            params1[i].DefaultValue == null,
-                            params2[i].DefaultValue == null);
-                    }
-
-                    return false;
-                }
-
-                // Validate parameter default values.
-                if ((params1[i].DefaultValue != null) && (params1[i].DefaultValue.ToString() != params2[i].DefaultValue.ToString()))
-                {
-                    if (Log.LogALot)
-                    {
-                        Log.DevDebug(
-                            this,
-                            "ValidateSignatures",
-                            "Fail",
-                            "DefaultValue",
-                            method1.Name,
-                            method2.Name,
-                            params1[i].DefaultValue.ToString(),
-                            params2[i].DefaultValue.ToString());
-                    }
-
-                    return false;
-                }
-
-                // Validate parameter position.
-                int pos1 = params1[i].Position + (params1[i].Position >= 0 ? pos1Add : 0);
-                if (pos1 != params2[i].Position)
-                {
-                    if (Log.LogALot)
-                    {
-                        Log.DevDebug(
-                            this,
-                            "ValidateSignatures",
-                            "Fail",
-                            "ParamPos",
-                            pos1,
-                            params2[i].Position);
-                    }
-
-                    return false;
-                }
-            }
-
-            return true;
         }
 
         /// <summary>

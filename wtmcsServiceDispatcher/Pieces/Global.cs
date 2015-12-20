@@ -116,6 +116,24 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Initializes the mod for use.
+        /// </summary>
+        public static void Initialize()
+        {
+            InitializeSettings();
+            ReInitializeHandlers();
+            InitializeHelpers();
+        }
+
+        /// <summary>
+        /// Initializes the helpers.
+        /// </summary>
+        public static void InitializeHelpers()
+        {
+            VehicleHelper.Initialize();
+        }
+
+        /// <summary>
         /// Initializes the settings.
         /// </summary>
         public static void InitializeSettings()

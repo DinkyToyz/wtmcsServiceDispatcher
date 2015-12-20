@@ -65,7 +65,6 @@
     <Compile Include="Pieces\BuildingKeeper.cs" />
     <Compile Include="Detouring\Detours.cs" />
     <Compile Include="Helpers\DistrictHelper.cs" />
-    <Compile Include="Assistants\GarbageTruckAIAssistant.cs" />
     <Compile Include="Detouring\GarbageTruckAIShouldReturnToSourceDetour.cs" />
     <Compile Include="Pieces\IHandlerPart.cs" />
     <Compile Include="Pieces\Dispatcher.cs" />
@@ -74,7 +73,6 @@
     <Compile Include="Util\FileSystem.cs" />
     <Compile Include="Detouring\GarbageTruckAITryCollectGarbageDetour.cs" />
     <Compile Include="Pieces\Global.cs" />
-    <Compile Include="Assistants\HearseAIAssistant.cs" />
     <Compile Include="Detouring\HearseAIShouldReturnToSourceDetour.cs" />
     <Compile Include="Pieces\IBuildingInfo.cs" />
     <Compile Include="Pieces\Library.cs" />
