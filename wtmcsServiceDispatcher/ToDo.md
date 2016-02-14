@@ -1,3 +1,8 @@
+# Doing
+
+- Use own SetTarget instead of (vehicle)AI, and recall vehicle instead of despawning when path can not be found.
+- Continue checking for vehicles a bit instead of failing if found and assigend vehicle cannot find path to target.
+
 # Additions and fixes
 
 - road and rail clean-up crews (to remove stuck vehicles, including forgotten trailers and railway cars)
@@ -9,6 +14,7 @@
 
 # Changes and experiments
 
+- Use detoring instead of invoke for faster calls of private/protected methods (ie StartPathFind in VehicleHelper).
 - citizens?
 - Detour ProduceGoods or transfer stuff???
 - sort by distance capacity %?

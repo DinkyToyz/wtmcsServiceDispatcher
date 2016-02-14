@@ -112,6 +112,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public uint SaveCount = 0;
 
         /// <summary>
+        /// Whether code overrides are allowed or not.
+        /// </summary>
+        public bool UseReflection = true;
+
+        /// <summary>
         /// The descriptions for the building checks orders.
         /// </summary>
         private static Dictionary<BuildingCheckOrder, string> buildingCheckOrderDescriptions = new Dictionary<BuildingCheckOrder, string>()
@@ -197,6 +202,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 this.RangeLimit = settings.RangeLimit;
                 this.RangeMaximum = settings.RangeMaximum;
                 this.RangeMinimum = settings.RangeMinimum;
+                this.UseReflection = settings.UseReflection;
 
                 this.DispatchHearses = settings.DispatchHearses;
                 this.DispatchHearsesByDistrict = settings.DispatchHearsesByDistrict;
@@ -701,6 +707,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     cfg.RangeLimit = this.RangeLimit;
                     cfg.RangeMaximum = this.RangeMaximum;
                     cfg.RangeMinimum = this.RangeMinimum;
+                    cfg.UseReflection = this.UseReflection;
 
                     cfg.DispatchHearses = this.DispatchHearses;
                     cfg.DispatchHearsesByDistrict = this.DispatchHearsesByDistrict;
@@ -887,6 +894,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             /// The save count.
             /// </summary>
             public uint SaveCount = 0;
+
+            /// <summary>
+            /// Whether code overrides are allowed or not.
+            /// </summary>
+            public bool UseReflection = true;
 
             /// <summary>
             /// The settings version.

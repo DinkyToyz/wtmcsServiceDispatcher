@@ -19,7 +19,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// </summary>
         public static void CleanTransferOffers()
         {
-            if (!error)
+            if (Global.Settings.UseReflection && !error)
             {
                 try
                 {

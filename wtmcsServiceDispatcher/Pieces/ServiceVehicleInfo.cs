@@ -163,17 +163,19 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// Recalls the vehicle to the service building.
         /// </summary>
-        public void Recall()
+        /// <returns>True if vehicle recalled and found path the source.</returns>
+        public bool Recall()
         {
             // Get vehicle.
-            this.Recall(ref Singleton<VehicleManager>.instance.m_vehicles.m_buffer[this.VehicleId]);
+            return this.Recall(ref Singleton<VehicleManager>.instance.m_vehicles.m_buffer[this.VehicleId]);
         }
 
         /// <summary>
         /// Recalls the vehicle to the service building.
         /// </summary>
         /// <param name="vehicle">The vehicle data.</param>
-        public void Recall(ref Vehicle vehicle)
+        /// <returns>True if vehicle recalled and found path the source.</returns>
+        public bool Recall(ref Vehicle vehicle)
         {
             // Set internal target.
             this.Target = 0;
@@ -185,7 +187,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             }
 
             // Recall the vehicle.
-            VehicleHelper.RecallVehicle(this.VehicleId, ref vehicle);
+            return VehicleHelper.RecallVehicle(this.VehicleId, ref vehicle);
         }
 
         /// <summary>
@@ -193,27 +195,33 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// </summary>
         /// <param name="targetBuildingId">The target building identifier.</param>
         /// <param name="vehicle">The vehicle.</param>
-        public void SetTarget(ushort targetBuildingId, ref Vehicle vehicle)
+        /// <returns>True if target set vehicle found path the target.</returns>
+        public bool SetTarget(ushort targetBuildingId, ref Vehicle vehicle)
         {
             if (targetBuildingId == 0 && this.GoingBack)
             {
-                this.Recall(ref vehicle);
-                return;
+                return this.Recall(ref vehicle);
             }
 
-            if (targetBuildingId != vehicle.m_targetBuilding)
+            if (VehicleHelper.SetTarget(this.VehicleId, ref vehicle, targetBuildingId))
             {
-                vehicle.Info.m_vehicleAI.SetTarget(this.VehicleId, ref vehicle, targetBuildingId);
+                if (targetBuildingId != 0)
+                {
+                    this.LastAssigned = Global.CurrentFrame;
+                    this.FreeToCollect = false;
+                    this.GoingBack = false;
+                }
+
+                this.Target = targetBuildingId;
+                return true;
             }
 
-            if (targetBuildingId != 0)
-            {
-                this.LastAssigned = Global.CurrentFrame;
-                this.FreeToCollect = false;
-                this.GoingBack = false;
-            }
+            this.LastAssigned = 0;
+            this.FreeToCollect = (vehicle.m_flags & Vehicle.Flags.Spawned) == Vehicle.Flags.Spawned;
+            this.GoingBack = false;
+            this.Target = 0;
 
-            this.Target = targetBuildingId;
+            return false;
         }
 
         /// <summary>

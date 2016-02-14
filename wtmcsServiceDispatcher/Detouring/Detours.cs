@@ -119,7 +119,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             Assure();
 
-            if (Global.Settings.DispatchHearses)
+            if (Global.Settings.UseReflection && Global.Settings.DispatchHearses)
             {
                 Detour(Methods.HearseAI_ShouldReturnToSource);
             }
@@ -128,7 +128,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 Revert(Methods.HearseAI_ShouldReturnToSource);
             }
 
-            if (Global.Settings.DispatchGarbageTrucks)
+            if (Global.Settings.UseReflection && Global.Settings.DispatchGarbageTrucks)
             {
                 Detour(Methods.GarbageTruckAI_ShouldReturnToSource);
             }
@@ -137,7 +137,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 Revert(Methods.GarbageTruckAI_ShouldReturnToSource);
             }
 
-            if (Global.Settings.DispatchGarbageTrucks && Global.Settings.LimitOpportunisticGarbageCollection)
+            if (Global.Settings.UseReflection && Global.Settings.DispatchGarbageTrucks && Global.Settings.LimitOpportunisticGarbageCollection)
             {
                 Detour(Methods.GarbageTruckAI_TryCollectGarbage);
             }
@@ -189,7 +189,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <param name="create">If set to <c>true</c> re-create objects if they already exists.</param>
         private static void Assure(bool create = false)
         {
-            if (create || methodsDetours == null)
+            if (Global.Settings.UseReflection && (create || methodsDetours == null))
             {
                 methodsDetours = new Dictionary<Methods, MethodDetoursBase>();
 
@@ -231,16 +231,16 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// Tries to get the method detours for the specified method.
         /// </summary>
         /// <param name="method">The method.</param>
-        /// <param name="methodDetours">The method detours.</param>
+        /// <param name="detours">The method detours.</param>
         /// <returns>True if the method detours were retrieved.</returns>
-        private static bool TryGetMethodDetours(Methods method, out MethodDetoursBase methodDetours)
+        private static bool TryGetMethodDetours(Methods method, out MethodDetoursBase detours)
         {
-            if (methodsDetours != null && methodsDetours.TryGetValue(method, out methodDetours) && methodDetours != null)
+            if (methodsDetours != null && methodsDetours.TryGetValue(method, out detours) && detours != null)
             {
                 return true;
             }
 
-            methodDetours = null;
+            detours = null;
             return false;
         }
     }

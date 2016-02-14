@@ -45,7 +45,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             get
             {
-                return !this.error &&
+                return Global.Settings.UseReflection && !this.error &&
                        MonoDetour.CanDetour &&
                        BuildConfig.APPLICATION_VERSION >= this.MinGameVersion &&
                        BuildConfig.APPLICATION_VERSION < this.MaxGameVersion;
@@ -123,7 +123,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             {
                 if (originalClass != this.OriginalClassType)
                 {
-                    Log.Warning(this, "Original AI replaced: ", this.OriginalClassType, originalClass);
+                    Log.Warning(this, "Original class replaced: ", this.OriginalClassType, originalClass);
                 }
 
                 this.detours[originalClass] = new DetourInfo();

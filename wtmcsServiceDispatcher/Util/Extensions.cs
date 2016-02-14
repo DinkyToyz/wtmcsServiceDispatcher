@@ -92,27 +92,5 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             return text.ToString().ConformNewlines();
         }
-
-        /// <summary>
-        /// Get the nets name.
-        /// </summary>
-        /// <param name="netInfo">The net information.</param>
-        /// <returns>The name.</returns>
-        public static string NetName(this NetInfo netInfo)
-        {
-            string name = netInfo.m_class.name;
-
-            if (name == "Highway" && netInfo.name.Contains("Ramp"))
-            {
-                return "Highway Ramp";
-            }
-
-            if (name == "Highway Tunnel" && netInfo.name.Contains("Ramp"))
-            {
-                return "Highway Ramp Tunnel";
-            }
-
-            return name;
-        }
     }
 }
