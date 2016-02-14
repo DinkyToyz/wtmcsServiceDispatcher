@@ -21,8 +21,8 @@ IF NOT EXIST "%MODPATH%" MKDIR "%MODPATH%"
 :WORK
 
 IF NOT EXIST ..\..\Build\SteamBBCode2MarkDown.pl GOTO NODESC
-IF NOT EXIST ..\..\SteamDescription.txt GOTO NODESC
-IF NOT EXIST ..\..\ReadMe.head.md GOTO NODESC
+IF NOT EXIST ..\..\Dox\SteamDescription.txt GOTO NODESC
+IF NOT EXIST ..\..\Dox\ReadMe.head.md GOTO NODESC
 
 ..\..\Build\SteamBBCode2MarkDown.pl ..\..\Dox\ReadMe.head.md ..\..\Dox\SteamDescription.txt > ..\..\..\README.md
 
@@ -38,6 +38,6 @@ xcopy /f /y "%TARGETFILENAME%" "%MODPATH%"
 
 :NOGAME
 
-zip -u -j -9 -o -X "..\..\..\CentralServicesDispatcher.zip" "..\..\..\README.md" "..\..\Dox\PreviewImage.png" "%TARGETFILENAME%"
+zip -u -j -9 -o -X "..\..\..\CentralServicesDispatcherWTM.zip" "..\..\..\README.md" "..\..\Dox\PreviewImage.png" "%TARGETFILENAME%"
 
 :END
