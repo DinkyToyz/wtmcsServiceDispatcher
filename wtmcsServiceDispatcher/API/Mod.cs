@@ -448,7 +448,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     });
 
                 garbageGroup.AddExtendedSlider(
-                    "Garbage amount patrol limit",
+                    "Garbage patrol limit",
                     1.0f,
                     5000.0f,
                     1.0f,
@@ -465,7 +465,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     });
 
                 garbageGroup.AddExtendedSlider(
-                    "Garbage amount dispatch limit",
+                    "Garbage dispatch limit",
                     1.0f,
                     5000.0f,
                     1.0f,

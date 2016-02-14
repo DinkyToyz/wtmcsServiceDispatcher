@@ -412,7 +412,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     foundVehicleOkCheck = foundVehicleOkId == 0;
                     foundVehicleLastResortCheck = foundVehicleLastResortId == 0;
 
-                    // If prefer to send new vehcile when building is closer.
+                    // If prefer to send new vehicle when building is closer.
                     if (allowCreateSpares && this.createSpareVehicles == Settings.SpareVehiclesCreation.WhenBuildingIsCloser && serviceBuilding.VehiclesSpare > 0)
                     {
                         foundVehicleDistance = serviceBuilding.Distance;
@@ -430,7 +430,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         float distance = (targetBuilding.Position - vehicleInfo.Position).sqrMagnitude;
 
                         // Check for vehicle with enough free capacity.
-                        if (distance < foundVehicleDistance && vehicleInfo.CapacityFree >= targetBuilding.ProblemSize)
+                        if ((distance < foundVehicleDistance || (foundVehicleId == 0 && distance == foundVehicleDistance))  && vehicleInfo.CapacityFree >= targetBuilding.ProblemSize)
                         {
                             foundVehicleId = vehicleInfo.VehicleId;
                             foundVehicleDistance = distance;

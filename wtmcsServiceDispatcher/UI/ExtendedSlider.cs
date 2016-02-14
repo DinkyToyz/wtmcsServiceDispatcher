@@ -253,6 +253,23 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Hides the text field label.
+        /// </summary>
+        private void HideTextFieldLabel()
+        {
+            if (this.textField != null)
+            {
+                UIComponent parent = this.textField.parent;
+                UILabel label = parent.Find<UILabel>("Label");
+                if (label != null)
+                {
+                    parent.RemoveUIComponent(label);
+                    label.Hide();
+                }
+            }
+        }
+
+        /// <summary>
         /// Initializes this instance.
         /// </summary>
         /// <param name="helper">The UI helper.</param>
@@ -343,13 +360,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             this.textField.numericalOnly = true;
             this.textField.allowFloats = this.AllowFloats;
             this.textField.submitOnFocusLost = this.submitOnFocusLost;
-
-            UIComponent parent = this.textField.parent;
-            UILabel label = parent.Find<UILabel>("Label");
-            if (label != null)
+            this.textField.eventVisibilityChanged += (component, value) =>
             {
-                parent.RemoveUIComponent(label);
-            }
+                this.HideTextFieldLabel();
+            };
+
+            this.HideTextFieldLabel();
         }
 
         /// <summary>
