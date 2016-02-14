@@ -308,6 +308,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 {
                     Log.Debug(typeof(VehicleHelper), "RecallVehicle", "DeSpawn", vehicleId, vehicle, vehicle.Info.m_vehicleAI);
                     vehicle.Unspawn(vehicleId);
+
+                    return true;
                 }
 
                 // Make sure <AI>.StartPathFind is available.

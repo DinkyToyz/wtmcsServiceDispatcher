@@ -306,7 +306,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 {
                     if (!this.DeadPeopleBuildings.ContainsKey(buildingId))
                     {
-                        TargetBuildingInfo deadPeopleBuilding = new TargetBuildingInfo(buildingId, ref building, Notification.Problem.Death, TargetBuildingInfo.Demand.NeedsService);
+                        TargetBuildingInfo deadPeopleBuilding = new TargetBuildingInfo(buildingId, ref building, Notification.Problem.Death, TargetBuildingInfo.ServiceDemand.NeedsService);
                         if (Log.LogToFile)
                         {
                             Log.Debug(this, "CategorizeBuilding", "Dead People", buildingId, building.Info.name, deadPeopleBuilding.BuildingName, building.m_deathProblemTimer, deadPeopleBuilding.ProblemValue, deadPeopleBuilding.HasProblem, deadPeopleBuilding.District);
@@ -317,7 +317,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     }
                     else
                     {
-                        this.DeadPeopleBuildings[buildingId].Update(ref building, Notification.Problem.Death, TargetBuildingInfo.Demand.NeedsService);
+                        this.DeadPeopleBuildings[buildingId].Update(ref building, Notification.Problem.Death, TargetBuildingInfo.ServiceDemand.NeedsService);
                         this.HasDeadPeopleBuildingsToCheck = this.HasDeadPeopleBuildingsToCheck || this.DeadPeopleBuildings[buildingId].CheckThis;
                     }
                 }
@@ -325,7 +325,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 {
                     if (this.DeadPeopleBuildings[buildingId].WantedService)
                     {
-                        this.DeadPeopleBuildings[buildingId].Update(ref building, Notification.Problem.Death, TargetBuildingInfo.Demand.None);
+                        this.DeadPeopleBuildings[buildingId].Update(ref building, Notification.Problem.Death, TargetBuildingInfo.ServiceDemand.None);
                     }
                     else
                     {
@@ -364,28 +364,28 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 }
 
                 // Check garbage.
-                TargetBuildingInfo.Demand demand;
+                TargetBuildingInfo.ServiceDemand demand;
                 if (building.m_garbageBuffer >= Global.Settings.MinimumGarbageForDispatch)
                 {
-                    demand = TargetBuildingInfo.Demand.NeedsService;
+                    demand = TargetBuildingInfo.ServiceDemand.NeedsService;
                 }
                 else if (building.m_garbageBuffer >= Global.Settings.MinimumGarbageForPatrol)
                 {
-                    demand = TargetBuildingInfo.Demand.WantsService;
+                    demand = TargetBuildingInfo.ServiceDemand.WantsService;
                 }
                 else
                 {
-                    demand = TargetBuildingInfo.Demand.None;
+                    demand = TargetBuildingInfo.ServiceDemand.None;
                 }
 
-                if (demand != TargetBuildingInfo.Demand.None && !(building.Info.m_buildingAI is LandfillSiteAI))
+                if (demand != TargetBuildingInfo.ServiceDemand.None && !(building.Info.m_buildingAI is LandfillSiteAI))
                 {
                     if (!this.DirtyBuildings.ContainsKey(buildingId))
                     {
                         TargetBuildingInfo dirtyBuilding = new TargetBuildingInfo(buildingId, ref building, Notification.Problem.Garbage, demand);
                         if (Log.LogToFile)
                         {
-                            Log.Debug(this, "CategorizeBuilding", "Dirty", buildingId, building.Info.name, dirtyBuilding.BuildingName, building.m_garbageBuffer, dirtyBuilding.ProblemValue, dirtyBuilding.HasProblem, dirtyBuilding.District);
+                            Log.Debug(this, "CategorizeBuilding", "Dirty", demand, buildingId, building.Info.name, dirtyBuilding.BuildingName, building.m_garbageBuffer, dirtyBuilding.ProblemValue, dirtyBuilding.HasProblem, dirtyBuilding.District);
                         }
 
                         this.DirtyBuildings[buildingId] = dirtyBuilding;
@@ -401,7 +401,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 {
                     if ((building.m_garbageBuffer > 10 && (building.m_garbageBuffer >= Global.Settings.MinimumGarbageForDispatch / 10 || building.m_garbageBuffer >= Global.Settings.MinimumGarbageForPatrol / 2)) || this.DirtyBuildings[buildingId].WantedService)
                     {
-                        this.DirtyBuildings[buildingId].Update(ref building, Notification.Problem.Garbage, TargetBuildingInfo.Demand.None);
+                        this.DirtyBuildings[buildingId].Update(ref building, Notification.Problem.Garbage, TargetBuildingInfo.ServiceDemand.None);
                     }
                     else
                     {

@@ -23,12 +23,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 for (ushort id = 0; id < buildings.Length; id++)
                 {
-                    DebugListLog(buildings, vehicles, districtManager, citizenManager, id);
+                    DebugListLog(buildings, vehicles, districtManager, citizenManager, id, null, null);
                 }
             }
             catch (Exception ex)
             {
-                Log.Error(typeof(BuildingKeeper), "DebugListLog", ex);
+                Log.Error(typeof(BuildingHelper), "DebugListLog", ex);
             }
         }
 
@@ -45,7 +45,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             foreach (ushort id in buildingIds)
             {
-                DebugListLog(buildings, vehicles, districtManager, citizenManager, id);
+                DebugListLog(buildings, vehicles, districtManager, citizenManager, id, null, null);
             }
         }
 
@@ -62,7 +62,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             foreach (TargetBuildingInfo building in targetBuildings)
             {
-                DebugListLog(buildings, vehicles, districtManager, citizenManager, building.BuildingId);
+                DebugListLog(buildings, vehicles, districtManager, citizenManager, building.BuildingId, null, building);
             }
         }
 
@@ -79,7 +79,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             foreach (ServiceBuildingInfo building in serviceBuildings)
             {
-                DebugListLog(buildings, vehicles, districtManager, citizenManager, building.BuildingId);
+                DebugListLog(buildings, vehicles, districtManager, citizenManager, building.BuildingId, building, null);
             }
 
             foreach (ServiceBuildingInfo building in serviceBuildings)
@@ -172,11 +172,23 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <param name="districtManager">The district manager.</param>
         /// <param name="citizenManager">The citizen manager.</param>
         /// <param name="buildingId">The building identifier.</param>
-        private static void DebugListLog(Building[] buildings, Vehicle[] vehicles, DistrictManager districtManager, CitizenManager citizenManager, ushort buildingId)
+        /// <param name="serviceBuilding">The service building.</param>
+        /// <param name="targetBuilding">The target building.</param>
+        private static void DebugListLog(Building[] buildings, Vehicle[] vehicles, DistrictManager districtManager, CitizenManager citizenManager, ushort buildingId, ServiceBuildingInfo serviceBuilding, TargetBuildingInfo targetBuilding)
         {
             if (buildings[buildingId].Info != null && (buildings[buildingId].m_flags & Building.Flags.Created) == Building.Flags.Created)
             {
                 Log.InfoList info = new Log.InfoList();
+
+                if (serviceBuilding != null)
+                {
+                    info.Add("O", "ServiceBuilding");
+                }
+
+                if (targetBuilding != null)
+                {
+                    info.Add("O", "TargetBuilding");
+                }
 
                 info.Add("BuildingId", buildingId);
                 info.Add("AI", buildings[buildingId].Info.m_buildingAI.GetType());
@@ -191,6 +203,27 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 byte district = districtManager.GetDistrict(buildings[buildingId].m_position);
                 info.Add("District", district);
                 info.Add("DistrictName", districtManager.GetDistrictName(district));
+
+                if (serviceBuilding != null)
+                {
+                    info.Add("CanReceive", serviceBuilding.CanReceive);
+                    info.Add("CapactyFree", serviceBuilding.CapacityFree);
+                    info.Add("CapactyMax", serviceBuilding.CapacityMax);
+                    info.Add("CapactyOverflow", serviceBuilding.CapacityOverflow);
+                    info.Add("Range", serviceBuilding.Range);
+                    info.Add("VehiclesFree", serviceBuilding.VehiclesFree);
+                    info.Add("VehiclesSpare", serviceBuilding.VehiclesSpare);
+                    info.Add("VehiclesMade", serviceBuilding.VehiclesMade);
+                    info.Add("VehiclesTotal", serviceBuilding.VehiclesTotal);
+                }
+
+                if (targetBuilding != null)
+                {
+                    info.Add("Demand", targetBuilding.Demand);
+                    info.Add("HasProblem", targetBuilding.HasProblem);
+                    info.Add("ProblemSize", targetBuilding.ProblemSize);
+                    info.Add("ProblemValue", targetBuilding.ProblemValue);
+                }
 
                 int materialMax = 0;
                 int materialAmount = 0;
@@ -354,7 +387,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 info.Add("AI", buildings[buildingId].Info.m_buildingAI.GetType().AssemblyQualifiedName);
 
-                Log.DevDebug(typeof(BuildingKeeper), "DebugListLog", info.ToString());
+                Log.DevDebug(typeof(BuildingHelper), "DebugListLog", info.ToString());
             }
         }
     }

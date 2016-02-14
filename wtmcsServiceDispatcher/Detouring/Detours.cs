@@ -200,7 +200,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     methodsDetours[Methods.GarbageTruckAI_ShouldReturnToSource] = new GarbageTruckAIShouldReturnToSourceDetour();
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Log.Error(typeof(Detours), "Assure", ex);
 
