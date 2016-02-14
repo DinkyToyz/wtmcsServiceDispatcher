@@ -189,13 +189,22 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <param name="create">If set to <c>true</c> re-create objects if they already exists.</param>
         private static void Assure(bool create = false)
         {
-            if (Global.Settings.UseReflection && (create || methodsDetours == null))
+            try
             {
-                methodsDetours = new Dictionary<Methods, MethodDetoursBase>();
+                if (create || methodsDetours == null)
+                {
+                    methodsDetours = new Dictionary<Methods, MethodDetoursBase>();
 
-                methodsDetours[Methods.HearseAI_ShouldReturnToSource] = new HearseAIShouldReturnToSourceDetour();
-                methodsDetours[Methods.GarbageTruckAI_TryCollectGarbage] = new GarbageTruckAITryCollectGarbageDetour();
-                methodsDetours[Methods.GarbageTruckAI_ShouldReturnToSource] = new GarbageTruckAIShouldReturnToSourceDetour();
+                    methodsDetours[Methods.HearseAI_ShouldReturnToSource] = new HearseAIShouldReturnToSourceDetour();
+                    methodsDetours[Methods.GarbageTruckAI_TryCollectGarbage] = new GarbageTruckAITryCollectGarbageDetour();
+                    methodsDetours[Methods.GarbageTruckAI_ShouldReturnToSource] = new GarbageTruckAIShouldReturnToSourceDetour();
+                }
+            }
+            catch(Exception ex)
+            {
+                Log.Error(typeof(Detours), "Assure", ex);
+
+                methodsDetours = null;
             }
         }
 
