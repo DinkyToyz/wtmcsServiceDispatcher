@@ -5,6 +5,8 @@ Detouring\*.cs
 UI\*.cs
 Util\*.cs
 
+See LICENSE.txt for the software as a whole.
+
 Copyright (c) Jonas Eckerman in jurisdictions where copyright is
 non-relinquishable.
 

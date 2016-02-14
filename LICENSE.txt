@@ -1,5 +1,5 @@
-The license below applies to this software as a whole. See UNLICENSE.txt for
-exceptions.
+The license below applies to this software as a whole.
+See UNLICENSE.txt for exceptions.
 
 Copyright (c) Jonas Eckerman
 
