@@ -472,7 +472,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 }
 
                 ushort buildingId = (vehicle.m_targetBuilding == 0) ? vehicle.m_sourceBuilding : vehicle.m_targetBuilding;
-                Log.Info(typeof(VehicleHelper), "CallStartPathFind", "PathNotFound", vehicleId, buildingId, vehicle.Info.m_vehicleAI, GetVehicleName(vehicleId), BuildingHelper.GetBuildingName(buildingId));
+                Log.Warning(typeof(VehicleHelper), "CallStartPathFind", "PathNotFound", vehicleId, buildingId, vehicle.Info.m_vehicleAI, GetVehicleName(vehicleId), BuildingHelper.GetBuildingName(buildingId));
 
                 return false;
             }

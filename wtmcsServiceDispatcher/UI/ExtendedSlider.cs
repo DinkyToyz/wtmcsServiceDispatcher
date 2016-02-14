@@ -1,6 +1,7 @@
 ﻿using System;
 using ColossalFramework.UI;
 using ICities;
+using UnityEngine;
 
 namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 {
@@ -252,6 +253,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             return value.ToString(this.textFormat);
         }
 
+        private void LogTextFieldDbg(UIComponent parent, UILabel label, string what)
+        {
+            Log.DevDebug(this, "LogTextFieldDbg", what, label.text, parent.position, parent.size, label.position, label.size, this.textField.position, this.textField.size);
+        }
+
         /// <summary>
         /// Hides the text field label.
         /// </summary>
@@ -263,8 +269,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 UILabel label = parent.Find<UILabel>("Label");
                 if (label != null)
                 {
-                    parent.RemoveUIComponent(label);
-                    label.Hide();
+                    label.text = "";
+                    label.height = 0;
+
+                    ////parent.RemoveUIComponent(label);
+                    ////label.Hide();
                 }
             }
         }
