@@ -252,50 +252,71 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             if (this.HasTargetBuildings)
             {
                 bool initialized = false;
-
-                Building[] buildings = null;
+                Building[] buildings = Singleton<BuildingManager>.instance.m_buildings.m_buffer;
 
                 foreach (BuldingCheckParameters checkParams in this.buildingChecks)
                 {
                     if (Log.LogALot)
-                        Log.DevDebug(this, "Dispatch", checkParams.Setting, checkParams.OnlyProblematic, checkParams.MinProblemValue, checkParams.IgnoreRange);
+                    {
+                        Log.DevDebug(this, "Dispatch", checkParams.Setting, checkParams.OnlyProblematic, checkParams.MinProblemValue, checkParams.IgnoreRange, checkParams.AllowCreateSpares, this.createSpareVehicles);
+                    }
 
                     foreach (TargetBuildingInfo targetBuilding in this.targetBuildings.Values.Where(tb => checkParams.CheckThis(tb)).OrderBy(tb => tb, Global.TargetBuildingInfoPriorityComparer))
                     {
+                        // Skip missing buildings.
+                        if (buildings[targetBuilding.BuildingId].Info == null || (buildings[targetBuilding.BuildingId].m_flags & Building.Flags.Created) == Building.Flags.None || (buildings[targetBuilding.BuildingId].m_flags & (Building.Flags.Abandoned | Building.Flags.BurnedDown | Building.Flags.Deleted)) != Building.Flags.None)
+                        {
+                            if (Log.LogALot)
+                            {
+                                Log.DevDebug(this, "Dispatch", "MissingBuilding", targetBuilding.BuildingId, targetBuilding.BuildingName, targetBuilding.DistrictName);
+                            }
+
+                            continue;
+                        }
+
                         // Initialize vehicle data.
                         if (!initialized)
                         {
                             initialized = true;
-                            buildings = Singleton<BuildingManager>.instance.m_buildings.m_buffer;
 
-                            this.CollectVehicleData(buildings);
+                            this.CollectVehicleData(buildings, checkParams.AllowCreateSpares);
                             if (this.freeVehicles < 1)
                             {
                                 if (Log.LogALot)
+                                {
                                     Log.DevDebug(this, "Dispatch", "BreakCheck");
+                                }
+
                                 break;
                             }
-                        }
-
-                        // Skip missing buildings.
-                        if (buildings[targetBuilding.BuildingId].Info == null || (buildings[targetBuilding.BuildingId].m_flags & Building.Flags.Created) == Building.Flags.None || (buildings[targetBuilding.BuildingId].m_flags & (Building.Flags.Abandoned | Building.Flags.BurnedDown | Building.Flags.Deleted)) != Building.Flags.None)
-                        {
-                            continue;
                         }
 
                         // Assign vehicles, unless allredy done.
                         if (this.assignedTargets.ContainsKey(targetBuilding.BuildingId))
                         {
+                            if (Log.LogALot)
+                            {
+                                Log.DevDebug(this, "Dispatch", "HandledBuilding", targetBuilding.BuildingId, targetBuilding.BuildingName, targetBuilding.DistrictName);
+                            }
+
                             targetBuilding.Handled = true;
                         }
                         else
                         {
+                            if (Log.LogALot)
+                            {
+                                Log.DevDebug(this, "Dispatch", "AssignVehicle", targetBuilding.BuildingId, targetBuilding.BuildingName, targetBuilding.DistrictName);
+                            }
+
                             if (this.AssignVehicle(targetBuilding, checkParams.IgnoreRange, checkParams.AllowCreateSpares))
                             {
                                 if (this.freeVehicles < 1)
                                 {
                                     if (Log.LogALot)
+                                    {
                                         Log.DevDebug(this, "Dispatch", "BreakCheck");
+                                    }
+
                                     break;
                                 }
                             }
@@ -311,7 +332,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     if (this.freeVehicles < 1)
                     {
                         if (Log.LogALot)
+                        {
                             Log.DevDebug(this, "Dispatch", "BreakChecks");
+                        }
 
                         break;
                     }
@@ -378,6 +401,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             // try n times (in case vehicles have problem finding a path to the buidling)
             for (int tries = 0; tries < 16; tries++)
             {
+                if (Log.LogALot)
+                {
+                    Log.DevDebug(this, "AssignVehicle", "Try", tries, allowCreateSpares, this.createSpareVehicles);
+                }
+
                 // Found vehicle that has enough free capacity.
                 foundVehicleId = 0;
                 foundVehicleDistance = float.PositiveInfinity;
@@ -398,7 +426,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 foundVehicleLastResortBuilding = null;
 
                 // Loop through service buildings in priority order and assign a vehicle to the target.
-                foreach (ServiceBuildingInfo serviceBuilding in this.serviceBuildings.Values.Where(sb => sb.CanReceive && sb.VehiclesFree > 0 && sb.InRange).OrderBy(sb => sb, Global.ServiceBuildingInfoPriorityComparer))
+                if (Log.LogALot)
+                {
+                    foreach (ServiceBuildingInfo serviceBuilding in this.serviceBuildings.Values)
+                    {
+                        Log.DevDebug(this, "AssignVehicle", "ServiceBuilding?", serviceBuilding.BuildingId, serviceBuilding.CanReceive, serviceBuilding.VehiclesFree, serviceBuilding.VehiclesSpare, serviceBuilding.InRange);
+                    }
+                }
+                foreach (ServiceBuildingInfo serviceBuilding in this.serviceBuildings.Values.Where(sb => sb.CanReceive && (sb.VehiclesFree > 0 || (allowCreateSpares && this.createSpareVehicles != Settings.SpareVehiclesCreation.Never && sb.VehiclesSpare > 0)) && sb.InRange).OrderBy(sb => sb, Global.ServiceBuildingInfoPriorityComparer))
                 {
                     // Found vehicle that has enough free capacity.
                     foundVehicleId = 0;
@@ -418,6 +453,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         foundVehicleDistance = serviceBuilding.Distance;
                     }
 
+                    if (Log.LogALot)
+                    {
+                        Log.DevDebug(this, "AssignVehicle", "ServiceBuilding", serviceBuilding.BuildingId, serviceBuilding.BuildingName, serviceBuilding.DistrictName, serviceBuilding.Distance, foundVehicleDistance);
+                    }
+
                     // Loop through vehicles and save the closest free vehicle.
                     foreach (ServiceVehicleInfo vehicleInfo in serviceBuilding.Vehicles.Values.Where(vi => vi.FreeToCollect))
                     {
@@ -429,9 +469,19 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                         float distance = (targetBuilding.Position - vehicleInfo.Position).sqrMagnitude;
 
+                        if (Log.LogALot)
+                        {
+                            Log.DevDebug(this, "AssignVehicle", "ServiceVehicle", vehicleInfo.VehicleId, vehicleInfo.VehicleName, distance);
+                        }
+
                         // Check for vehicle with enough free capacity.
                         if ((distance < foundVehicleDistance || (foundVehicleId == 0 && distance == foundVehicleDistance))  && vehicleInfo.CapacityFree >= targetBuilding.ProblemSize)
                         {
+                            if (Log.LogALot)
+                            {
+                                Log.DevDebug(this, "AssignVehicle", "Found", vehicleInfo.VehicleId, distance);
+                            }
+
                             foundVehicleId = vehicleInfo.VehicleId;
                             foundVehicleDistance = distance;
                         }
@@ -439,6 +489,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         // Check for vehicle with decent free capacity.
                         if (distance < foundVehicleDecentDistance && (vehicleInfo.CapacityUsed < CapacityUsedDecent || (float)vehicleInfo.CapacityFree >= (float)targetBuilding.ProblemSize * CapacityProportionDecent))
                         {
+                            if (Log.LogALot)
+                            {
+                                Log.DevDebug(this, "AssignVehicle", "FoundDecent", vehicleInfo.VehicleId, distance);
+                            }
+
                             foundVehicleDecentId = vehicleInfo.VehicleId;
                             foundVehicleDecentDistance = distance;
                         }
@@ -446,6 +501,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         // Check for vehicle with ok free capacity.
                         if (foundVehicleOkCheck && distance < foundVehicleOkDistance && (vehicleInfo.CapacityUsed < CapacityUsedOk || (float)vehicleInfo.CapacityFree >= (float)targetBuilding.ProblemSize * CapacityProportionOk))
                         {
+                            if (Log.LogALot)
+                            {
+                                Log.DevDebug(this, "AssignVehicle", "FoundOk", vehicleInfo.VehicleId, distance);
+                            }
+
                             foundVehicleOkId = vehicleInfo.VehicleId;
                             foundVehicleOkDistance = distance;
                             foundVehicleOkBuilding = serviceBuilding;
@@ -454,6 +514,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         // Check for vehicle with any free capacity.
                         if (foundVehicleLastResortCheck && distance < foundVehicleLastResortDistance && vehicleInfo.CapacityFree > 0)
                         {
+                            if (Log.LogALot)
+                            {
+                                Log.DevDebug(this, "AssignVehicle", "FoundLastResort", vehicleInfo.VehicleId, distance);
+                            }
+
                             foundVehicleLastResortId = vehicleInfo.VehicleId;
                             foundVehicleLastResortDistance = distance;
                             foundVehicleLastResortBuilding = serviceBuilding;
@@ -481,7 +546,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         }
                         else
                         {
-                            this.freeVehicles++;
                             foundVehicleDistance = serviceBuilding.Distance;
                             if (Log.LogALot)
                             {
@@ -533,6 +597,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 // No free vehicle was found, return.
                 if (foundVehicleId == 0)
                 {
+                    if (Log.LogALot)
+                    {
+                        Log.DevDebug(this, "AssignVehicle", "NotFound");
+                    }
+
                     return false;
                 }
 
@@ -540,6 +609,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 if (!foundVehicleBuilding.Vehicles[foundVehicleId].SetTarget(targetBuilding.BuildingId, ref Singleton<VehicleManager>.instance.m_vehicles.m_buffer[foundVehicleId]))
                 {
                     // The vehicle failed to find a path to the target.
+                    Log.Debug("AssignVehicle", "SetTarget", "Failed", targetBuilding.BuildingId, foundVehicleBuilding.BuildingId, foundVehicleBuilding.VehiclesSpare, foundVehicleId, foundVehicleDistance);
+
                     lostVehicles.Add(foundVehicleId);
                     continue;
                 }
@@ -658,8 +729,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// Collects the vehicle data.
         /// </summary>
         /// <param name="buildings">The CS buildings.</param>
+        /// <param name="allowCreateSpares">If set to <c>true</c> allow creation of spare vehicles.</param>
         /// <exception cref="System.Exception">Loop counter too high.</exception>
-        private void CollectVehicleData(Building[] buildings)
+        private void CollectVehicleData(Building[] buildings, bool allowCreateSpares)
         {
             this.freeVehicles = 0;
 
@@ -687,8 +759,18 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 // Skip missing buildings.
                 if (buildings[serviceBuilding.BuildingId].Info == null || (buildings[serviceBuilding.BuildingId].m_flags & Building.Flags.Created) == Building.Flags.None || (buildings[serviceBuilding.BuildingId].m_flags & (Building.Flags.Abandoned | Building.Flags.BurnedDown | Building.Flags.Deleted)) != Building.Flags.None)
                 {
+                    if (Log.LogALot)
+                    {
+                        Log.DevDebug(this, "CollectVehicles", "NotBuilding", serviceBuilding.BuildingId);
+                    }
+
                     serviceBuilding.CanReceive = false;
                     continue;
+                }
+
+                if (allowCreateSpares && this.createSpareVehicles != Settings.SpareVehiclesCreation.Never && serviceBuilding.CanReceive && serviceBuilding.CapacityFree > 0)
+                {
+                    this.freeVehicles += serviceBuilding.VehiclesSpare;
                 }
 
                 // Loop through the vehicles.
@@ -709,7 +791,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     if (vehicles[vehicleId].m_transferType == this.TransferType)
                     {
                         // Add or update status for relevant vehicles.
-                        if (vehicles[vehicleId].Info != null && (vehicles[vehicleId].m_flags & (Vehicle.Flags.Created | Vehicle.Flags.Spawned)) != Vehicle.Flags.None)
+                        if (vehicles[vehicleId].Info != null && (vehicles[vehicleId].m_flags & (Vehicle.Flags.Created | Vehicle.Flags.Spawned)) == (Vehicle.Flags.Created | Vehicle.Flags.Spawned))
                         {
                             vehiclesMade++;
 
@@ -1123,7 +1205,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             /// <returns>True if the building should be checked.</returns>
             public bool CheckThis(TargetBuildingInfo building)
             {
-                return building.CheckThis && (building.NeedsService || (this.IncludeUneedy && building.WantsService)) && building.ProblemValue >= this.MinProblemValue && (building.HasProblem || !this.OnlyProblematic);
+                return building.CheckThis && !building.HandledNow && (building.NeedsService || (this.IncludeUneedy && building.WantsService)) && building.ProblemValue >= this.MinProblemValue && (building.HasProblem || !this.OnlyProblematic);
             }
         }
     }

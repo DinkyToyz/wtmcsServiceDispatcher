@@ -38,12 +38,15 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// </summary>
         /// <param name="serviceBuilding">The service building.</param>
         /// <param name="material">The material.</param>
+        /// <param name="vehicleId">The vehicle identifier.</param>
         /// <returns>
         /// The vehicle information.
         /// </returns>
         /// <exception cref="System.ArgumentException">Unhandled material.</exception>
-        public static ServiceVehicleInfo CreateServiceVehicle(ServiceBuildingInfo serviceBuilding, TransferManager.TransferReason material)
+        public static VehicleInfo CreateServiceVehicle(ServiceBuildingInfo serviceBuilding, TransferManager.TransferReason material, out ushort vehicleId)
         {
+            vehicleId = 0;
+
             VehicleManager manager = Singleton<VehicleManager>.instance;
             ColossalFramework.Math.Randomizer randomizer = Singleton<SimulationManager>.instance.m_randomizer;
 
@@ -52,11 +55,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             VehicleInfo info = manager.GetRandomVehicleInfo(ref randomizer, building.Info.m_class.m_service, building.Info.m_class.m_subService, building.Info.m_class.m_level);
             if (info == null)
             {
-                Log.Debug(typeof(VehicleKeeper), "Create", "GetRandomVehicleInfo", "no vehicle");
+                Log.Debug(typeof(VehicleKeeper), "CreateVehicle", "GetRandomVehicleInfo", "no vehicle");
                 return null;
             }
-
-            Vehicle[] vehicles = manager.m_vehicles.m_buffer;
 
             bool transferToSource;
             bool transferToTarget;
@@ -87,41 +88,15 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     throw new ArgumentException("Unhandled material: " + material.ToString());
             }
 
-            ushort vehicleId;
             if (!manager.CreateVehicle(out vehicleId, ref randomizer, info, building.m_position, material, transferToSource, transferToTarget))
             {
-                Log.Debug(typeof(VehicleKeeper), "Create", "CreateVehicle", "not created");
+                Log.Debug(typeof(VehicleKeeper), "CreateVehicle", "CreateVehicle", "not created");
                 return null;
             }
 
-            info.m_vehicleAI.SetSource(vehicleId, ref vehicles[vehicleId], serviceBuilding.BuildingId);
+            info.m_vehicleAI.SetSource(vehicleId, ref manager.m_vehicles.m_buffer[vehicleId], serviceBuilding.BuildingId);
 
-            return new ServiceVehicleInfo(vehicleId, ref vehicles[vehicleId], true);
-        }
-
-        /// <summary>
-        /// Gets the spawn position.
-        /// </summary>
-        /// <param name="vehicleId">The vehicle identifier.</param>
-        /// <param name="vehicleInfo">The vehicle information.</param>
-        /// <param name="buildingId">The building identifier.</param>
-        /// <returns>The spawn position.</returns>
-        public static Vector3 GetSpawnPosition(ushort vehicleId, VehicleInfo vehicleInfo, ushort buildingId)
-        {
-            try
-            {
-                Building building = BuildingHelper.GetBuilding(buildingId);
-                Randomizer randomizer = new Randomizer((int)buildingId);
-                Vector3 position;
-                Vector3 target;
-                building.Info.m_buildingAI.CalculateSpawnPosition(buildingId, ref building, ref randomizer, vehicleInfo, out position, out target);
-
-                return position;
-            }
-            catch (Exception)
-            {
-                return Vector3.zero;
-            }
+            return info;
         }
 
         /// <summary>
@@ -222,6 +197,18 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Logs vehicle info for debug use.
+        /// </summary>
+        /// <param name="vehicleId">The vehicle identifier.</param>
+        public static void DebugListLog(ushort vehicleId)
+        {
+            Vehicle[] vehicles = Singleton<VehicleManager>.instance.m_vehicles.m_buffer;
+            Building[] buildings = Singleton<BuildingManager>.instance.m_buildings.m_buffer;
+
+            DebugListLog(vehicles, buildings, vehicleId);
+        }
+
+        /// <summary>
         /// Logs a list of vehicle info for debug use.
         /// </summary>
         /// <param name="serviceVehicles">The service vehicles.</param>
@@ -233,6 +220,31 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             foreach (ServiceVehicleInfo vehicle in serviceVehicles)
             {
                 DebugListLog(vehicles, buildings, vehicle.VehicleId);
+            }
+        }
+
+        /// <summary>
+        /// Gets the spawn position.
+        /// </summary>
+        /// <param name="vehicleId">The vehicle identifier.</param>
+        /// <param name="vehicleInfo">The vehicle information.</param>
+        /// <param name="buildingId">The building identifier.</param>
+        /// <returns>The spawn position.</returns>
+        public static Vector3 GetSpawnPosition(ushort vehicleId, VehicleInfo vehicleInfo, ushort buildingId)
+        {
+            try
+            {
+                Building building = BuildingHelper.GetBuilding(buildingId);
+                Randomizer randomizer = new Randomizer((int)buildingId);
+                Vector3 position;
+                Vector3 target;
+                building.Info.m_buildingAI.CalculateSpawnPosition(buildingId, ref building, ref randomizer, vehicleInfo, out position, out target);
+
+                return position;
+            }
+            catch (Exception)
+            {
+                return Vector3.zero;
             }
         }
 
@@ -308,6 +320,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 {
                     Log.Debug(typeof(VehicleHelper), "RecallVehicle", "DeSpawn", vehicleId, vehicle, vehicle.Info.m_vehicleAI);
                     vehicle.Unspawn(vehicleId);
+                    DebugListLog(vehicleId);
 
                     return true;
                 }
@@ -623,7 +636,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             {
                 return false;
             }
-            
+
             if (vehicleAI is HearseAI || vehicleAI is GarbageTruckAI)
             {
                 MethodInfo methodInfo;

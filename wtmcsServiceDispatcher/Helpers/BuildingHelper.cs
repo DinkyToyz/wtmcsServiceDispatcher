@@ -207,6 +207,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 if (serviceBuilding != null)
                 {
                     info.Add("CanReceive", serviceBuilding.CanReceive);
+                    info.Add("CapacityLevel", serviceBuilding.CapacityLevel);
                     info.Add("CapactyFree", serviceBuilding.CapacityFree);
                     info.Add("CapactyMax", serviceBuilding.CapacityMax);
                     info.Add("CapactyOverflow", serviceBuilding.CapacityOverflow);
@@ -256,7 +257,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 {
                     ownVehicleCount++;
                     if ((vehicles[vehicleId].m_transferType == (byte)TransferManager.TransferReason.Garbage || vehicles[vehicleId].m_transferType == (byte)TransferManager.TransferReason.Dead) &&
-                        vehicles[vehicleId].Info != null && (vehicles[vehicleId].m_flags & (Vehicle.Flags.Created | Vehicle.Flags.Spawned)) != Vehicle.Flags.None)
+                        vehicles[vehicleId].Info != null && (vehicles[vehicleId].m_flags & (Vehicle.Flags.Created | Vehicle.Flags.Spawned)) == (Vehicle.Flags.Created | Vehicle.Flags.Spawned))
                     {
                         madeVehicleCount++;
                     }

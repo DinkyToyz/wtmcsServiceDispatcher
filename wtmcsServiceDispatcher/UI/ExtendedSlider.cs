@@ -253,9 +253,15 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             return value.ToString(this.textFormat);
         }
 
-        private void LogTextFieldDbg(UIComponent parent, UILabel label, string what)
+        /// <summary>
+        /// Logs some debug info.
+        /// </summary>
+        /// <param name="parent">The parent.</param>
+        /// <param name="label">The label.</param>
+        /// <param name="hint">A hint.</param>
+        private void LogTextFieldDbg(UIComponent parent, UILabel label, string hint)
         {
-            Log.DevDebug(this, "LogTextFieldDbg", what, label.text, parent.position, parent.size, label.position, label.size, this.textField.position, this.textField.size);
+            Log.DevDebug(this, "LogTextFieldDbg", hint, label.text, parent.position, parent.size, label.position, label.size, this.textField.position, this.textField.size);
         }
 
         /// <summary>

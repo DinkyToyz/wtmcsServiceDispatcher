@@ -228,7 +228,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             get
             {
-                return Global.RecheckHandledInterval > 0 && Global.CurrentFrame - this.lastHandled < Global.RecheckHandledInterval;
+                return Global.RecheckHandledInterval >= 0 && Global.CurrentFrame - this.lastHandled < Global.RecheckHandledInterval;
             }
 
             set
@@ -242,6 +242,20 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 {
                     this.lastHandled = 0;
                 }
+            }
+        }
+
+        /// <summary>
+        /// Gets a value indicating whether the building has been handled in this frame.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if the building has been handled in this frame; otherwise, <c>false</c>.
+        /// </value>
+        public bool HandledNow
+        {
+            get
+            {
+                return this.lastHandled == Global.CurrentFrame;
             }
         }
 

@@ -24,7 +24,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             this.VehicleId = vehicleId;
             this.LastAssigned = 0;
 
-            this.Update(ref vehicle, freeToCollect);
+            this.Update(ref vehicle, freeToCollect, false);
         }
 
         /// <summary>
@@ -123,6 +123,27 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Creates the specified service building.
+        /// </summary>
+        /// <param name="serviceBuilding">The service building.</param>
+        /// <param name="material">The material.</param>
+        /// <returns>The service vehicle.</returns>
+        public static ServiceVehicleInfo Create(ServiceBuildingInfo serviceBuilding, TransferManager.TransferReason material)
+        {
+            ushort vehicleId;
+            VehicleInfo info = VehicleHelper.CreateServiceVehicle(serviceBuilding, material, out vehicleId);
+
+            if (info == null)
+            {
+                return null;
+            }
+
+            VehicleManager manager = Singleton<VehicleManager>.instance;
+
+            return new ServiceVehicleInfo(vehicleId, ref manager.m_vehicles.m_buffer[vehicleId], true);
+        }
+
+        /// <summary>
         /// De-assign target from vehicle.
         /// </summary>
         /// <param name="vehicle">The vehicle.</param>
@@ -150,7 +171,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             {
                 if (Log.LogALot)
                 {
-                    Log.DevDebug(this, "CheckVehicleTarget", "DeAssign", this.VehicleId);
+                    Log.DevDebug(this, "DeAssign", this.VehicleId);
                 }
 
                 this.SetTarget(0, ref vehicle);
@@ -183,7 +204,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             if (Log.LogALot)
             {
-                Log.DevDebug(this, "CheckVehicleTarget", "Recall", this.VehicleId);
+                Log.DevDebug(this, "Recall", this.VehicleId);
             }
 
             // Recall the vehicle.
@@ -229,7 +250,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// </summary>
         /// <param name="vehicle">The vehicle.</param>
         /// <param name="freeToCollect">If set to <c>true</c> the vehicle is free.</param>
-        public void Update(ref Vehicle vehicle, bool freeToCollect)
+        /// <param name="checkAssignment">If set to <c>true</c> check vehicles assignment and possibly de-assign/recall vehicle].</param>
+        public void Update(ref Vehicle vehicle, bool freeToCollect, bool checkAssignment = true)
         {
             this.LastSeen = Global.CurrentFrame;
             this.Position = vehicle.GetLastFramePosition();
@@ -237,22 +259,35 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             this.GoingBack = vehicle.m_targetBuilding == 0 && (vehicle.m_flags & Vehicle.Flags.GoingBack) == Vehicle.Flags.GoingBack;
             this.Target = vehicle.m_targetBuilding;
 
-            if (vehicle.m_targetBuilding == 0)
+            if (checkAssignment)
             {
-                if (!this.GoingBack && Global.CurrentFrame - this.LastAssigned > Global.RecallDelay && VehicleHelper.CanRecallVehicle(ref vehicle))
+                if (vehicle.m_targetBuilding == 0)
                 {
-                    this.Recall(ref vehicle);
+                    if (!this.GoingBack && Global.CurrentFrame - this.LastAssigned > Global.RecallDelay && VehicleHelper.CanRecallVehicle(ref vehicle))
+                    {
+                        if (Log.LogALot)
+                        {
+                            Log.DevDebug(this, "Update", "CheckAssignment", "Recall", this.VehicleId);
+                        }
+
+                        this.Recall(ref vehicle);
+                    }
                 }
-            }
-            else
-            {
-                if (this.LastAssigned >= this.lastDeAssignStamp)
+                else
                 {
-                    this.LastAssigned = Global.CurrentFrame;
-                }
-                else if (Global.CurrentFrame - this.LastAssigned > Global.DemandLingerDelay)
-                {
-                    this.DeAssign(ref vehicle);
+                    if (this.LastAssigned >= this.lastDeAssignStamp)
+                    {
+                        this.LastAssigned = Global.CurrentFrame;
+                    }
+                    else if (Global.CurrentFrame - this.LastAssigned > Global.DemandLingerDelay)
+                    {
+                        if (Log.LogALot)
+                        {
+                            Log.DevDebug(this, "Update", "CheckAssignment", "DeAssign", this.VehicleId);
+                        }
+
+                        this.DeAssign(ref vehicle);
+                    }
                 }
             }
 

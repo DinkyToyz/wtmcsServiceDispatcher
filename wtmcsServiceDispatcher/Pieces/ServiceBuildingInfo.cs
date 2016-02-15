@@ -72,6 +72,37 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Capacity level value.
+        /// </summary>
+        public enum CapacityLevels
+        {
+            /// <summary>
+            /// The building is empty.
+            /// </summary>
+            Empty = 1,
+
+            /// <summary>
+            /// The building has a high free capacity.
+            /// </summary>
+            High = 2,
+
+            /// <summary>
+            /// The building has a medium free capacity.
+            /// </summary>
+            Medium = 3,
+
+            /// <summary>
+            /// The building has a low free capacity.
+            /// </summary>
+            Low = 4,
+
+            /// <summary>
+            /// The building is full.
+            /// </summary>
+            Full = 5
+        }
+
+        /// <summary>
         /// Gets the CS building.
         /// </summary>
         /// <value>
@@ -141,6 +172,18 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// The free capacity.
         /// </value>
         public int CapacityFree
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// Gets the capacity level.
+        /// </summary>
+        /// <value>
+        /// The capacity level.
+        /// </value>
+        public CapacityLevels CapacityLevel
         {
             get;
             private set;
@@ -331,7 +374,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             {
                 return 0;
             }
-            ServiceVehicleInfo serviceVehicle = VehicleHelper.CreateServiceVehicle(this, (TransferManager.TransferReason)transferType);
+
+            ServiceVehicleInfo serviceVehicle = ServiceVehicleInfo.Create(this, (TransferManager.TransferReason)transferType);
             if (serviceVehicle == null)
             {
                 return 0;
@@ -426,9 +470,35 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             }
 
             this.CanReceive = (building.m_flags & (Building.Flags.CapacityFull | Building.Flags.Downgrading | Building.Flags.Demolishing | Building.Flags.Deleted | Building.Flags.BurnedDown)) == Building.Flags.None &&
-                              (building.m_flags & (Building.Flags.Created | Building.Flags.Active)) == (Building.Flags.Created | Building.Flags.Active) &&
+                              (building.m_flags & (Building.Flags.Created | Building.Flags.Completed)) == (Building.Flags.Created | Building.Flags.Completed) &&
                               (building.m_problems & (Notification.Problem.Emptying | Notification.Problem.LandfillFull | Notification.Problem.RoadNotConnected | Notification.Problem.TurnedOff | Notification.Problem.FatalProblem)) == Notification.Problem.None &&
                               this.CapacityFree > 0 && !building.Info.m_buildingAI.IsFull(this.BuildingId, ref building);
+
+            if ((building.m_flags & Building.Flags.CapacityFull) == Building.Flags.CapacityFull)
+            {
+                this.CapacityLevel = CapacityLevels.Full;
+            }
+            else if ((building.m_flags & Building.Flags.CapacityStep1) == Building.Flags.CapacityStep1)
+            {
+                this.CapacityLevel = CapacityLevels.Low;
+            }
+            else if ((building.m_flags & Building.Flags.CapacityStep2) == Building.Flags.CapacityStep2)
+            {
+                this.CapacityLevel = CapacityLevels.Medium;
+            }
+            else if (this.CapacityFree == this.CapacityMax)
+            {
+                this.CapacityLevel = CapacityLevels.Empty;
+            }
+            else
+            {
+                this.CapacityLevel = CapacityLevels.High;
+            }
+
+            if (Log.LogALot && !this.CanReceive)
+            {
+                Log.DevDebug(this, "Update", this.BuildingId, this.BuildingName, building.m_flags, building.m_problems, this.CapacityFree, building.Info.m_buildingAI.IsFull(this.BuildingId, ref building));
+            }
         }
 
         /// <summary>
@@ -520,7 +590,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     return 1;
                 }
 
-                int c = x.CapacityOverflow - y.CapacityOverflow;
+                int c;
+                float s, d;
+
+                c = x.CapacityOverflow - y.CapacityOverflow;
                 if (c < 0)
                 {
                     return -1;
@@ -530,7 +603,28 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     return 1;
                 }
 
-                float s = x.Distance - y.Distance;
+                d = Mathf.Min(x.Distance / 100.0f, y.Distance / 100.0f);
+                s = x.Distance - y.Distance;
+                if (s < -d)
+                {
+                    return -1;
+                }
+                else if (s > d)
+                {
+                    return 1;
+                }
+
+                c = x.CapacityLevel - y.CapacityLevel;
+                if (c < 0)
+                {
+                    return -1;
+                }
+                else if (c > 0)
+                {
+                    return 1;
+                }
+
+                s = x.Distance - y.Distance;
                 if (s < 0)
                 {
                     return -1;

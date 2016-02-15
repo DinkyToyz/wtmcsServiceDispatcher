@@ -2,6 +2,7 @@
 
 - Use own SetTarget instead of (vehicle)AI, and recall vehicle instead of despawning when path can not be found.
 - Continue checking for vehicles a bit instead of failing if found and assigend vehicle cannot find path to target.
+- Override ServiceVehicleAI.ShouldReturnToSource: Allways true -> vehicle won't make transfer offer when trasferring to source.
 
 # Additions and fixes
 
@@ -18,5 +19,4 @@
 - citizens?
 - Detour ProduceGoods or transfer stuff???
 - sort by distance capacity %?
-- Override ServiceVehicleAI.ShouldReturnToSource: Allways true -> vehicle won't make transfer offer when trasferring to source.
 - When spawning, stop building from offering incoming transfers. Override ProduceGoods? Regularly remove offers (fast by zeroing m_incomingCount?)? Override something else to stop outgoing dead offers?
