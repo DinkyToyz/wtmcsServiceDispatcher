@@ -15,8 +15,14 @@
 
 # Changes and experiments
 
+- Override TransferManager AddOutgoingOffer and AddIncomingOffer?
+- Clean offers?
 - Use detoring instead of invoke for faster calls of private/protected methods (ie StartPathFind in VehicleHelper).
 - citizens?
 - Detour ProduceGoods or transfer stuff???
 - sort by distance capacity %?
 - When spawning, stop building from offering incoming transfers. Override ProduceGoods? Regularly remove offers (fast by zeroing m_incomingCount?)? Override something else to stop outgoing dead offers?
+
+# Notes
+
+- Ambulances: ResidentAI FindHospital, Citizen Sick, m_healthProblemTimer
