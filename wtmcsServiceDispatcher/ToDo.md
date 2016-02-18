@@ -1,3 +1,12 @@
+# CS 1.3.0 incl Snowfall
+
+- Check replacemnet helper methods (create, settarget, ...).
+- Check TransferManager limits.
+- Check pathfind.
+- Chek everything accessed by reflection.
+- Check new level stuff, to see if it affects or should affect the dispatcher
+- Test...
+
 # Doing
 
 - Use own SetTarget instead of (vehicle)AI, and recall vehicle instead of despawning when path can not be found.
