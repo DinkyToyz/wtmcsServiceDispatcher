@@ -28,6 +28,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             Log.NoOp();
             Global.GarbageTruckAITryCollectGarbageDetour = new GarbageTruckAITryCollectGarbageDetour();
+
+            Log.Debug(this, "Construct", "ApplicationVersion", BuildConfig.APPLICATION_VERSION);
+            Log.Debug(this, "Construct", "GarbageTruckAITryCollectGarbageDetourVersions", Global.GarbageTruckAITryCollectGarbageDetour.CanDetour, Global.GarbageTruckAITryCollectGarbageDetour.MinGameVersion, Global.GarbageTruckAITryCollectGarbageDetour.MaxGameVersion);
         }
 
         /// <summary>

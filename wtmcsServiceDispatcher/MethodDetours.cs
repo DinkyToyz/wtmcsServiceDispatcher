@@ -67,7 +67,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// Gets the maximum game version for detouring.
         /// </summary>
-        protected abstract uint MaxGameVersion
+        public abstract uint MaxGameVersion
         {
             get;
         }
@@ -75,7 +75,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// Gets the minimum game version for detouring.
         /// </summary>
-        protected abstract uint MinGameVersion
+        public abstract uint MinGameVersion
         {
             get;
         }
@@ -151,7 +151,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                             if (!detour.IsDetoured)
                             {
                                 detour.Detour();
-                                Log.Info(this, "Detour", "Detoured", originalClass, OriginalMethodName, ReplacementMethodName);
+                                Log.Info(this, "Detour", "Detoured", originalClass, this.OriginalMethodName, this.ReplacementMethodName);
                             }
                         }
                         catch (Exception ex)
@@ -255,7 +255,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             {
                 if (this.detours[originalClass].Detour != null && this.detours[originalClass].Detour.IsDetoured)
                 {
-                    Log.Info(this, "Revert", originalClass, OriginalMethodName, ReplacementMethodName);
+                    Log.Info(this, "Revert", originalClass, this.OriginalMethodName, this.ReplacementMethodName);
                     try
                     {
                         this.detours[originalClass].Detour.Revert();

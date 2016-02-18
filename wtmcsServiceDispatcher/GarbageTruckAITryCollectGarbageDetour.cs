@@ -30,28 +30,20 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
-        /// Logs the counts.
-        /// </summary>
-        public void LogCounts()
-        {
-            Log.Debug(this, "Counts", Tries, Limitations);
-        }
-
-        /// <summary>
         /// The maximum game version for detouring.
         /// </summary>
-        protected override uint MaxGameVersion
+        public override uint MaxGameVersion
         {
             get
             {
-                return BuildConfig.MakeVersionNumber(1, 3, 0, BuildConfig.ReleaseType.Final, 0, BuildConfig.BuildType.Unknown);
+                return BuildConfig.MakeVersionNumber(1, 4, 0, BuildConfig.ReleaseType.Final, 0, BuildConfig.BuildType.Unknown);
             }
         }
 
         /// <summary>
         /// The minimum game version for detouring.
         /// </summary>
-        protected override uint MinGameVersion
+        public override uint MinGameVersion
         {
             get
             {
@@ -90,6 +82,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             {
                 return "GarbageTruckAI_TryCollectGarbage_Override";
             }
+        }
+
+        /// <summary>
+        /// Logs the counts.
+        /// </summary>
+        public void LogCounts()
+        {
+            Log.Debug(this, "Counts", Tries, Limitations);
         }
 
         /// <summary>
