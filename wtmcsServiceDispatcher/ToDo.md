@@ -11,7 +11,9 @@
 
 - Use own SetTarget instead of (vehicle)AI, and recall vehicle instead of despawning when path can not be found.
 - Continue checking for vehicles a bit instead of failing if found and assigend vehicle cannot find path to target.
-- Override ServiceVehicleAI.ShouldReturnToSource: Allways true -> vehicle won't make transfer offer when trasferring to source.
+- Override ServiceVehicleAI.ShouldReturnToSource:
+  - Allways true -> vehicle won't make transfer offer when trasferring to source.
+  - Reassign vehicles returning to source.
 
 # Additions and fixes
 
@@ -21,6 +23,7 @@
 - fire fighting services?
 - law enforcement services?
 - send service now button on buildings?
+- pipe and electricty area range (Central Services even if not really dispatching)?
 
 # Changes and experiments
 
