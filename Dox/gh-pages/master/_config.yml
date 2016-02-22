@@ -1,2 +1,0 @@
-timezone: Europe/Stockholm
-exclude: [".sln", ".suo"]
