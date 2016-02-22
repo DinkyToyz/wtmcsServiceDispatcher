@@ -17,6 +17,16 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public readonly int Version = 3;
 
         /// <summary>
+        /// Automatic bulldoze of abandoned buildings.
+        /// </summary>
+        public bool AutoBulldozeBuildings = false;
+
+        /// <summary>
+        /// The automatic bulldoze buildings delay.
+        /// </summary>
+        public double AutoBulldozeBuildingsDelay = 10.0;
+
+        /// <summary>
         /// When to create spare garbage trucks.
         /// </summary>
         public SpareVehiclesCreation CreateSpareGarbageTrucks = SpareVehiclesCreation.WhenBuildingIsCloser;
@@ -229,6 +239,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 {
                     this.garbageChecksCustom = GetBuildingChecksParameters(BuildingCheckOrder.InRange);
                 }
+
+                this.AutoBulldozeBuildings = settings.AutoBulldozeBuildings;
+                this.AutoBulldozeBuildingsDelay = settings.AutoBulldozeBuildingsDelay;
             }
         }
 
@@ -729,6 +742,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     cfg.GarbageChecksCustom = this.garbageChecksCustom;
                     cfg.GarbageChecksCurrent = this.GarbageChecksParameters;
 
+                    cfg.AutoBulldozeBuildings = this.AutoBulldozeBuildings;
+                    cfg.AutoBulldozeBuildingsDelay = this.AutoBulldozeBuildingsDelay;
+
                     cfg.BuildingChecksPresets = (Enum.GetValues(typeof(BuildingCheckOrder)) as BuildingCheckOrder[]).Where(bco => bco != BuildingCheckOrder.Custom).Select(bco => new ServiceDispatcherSettings.BuildingChecksPresetInfo(bco)).ToArray();
                     cfg.BuildingChecksPossible = (Enum.GetValues(typeof(BuildingCheckParameters)) as BuildingCheckParameters[]).Where(bcp => bcp != BuildingCheckParameters.Custom).ToArray();
 
@@ -755,6 +771,16 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         [Serializable]
         public class ServiceDispatcherSettings
         {
+            /// <summary>
+            /// Automatic bulldoze of abandoned buildings.
+            /// </summary>
+            public bool AutoBulldozeBuildings = false;
+
+            /// <summary>
+            /// The automatic bulldoze buildings delay.
+            /// </summary>
+            public double AutoBulldozeBuildingsDelay = 3.0;
+
             /// <summary>
             /// The possible building checks.
             /// </summary>

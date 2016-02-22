@@ -82,6 +82,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     return;
                 }
 
+                Global.SimulationTime += simulationTimeDelta;
+
                 uint simulationFrame = this.threadingManager.simulationFrame;
 
                 if (Global.CurrentFrame == simulationFrame)

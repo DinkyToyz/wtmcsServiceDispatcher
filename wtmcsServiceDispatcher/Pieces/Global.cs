@@ -88,6 +88,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public static Settings Settings = null;
 
         /// <summary>
+        /// The elapsed game simulation time.
+        /// </summary>
+        public static double SimulationTime = 0.0;
+
+        /// <summary>
         /// The target building information priority comparer.
         /// </summary>
         public static TargetBuildingInfo.PriorityComparer TargetBuildingInfoPriorityComparer = null;
@@ -101,6 +106,22 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// The vehicles.
         /// </summary>
         public static VehicleKeeper Vehicles = null;
+
+        /// <summary>
+        /// De-initializes the mod.
+        /// </summary>
+        public static void DeInitialize()
+        {
+            DeInitializeHelpers();
+        }
+
+        /// <summary>
+        /// De-initializes the helpers.
+        /// </summary>
+        public static void DeInitializeHelpers()
+        {
+            BulldozeHelper.DeInitialize();
+        }
 
         /// <summary>
         /// Disposes the dispatchers.
@@ -123,6 +144,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             InitializeSettings();
             ReInitializeHandlers();
             InitializeHelpers();
+            SimulationTime = 0.0;
         }
 
         /// <summary>
@@ -131,6 +153,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public static void InitializeHelpers()
         {
             VehicleHelper.Initialize();
+            BulldozeHelper.Initialize();
         }
 
         /// <summary>

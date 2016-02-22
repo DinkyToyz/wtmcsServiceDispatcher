@@ -23,12 +23,30 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 for (ushort id = 0; id < buildings.Length; id++)
                 {
-                    DebugListLog(buildings, vehicles, districtManager, citizenManager, id, null, null);
+                    DebugListLog(buildings, vehicles, districtManager, citizenManager, id, null, null, null);
                 }
             }
             catch (Exception ex)
             {
                 Log.Error(typeof(BuildingHelper), "DebugListLog", ex);
+            }
+        }
+
+        /// <summary>
+        /// Logs a list of building info for debug use.
+        /// </summary>
+        /// <param name="buildingStamps">The building stamps.</param>
+        /// <param name="source">The source.</param>
+        public static void DebugListLog(Dictionary<ushort, double> buildingStamps, string source = null)
+        {
+            Building[] buildings = Singleton<BuildingManager>.instance.m_buildings.m_buffer;
+            Vehicle[] vehicles = Singleton<VehicleManager>.instance.m_vehicles.m_buffer;
+            DistrictManager districtManager = Singleton<DistrictManager>.instance;
+            CitizenManager citizenManager = Singleton<CitizenManager>.instance;
+
+            foreach (KeyValuePair<ushort, double> buildingStamp in buildingStamps)
+            {
+                DebugListLog(buildings, vehicles, districtManager, citizenManager, buildingStamp.Key, null, null, new BuildingStamp(buildingStamp, source));
             }
         }
 
@@ -45,7 +63,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             foreach (ushort id in buildingIds)
             {
-                DebugListLog(buildings, vehicles, districtManager, citizenManager, id, null, null);
+                DebugListLog(buildings, vehicles, districtManager, citizenManager, id, null, null, null);
             }
         }
 
@@ -62,7 +80,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             foreach (TargetBuildingInfo building in targetBuildings)
             {
-                DebugListLog(buildings, vehicles, districtManager, citizenManager, building.BuildingId, null, building);
+                DebugListLog(buildings, vehicles, districtManager, citizenManager, building.BuildingId, null, building, null);
             }
         }
 
@@ -79,7 +97,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             foreach (ServiceBuildingInfo building in serviceBuildings)
             {
-                DebugListLog(buildings, vehicles, districtManager, citizenManager, building.BuildingId, building, null);
+                DebugListLog(buildings, vehicles, districtManager, citizenManager, building.BuildingId, building, null, null);
             }
 
             foreach (ServiceBuildingInfo building in serviceBuildings)
@@ -174,11 +192,25 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <param name="buildingId">The building identifier.</param>
         /// <param name="serviceBuilding">The service building.</param>
         /// <param name="targetBuilding">The target building.</param>
-        private static void DebugListLog(Building[] buildings, Vehicle[] vehicles, DistrictManager districtManager, CitizenManager citizenManager, ushort buildingId, ServiceBuildingInfo serviceBuilding, TargetBuildingInfo targetBuilding)
+        /// <param name="buildingStamp">The building stamp.</param>
+        private static void DebugListLog(
+            Building[] buildings,
+            Vehicle[] vehicles,
+            DistrictManager districtManager,
+            CitizenManager citizenManager,
+            ushort buildingId,
+            ServiceBuildingInfo serviceBuilding,
+            TargetBuildingInfo targetBuilding,
+            BuildingStamp buildingStamp)
         {
             if (buildings[buildingId].Info != null && (buildings[buildingId].m_flags & Building.Flags.Created) == Building.Flags.Created)
             {
                 Log.InfoList info = new Log.InfoList();
+
+                if (buildingStamp != null)
+                {
+                    info.Add("O", "BuildingStamp");
+                }
 
                 if (serviceBuilding != null)
                 {
@@ -203,6 +235,13 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 byte district = districtManager.GetDistrict(buildings[buildingId].m_position);
                 info.Add("District", district);
                 info.Add("DistrictName", districtManager.GetDistrictName(district));
+
+                if (buildingStamp != null)
+                {
+                    info.Add("Source", buildingStamp.Source);
+                    info.Add("SimulationTimeStamp", buildingStamp.SimulationTimeStamp);
+                    info.Add("SimulationTimeDelta", buildingStamp.SimulationTimeDelta);
+                }
 
                 if (serviceBuilding != null)
                 {
@@ -389,6 +428,66 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 info.Add("AI", buildings[buildingId].Info.m_buildingAI.GetType().AssemblyQualifiedName);
 
                 Log.DevDebug(typeof(BuildingHelper), "DebugListLog", info.ToString());
+            }
+        }
+
+        /// <summary>
+        /// Building time stamp info class.
+        /// </summary>
+        private class BuildingStamp
+        {
+            /// <summary>
+            /// The building identifier.
+            /// </summary>
+            public ushort BuildingId = 0;
+
+            /// <summary>
+            /// The simulation time stamp.
+            /// </summary>
+            public double SimulationTimeStamp = 0.0;
+
+            /// <summary>
+            /// The source.
+            /// </summary>
+            public string Source = null;
+
+            /// <summary>
+            /// Initializes a new instance of the <see cref="BuildingStamp"/> class.
+            /// </summary>
+            /// <param name="buildingId">The building identifier.</param>
+            /// <param name="simulationTimeStamp">The simulation time stamp.</param>
+            /// <param name="source">The source.</param>
+            public BuildingStamp(ushort buildingId, double simulationTimeStamp, string source = null)
+            {
+                this.BuildingId = buildingId;
+                this.SimulationTimeStamp = simulationTimeStamp;
+                this.Source = source;
+            }
+
+            /// <summary>
+            /// Initializes a new instance of the <see cref="BuildingStamp"/> class.
+            /// </summary>
+            /// <param name="stamp">The stamp.</param>
+            /// <param name="source">The source.</param>
+            public BuildingStamp(KeyValuePair<ushort, double> stamp, string source = null)
+            {
+                this.BuildingId = stamp.Key;
+                this.SimulationTimeStamp = stamp.Value;
+                this.Source = source;
+            }
+
+            /// <summary>
+            /// Gets the simulation time delta.
+            /// </summary>
+            /// <value>
+            /// The simulation time delta.
+            /// </value>
+            public double SimulationTimeDelta
+            {
+                get
+                {
+                    return Global.SimulationTime - this.SimulationTimeStamp;
+                }
             }
         }
     }

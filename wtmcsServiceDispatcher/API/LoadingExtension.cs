@@ -131,6 +131,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             Log.Info(this, "DeInitialize");
 
+            Global.DeInitialize();
             Detours.Dispose();
             Global.DisposeHandlers();
         }

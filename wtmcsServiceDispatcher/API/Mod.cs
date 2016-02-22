@@ -481,6 +481,51 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         }
                     });
 
+                // Add bulldoze group.
+                UIHelperBase bulldozeGroup = helper.AddGroup("Bulldozers");
+
+                if (BulldozeHelper.CanBulldoze)
+                {
+                    bulldozeGroup.AddCheckbox(
+                        "Dispatch bulldozers",
+                        Global.Settings.AutoBulldozeBuildings,
+                        value =>
+                        {
+                            if (Global.Settings.AutoBulldozeBuildings != value)
+                            {
+                                Global.Settings.AutoBulldozeBuildings = value;
+                                Global.Settings.Save();
+                                Global.ReInitializeHandlers();
+                            }
+                        });
+                }
+                else
+                {
+                    UIComponent dispatchWreckingCrewsCheckBox = bulldozeGroup.AddCheckbox(
+                        "Dispatch bulldozers",
+                        false,
+                        value =>
+                        {
+                        }) as UIComponent;
+                }
+
+                bulldozeGroup.AddExtendedSlider(
+                    "Bulldozer delay",
+                    0.0f,
+                    60.0f * 24.0f,
+                    0.01f,
+                    (float)Global.Settings.AutoBulldozeBuildingsDelay,
+                    true,
+                    value =>
+                    {
+                        if (Global.Settings.AutoBulldozeBuildingsDelay != (double)value)
+                        {
+                            Global.BuildingUpdateNeeded = true;
+                            Global.Settings.AutoBulldozeBuildingsDelay = (double)value;
+                            Global.Settings.Save();
+                        }
+                    });
+
                 // Add logging group.
                 UIHelperBase logGroup = helper.AddGroup("Logging (not saved in settings)");
 
