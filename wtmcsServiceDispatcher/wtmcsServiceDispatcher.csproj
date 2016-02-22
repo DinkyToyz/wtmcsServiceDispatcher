@@ -106,10 +106,12 @@
     <None Include="Build\PostBuild.cmd" />
     <None Include="Dox\ReadMe.head.md" />
     <None Include="Build\SteamBBCode2MarkDown.pl" />
+    <None Include="Dox\gh-pages\master\Index.md" />
     <None Include="ToDo.md" />
     <None Include="Tools\wtmcsServiceDispatcherDebugLogImport.pl" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Dox\gh-pages\master\PreviewImage.png" />
     <Content Include="Info.txt" />
     <Content Include="Dox\PreviewImage.png" />
     <Content Include="Dox\SteamDescription.txt" />
