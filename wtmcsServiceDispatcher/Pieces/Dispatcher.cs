@@ -810,7 +810,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         // Add or update status for relevant vehicles.
                         if (vehicles[vehicleId].Info != null && 
                             (vehicles[vehicleId].m_flags & Vehicle.Flags.Created) == Vehicle.Flags.Created &&
-                            (vehicles[vehicleId].m_flags & (Vehicle.Flags.Spawned | Vehicle.Flags.WaitingPath)) != Vehicle.Flags.None)
+                            (vehicles[vehicleId].m_flags & VehicleHelper.VehicleExists) != Vehicle.Flags.None)
                         {
                             vehiclesMade++;
 
@@ -928,8 +928,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 foreach (ushort id in removeVehicles)
                 {
                     if (vehicles[vehicleId].Info == null || 
-                        (vehicles[vehicleId].m_flags & Vehicle.Flags.Created) == Vehicle.Flags.None || 
-                        (vehicles[vehicleId].m_flags & (Vehicle.Flags.Spawned | Vehicle.Flags.WaitingPath)) == Vehicle.Flags.None || 
+                        (vehicles[vehicleId].m_flags & Vehicle.Flags.Created) == Vehicle.Flags.None ||
+                        (vehicles[vehicleId].m_flags & VehicleHelper.VehicleExists) == Vehicle.Flags.None || 
                         vehicles[vehicleId].m_transferType != this.TransferType)
                     {
                         if (Log.LogALot)

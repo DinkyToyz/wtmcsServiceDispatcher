@@ -13,6 +13,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
     internal static class VehicleHelper
     {
         /// <summary>
+        /// The vehicle exists if any of these flags are set.
+        /// </summary>
+        public const Vehicle.Flags VehicleExists = Vehicle.Flags.Spawned | Vehicle.Flags.WaitingPath | Vehicle.Flags.WaitingSpace;
+
+        /// <summary>
         /// The start path find methods.
         /// </summary>
         private static VehicleAIStartPathFind startPathFindMethods = new VehicleAIStartPathFind();
@@ -305,12 +310,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             try
             {
                 vehicle.Info.m_vehicleAI.SetTarget(vehicleId, ref vehicle, 0);
-                return (vehicle.m_flags & (Vehicle.Flags.Spawned | Vehicle.Flags.WaitingPath)) != Vehicle.Flags.None;
+                return (vehicle.m_flags & VehicleHelper.VehicleExists) != Vehicle.Flags.None;
 
                 // If already going back, no need to do anything.
                 if (vehicle.m_targetBuilding == 0 && (vehicle.m_flags & Vehicle.Flags.GoingBack) == Vehicle.Flags.GoingBack)
                 {
-                    if (vehicle.m_path != 0 && (vehicle.m_flags & (Vehicle.Flags.Spawned | Vehicle.Flags.WaitingPath)) != Vehicle.Flags.None)
+                    if (vehicle.m_path != 0 && (vehicle.m_flags & VehicleHelper.VehicleExists) != Vehicle.Flags.None)
                     {
                         return true;
                     }
@@ -335,7 +340,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     Log.Debug(typeof(VehicleHelper), "RecallVehicle", "SetTarget", vehicleId, vehicle, vehicle.Info.m_vehicleAI);
 
                     vehicle.Info.m_vehicleAI.SetTarget(vehicleId, ref vehicle, 0);
-                    return (vehicle.m_flags & (Vehicle.Flags.Spawned | Vehicle.Flags.WaitingPath)) != Vehicle.Flags.None;
+                    return (vehicle.m_flags & VehicleHelper.VehicleExists) != Vehicle.Flags.None;
                 }
 
                 Log.Debug(typeof(VehicleHelper), "RecallVehicle", vehicleId, vehicle, vehicle.Info.m_vehicleAI);
@@ -398,14 +403,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             {
 
                 vehicle.Info.m_vehicleAI.SetTarget(vehicleId, ref vehicle, targetBuildingId);
-                return (vehicle.m_flags & (Vehicle.Flags.Spawned | Vehicle.Flags.WaitingPath)) != Vehicle.Flags.None;
+                return (vehicle.m_flags & VehicleHelper.VehicleExists) != Vehicle.Flags.None;
 
                 
                 // If moving to target (emptying) call original.
                 if ((vehicle.m_flags & Vehicle.Flags.TransferToTarget) == Vehicle.Flags.TransferToTarget)
                 {
                     vehicle.Info.m_vehicleAI.SetTarget(vehicleId, ref vehicle, targetBuildingId);
-                    return (vehicle.m_flags & (Vehicle.Flags.Spawned | Vehicle.Flags.WaitingPath)) != Vehicle.Flags.None;
+                    return (vehicle.m_flags & VehicleHelper.VehicleExists) != Vehicle.Flags.None;
                 }
 
                 // If target is 0, recall vehicle.
@@ -427,7 +432,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     Log.Debug(typeof(VehicleHelper), "SetTarget", "SetTarget", vehicleId, vehicle, vehicle.Info.m_vehicleAI);
 
                     vehicle.Info.m_vehicleAI.SetTarget(vehicleId, ref vehicle, targetBuildingId);
-                    return (vehicle.m_flags & (Vehicle.Flags.Spawned | Vehicle.Flags.WaitingPath)) != Vehicle.Flags.None;
+                    return (vehicle.m_flags & VehicleHelper.VehicleExists) != Vehicle.Flags.None;
                 }
 
                 Log.Debug(typeof(VehicleHelper), "SetTarget", vehicleId, vehicle, vehicle.Info.m_vehicleAI);
@@ -483,7 +488,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <param name="vehicleId">The vehicle identifier.</param>
         private static void DebugListLog(Vehicle[] vehicles, Building[] buildings, ushort vehicleId)
         {
-            if (vehicles[vehicleId].Info != null && (vehicles[vehicleId].m_flags & (Vehicle.Flags.Spawned | Vehicle.Flags.WaitingPath)) != Vehicle.Flags.None && 
+            if (vehicles[vehicleId].Info != null && (vehicles[vehicleId].m_flags & VehicleHelper.VehicleExists) != Vehicle.Flags.None && 
                 (vehicles[vehicleId].Info.m_vehicleAI is HearseAI || vehicles[vehicleId].Info.m_vehicleAI is GarbageTruckAI))
             {
                 Log.InfoList info = new Log.InfoList();
@@ -611,7 +616,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     Log.Debug(typeof(VehicleHelper), "SetTargetAgain", "SetTarget", vehicleId, vehicle, vehicle.Info.m_vehicleAI);
 
                     vehicle.Info.m_vehicleAI.SetTarget(vehicleId, ref vehicle, vehicle.m_targetBuilding);
-                    return (vehicle.m_flags & (Vehicle.Flags.Spawned | Vehicle.Flags.WaitingPath)) != Vehicle.Flags.None;
+                    return (vehicle.m_flags & VehicleHelper.VehicleExists) != Vehicle.Flags.None;
                 }
 
                 Log.Debug(typeof(VehicleHelper), "SetTargetAgain", "StartPathFind", vehicleId, vehicle, vehicle.Info.m_vehicleAI);
@@ -625,7 +630,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 return false;
             }
 
-            if ((vehicle.m_flags & (Vehicle.Flags.Spawned | Vehicle.Flags.WaitingPath)) != Vehicle.Flags.None)
+            if ((vehicle.m_flags & VehicleHelper.VehicleExists) != Vehicle.Flags.None)
             {
                 return true;
             }
