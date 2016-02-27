@@ -238,7 +238,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             }
 
             this.LastAssigned = 0;
-            this.FreeToCollect = (vehicle.m_flags & Vehicle.Flags.Spawned) == Vehicle.Flags.Spawned;
+            this.FreeToCollect = (vehicle.m_flags & (Vehicle.Flags.Spawned | Vehicle.Flags.WaitingPath)) != Vehicle.Flags.None;
             this.GoingBack = false;
             this.Target = 0;
 

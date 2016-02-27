@@ -114,7 +114,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             for (ushort id = firstVehicleId; id < lastVehicleId; id++)
             {
-                if (vehicles[id].m_leadingVehicle != 0 || vehicles[id].m_cargoParent != 0 || vehicles[id].Info == null || (vehicles[id].m_flags & Vehicle.Flags.Spawned) == Vehicle.Flags.None)
+                if (vehicles[id].m_leadingVehicle != 0 || vehicles[id].m_cargoParent != 0 || vehicles[id].Info == null || (vehicles[id].m_flags & (Vehicle.Flags.Spawned | Vehicle.Flags.WaitingPath)) == Vehicle.Flags.None)
                 {
                     if (this.removedFromGrid != null && this.removedFromGrid.Contains(id))
                     {

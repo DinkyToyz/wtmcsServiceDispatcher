@@ -149,6 +149,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 }
                 else if (!this.started || (Global.CurrentFrame - Log.LastFlush >= 600))
                 {
+                    TransferManagerHelper.CleanTransferOffers();
                     Log.FlushBuffer();
                 }
 

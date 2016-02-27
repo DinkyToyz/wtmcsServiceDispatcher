@@ -235,7 +235,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 {
                     if (Log.LogALot)
                     {
-                        Log.DevDebug(this, "CheckVehicleTarget", "Unused", vehicleId);
+                        Vehicle[] vehicles = Singleton<VehicleManager>.instance.m_vehicles.m_buffer;
+
+                        Log.DevDebug(this, "CheckVehicleTarget", "Unused", vehicleId, vehicles[vehicleId].m_targetBuilding, vehicles[vehicleId].m_flags);
                     }
 
                     serviceBuilding.Vehicles[vehicleId].Recall(ref vehicle);
@@ -471,11 +473,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                         if (Log.LogALot)
                         {
-                            Log.DevDebug(this, "AssignVehicle", "ServiceVehicle", vehicleInfo.VehicleId, vehicleInfo.VehicleName, distance);
+                            Log.DevDebug(this, "AssignVehicle", "ServiceVehicle", vehicleInfo.VehicleId, vehicleInfo.VehicleName, distance, vehicleInfo.GoingBack);
                         }
 
                         // Check for vehicle with enough free capacity.
-                        if ((distance < foundVehicleDistance || (foundVehicleId == 0 && distance == foundVehicleDistance))  && vehicleInfo.CapacityFree >= targetBuilding.ProblemSize)
+                        if ((distance < foundVehicleDistance || (foundVehicleId == 0 && distance == foundVehicleDistance)) && vehicleInfo.CapacityFree >= targetBuilding.ProblemSize)
                         {
                             if (Log.LogALot)
                             {
@@ -535,9 +537,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     }
 
                     // No free vehicle found, but building has spare vehicles so we send one of those.
-                    if (foundVehicleId == 0 && allowCreateSpares && this.createSpareVehicles != Settings.SpareVehiclesCreation.Never && serviceBuilding.VehiclesSpare > 0)
+                    if (foundVehicleId == 0 && allowCreateSpares && !lostVehicles.Contains(0) && this.createSpareVehicles != Settings.SpareVehiclesCreation.Never && serviceBuilding.VehiclesSpare > 0)
                     {
                         Log.Debug(this, "AssignVehicle", "CreateSpare", targetBuilding.BuildingId, serviceBuilding.BuildingId, serviceBuilding.VehiclesSpare);
+
+                        //lostVehicles.Add(0);
 
                         foundVehicleId = serviceBuilding.CreateVehicle(this.TransferType);
                         if (foundVehicleId == 0)
@@ -547,8 +551,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         else
                         {
                             foundVehicleDistance = serviceBuilding.Distance;
+
                             if (Log.LogALot)
                             {
+                                Vehicle[] vehicles = Singleton<VehicleManager>.instance.m_vehicles.m_buffer;
+
                                 Log.Debug(
                                     this,
                                     "AssignVehicle",
@@ -562,7 +569,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                                     serviceBuilding.VehiclesTotal,
                                     targetBuilding.BuildingName,
                                     serviceBuilding.BuildingName,
-                                    VehicleHelper.GetVehicleName(foundVehicleId));
+                                    VehicleHelper.GetVehicleName(foundVehicleId),
+                                    vehicles[foundVehicleId].m_targetBuilding,
+                                    vehicles[foundVehicleId].m_flags);
                             }
                         }
                     }
@@ -606,13 +615,17 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 }
 
                 // A free vehicle was found, assign it to the target.
-                if (!foundVehicleBuilding.Vehicles[foundVehicleId].SetTarget(targetBuilding.BuildingId, ref Singleton<VehicleManager>.instance.m_vehicles.m_buffer[foundVehicleId]))
                 {
-                    // The vehicle failed to find a path to the target.
-                    Log.Debug("AssignVehicle", "SetTarget", "Failed", targetBuilding.BuildingId, foundVehicleBuilding.BuildingId, foundVehicleBuilding.VehiclesSpare, foundVehicleId, foundVehicleDistance);
+                    Vehicle[] vehicles = Singleton<VehicleManager>.instance.m_vehicles.m_buffer;
 
-                    lostVehicles.Add(foundVehicleId);
-                    continue;
+                    if (!foundVehicleBuilding.Vehicles[foundVehicleId].SetTarget(targetBuilding.BuildingId, ref vehicles[foundVehicleId]))
+                    {
+                        // The vehicle failed to find a path to the target.
+                        Log.Debug("AssignVehicle", "SetTarget", "Failed", targetBuilding.BuildingId, foundVehicleBuilding.BuildingId, foundVehicleBuilding.VehiclesSpare, foundVehicleId, foundVehicleDistance, vehicles[foundVehicleId].m_flags);
+
+                        lostVehicles.Add(foundVehicleId);
+                        continue;
+                    }
                 }
 
                 targetBuilding.Handled = true;
@@ -626,6 +639,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 {
                     if (Log.LogALot)
                     {
+                        Vehicle[] vehicles = Singleton<VehicleManager>.instance.m_vehicles.m_buffer;
+
                         Log.Debug(
                             this,
                             "AssignVehicle",
@@ -676,7 +691,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                             foundVehicleDistance,
                             foundVehicleBuilding.Vehicles[foundVehicleId].CapacityUsed,
                             foundVehicleBuilding.Vehicles[foundVehicleId].CapacityFree,
-                            VehicleHelper.GetVehicleName(foundVehicleId));
+                            VehicleHelper.GetVehicleName(foundVehicleId),
+                            vehicles[foundVehicleId].m_targetBuilding,
+                            vehicles[foundVehicleId].m_flags);
                     }
                     else if (Log.LogNames)
                     {
@@ -791,7 +808,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     if (vehicles[vehicleId].m_transferType == this.TransferType)
                     {
                         // Add or update status for relevant vehicles.
-                        if (vehicles[vehicleId].Info != null && (vehicles[vehicleId].m_flags & (Vehicle.Flags.Created | Vehicle.Flags.Spawned)) == (Vehicle.Flags.Created | Vehicle.Flags.Spawned))
+                        if (vehicles[vehicleId].Info != null && 
+                            (vehicles[vehicleId].m_flags & Vehicle.Flags.Created) == Vehicle.Flags.Created &&
+                            (vehicles[vehicleId].m_flags & (Vehicle.Flags.Spawned | Vehicle.Flags.WaitingPath)) != Vehicle.Flags.None)
                         {
                             vehiclesMade++;
 
@@ -908,7 +927,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 ushort[] removeVehicles = serviceBuilding.Vehicles.Values.Where(v => v.LastSeen != Global.CurrentFrame).Select(v => v.VehicleId).ToArray();
                 foreach (ushort id in removeVehicles)
                 {
-                    if (vehicles[vehicleId].Info == null || (vehicles[vehicleId].m_flags & (Vehicle.Flags.Created | Vehicle.Flags.Spawned)) != (Vehicle.Flags.Created | Vehicle.Flags.Spawned) || vehicles[vehicleId].m_transferType != this.TransferType)
+                    if (vehicles[vehicleId].Info == null || 
+                        (vehicles[vehicleId].m_flags & Vehicle.Flags.Created) == Vehicle.Flags.None || 
+                        (vehicles[vehicleId].m_flags & (Vehicle.Flags.Spawned | Vehicle.Flags.WaitingPath)) == Vehicle.Flags.None || 
+                        vehicles[vehicleId].m_transferType != this.TransferType)
                     {
                         if (Log.LogALot)
                         {

@@ -304,10 +304,13 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             try
             {
+                vehicle.Info.m_vehicleAI.SetTarget(vehicleId, ref vehicle, 0);
+                return (vehicle.m_flags & (Vehicle.Flags.Spawned | Vehicle.Flags.WaitingPath)) != Vehicle.Flags.None;
+
                 // If already going back, no need to do anything.
                 if (vehicle.m_targetBuilding == 0 && (vehicle.m_flags & Vehicle.Flags.GoingBack) == Vehicle.Flags.GoingBack)
                 {
-                    if (vehicle.m_path != 0 && (vehicle.m_flags & Vehicle.Flags.Spawned) == Vehicle.Flags.Spawned)
+                    if (vehicle.m_path != 0 && (vehicle.m_flags & (Vehicle.Flags.Spawned | Vehicle.Flags.WaitingPath)) != Vehicle.Flags.None)
                     {
                         return true;
                     }
@@ -332,7 +335,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     Log.Debug(typeof(VehicleHelper), "RecallVehicle", "SetTarget", vehicleId, vehicle, vehicle.Info.m_vehicleAI);
 
                     vehicle.Info.m_vehicleAI.SetTarget(vehicleId, ref vehicle, 0);
-                    return (vehicle.m_flags & Vehicle.Flags.Spawned) != Vehicle.Flags.None;
+                    return (vehicle.m_flags & (Vehicle.Flags.Spawned | Vehicle.Flags.WaitingPath)) != Vehicle.Flags.None;
                 }
 
                 Log.Debug(typeof(VehicleHelper), "RecallVehicle", vehicleId, vehicle, vehicle.Info.m_vehicleAI);
@@ -393,11 +396,16 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             try
             {
+
+                vehicle.Info.m_vehicleAI.SetTarget(vehicleId, ref vehicle, targetBuildingId);
+                return (vehicle.m_flags & (Vehicle.Flags.Spawned | Vehicle.Flags.WaitingPath)) != Vehicle.Flags.None;
+
+                
                 // If moving to target (emptying) call original.
                 if ((vehicle.m_flags & Vehicle.Flags.TransferToTarget) == Vehicle.Flags.TransferToTarget)
                 {
                     vehicle.Info.m_vehicleAI.SetTarget(vehicleId, ref vehicle, targetBuildingId);
-                    return (vehicle.m_flags & Vehicle.Flags.Spawned) != Vehicle.Flags.None;
+                    return (vehicle.m_flags & (Vehicle.Flags.Spawned | Vehicle.Flags.WaitingPath)) != Vehicle.Flags.None;
                 }
 
                 // If target is 0, recall vehicle.
@@ -405,6 +413,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 {
                     return RecallVehicle(vehicleId, ref vehicle);
                 }
+
 
                 // Vehicle aldready has same target.
                 if (targetBuildingId == vehicle.m_targetBuilding)
@@ -418,7 +427,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     Log.Debug(typeof(VehicleHelper), "SetTarget", "SetTarget", vehicleId, vehicle, vehicle.Info.m_vehicleAI);
 
                     vehicle.Info.m_vehicleAI.SetTarget(vehicleId, ref vehicle, targetBuildingId);
-                    return (vehicle.m_flags & Vehicle.Flags.Spawned) != Vehicle.Flags.None;
+                    return (vehicle.m_flags & (Vehicle.Flags.Spawned | Vehicle.Flags.WaitingPath)) != Vehicle.Flags.None;
                 }
 
                 Log.Debug(typeof(VehicleHelper), "SetTarget", vehicleId, vehicle, vehicle.Info.m_vehicleAI);
@@ -433,6 +442,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 vehicle.m_targetBuilding = targetBuildingId;
                 vehicle.m_flags &= ~Vehicle.Flags.WaitingTarget;
+                vehicle.m_flags &= ~Vehicle.Flags.GoingBack;
                 vehicle.m_waitCounter = (byte)0;
 
                 buildings[targetBuildingId].AddGuestVehicle(vehicleId, ref vehicle);
@@ -473,7 +483,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <param name="vehicleId">The vehicle identifier.</param>
         private static void DebugListLog(Vehicle[] vehicles, Building[] buildings, ushort vehicleId)
         {
-            if (vehicles[vehicleId].Info != null && (vehicles[vehicleId].m_flags & Vehicle.Flags.Spawned) == Vehicle.Flags.Spawned && (vehicles[vehicleId].Info.m_vehicleAI is HearseAI || vehicles[vehicleId].Info.m_vehicleAI is GarbageTruckAI))
+            if (vehicles[vehicleId].Info != null && (vehicles[vehicleId].m_flags & (Vehicle.Flags.Spawned | Vehicle.Flags.WaitingPath)) != Vehicle.Flags.None && 
+                (vehicles[vehicleId].Info.m_vehicleAI is HearseAI || vehicles[vehicleId].Info.m_vehicleAI is GarbageTruckAI))
             {
                 Log.InfoList info = new Log.InfoList();
 
@@ -600,7 +611,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     Log.Debug(typeof(VehicleHelper), "SetTargetAgain", "SetTarget", vehicleId, vehicle, vehicle.Info.m_vehicleAI);
 
                     vehicle.Info.m_vehicleAI.SetTarget(vehicleId, ref vehicle, vehicle.m_targetBuilding);
-                    return (vehicle.m_flags & Vehicle.Flags.Spawned) != Vehicle.Flags.None;
+                    return (vehicle.m_flags & (Vehicle.Flags.Spawned | Vehicle.Flags.WaitingPath)) != Vehicle.Flags.None;
                 }
 
                 Log.Debug(typeof(VehicleHelper), "SetTargetAgain", "StartPathFind", vehicleId, vehicle, vehicle.Info.m_vehicleAI);
@@ -614,25 +625,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 return false;
             }
 
-            if ((vehicle.m_flags & Vehicle.Flags.Spawned) == Vehicle.Flags.Spawned)
+            if ((vehicle.m_flags & (Vehicle.Flags.Spawned | Vehicle.Flags.WaitingPath)) != Vehicle.Flags.None)
             {
                 return true;
             }
 
-            return vehicle.Info.m_vehicleAI.TrySpawn(vehicleId, ref vehicle);
-        }
+            Log.Debug(typeof(VehicleHelper), "SetTargetAgain", "TrySpawn", vehicleId, vehicle, vehicle.Info.m_vehicleAI);
 
-        /// <summary>
-        /// StartPathFind method signature.
-        /// </summary>
-        /// <param name="vehicleAI">The vehicle AI.</param>
-        /// <param name="vehicleID">The vehicle identifier.</param>
-        /// <param name="vehicleData">The vehicle data.</param>
-        /// <returns>True if path find worked.</returns>
-        /// <exception cref="System.NotImplementedException">Call to method signature.</exception>
-        private static bool StartPathFind_Signature(VehicleAI vehicleAI, ushort vehicleID, ref Vehicle vehicleData)
-        {
-            throw new NotImplementedException("Call to method signature");
+            return vehicle.Info.m_vehicleAI.TrySpawn(vehicleId, ref vehicle);
         }
 
         /// <summary>

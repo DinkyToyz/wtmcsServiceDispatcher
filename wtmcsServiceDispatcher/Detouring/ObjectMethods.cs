@@ -127,7 +127,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 try
                 {
-                    Log.DevDebug(this, "InitStartPathFind", "GetInfo", sourceClass);
+                    Log.DevDebug(this, "GetMethodInfo", sourceClass);
                     methodInfo = MonoDetour.FindMethod(sourceClass, this.MethodName, this.GetType(), this.SignatureMethodName);
 
                     if (methodInfo == null)
@@ -140,7 +140,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 }
                 catch (Exception ex)
                 {
-                    Log.Warning(this, "InitStartPathFind", "GetInfo", "Failed", sourceClass, ex.GetType(), ex.Message);
+                    Log.Warning(this, "GetMethodInfo", "Failed", sourceClass, ex.GetType(), ex.Message);
                     this.methods[sourceClass] = null;
 
                     return null;
@@ -149,7 +149,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             if (!this.unhandledClasses.Contains(sourceClass))
             {
                 this.unhandledClasses.Add(sourceClass);
-                Log.Warning(this, "InitStartPathFind", "GetInfo", "Failed", sourceClass);
+                Log.Warning(this, "GetMethodInfo", "Failed", sourceClass);
             }
 
             return null;
