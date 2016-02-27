@@ -647,7 +647,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     if (vehicles[vehicleId].m_transferType == this.TransferType)
                     {
                         // Add or update status for relevant vehicles.
-                        if (vehicles[vehicleId].Info != null && (vehicles[vehicleId].m_flags & (Vehicle.Flags.Created | Vehicle.Flags.Spawned)) != Vehicle.Flags.None)
+                        if (vehicles[vehicleId].Info != null && 
+                            (vehicles[vehicleId].m_flags & Vehicle.Flags.Created) != Vehicle.Flags.None &&
+                            (vehicles[vehicleId].m_flags & VehicleHelper.VehicleExists) != Vehicle.Flags.None)
                         {
                             vehiclesMade++;
 
@@ -743,7 +745,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 ushort[] removeVehicles = serviceBuilding.Vehicles.Values.Where(v => v.LastSeen != Global.CurrentFrame).Select(v => v.VehicleId).ToArray();
                 foreach (ushort id in removeVehicles)
                 {
-                    if (vehicles[vehicleId].Info == null || (vehicles[vehicleId].m_flags & (Vehicle.Flags.Created | Vehicle.Flags.Spawned)) != (Vehicle.Flags.Created | Vehicle.Flags.Spawned) || vehicles[vehicleId].m_transferType != this.TransferType)
+                    if (vehicles[vehicleId].Info == null || 
+                        (vehicles[vehicleId].m_flags & Vehicle.Flags.Created) == Vehicle.Flags.None ||
+                        (vehicles[vehicleId].m_flags & VehicleHelper.VehicleExists) == Vehicle.Flags.None || 
+                        vehicles[vehicleId].m_transferType != this.TransferType)
                     {
                         if (Log.LogALot)
                         {

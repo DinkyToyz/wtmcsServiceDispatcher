@@ -1,6 +1,6 @@
-﻿using ColossalFramework;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using ColossalFramework;
 
 namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 {
@@ -9,6 +9,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
     /// </summary>
     internal static class VehicleHelper
     {
+        /// <summary>
+        /// The vehicle exists if any of these flags are set.
+        /// </summary>
+        public const Vehicle.Flags VehicleExists = Vehicle.Flags.Spawned | Vehicle.Flags.WaitingPath | Vehicle.Flags.WaitingSpace;
+
         /// <summary>
         /// Creates the service vehicle.
         /// </summary>
@@ -196,7 +201,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <param name="vehicleId">The vehicle identifier.</param>
         private static void DebugListLog(Vehicle[] vehicles, Building[] buildings, ushort vehicleId)
         {
-            if (vehicles[vehicleId].Info != null && (vehicles[vehicleId].m_flags & Vehicle.Flags.Spawned) == Vehicle.Flags.Spawned && (vehicles[vehicleId].Info.m_vehicleAI is HearseAI || vehicles[vehicleId].Info.m_vehicleAI is GarbageTruckAI))
+            if (vehicles[vehicleId].Info != null && (vehicles[vehicleId].m_flags & VehicleHelper.VehicleExists) != Vehicle.Flags.None && (vehicles[vehicleId].Info.m_vehicleAI is HearseAI || vehicles[vehicleId].Info.m_vehicleAI is GarbageTruckAI))
             {
                 Log.InfoList info = new Log.InfoList();
 
