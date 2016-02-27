@@ -205,7 +205,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 {
                     ownVehicleCount++;
                     if ((vehicles[vehicleId].m_transferType == (byte)TransferManager.TransferReason.Garbage || vehicles[vehicleId].m_transferType == (byte)TransferManager.TransferReason.Dead) &&
-                        vehicles[vehicleId].Info != null && 
+                        vehicles[vehicleId].Info != null &&
                         (vehicles[vehicleId].m_flags & Vehicle.Flags.Created) != Vehicle.Flags.None &&
                         (vehicles[vehicleId].m_flags & VehicleHelper.VehicleExists) != Vehicle.Flags.None)
                     {
@@ -333,7 +333,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 }
 
                 info.Add("AI", buildings[buildingId].Info.m_buildingAI.GetType().AssemblyQualifiedName);
-                
+
                 Log.DevDebug(typeof(BuildingKeeper), "DebugListLog", info.ToString());
             }
         }

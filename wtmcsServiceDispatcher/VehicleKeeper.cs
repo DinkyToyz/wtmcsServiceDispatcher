@@ -20,14 +20,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         private Bucketeer bucketeer;
 
         /// <summary>
-        /// The bucket mask.
-        /// </summary>
-        private uint bucketMask = 15;
-
-        /// <summary>
         /// The bucket factor.
         /// </summary>
         private uint bucketFactor = 1024;
+
+        /// <summary>
+        /// The bucket mask.
+        /// </summary>
+        private uint bucketMask = 15;
 
         /// <summary>
         /// The vehicles that have been removed from grid.

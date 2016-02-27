@@ -20,14 +20,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         private Bucketeer bucketeer;
 
         /// <summary>
-        /// The bucket mask.
-        /// </summary>
-        private uint bucketMask = 255;
-
-        /// <summary>
         /// The bucket factor.
         /// </summary>
         private uint bucketFactor = 192;
+
+        /// <summary>
+        /// The bucket mask.
+        /// </summary>
+        private uint bucketMask = 255;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="BuildingKeeper"/> class.
