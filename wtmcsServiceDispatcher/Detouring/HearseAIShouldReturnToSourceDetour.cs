@@ -86,26 +86,13 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
-        /// Vehicles with no target should always return to source.
-        /// </summary>
-        /// <param name="garbageTruckAI">The hearse AI.</param>
-        /// <param name="vehicleID">The vehicle identifier.</param>
-        /// <param name="data">The data.</param>
-        /// <returns>Always true.</returns>
-        private static bool HearseAI_ShouldReturnToSource_Override(HearseAI garbageTruckAI, ushort vehicleID, ref Vehicle data)
-        {
-            Calls++;
-            return true;
-        }
-
-        /// <summary>
         /// Copied from original game code at game version 1.2.2 f3.
         /// </summary>
-        /// <param name="garbageTruckAI">The hearse AI.</param>
+        /// <param name="hearseAI">The hearse AI.</param>
         /// <param name="vehicleID">The vehicle identifier.</param>
         /// <param name="data">The data.</param>
         /// <returns>True if vehicle should return to source.</returns>
-        private static bool HearseAI_ShouldReturnToSource_Original(GarbageTruckAI garbageTruckAI, ushort vehicleID, ref Vehicle data)
+        private static bool HearseAI_ShouldReturnToSource_Original(HearseAI hearseAI, ushort vehicleID, ref Vehicle data)
         {
             if ((int)data.m_sourceBuilding != 0)
             {
@@ -115,5 +102,29 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             }
             return false;
         }
-     }
+
+        /// <summary>
+        /// Vehicles with no target should always return to source.
+        /// </summary>
+        /// <param name="hearseAI">The hearse AI.</param>
+        /// <param name="vehicleId">The vehicle identifier.</param>
+        /// <param name="vehicle">The vehicle.</param>
+        /// <returns>True if vehicle should return to source.</returns>
+        private static bool HearseAI_ShouldReturnToSource_Override(HearseAI hearseAI, ushort vehicleId, ref Vehicle vehicle)
+        {
+            Calls++;
+            if (vehicle.m_sourceBuilding == 0)
+            {
+                return false;
+            }
+
+            if (vehicle.m_targetBuilding == 0 && (vehicle.m_flags & Vehicle.Flags.TransferToTarget) == Vehicle.Flags.None)
+            {
+                BuildingManager instance = Singleton<BuildingManager>.instance;
+                return instance.m_buildings.m_buffer[vehicle.m_sourceBuilding].m_fireIntensity == 0;
+            }
+
+            return HearseAI_ShouldReturnToSource_Original(hearseAI, vehicleId, ref vehicle);
+        }
+    }
 }

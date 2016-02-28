@@ -256,86 +256,109 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 bool initialized = false;
                 Building[] buildings = Singleton<BuildingManager>.instance.m_buildings.m_buffer;
 
-                foreach (BuldingCheckParameters checkParams in this.buildingChecks)
+                bool[] includeUneedies;
+                if (this.DispatcherType == DispatcherTypes.GarbageTruckDispatcher && Global.Settings.MinimumGarbageForPatrol < Global.Settings.MinimumGarbageForDispatch)
                 {
-                    if (Log.LogALot)
-                    {
-                        Log.DevDebug(this, "Dispatch", checkParams.Setting, checkParams.OnlyProblematic, checkParams.MinProblemValue, checkParams.IgnoreRange, checkParams.AllowCreateSpares, this.createSpareVehicles);
-                    }
+                    includeUneedies = new bool[] { false, true };
+                }
+                else
+                {
+                    includeUneedies = new bool[] { false };
+                }
 
-                    foreach (TargetBuildingInfo targetBuilding in this.targetBuildings.Values.Where(tb => checkParams.CheckThis(tb)).OrderBy(tb => tb, Global.TargetBuildingInfoPriorityComparer))
+                foreach (bool includeUneedy in includeUneedies)
+                {
+                    foreach (BuldingCheckParameters checkParams in this.buildingChecks)
                     {
-                        // Skip missing buildings.
-                        if (buildings[targetBuilding.BuildingId].Info == null || (buildings[targetBuilding.BuildingId].m_flags & Building.Flags.Created) == Building.Flags.None || (buildings[targetBuilding.BuildingId].m_flags & (Building.Flags.Abandoned | Building.Flags.BurnedDown | Building.Flags.Deleted)) != Building.Flags.None)
+                        if (Log.LogALot)
                         {
-                            if (Log.LogALot)
-                            {
-                                Log.DevDebug(this, "Dispatch", "MissingBuilding", targetBuilding.BuildingId, targetBuilding.BuildingName, targetBuilding.DistrictName);
-                            }
-
-                            continue;
+                            Log.DevDebug(this, "Dispatch", checkParams.Setting, checkParams.OnlyProblematic, checkParams.MinProblemValue, checkParams.IgnoreRange, checkParams.AllowCreateSpares, this.createSpareVehicles, includeUneedy);
                         }
 
-                        // Initialize vehicle data.
-                        if (!initialized)
+                        foreach (TargetBuildingInfo targetBuilding in this.targetBuildings.Values.Where(tb => checkParams.CheckThis(tb, includeUneedy)).OrderBy(tb => tb, Global.TargetBuildingInfoPriorityComparer))
                         {
-                            initialized = true;
-
-                            this.CollectVehicleData(buildings, checkParams.AllowCreateSpares);
-                            if (this.freeVehicles < 1)
+                            // Skip missing buildings.
+                            if (buildings[targetBuilding.BuildingId].Info == null || (buildings[targetBuilding.BuildingId].m_flags & Building.Flags.Created) == Building.Flags.None || (buildings[targetBuilding.BuildingId].m_flags & (Building.Flags.Abandoned | Building.Flags.BurnedDown | Building.Flags.Deleted)) != Building.Flags.None)
                             {
                                 if (Log.LogALot)
                                 {
-                                    Log.DevDebug(this, "Dispatch", "BreakCheck");
+                                    Log.DevDebug(this, "Dispatch", "MissingBuilding", targetBuilding.BuildingId, targetBuilding.BuildingName, targetBuilding.DistrictName);
                                 }
 
-                                break;
-                            }
-                        }
-
-                        // Assign vehicles, unless allredy done.
-                        if (this.assignedTargets.ContainsKey(targetBuilding.BuildingId))
-                        {
-                            if (Log.LogALot)
-                            {
-                                Log.DevDebug(this, "Dispatch", "HandledBuilding", targetBuilding.BuildingId, targetBuilding.BuildingName, targetBuilding.DistrictName);
+                                continue;
                             }
 
-                            targetBuilding.Handled = true;
-                        }
-                        else
-                        {
-                            if (Log.LogALot)
+                            // Initialize vehicle data.
+                            if (!initialized)
                             {
-                                Log.DevDebug(this, "Dispatch", "AssignVehicle", targetBuilding.BuildingId, targetBuilding.BuildingName, targetBuilding.DistrictName);
-                            }
+                                initialized = true;
 
-                            if (this.AssignVehicle(targetBuilding, checkParams.IgnoreRange, checkParams.AllowCreateSpares))
-                            {
+                                this.CollectVehicleData(buildings, checkParams.AllowCreateSpares);
                                 if (this.freeVehicles < 1)
                                 {
                                     if (Log.LogALot)
                                     {
-                                        Log.DevDebug(this, "Dispatch", "BreakCheck");
+                                        Log.DevDebug(this, "Dispatch", "BreakCheck", "CollectVehicleData");
                                     }
 
                                     break;
                                 }
                             }
-                            else if (checkParams.IgnoreRange)
+
+                            // Assign vehicles, unless allredy done.
+                            if (this.assignedTargets.ContainsKey(targetBuilding.BuildingId))
                             {
-                                targetBuilding.CheckThis = false;
+                                if (Log.LogALot)
+                                {
+                                    Log.DevDebug(this, "Dispatch", "HandledBuilding", targetBuilding.BuildingId, targetBuilding.BuildingName, targetBuilding.DistrictName);
+                                }
+
+                                targetBuilding.Handled = true;
                             }
+                            else
+                            {
+                                if (Log.LogALot)
+                                {
+                                    Log.DevDebug(this, "Dispatch", "AssignVehicle", targetBuilding.BuildingId, targetBuilding.BuildingName, targetBuilding.DistrictName);
+                                }
+
+                                if (this.AssignVehicle(targetBuilding, checkParams.IgnoreRange, checkParams.AllowCreateSpares))
+                                {
+                                    if (this.freeVehicles < 1)
+                                    {
+                                        if (Log.LogALot)
+                                        {
+                                            Log.DevDebug(this, "Dispatch", "BreakCheck", "AssignVehicle");
+                                        }
+
+                                        break;
+                                    }
+                                }
+                                else if (checkParams.IgnoreRange)
+                                {
+                                    targetBuilding.CheckThis = false;
+                                }
+                            }
+
+                            targetBuilding.Checked = true;
                         }
 
-                        targetBuilding.Checked = true;
+                        if (initialized && this.freeVehicles < 1)
+                        {
+                            if (Log.LogALot)
+                            {
+                                Log.DevDebug(this, "Dispatch", "BreakCheck", "CheckParams");
+                            }
+
+                            break;
+                        }
                     }
 
-                    if (this.freeVehicles < 1)
+                    if (initialized && this.freeVehicles < 1)
                     {
                         if (Log.LogALot)
                         {
-                            Log.DevDebug(this, "Dispatch", "BreakChecks");
+                            Log.DevDebug(this, "Dispatch", "BreakCheck", "IncludeUneedy");
                         }
 
                         break;
@@ -541,7 +564,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     {
                         Log.Debug(this, "AssignVehicle", "CreateSpare", targetBuilding.BuildingId, serviceBuilding.BuildingId, serviceBuilding.VehiclesSpare);
 
-                        //lostVehicles.Add(0);
+                        lostVehicles.Add(0);
 
                         foundVehicleId = serviceBuilding.CreateVehicle(this.TransferType);
                         if (foundVehicleId == 0)
@@ -808,7 +831,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     if (vehicles[vehicleId].m_transferType == this.TransferType)
                     {
                         // Add or update status for relevant vehicles.
-                        if (vehicles[vehicleId].Info != null && 
+                        if (vehicles[vehicleId].Info != null &&
                             (vehicles[vehicleId].m_flags & Vehicle.Flags.Created) == Vehicle.Flags.Created &&
                             (vehicles[vehicleId].m_flags & VehicleHelper.VehicleExists) != Vehicle.Flags.None)
                         {
@@ -927,9 +950,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 ushort[] removeVehicles = serviceBuilding.Vehicles.Values.Where(v => v.LastSeen != Global.CurrentFrame).Select(v => v.VehicleId).ToArray();
                 foreach (ushort id in removeVehicles)
                 {
-                    if (vehicles[vehicleId].Info == null || 
+                    if (vehicles[vehicleId].Info == null ||
                         (vehicles[vehicleId].m_flags & Vehicle.Flags.Created) == Vehicle.Flags.None ||
-                        (vehicles[vehicleId].m_flags & VehicleHelper.VehicleExists) == Vehicle.Flags.None || 
+                        (vehicles[vehicleId].m_flags & VehicleHelper.VehicleExists) == Vehicle.Flags.None ||
                         vehicles[vehicleId].m_transferType != this.TransferType)
                     {
                         if (Log.LogALot)
@@ -1224,10 +1247,15 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             /// Check whether this building should be checked.
             /// </summary>
             /// <param name="building">The building.</param>
-            /// <returns>True if the building should be checked.</returns>
-            public bool CheckThis(TargetBuildingInfo building)
+            /// <param name="includeUneedy">If set to <c>true</c> check buildings that wants, but does not need, service regardless of check parameters.</param>
+            /// <returns>
+            /// True if the building should be checked.
+            /// </returns>
+            public bool CheckThis(TargetBuildingInfo building, bool includeUneedy = false)
             {
-                return building.CheckThis && !building.HandledNow && (building.NeedsService || (this.IncludeUneedy && building.WantsService)) && building.ProblemValue >= this.MinProblemValue && (building.HasProblem || !this.OnlyProblematic);
+                return building.CheckThis && !building.HandledNow &&
+                       (building.NeedsService || ((includeUneedy || this.IncludeUneedy) && building.WantsService)) &&
+                       building.ProblemValue >= this.MinProblemValue && (building.HasProblem || !this.OnlyProblematic);
             }
         }
     }

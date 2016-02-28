@@ -86,19 +86,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
-        /// Vehicles with no target should always return to source.
-        /// </summary>
-        /// <param name="garbageTruckAI">The garbage truck AI.</param>
-        /// <param name="vehicleID">The vehicle identifier.</param>
-        /// <param name="data">The data.</param>
-        /// <returns>Always true.</returns>
-        private static bool GarbageTruckAI_ShouldReturnToSource_Override(GarbageTruckAI garbageTruckAI, ushort vehicleID, ref Vehicle data)
-        {
-            Calls++;
-            return true;
-        }
-
-        /// <summary>
         /// Copied from original game code at game version 1.2.2 f3.
         /// </summary>
         /// <param name="garbageTruckAI">The garbage truck AI.</param>
@@ -114,6 +101,31 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     return true;
             }
             return false;
+        }
+
+        /// <summary>
+        /// Vehicles with no target should always return to source.
+        /// </summary>
+        /// <param name="garbageTruckAI">The garbage truck AI.</param>
+        /// <param name="vehicleId">The vehicle identifier.</param>
+        /// <param name="vehicle">The vehicle.</param>
+        /// <returns>True if vehicle should return to source.</returns>
+        private static bool GarbageTruckAI_ShouldReturnToSource_Override(GarbageTruckAI garbageTruckAI, ushort vehicleId, ref Vehicle vehicle)
+        {
+            Calls++;
+
+            if (vehicle.m_sourceBuilding == 0)
+            {
+                return false;
+            }
+
+            if (vehicle.m_targetBuilding == 0 && (vehicle.m_flags & Vehicle.Flags.TransferToTarget) == Vehicle.Flags.None)
+            {
+                BuildingManager instance = Singleton<BuildingManager>.instance;
+                return instance.m_buildings.m_buffer[vehicle.m_sourceBuilding].m_fireIntensity == 0;
+            }
+
+            return GarbageTruckAI_ShouldReturnToSource_Original(garbageTruckAI, vehicleId, ref vehicle);
         }
     }
 }

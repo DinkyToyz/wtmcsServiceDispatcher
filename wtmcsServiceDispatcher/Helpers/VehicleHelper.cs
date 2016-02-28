@@ -309,8 +309,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             try
             {
-                vehicle.Info.m_vehicleAI.SetTarget(vehicleId, ref vehicle, 0);
-                return (vehicle.m_flags & VehicleHelper.VehicleExists) != Vehicle.Flags.None;
+                ////Log.Debug(typeof(VehicleHelper), "RecallVehicle", vehicleId);
+                ////vehicle.Info.m_vehicleAI.SetTarget(vehicleId, ref vehicle, 0);
+                ////return (vehicle.m_flags & VehicleHelper.VehicleExists) != Vehicle.Flags.None;
 
                 // If already going back, no need to do anything.
                 if (vehicle.m_targetBuilding == 0 && (vehicle.m_flags & Vehicle.Flags.GoingBack) == Vehicle.Flags.GoingBack)
@@ -401,11 +402,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             try
             {
+                ////Log.Debug(typeof(VehicleHelper), "SetTarget", vehicleId);
+                ////vehicle.Info.m_vehicleAI.SetTarget(vehicleId, ref vehicle, targetBuildingId);
+                ////return (vehicle.m_flags & VehicleHelper.VehicleExists) != Vehicle.Flags.None;
 
-                vehicle.Info.m_vehicleAI.SetTarget(vehicleId, ref vehicle, targetBuildingId);
-                return (vehicle.m_flags & VehicleHelper.VehicleExists) != Vehicle.Flags.None;
-
-                
                 // If moving to target (emptying) call original.
                 if ((vehicle.m_flags & Vehicle.Flags.TransferToTarget) == Vehicle.Flags.TransferToTarget)
                 {
@@ -419,7 +419,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     return RecallVehicle(vehicleId, ref vehicle);
                 }
 
-
                 // Vehicle aldready has same target.
                 if (targetBuildingId == vehicle.m_targetBuilding)
                 {
@@ -429,13 +428,13 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 // Make sure <AI>.StartPathFind is available.
                 if (!startPathFindMethods.CanCall(vehicle.Info.m_vehicleAI))
                 {
-                    Log.Debug(typeof(VehicleHelper), "SetTarget", "SetTarget", vehicleId, vehicle, vehicle.Info.m_vehicleAI);
+                    Log.Debug(typeof(VehicleHelper), "SetTarget", "SetTarget", vehicleId, vehicle, vehicle.Info.m_vehicleAI, targetBuildingId);
 
                     vehicle.Info.m_vehicleAI.SetTarget(vehicleId, ref vehicle, targetBuildingId);
                     return (vehicle.m_flags & VehicleHelper.VehicleExists) != Vehicle.Flags.None;
                 }
 
-                Log.Debug(typeof(VehicleHelper), "SetTarget", vehicleId, vehicle, vehicle.Info.m_vehicleAI);
+                Log.Debug(typeof(VehicleHelper), "SetTarget", vehicleId, vehicle, vehicle.Info.m_vehicleAI, targetBuildingId);
 
                 Building[] buildings = Singleton<BuildingManager>.instance.m_buildings.m_buffer;
 
@@ -488,7 +487,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <param name="vehicleId">The vehicle identifier.</param>
         private static void DebugListLog(Vehicle[] vehicles, Building[] buildings, ushort vehicleId)
         {
-            if (vehicles[vehicleId].Info != null && (vehicles[vehicleId].m_flags & VehicleHelper.VehicleExists) != Vehicle.Flags.None && 
+            if (vehicles[vehicleId].Info != null && (vehicles[vehicleId].m_flags & VehicleHelper.VehicleExists) != Vehicle.Flags.None &&
                 (vehicles[vehicleId].Info.m_vehicleAI is HearseAI || vehicles[vehicleId].Info.m_vehicleAI is GarbageTruckAI))
             {
                 Log.InfoList info = new Log.InfoList();
@@ -613,13 +612,13 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 // Make sure <AI>.StartPathFind is available.
                 if (!startPathFindMethods.CanCall(vehicle.Info.m_vehicleAI))
                 {
-                    Log.Debug(typeof(VehicleHelper), "SetTargetAgain", "SetTarget", vehicleId, vehicle, vehicle.Info.m_vehicleAI);
+                    Log.Debug(typeof(VehicleHelper), "SetTargetAgain", "SetTarget", vehicleId, vehicle, vehicle.Info.m_vehicleAI, vehicle.m_targetBuilding);
 
                     vehicle.Info.m_vehicleAI.SetTarget(vehicleId, ref vehicle, vehicle.m_targetBuilding);
                     return (vehicle.m_flags & VehicleHelper.VehicleExists) != Vehicle.Flags.None;
                 }
 
-                Log.Debug(typeof(VehicleHelper), "SetTargetAgain", "StartPathFind", vehicleId, vehicle, vehicle.Info.m_vehicleAI);
+                Log.Debug(typeof(VehicleHelper), "SetTargetAgain", "StartPathFind", vehicleId, vehicle, vehicle.Info.m_vehicleAI, vehicle.m_targetBuilding);
                 if (startPathFindMethods.Call(vehicleId, ref vehicle))
                 {
                     return true;

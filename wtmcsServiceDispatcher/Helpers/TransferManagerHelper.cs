@@ -233,13 +233,13 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     Log.DevDebug(typeof(TransferManagerHelper), "CleanTransferOffers", "Counts", index, incomingCount[index], outgoingCount[index]);
                 }
 
-                //incomingCount[index] = 0;
-                //outgoingCount[index] = 0;
+                ////incomingCount[index] = 0;
+                ////outgoingCount[index] = 0;
             }
 
             // Zero amounts.
-            //incomingAmount[(int)material] = 0;
-            //outgoingAmount[(int)material] = 0;
+            ////incomingAmount[(int)material] = 0;
+            ////outgoingAmount[(int)material] = 0;
         }
 
         /// <summary>
