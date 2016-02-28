@@ -43,6 +43,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public static uint DemandLingerDelay = 0u;
 
         /// <summary>
+        /// The wait path stuck delay.
+        /// </summary>
+        public static uint waitPathStuckDelay = 600;
+
+        /// <summary>
         /// The garbage truck dispatcher.
         /// </summary>
         public static Dispatcher GarbageTruckDispatcher = null;
@@ -65,7 +70,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// The delay before unused vehicles are recalled to service building.
         /// </summary>
-        public static uint RecallDelay = 1200u;
+        public static uint RecallDelay = 240u;
 
         /// <summary>
         /// The minimum recheck interval for handled targets.

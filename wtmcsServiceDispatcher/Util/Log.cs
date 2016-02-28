@@ -678,6 +678,24 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             private StringBuilder info = new StringBuilder();
 
             /// <summary>
+            /// The prefix length.
+            /// </summary>
+            private int prefixLen = 0;
+
+            /// <summary>
+            /// Initializes a new instance of the <see cref="InfoList"/> class.
+            /// </summary>
+            /// <param name="prefix">The prefix.</param>
+            public InfoList(string prefix = null)
+            {
+                if (prefix != null)
+                {
+                    this.info.Append(prefix);
+                    this.prefixLen = prefix.Length;
+                }
+            }
+
+            /// <summary>
             /// Adds the info to the list.
             /// </summary>
             /// <param name="name">The name.</param>
@@ -775,7 +793,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             {
                 if (paramPos <= 0)
                 {
-                    if (this.info.Length > 0)
+                    if (this.info.Length > this.prefixLen)
                     {
                         this.info.Append("; ");
                     }

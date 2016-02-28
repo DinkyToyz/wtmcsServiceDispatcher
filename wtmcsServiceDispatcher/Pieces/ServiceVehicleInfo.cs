@@ -255,7 +255,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             this.LastSeen = Global.CurrentFrame;
             this.Position = vehicle.GetLastFramePosition();
-            this.FreeToCollect = freeToCollect;
+            this.FreeToCollect = freeToCollect && (vehicle.m_flags & (Vehicle.Flags.WaitingPath | Vehicle.Flags.WaitingSpace | Vehicle.Flags.WaitingLoading | Vehicle.Flags.Deleted)) == Vehicle.Flags.None;
             this.GoingBack = vehicle.m_targetBuilding == 0 && (vehicle.m_flags & Vehicle.Flags.GoingBack) == Vehicle.Flags.GoingBack;
             this.Target = vehicle.m_targetBuilding;
 

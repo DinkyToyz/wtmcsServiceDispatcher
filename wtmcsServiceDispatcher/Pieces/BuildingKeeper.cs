@@ -539,7 +539,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                             Log.Debug(this, "CategorizeBuildings", "Desolate Building", id);
                         }
 
-                        if (delta >= Global.Settings.AutoBulldozeBuildingsDelay)
+                        if (delta >= Global.Settings.AutoBulldozeBuildingsDelaySeconds)
                         {
                             Log.Debug(this, "CategorizeBuildings", "Buldoze Building", id);
                             BulldozeHelper.BulldozeBuilding(id);

@@ -35,10 +35,16 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         private HashSet<ushort> removedFromGrid = new HashSet<ushort>();
 
         /// <summary>
+        /// The stuck vehicles.
+        /// </summary>
+        private Dictionary<ushort, StuckVehicleInfo> stuckVehicles = null;
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="VehicleKeeper"/> class.
         /// </summary>
         public VehicleKeeper()
         {
+            this.ReInitialize();
             Log.Debug(this, "Constructed");
         }
 
@@ -47,6 +53,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// </summary>
         public void ReInitialize()
         {
+            if (this.stuckVehicles == null)
+            {
+                this.stuckVehicles = new Dictionary<ushort, StuckVehicleInfo>();
+            }
         }
 
         /// <summary>
@@ -114,15 +124,22 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             for (ushort id = firstVehicleId; id < lastVehicleId; id++)
             {
+                // Is the vehicle?
                 if (vehicles[id].m_leadingVehicle != 0 || vehicles[id].m_cargoParent != 0 || vehicles[id].Info == null || (vehicles[id].m_flags & VehicleHelper.VehicleExists) == Vehicle.Flags.None)
                 {
                     if (this.removedFromGrid != null && this.removedFromGrid.Contains(id))
                     {
                         this.removedFromGrid.Remove(id);
                     }
+
+                    if (this.stuckVehicles != null && this.stuckVehicles.ContainsKey(id))
+                    {
+                        this.stuckVehicles.Remove(id);
+                    }
                 }
                 else
                 {
+                    // Check target assignments for service vehicles.
                     if ((vehicles[id].m_flags & Vehicle.Flags.TransferToSource) != Vehicle.Flags.None && (vehicles[id].m_flags & (Vehicle.Flags.TransferToTarget | Vehicle.Flags.Arriving | Vehicle.Flags.Stopped)) == Vehicle.Flags.None &&
                         vehicles[id].m_targetBuilding != vehicles[id].m_sourceBuilding && (buildings[vehicles[id].m_sourceBuilding].m_flags & Building.Flags.Downgrading) == Building.Flags.None)
                     {
@@ -137,6 +154,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         }
                     }
 
+                    // Handle grid removals.
                     if (this.removedFromGrid != null)
                     {
                         if ((vehicles[id].m_flags & Vehicle.Flags.Stopped) == Vehicle.Flags.None && vehicles[id].Info.m_vehicleAI is HearseAI)
@@ -160,6 +178,33 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                             Singleton<VehicleManager>.instance.RemoveFromGrid(id, ref vehicles[id], false);
                             this.removedFromGrid.Add(id);
+                        }
+                    }
+
+                    // Try to fix stuck vehicles.
+                    if (this.stuckVehicles != null)
+                    {
+                        if (StuckVehicleInfo.HasProblem(ref vehicles[id]))
+                        {
+                            StuckVehicleInfo stuckVehicle;
+                            if (this.stuckVehicles.TryGetValue(id, out stuckVehicle))
+                            {
+                                stuckVehicle.Update(ref vehicles[id]);
+                            }
+                            else
+                            {
+                                stuckVehicle = new StuckVehicleInfo(id, ref vehicles[id]);
+                                this.stuckVehicles[id] = stuckVehicle;
+                            }
+
+                            if (stuckVehicle.HandleProblem())
+                            {
+                                this.stuckVehicles.Remove(id);
+                            }
+                        }
+                        else if (this.stuckVehicles.ContainsKey(id))
+                        {
+                            this.stuckVehicles.Remove(id);
                         }
                     }
                 }

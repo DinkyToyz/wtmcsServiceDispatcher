@@ -514,14 +514,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     0.0f,
                     60.0f * 24.0f,
                     0.01f,
-                    (float)Global.Settings.AutoBulldozeBuildingsDelay,
+                    (float)Global.Settings.AutoBulldozeBuildingsDelayMinutes,
                     true,
                     value =>
                     {
-                        if (Global.Settings.AutoBulldozeBuildingsDelay != (double)value)
+                        if (Global.Settings.AutoBulldozeBuildingsDelayMinutes != (double)value)
                         {
                             Global.BuildingUpdateNeeded = true;
-                            Global.Settings.AutoBulldozeBuildingsDelay = (double)value;
+                            Global.Settings.AutoBulldozeBuildingsDelayMinutes = (double)value;
                             Global.Settings.Save();
                         }
                     });
