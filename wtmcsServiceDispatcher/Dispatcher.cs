@@ -285,7 +285,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         targetBuilding.Checked = true;
                     }
 
-                    if (this.freeVehicles < 1)
+                    if (initialized && this.freeVehicles < 1)
                     {
                         if (Log.LogALot)
                             Log.DevDebug(this, "Dispatch", "BreakChecks");
