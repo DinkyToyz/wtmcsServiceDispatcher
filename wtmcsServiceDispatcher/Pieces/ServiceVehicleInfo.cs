@@ -127,11 +127,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// </summary>
         /// <param name="serviceBuilding">The service building.</param>
         /// <param name="material">The material.</param>
-        /// <returns>The service vehicle.</returns>
-        public static ServiceVehicleInfo Create(ServiceBuildingInfo serviceBuilding, TransferManager.TransferReason material)
+        /// <param name="targetBuildingId">The target building identifier.</param>
+        /// <returns>
+        /// The service vehicle.
+        /// </returns>
+        public static ServiceVehicleInfo Create(ServiceBuildingInfo serviceBuilding, TransferManager.TransferReason material, ushort targetBuildingId = 0)
         {
             ushort vehicleId;
-            VehicleInfo info = VehicleHelper.CreateServiceVehicle(serviceBuilding, material, out vehicleId);
+            VehicleInfo info = VehicleHelper.CreateServiceVehicle(serviceBuilding, material, targetBuildingId, out vehicleId);
 
             if (info == null)
             {
@@ -255,11 +258,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             this.LastSeen = Global.CurrentFrame;
             this.Position = vehicle.GetLastFramePosition();
-            this.FreeToCollect = freeToCollect && (vehicle.m_flags & (Vehicle.Flags.WaitingPath | Vehicle.Flags.WaitingSpace | Vehicle.Flags.WaitingLoading | Vehicle.Flags.Deleted)) == Vehicle.Flags.None;
+            this.FreeToCollect = freeToCollect;
             this.GoingBack = vehicle.m_targetBuilding == 0 && (vehicle.m_flags & Vehicle.Flags.GoingBack) == Vehicle.Flags.GoingBack;
             this.Target = vehicle.m_targetBuilding;
 
-            if (checkAssignment)
+            if (checkAssignment && (vehicle.m_flags & VehicleHelper.VehicleUnavailable) == Vehicle.Flags.None)
             {
                 if (vehicle.m_targetBuilding == 0)
                 {
@@ -267,7 +270,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     {
                         if (Log.LogALot)
                         {
-                            Log.DevDebug(this, "Update", "CheckAssignment", "Recall", this.VehicleId);
+                            Log.DevDebug(this, "Update", "CheckAssignment", "Recall", this.VehicleId, vehicle.m_flags);
                         }
 
                         this.Recall(ref vehicle);
@@ -283,7 +286,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     {
                         if (Log.LogALot)
                         {
-                            Log.DevDebug(this, "Update", "CheckAssignment", "DeAssign", this.VehicleId);
+                            Log.DevDebug(this, "Update", "CheckAssignment", "DeAssign", vehicle.m_targetBuilding, this.VehicleId);
                         }
 
                         this.DeAssign(ref vehicle);

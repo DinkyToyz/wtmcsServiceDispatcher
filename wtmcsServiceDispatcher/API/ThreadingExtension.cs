@@ -29,6 +29,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         private uint lastDebugListLog = 0;
 
         /// <summary>
+        /// The last transfer offers clean stamp.
+        /// </summary>
+        private uint lastTransferOffersClean = 0;
+
+        /// <summary>
         /// The game has started.
         /// </summary>
         private bool started = false;
@@ -137,6 +142,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                             Global.GarbageTruckDispatcher.Dispatch();
                         }
                     }
+
+                    if (Global.TransferOffersCleaningNeeded || Global.CurrentFrame - this.lastTransferOffersClean > Global.CleanTransferOffersDelay)
+                    {
+                        TransferManagerHelper.CleanTransferOffers();
+
+                        this.lastTransferOffersClean = Global.CurrentFrame;
+                        Global.TransferOffersCleaningNeeded = false;
+                    }
                 }
 
                 if (Log.LogDebugLists && Global.CurrentFrame - this.lastDebugListLog >= 1800)
@@ -149,7 +162,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 }
                 else if (!this.started || (Global.CurrentFrame - Log.LastFlush >= 600))
                 {
-                    TransferManagerHelper.CleanTransferOffers();
                     Log.FlushBuffer();
                 }
 

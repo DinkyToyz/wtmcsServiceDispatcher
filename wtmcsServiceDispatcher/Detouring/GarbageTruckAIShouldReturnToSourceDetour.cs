@@ -119,10 +119,13 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 return false;
             }
 
-            if (vehicle.m_targetBuilding == 0 && (vehicle.m_flags & Vehicle.Flags.TransferToTarget) == Vehicle.Flags.None)
+            if (vehicle.m_targetBuilding == 0 && (vehicle.m_flags & Vehicle.Flags.TransferToTarget) == Vehicle.Flags.None && (vehicle.m_flags & Vehicle.Flags.TransferToSource) == Vehicle.Flags.None)
             {
                 BuildingManager instance = Singleton<BuildingManager>.instance;
-                return instance.m_buildings.m_buffer[vehicle.m_sourceBuilding].m_fireIntensity == 0;
+                if (instance.m_buildings.m_buffer[vehicle.m_sourceBuilding].m_fireIntensity == 0)
+                {
+                    return true;
+                }
             }
 
             return GarbageTruckAI_ShouldReturnToSource_Original(garbageTruckAI, vehicleId, ref vehicle);

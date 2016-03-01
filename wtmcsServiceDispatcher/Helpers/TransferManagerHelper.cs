@@ -218,7 +218,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             int[] incomingAmount,
             TransferManager.TransferReason material)
         {
-            if (Log.LogALot)
+            if (Log.LogALot && (incomingAmount[(int)material] != 0 || outgoingAmount[(int)material] != 0))
             {
                 Log.DevDebug(typeof(TransferManagerHelper), "CleanTransferOffers", "Amounts", incomingAmount[(int)material], outgoingAmount[(int)material]);
             }
@@ -228,18 +228,18 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             {
                 int index = ((int)material * 8) + priority;
 
-                if (Log.LogALot)
+                if (Log.LogALot && (incomingCount[index] != 0 || outgoingCount[index] != 0))
                 {
                     Log.DevDebug(typeof(TransferManagerHelper), "CleanTransferOffers", "Counts", index, incomingCount[index], outgoingCount[index]);
                 }
 
-                ////incomingCount[index] = 0;
-                ////outgoingCount[index] = 0;
+                incomingCount[index] = 0;
+                outgoingCount[index] = 0;
             }
 
             // Zero amounts.
-            ////incomingAmount[(int)material] = 0;
-            ////outgoingAmount[(int)material] = 0;
+            incomingAmount[(int)material] = 0;
+            outgoingAmount[(int)material] = 0;
         }
 
         /// <summary>

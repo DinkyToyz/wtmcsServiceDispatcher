@@ -30,14 +30,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         private ushort targetBuildingId = 0;
 
         /// <summary>
-        /// The simulation time stamp since when the vehicle has been waiting for a path.
-        /// </summary>
-        private double waitingForPathSinceTime = 0.0;
-
-        /// <summary>
         /// The frame since when the vehicle has been waiting for a path.
         /// </summary>
         private uint waitingForPathSinceFrame = 0u;
+
+        /// <summary>
+        /// The simulation time stamp since when the vehicle has been waiting for a path.
+        /// </summary>
+        private double waitingForPathSinceTime = 0.0;
 
         /// <summary>
         /// The vehicle identifier.
@@ -120,26 +120,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             return false;
         }
 
-        private void DebugLog(ushort vehicleId)
-        {
-            Vehicle vehicle = Singleton<VehicleManager>.instance.m_vehicles.m_buffer[this.vehicleId];
-
-            Log.InfoList info = new Log.InfoList();
-
-            info.Add("m_leadingVehicle", vehicle.m_leadingVehicle);
-            info.Add("m_trailingVehicle", vehicle.m_trailingVehicle);
-            info.Add("Spawned", vehicle.m_flags & Vehicle.Flags.Spawned);
-            info.Add("Flags", vehicle.m_flags);
-            info.Add("Info", vehicle.Info);
-
-            if (vehicle.Info != null)
-            {
-                info.Add("Info.m_isLargeVehicle", vehicle.Info.m_isLargeVehicle);
-            }
-
-            Log.DevDebug(this, "DebugLog", vehicleId, info);
-        }
-
         /// <summary>
         /// Updates the specified vehicle.
         /// </summary>
@@ -160,7 +140,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 if (Log.LogALot)
                 {
-                    Log.DevDebug(this, "Update", "WaitingPath", this.vehicleId, this.waitingForPathSinceTime, Global.SimulationTime, Global.SimulationTime - this.waitingForPathSinceTime, lastPosition, position, vehicle.m_targetBuilding, VehicleHelper.GetVehicleName(this.vehicleId));
+                    Log.DevDebug(this, "Update", "WaitingPath", this.vehicleId, this.waitingForPathSinceTime, Global.SimulationTime, Global.SimulationTime - this.waitingForPathSinceTime, this.lastPosition, position, vehicle.m_targetBuilding, vehicle.m_flags, VehicleHelper.GetVehicleName(this.vehicleId));
                 }
 
                 // Remember first time stamp the vehicle was seen waiting at this position.
@@ -181,7 +161,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 {
                     double delta = Global.SimulationTime - this.waitingForPathSinceTime;
 
-                    if (delta > Global.Settings.RemoveStuckVehiclesDelaySeconds && Global.CurrentFrame - this.waitingForPathSinceFrame > Global.waitPathStuckDelay)
+                    if (delta > Global.Settings.RemoveStuckVehiclesDelaySeconds && Global.CurrentFrame - this.waitingForPathSinceFrame > Global.WaitPathStuckDelay)
                     {
                         Log.Info(this, "IsStuck", "WaitingForPath", this.vehicleId, delta, VehicleHelper.GetVehicleName(this.vehicleId));
 
@@ -189,6 +169,42 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// Check if ambulance is confused.
+        /// </summary>
+        /// <param name="vehicle">The vehicle.</param>
+        /// <returns>True if ambulance is confused.</returns>
+        private bool ConfusedAmbulance(ref Vehicle vehicle)
+        {
+            // From AmbulanceAI.GetLocalizedStatus at CS v?
+            return (vehicle.m_flags & (Vehicle.Flags.GoingBack | Vehicle.Flags.WaitingTarget)) == Vehicle.Flags.None &&
+                   ((vehicle.m_flags & Vehicle.Flags.Emergency2) == Vehicle.Flags.None || vehicle.m_targetBuilding != 0);
+        }
+
+        /// <summary>
+        /// Log debug info.
+        /// </summary>
+        /// <param name="vehicleId">The vehicle identifier.</param>
+        private void DebugLog(ushort vehicleId)
+        {
+            Vehicle vehicle = Singleton<VehicleManager>.instance.m_vehicles.m_buffer[this.vehicleId];
+
+            Log.InfoList info = new Log.InfoList();
+
+            info.Add("m_leadingVehicle", vehicle.m_leadingVehicle);
+            info.Add("m_trailingVehicle", vehicle.m_trailingVehicle);
+            info.Add("Spawned", vehicle.m_flags & Vehicle.Flags.Spawned);
+            info.Add("Flags", vehicle.m_flags);
+            info.Add("Info", vehicle.Info);
+
+            if (vehicle.Info != null)
+            {
+                info.Add("Info.m_isLargeVehicle", vehicle.Info.m_isLargeVehicle);
+            }
+
+            Log.DevDebug(this, "DebugLog", vehicleId, info);
         }
     }
 }

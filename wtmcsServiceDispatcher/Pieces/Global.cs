@@ -33,6 +33,16 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public static uint ClassCheckInterval = 240u;
 
         /// <summary>
+        /// The transfer offers needs cleaning.
+        /// </summary>
+        public static bool TransferOffersCleaningNeeded = false;
+
+        /// <summary>
+        /// The clean transfer offers delay.
+        /// </summary>
+        public static uint CleanTransferOffersDelay = 120u;
+
+        /// <summary>
         /// The current frame.
         /// </summary>
         public static uint CurrentFrame = 0u;
@@ -41,11 +51,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// The demand update delay.
         /// </summary>
         public static uint DemandLingerDelay = 0u;
-
-        /// <summary>
-        /// The wait path stuck delay.
-        /// </summary>
-        public static uint waitPathStuckDelay = 600;
 
         /// <summary>
         /// The garbage truck dispatcher.
@@ -106,6 +111,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// The target de-assign delay.
         /// </summary>
         public static uint TargetLingerDelay = 480u;
+
+        /// <summary>
+        /// The wait path stuck delay.
+        /// </summary>
+        public static uint WaitPathStuckDelay = 600;
 
         /// <summary>
         /// The vehicles.

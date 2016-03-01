@@ -367,23 +367,31 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// Creates the vehicle.
         /// </summary>
         /// <param name="transferType">Type of the transfer.</param>
-        /// <returns>The vehicle identifier.</returns>
-        public ushort CreateVehicle(byte transferType)
+        /// <param name="targetBuildingId">The target building identifier.</param>
+        /// <returns>
+        /// The vehicle identifier.
+        /// </returns>
+        public ushort CreateVehicle(byte transferType, ushort targetBuildingId = 0)
         {
             if (this.VehiclesSpare < 1)
             {
                 return 0;
             }
 
-            ServiceVehicleInfo serviceVehicle = ServiceVehicleInfo.Create(this, (TransferManager.TransferReason)transferType);
+            ServiceVehicleInfo serviceVehicle = ServiceVehicleInfo.Create(this, (TransferManager.TransferReason)transferType, targetBuildingId);
             if (serviceVehicle == null)
             {
                 return 0;
             }
 
             this.VehiclesSpare--;
-            this.VehiclesFree++;
             this.VehiclesMade++;
+
+            if (targetBuildingId == 0)
+            {
+                this.VehiclesFree++;
+            }
+
             this.Vehicles[serviceVehicle.VehicleId] = serviceVehicle;
 
             return serviceVehicle.VehicleId;
