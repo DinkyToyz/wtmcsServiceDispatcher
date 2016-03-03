@@ -178,7 +178,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <returns>True if ambulance is confused.</returns>
         private bool ConfusedAmbulance(ref Vehicle vehicle)
         {
-            // From AmbulanceAI.GetLocalizedStatus at CS v?
+            // From AmbulanceAI.GetLocalizedStatus from original game code at version 1.3.2-f1.
             return (vehicle.m_flags & (Vehicle.Flags.GoingBack | Vehicle.Flags.WaitingTarget)) == Vehicle.Flags.None &&
                    ((vehicle.m_flags & Vehicle.Flags.Emergency2) == Vehicle.Flags.None || vehicle.m_targetBuilding != 0);
         }
