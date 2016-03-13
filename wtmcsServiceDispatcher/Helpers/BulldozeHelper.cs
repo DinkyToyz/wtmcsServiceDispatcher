@@ -37,6 +37,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             try
             {
+                if (Log.LogALot)
+                {
+                    Log.DevDebug(typeof(BulldozeHelper), "BulldozeBuilding", buildingId);
+                }
+
                 Singleton<SimulationManager>.instance.AddAction(deleteBuildingMethod.Call(buildingId));
             }
             catch (Exception ex)

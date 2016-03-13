@@ -531,6 +531,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         if (known)
                         {
                             delta = Global.SimulationTime - stamp;
+
+                            if (Log.LogALot && Log.LogToFile)
+                            {
+                                Log.DevDebug(this, "CategorizeBuildings", "Desolate Building", id, delta);
+                            }
                         }
                         else
                         {
@@ -560,16 +565,22 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <param name="constructing">If set to <c>true</c> object is being constructed.</param>
         private void Initialize(bool constructing)
         {
+            Log.InfoList info = new Log.InfoList();
+            info.Add("constructing", constructing);
+
+            info.Add("DispatchHearses", Global.Settings.DispatchHearses);
             if (Global.Settings.DispatchHearses)
             {
                 if (constructing || this.DeadPeopleBuildings == null)
                 {
+                    info.Add("DeadPeopleBuildings", "new");
                     this.HasDeadPeopleBuildingsToCheck = false;
                     this.DeadPeopleBuildings = new Dictionary<ushort, TargetBuildingInfo>();
                 }
 
                 if (constructing || this.HearseBuildings == null)
                 {
+                    info.Add("HearseBuildings", "new");
                     this.HasDeadPeopleBuildingsToCheck = false;
                     this.HearseBuildings = new Dictionary<ushort, ServiceBuildingInfo>();
                 }
@@ -580,16 +591,19 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 this.HearseBuildings = null;
             }
 
+            info.Add("DispatchGarbageTrucks", Global.Settings.DispatchGarbageTrucks);
             if (Global.Settings.DispatchGarbageTrucks)
             {
                 if (constructing || this.DirtyBuildings == null)
                 {
+                    info.Add("DirtyBuildings", "new");
                     this.HasDirtyBuildingsToCheck = false;
                     this.DirtyBuildings = new Dictionary<ushort, TargetBuildingInfo>();
                 }
 
                 if (constructing || this.GarbageBuildings == null)
                 {
+                    info.Add("GarbageBuildings", "new");
                     this.HasDirtyBuildingsToCheck = false;
                     this.GarbageBuildings = new Dictionary<ushort, ServiceBuildingInfo>();
                 }
@@ -600,10 +614,13 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 this.GarbageBuildings = null;
             }
 
+            info.Add("AutoBulldozeBuildings", Global.Settings.AutoBulldozeBuildings);
+            info.Add("CanBulldoze", BulldozeHelper.CanBulldoze);
             if (Global.Settings.AutoBulldozeBuildings && BulldozeHelper.CanBulldoze)
             {
                 if (this.desolateBuildings == null)
                 {
+                    info.Add("Desolate", "new");
                     this.desolateBuildings = new Dictionary<ushort, double>();
                 }
             }
@@ -611,6 +628,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             {
                 this.desolateBuildings = null;
             }
+
+            Log.Debug(this, "Initialize", info);
         }
 
         /// <summary>

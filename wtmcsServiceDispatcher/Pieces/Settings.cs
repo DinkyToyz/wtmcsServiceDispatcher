@@ -24,7 +24,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// The automatic bulldoze buildings delay.
         /// </summary>
-        public double AutoBulldozeBuildingsDelaySeconds = 10.0 * 60.0;
+        public double AutoBulldozeBuildingsDelaySeconds = 3.0 * 60.0;
 
         /// <summary>
         /// When to create spare garbage trucks.
