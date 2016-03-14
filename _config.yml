@@ -1,2 +1,9 @@
 timezone: Europe/Stockholm
 exclude: [".sln", ".suo"]
+name: Central Services Dispatcher (WtM)
+defaults:
+ -
+  scope:
+   path: ""
+  values:
+   layout: "default"
