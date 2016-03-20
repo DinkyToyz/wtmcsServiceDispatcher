@@ -1,8 +1,6 @@
 ---
 title: Configuration
 ---
-# Configuration
-
 Which services should be dispatched by Central Services can be configured, as can the dispatch strategy, in the mod options in the content manager, or a configuration file.
 
 If no services are set to be dispatch by the mod, it should not affect the game.
@@ -77,4 +75,3 @@ Services are dispatched based on problem magnitude within the strategy rules.
 
 - **Custom**: 
   Custom strategy manually defined in the configuration file.
-
