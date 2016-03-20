@@ -1,0 +1,30 @@
+{% if site.share.navbar_menu %}
+  <li id="tnav-share" class="tnav-item tnav-has-children tnav-allow-hover no-dropdown-arrow"><a href="#">{% include svg/share.svg %}</a>
+    <ul class="tnav-children">
+      {% if site.share.twitter %}
+	      <li class="tnav-item"><a href="http://twitter.com/share?url={{ site.url }}{{ site.baseurl }}{{ page.url }}&text=&raquo;{{ page.title }}&laquo;&via={{ site.socialmedia.twitter }}">Tweet it</a></li>
+      {% endif %}
+      {% if site.share.facebook %}
+	      <li class="tnav-item"><a href="http://www.facebook.com/sharer/sharer.php?u={{ site.url }}{{ site.baseurl }}{{ page.url }}">Facebook</a></li>
+      {% endif %}
+      {% if site.share.pinterest %}
+  	    <li class="tnav-item"><a href="http://pinterest.com/pin/create/button/?url={{ site.url }}{{ site.baseurl }}{{ page.url }}&media={{ site.imageurl | prepend:site.baseurl | prepend:site.url }}/{{ page.image }}&description={{ page.content | truncatewords: 40 | strip_html }}" class="pin-it-button" count-layout="horizontal">Pin It</a></li>
+      {% endif %}
+      {% if site.share.googleplus %}
+	      <li class="tnav-item"><a href="https://plus.google.com/share?url={{ site.url }}{{ site.baseurl }}/{{ page.url }}">Google Plus</a></li>
+      {% endif %}
+      {% if site.share.stumbleupon %}
+	      <li class="tnav-item"><a href="http://www.stumbleupon.com/submit?url={{ site.url }}{{ site.baseurl }}{{ page.url }}&title={{ page.title }}">StumbleUpon</a></li>
+      {% endif %}
+      {% if site.share.reddit %}
+	      <li class="tnav-item"><a href="http://reddit.com/submit?url={{ site.url }}{{ site.baseurl }}{{ page.url }}&title={{ page.title }}">Reddit</a></li>
+      {% endif %}
+      {% if site.share.linkedin %}
+	      <li class="tnav-item"><a href="http://www.linkedin.com/shareArticle?url={{ site.url }}{{ site.baseurl }}/{{ page.url }}&title={{ page.title }}&source={{ site.url }}{{ site.baseurl }}/{{ page.url }}">LinkedIn</a></li>
+      {% endif %}
+      {% if site.share.email %}
+  	    <li class="tnav-item"><a href="mailto:?subject={{ page.title }}&body={{ page.url }}">Email</a></li>
+      {% endif %}
+    </ul>
+  </li>
+{% endif %}

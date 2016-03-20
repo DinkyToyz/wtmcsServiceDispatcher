@@ -1,0 +1,38 @@
+{% comment %}
+*
+*   More Information › https://mathiasbynens.be/notes/touch-icons
+*
+{% endcomment %}
+{% for page in site.pages %}
+  {% assign path = page.path | split:'/' %}
+  {% if path[0] == 'site' and path.last == 'browserconfig.xml' %}
+    <meta name="msapplication-config" content="{{ site.baseurl }}{{ page.path }}" />
+  {% endif %}
+{% endfor %}
+{% for file in site.static_files %}
+  {% assign path = file.path | split:'/' %}
+  {% if path[1] == 'site' and path.last == 'browserconfig.xml' %}
+    <meta name="msapplication-config" content="{{ site.baseurl }}{{ file.path }}" />
+  {% elsif path[1] == 'assets' and path[2] == 'ico' %}
+    {% assign namext = path[3] | split:'.' %}
+    {% assign parts = namext[0] | split:'-' %}
+    {% assign strap = parts | reverse %}
+    {% if namext[1] == 'ico' %}{% assign type = 'vnd.microsoft.icon' %}{% elsif namext[1] == 'jpg' %}{% assign type = 'jpeg' %}{% else %}{% assign type = namext[1] %}{% endif %}
+    {% if parts[0] == 'apple' %}
+      {% if strap[0] == 'precomposed' %}
+        <link rel="apple-touch-icon-precomposed"{% unless strap[1] == 'icon' %} sizes="{{ strap[1] }}"{% endunless %} href="{{ site.baseurl }}{{ file.path }}" />
+        <link rel="icon"{% unless strap[1] == 'icon' %} sizes="{{ strap[1] }}"{% endunless %}{% if type %} type="image/{{ type }}"{% endif %} href="{{ site.baseurl }}{{ file.path }}" />
+      {% else %}
+        <link rel="apple-touch-icon"{% unless strap[0] == 'icon' %} sizes="{{ strap[0] }}"{% endunless %} href="{{ site.baseurl }}{{ file.path }}" />
+        <link rel="icon"{% unless strap[0] == 'icon' %} sizes="{{ strap[0] }}"{% endunless %}{% if type %} type="image/{{ type }}"{% endif %} href="{{ site.baseurl }}{{ file.path }}" />
+      {% endif %}
+    {% elsif parts[0] == 'msapplication' %}
+      <meta name="msapplication-TileImage"{% unless strap[0] == 'tileimage' %} sizes="{{ strap[0] }}"{% endunless %} content="{{ site.baseurl }}{{ file.path }}" />
+      <meta name="msapplication-TileColor" content="{{ site.tile_color }}" />
+    {% elsif namext[1] == 'ico' %}
+      <link rel="shortcut icon"{% unless strap[0] == 'icon' or strap[0] == 'favicon' %} sizes="{{ strap[0] }}"{% endunless %} type="image/x-icon" href="{{ site.baseurl }}{{ file.path }}" />
+    {% else %}
+      <link rel="icon"{% unless strap[0] == 'icon' or strap[0] == 'favicon' %} sizes="{{ strap[0] }}"{% endunless %}{% if type %} type="image/{{ type }}"{% endif %} href="{{ site.baseurl }}{{ file.path }}" />
+    {% endif %}
+  {% endif %}
+{% endfor %}

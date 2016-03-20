@@ -1,5 +1,6 @@
 ---
 layout: compress
+format: archive
 ---
 {% include _1_head.html %}
 
@@ -7,7 +8,17 @@ layout: compress
 
 {% include _3_masthead.html %}
 
-{{ content }}
+<div id="content" class="row">
+	<div class="medium-8 medium-centered columns">
+
+		<h1>{{ page.title }}</h1>
+
+		{{ content }}
+
+    {% include posts-toc %}
+
+	</div>
+</div><!-- /.row -->
 
 {% include _4_footer.html %}
 

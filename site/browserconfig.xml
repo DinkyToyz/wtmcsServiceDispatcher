@@ -1,0 +1,21 @@
+---
+layout: compressxml
+title: "MS Browser Configuration"
+permalink: /site/browserconfig.xml
+#
+# Tile		Name				Img Size	Minimum
+# Small		square70x70logo		128x128		 56x56
+# Medium	square150x150logo	270x270		120x120
+# Wide		wide310x150logo		558x270		248x120
+# Large		square310x310logo	558x558		248x248
+#
+---
+<?xml version="1.0" encoding="utf-8"?>
+<browserconfig>
+  <msapplication>
+    <tile>
+      {% include browserconfig_tiles.xml %}
+      <TileColor>{{ site.tile_color }}</TileColor>
+    </tile>
+  </msapplication>
+</browserconfig>

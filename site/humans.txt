@@ -1,0 +1,28 @@
+---
+layout: null
+title: "Human Resources Information"
+source: "http://humanstxt.org/Standard.html"
+permalink: /site/humans.txt
+---
+/* TEAM */
+{% if site.data.authors %}{% for author in site.data.authors %}{% if author[1].full_name or author[1].name %}
+Name: {% if author[1].full_name %}{{ author[1].full_name }}{% else %}{{ author[1].name }}{% endif %}{% endif %}{% if author[1].role %}
+Role: {{ author[1].role }}{% endif %}{% if author[1].site %}
+Site: {{ author[1].site }}{% endif %}{% if author[1].main %}
+Mail: {{ author[1].mail }}{% endif %}
+{% endfor %}{% elsif site.author %}
+Name: {{ site.author }}{% endif %}
+
+/* THANKS */
+
+Name: Moritz »mo.« Sauer
+Role: Creator of the Simplicity theme
+Site: http://mo.phlow.de/
+Twitter: @phlow
+Theme: https://phlow.github.io/simplicity/
+
+
+/* SITE */
+
+Last Updated: {{ site.time | date:"%Y/%m/%d" }}
+Standards: HTML5, CSS3

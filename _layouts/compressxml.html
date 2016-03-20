@@ -1,0 +1,5 @@
+---
+# Jekyll layout that compresses simple XML.
+# Doesn't remove comments...
+---
+{% if site.compress_xml.ignore.envs contains jekyll.environment %}{{ content }}{% else %}{% capture tab %}{% include c_tab %}{% endcapture %}{% capture lf %}{% include c_lf %}{% endcapture %}{% capture cr %}{% include c_cr %}{% endcapture %}{% assign chars = content | split:'' %}{% assign intag = false %}{% assign intxt = true %}{% assign space = '' %}{% for c in chars %}{% if c == ' ' or c == tab %}{% if space == '' %}{% assign space = ' ' %}{% endif %}{% elsif c == lf or c == cr %}{% assign space = lf %}{% else %}{% if intag and c == '>' %}{% assign intag = false %}{% assign intxt = true %}{{ c }}{% elsif intxt and c == '<' %}{% assign intag = true %}{% assign intxt = false %}{% if space == lf %}{{ lf }}{% endif %}{{ c }}{% else %}{{ space }}{{ c }}{% endif %}{% assign space = '' %}{% endif %}{% endfor %}{% endif %}

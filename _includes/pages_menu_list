@@ -1,0 +1,46 @@
+{% comment %} Collect pages into a menu navigationmlist. {% endcomment %}
+
+{% assign pathlen = include.path | size %}
+{% assign navpages = '' | split:'|' %}
+
+{% for navpage in site.pages %}
+  {% unless navpage.path == page.path %}
+    {% assign navpath = navpage.path | slice:0,pathlen %}
+    {% unless include.hide_for_path and navpath == include.path %}
+      {% if include.menu_tag %}
+        {% if navpage.[include.menu_tag] %}
+          {% assign navpages = navpages | push:navpage %}
+        {% endif %}
+      {% elsif navpage.title %}
+        {% if navpath == include.path %}
+          {% assign navpages = navpages | push:navpage %}
+        {% endif %}
+      {% endif %}
+    {% endunless %}
+  {% endunless %}
+{% endfor %}
+
+{% if include.menu_tag %}
+  {% assign navpages = navpages | sort:include.menu_tag %}
+{% else %}
+  {% assign navpages = navpages | sort:'title' %}
+{% endif %}
+  
+{% for navpage in navpages %}
+  {% if include.menu_tag and navpage.menu_title %}
+    {% assign navtitle = navpage.menu_title %}
+  {% elsif navpage.title %}
+    {% assign navtitle = navpage.title %}
+  {% else %}
+    {% assign navsplit = navpage.path | split:"/" %}
+    {% assign navtitle = navsplit | last %}
+    {% assign splittit = navtitle | split:"." %}
+    {% capture navtitle %}{% for part in splittit %}{% if forloop.first %}{{ part }}{% elsif forloop.last %}{% else %}{{ part }} {% endif %}{% endfor %}{% endcapture %}
+    {% assign navtitle = navtitle | replace:'_',' ' | capitalize %}
+  {% endif %}
+  {% assign liclass = 'tnav-item' %}
+  {% if include.menu_tag and navpage.menu_hide %}{% assign liclass = liclass | append:' tnav-hide'  %}{% endif %}
+  {% if need_divider or include.need_divider %}{% if forloop.first %}{% assign liclass = liclass | append:' tnav-item-first-in-section' %}{% endif %}{% endif %}
+  <li{% unless include.no_class %} class="{{ liclass }}"{% endunless %}><a href="{{ site.baseurl }}{{ navpage.url }}">{{ navtitle }}</a></li>
+  {% assign need_divider = true %}
+{% endfor %}

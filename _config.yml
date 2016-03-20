@@ -1,9 +1,169 @@
-timezone: Europe/Stockholm
-exclude: [".sln", ".suo"]
+# Title and description of your site
+title: Central Services Dispatcher (WtM)
 name: Central Services Dispatcher (WtM)
+description: "Dispatches Cities: Skylines services."
+current_version: 1.0
+current_url: /docs/1.0/
+author: jonas
+
+# Build settings
+url: https://dinkytoyz.github.io
+baseurl: /wtmcsServiceDispatcher
+imageurl: /images
+archiveurl: /blog/archive.html
+blogurl: /blog/
+searchurl: /site/search
+#permalink: /:categories/:title/
+#permalink: /:year/:month/:title
+permalink: /blog/:year/:month:day-:hour:minute:second-:slug
+github: DinkyToyz/wtmcsServiceDispatcher
+safe: true
+encoding: utf-8
+highlighter: rouge
+markdown: kramdown
+#paginate: 5
+
+# Blogindex-Layout-Settings
+# Define how many posts should be shown with headline, teaser, image, video
+posts_with_teaser_limit: 1
+# Define how many posts should be shown in the list beneath the post(s)
+posts_list_limit: 15
+# Define how many posts should be shown in the list beneath a page
+posts_on_page_limit: 5
+
+# Use <!--more--> in your posts to generate an excerpt and a teaser
+excerpt_separator: <!--more-->
+
+# The language setting is used in /includes/header.html for html-settings
+language: "en"
+timezone: Europe/Stockholm
+
+gems:
+  - jekyll-gist
+  - jekyll-sitemap
+  - jekyll-paginate
+
+
+# Exclude these files from your production _site
+exclude:
+  - serve.cmd
+  - build.cmd
+  - .sass-cache
+  - Gemfile
+  - Gemfile.lock
+  - README.md
+  - INSTALL.md
+  - LICENSE
+
+# Used › default.html front-matter and compress.html
+# Options › http://jch.penibelst.de
+compress_html:
+  clippings: all
+  comments: ["<!-- ", " -->"]
+  endings: all
+  profile: false
+  ignore:
+    envs: [development]
+
+#compress_xml:
+#  ignore:
+#    envs: [development]
+
 defaults:
- -
-  scope:
-   path: ""
-  values:
-   layout: "default"
+  -
+    scope:
+      path: ''
+      type: pages
+    values:
+      is_page: true
+      layout: page
+      show_meta: true
+      comments: false
+  -
+    scope:
+      path: ''
+      type: posts
+    values:
+      is_post: true
+      layout: page
+      show_meta: true
+      comments: false
+
+# Verify Website to Webmaster Tools
+#google_site_verification: '...'
+#bing_webmastertools_id: ''
+#alexa_verify_id: ''
+
+tile_color: '#060607'
+
+# More › http://sass-lang.com/
+# More › http://jekyllrb.com/docs/assets/#sassscss
+sass:
+  sass_dir: _sass
+  style: :compressed
+
+kramdown:
+  input: GFM
+  hard_wrap: true
+
+# used in _includes/comments
+#disqus_shortname:
+
+# https://www.google.com/analytics/
+# used in _includes/_4_footer_scripts
+#google_analytics_tracking_id: 
+
+# If you have social media-profiles put your username here.
+# Facebook and Twitter will be used in includes/_1_head.html
+# To inject some meta-data other services will be used in
+# _/includes/_4_footer.html.
+
+socialmedia:
+  #youtube: ...
+  github: DinkyToyz
+  #twitter: ...
+  #facebook: ...
+  #soundcloud: ...
+  #tumblr: ...
+  #instagram: ...
+  #rss: # Full URL needed
+
+search:
+  navbar_menu: false
+  notfound: false
+
+share:
+  navbar_menu: false
+  twitter: true
+  facebook: true
+  pinterest: true
+  googleplus: true
+  stumbleupon: true
+  reddit: true
+  linkedin: true
+  email: true
+
+# To translate *Simplicity* just edit the following data.
+# The theme uses for example {{ site.language.read_more }} in
+# the layout templates to fill in the according information
+# given beneath.
+language:
+  html_language:                           'en'      # The language setting is used in /includes/header.html for html-settings
+  read_more:                               'Read more ›'
+  show_all_articles:                       'Show All Updates ›'
+  visit_frontpage:                         'Visit the frontpage'
+  comments_headline:                       'Comments'
+  enable_disqus:                           'Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a>'
+  search:                                  'Search'
+  search_input_placeholder:                'Search [Hit Tab and start writing]'
+  written_by:                              ''
+  articles:                                'Updates'
+  more_articles:                           'More Updates ›'
+  follow_me_on:                            'Follow me at'
+  # More on Accesskeys › http://www.cs.tut.fi/~jkorpela/forms/accesskey.html
+  navigation_search:                       'Press Accesskey [4] for Search'
+  navigation_menu:                         'Press Accesskey [6] for Navigation Menu'
+  navigation_home:                         'Press Accesskey [1] for Homepage'
+  subscribe_to_my_rss_feed:                'Subscribe to my RSS Feed'
+  if_you_are_not_redirected_automatically: 'If you are not redirected automatically'
+  click_here:                              'click here'

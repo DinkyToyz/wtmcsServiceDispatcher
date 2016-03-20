@@ -1,0 +1,19 @@
+{% for file in site.static_files %}
+  {% assign path = file.path | split:'/' %}
+  {% if path[1] == 'assets' and path[2] == 'browserconfig' %}
+    {% assign namext = path[3] | split:'.' %}
+    {% if namext[1] == 'png' %}
+      {% assign tile = namext[0] %}
+      {% if namext[0] == 'small' or namext[0] == 'smalltile' %}
+        {% assign tile = 'square70x70logo' %}
+      {% elsif namext[0] == 'medium' or namext[0] == 'mediumtile' %}
+        {% assign tile = 'square150x150logo' %}
+      {% elsif namext[0] == 'large' or namext[0] == 'largetile' %}
+        {% assign tile = 'square310x310logo' %}
+      {% elsif namext[0] == 'wide' or namext[0] == 'widetile' %}
+        {% assign tile = 'square310x150logo' %}
+      {% endif %}
+      <{{ tile }} src="{{ site.baseurl }}{{ file.path }}" />
+    {% endif %}
+  {% endif %}
+{% endfor %}

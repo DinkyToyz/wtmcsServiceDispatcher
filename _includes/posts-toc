@@ -1,0 +1,25 @@
+{% comment %}{% endcomment %}
+
+{% if include.offset %}{% assign offset=include.offset %}{% else %}{% assign offset=0 %}{% endif %}
+{% if include.limit %}{% assign limit=include.limit %}{% else %}{% assign limit=999999 %}{% endif %}
+
+{% for post in site.posts limit:limit offset:offset %}
+
+  {% if forloop.first %}
+    {% if include.header %}<h2>{{ include.header }}</h2>{% endif %}
+    <ul class="toc">
+  {% endif %}
+
+  <li><a href="{{ site.url }}{{ site.baseurl }}{{ post.url }}">{% if post.subheadline %}<span>{{ post.subheadline }}</span>{% endif %}{{ post.title }}</a></li>
+
+  {% if forloop.last %}
+    {% if include.link_to_archive %}
+      <li class="text-right archive-link"><a href="{{ site.url }}{{ site.baseurl }}{{ site.archiveurl }}">{{ site.language.show_all_articles }}</a></li>
+    {% endif %}
+    {% if include.link_to_blog %}
+      <li class="text-right archive-link"><a href="{{ site.url }}{{ site.baseurl }}{{ site.blogurl }}">{{ site.language.more_articles }}</a></li>
+    {% endif %}
+    </ul>
+  {% endif %}
+
+{% endfor %}

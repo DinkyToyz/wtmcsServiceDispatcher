@@ -1,0 +1,86 @@
+/* Color Variables
+-------------------------------------------------------------------
+
+- Corporate Identity Colorpalette
+- Alerts
+- Grey Scale
+- Basics
+- Code
+
+*/
+
+
+/* Base Colorpalette
+------------------------------------------------------------------- */
+
+$wtmcsblack:  		#060607;
+$wtmcsbright: 		#01b9ff;
+$wtmcsmedium: 		#0a5486;
+$wtmcsdark:   		#114069;
+$wtmcswhite:  		#91d8ff;
+
+$wtmcsmilddark:		#103474;
+$wtmcsmild:		#2c6bad;
+$wtmcsmildlight:	#368cd0;
+
+
+/* Corporate Identity Colorpalette
+------------------------------------------------------------------- */
+
+$ci-1: $wtmcsbright;	// is used as the primary branding color – for example for links.
+$ci-2: $wtmcsdark;	// is used as the secondary branding color.
+$ci-3: $wtmcsmedium;	// ?
+$ci-4: $wtmcsblack;	// Code background.
+
+
+/* Alerts
+------------------------------------------------------------------- */
+
+$alert-color:   #aa0132;
+$success-color: #6a9519;
+$warning-color: #e05a10;
+$info-color:    #0085ba;
+
+$box_bright:	#fff;
+$box_dark:	#000;
+
+
+/* Grey Scale
+------------------------------------------------------------------- */
+
+$grey-color:       $wtmcsmedium;
+$grey-color-light: $wtmcsmilddark;
+$grey-color-dark:  $wtmcsmildlight;
+
+
+/* Dark and bright stuff
+------------------------------------------------------------------- */
+
+$mix_bright:	#fff;
+$mix_dark:	#000;
+$mark_bright:	#ff0;
+$mark_dark:	#000;
+
+
+/* Basics
+------------------------------------------------------------------- */
+
+$text-color:			$wtmcsmild;
+$background-color: 		$wtmcsblack;
+// Following Color used for .toc, a:visted;
+$background-light-color:	$wtmcsdark;
+$line-color:			$wtmcsdark;
+
+
+
+/* Topbar Navigation
+------------------------------------------------------------------- */
+
+$topbar-navigation-background-color:	$background-color;
+$topbar-navigation-border-bottom:	1px solid $line-color;
+
+
+/* Footer (Meta and Site-Footer)
+------------------------------------------------------------------- */
+
+$footer-color: $wtmcsdark;

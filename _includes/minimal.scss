@@ -1,0 +1,30 @@
+@import "01_colors/_00_colors.scss";
+
+body { 
+  color: $text-color;
+  background-color: $background-color;
+}
+
+a,
+a:link {
+    color: $ci-1;
+    text-decoration: none;
+    border-bottom: 2px solid $ci-1;
+}
+
+a:visited {
+    border-bottom: $background-light-color;
+}
+
+a:hover {
+    color: darken( $ci-1, 10% );
+    border-bottom: 4px solid $ci-1;
+}
+
+a:focus {
+    color: lighten( $ci-1, 20% );
+}
+
+a:active {
+    color: darken( $ci-1, 20% );
+}

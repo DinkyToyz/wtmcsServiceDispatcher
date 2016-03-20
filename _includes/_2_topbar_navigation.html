@@ -1,0 +1,42 @@
+{% assign splitpath = page.path | split:"/" %}
+{% capture path %}{% for part in splitpath %}{% unless forloop.last %}{{ part }}/{% endunless %}{% endfor %}{% endcapture %}
+{% assign pathtop = splitpath[0] %}
+
+<nav id="tnav" class="tnav-horizontal">
+  <ul class="tnav-list">
+
+    {% if site.data.navigation_topbar %}
+      <li id="tnav-logo" class="tnav-item tnav-has-children tnav-allow-hover no-dropdown-arrow"><a href="{{ site.baseurl }}/" accesskey="1">{{ site.name }}</a>
+        <ul class="tnav-children">
+          {% include pages_menu_list menu_tag='top_menu' %}
+          {% include data_menu_list list='navigation_topbar' %}
+        </ul>
+      </li>
+    {% else %}
+      <li id="tnav-logo" class="tnav-item tnav-allow-hover no-dropdown-arrow"><a href="{{ site.baseurl }}/" accesskey="1">{{ site.name }}</a></li>
+    {% endif %}
+
+    {% if site.search.navbar_menu %}
+      <li id="tnav-search" class="tnav-item"><a href="{{ site.baseurl }}{{ site.searchurl }}">{% include svg/search.svg %}</a></li>
+    {% endif %}
+
+    {% include share_menu_list.html %}
+
+    <li id="tnav-menu" class="tnav-item tnav-has-children tnav-allow-hover"><a href="#">Navigation</a>
+      <ul class="tnav-children">
+        {% assign need_divider = false %}
+
+        {% include data_menu_list list='navigation_navbar' %}
+
+        {% if pathtop == 'docs' or pathtop == 'blog' %}
+          {% include pages_menu_list path=path %}
+        {% endif %}
+
+        {% assign hideforpath = false %}{% if pathtop == 'docs' or pathtop == 'blog' %}{% assign hideforpath = true %}{% endif %}
+        {% include pages_menu_list menu_tag='navigation_menu' path=path hide_for_path=hideforpath %}
+      </ul>
+    </li>
+
+  </ul>
+</nav>
+

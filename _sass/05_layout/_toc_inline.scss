@@ -1,0 +1,45 @@
+/* Table of Contents (Page)
+------------------------------------------------------------------- */
+
+ul.inlinetoc:before  {
+  content: "Table of Contents";
+  font-family: $header-font-family;
+  font-weight: $font-weight-normal;
+  padding: 0;
+  text-transform: uppercase;
+  font-weight: $font-weight-bold;
+  letter-spacing: 1px;
+  margin-top: 0;
+  display: block;
+}
+
+ul.inlinetoc  {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-family: $header-font-family;
+  font-size: 60%;
+  border-top: 1px solid $line-color;
+  border-bottom: 1px solid $line-color;
+}
+
+ul.inlinetoc ul {
+  list-style: none;
+}
+
+ul.inlinetoc li a {
+  border: 0;
+  display: block;
+  -webkit-transition: all .15s cubic-bezier(.33,.66,.66,1);
+  transition: all .15s cubic-bezier(.33,.66,.66,1);
+}
+
+ul.inlinetoc li {
+ -webkit-transition: all .15s cubic-bezier(.33,.66,.66,1);
+ transition: all .15s cubic-bezier(.33,.66,.66,1);
+}
+
+ul.inlinetoc li:hover {
+  padding-left: .25em;
+}
+

@@ -6,6 +6,7 @@
 *.user
 *.sln.docstates
 _site/
+.jekyll-metadata
 
 # Build results
 [Dd]ebug/

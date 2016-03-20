@@ -1,0 +1,5 @@
+- type: application/rss+xml
+  url: /site/feed.xml
+
+- type: application/atom+xml
+  url: /site/atom.xml
