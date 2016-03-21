@@ -1,4 +1,4 @@
-{% comment %} Collect pages into a menu navigationmlist. {% endcomment %}
+{% comment %} Collect pages into a menu navigationlist. {% endcomment %}
 
 {% assign pathlen = include.path | size %}
 {% assign navpages = '' | split:'|' %}
@@ -27,22 +27,24 @@
 {% endif %}
   
 {% for navpage in navpages %}
-  {% if include.menu_tag and navpage.menu_title %}
-    {% assign navtitle = navpage.menu_title %}
-  {% elsif navpage.title %}
-    {% assign navtitle = navpage.title %}
-  {% else %}
-    {% assign navsplit = navpage.path | split:"/" %}
-    {% assign navtitle = navsplit | last %}
-    {% assign splittit = navtitle | split:"." %}
-    {% capture navtitle %}{% for part in splittit %}{% if forloop.first %}{{ part }}{% elsif forloop.last %}{% else %}{{ part }} {% endif %}{% endfor %}{% endcapture %}
-    {% assign navtitle = navtitle | replace:'_',' ' | capitalize %}
-  {% endif %}
-  {% assign liclass = 'tnav-item' %}
-  {% if include.menu_tag and navpage.menu_hide %}{% assign liclass = liclass | append:' tnav-hide'  %}{% endif %}
-  {% if need_divider or include.need_divider %}{% if forloop.first %}{% assign liclass = liclass | append:' tnav-item-first-in-section' %}{% endif %}{% endif %}
   {% assign url = navpage.url %}
   {% if navpage.menu_url %}{% assign url = navpage.menu_url | replace:'[current_url]',site.current_url %}{% endif %}
-  <li{% unless include.no_class %} class="{{ liclass }}"{% endunless %}><a href="{{ site.baseurl }}{{ url }}">{{ navtitle }}</a></li>
-  {% assign need_divider = true %}
+  {% unless include.hide_for_path and url == page.url %}
+    {% if include.menu_tag and navpage.menu_title %}
+      {% assign navtitle = navpage.menu_title %}
+    {% elsif navpage.title %}
+      {% assign navtitle = navpage.title %}
+    {% else %}
+      {% assign navsplit = navpage.path | split:"/" %}
+      {% assign navtitle = navsplit | last %}
+      {% assign splittit = navtitle | split:"." %}
+      {% capture navtitle %}{% for part in splittit %}{% if forloop.first %}{{ part }}{% elsif forloop.last %}{% else %}{{ part }} {% endif %}{% endfor %}{% endcapture %}
+      {% assign navtitle = navtitle | replace:'_',' ' | capitalize %}
+    {% endif %}
+    {% assign liclass = 'tnav-item' %}
+    {% if include.menu_tag and navpage.menu_hide %}{% assign liclass = liclass | append:' tnav-hide'  %}{% endif %}
+    {% if need_divider or include.need_divider %}{% if forloop.first %}{% assign liclass = liclass | append:' tnav-item-first-in-section' %}{% endif %}{% endif %}
+    <li{% unless include.no_class %} class="{{ liclass }}"{% endunless %}><a href="{{ site.baseurl }}{{ url }}">{{ navtitle }}</a></li>
+    {% assign need_divider = true %}
+  {% endunless %}
 {% endfor %}

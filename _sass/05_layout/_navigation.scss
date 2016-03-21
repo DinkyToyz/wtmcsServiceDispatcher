@@ -20,24 +20,29 @@ devices. You find it in _sass/_layout/_layout_media_queries.scss
   background: $background-color;
   opacity: .9;
 }
+
 .tnav-list,
 .tnav-item {
   position: relative;
   height: 3em;
 }
+
 .tnav-list {
   list-style: none;
   margin: 0;
   padding: 0;
 }
+
 .tnav-item {
   padding: 0;
   margin: 0;
   height: 100%;
 }
+
 #tnav li {
   line-height: 2;
 }
+
 #tnav a {
   display: block;
   text-decoration: none;
@@ -45,16 +50,19 @@ devices. You find it in _sass/_layout/_layout_media_queries.scss
   padding: .5em 2em .5em 2em;
   border: 0;
 }
+
 #tnav a:hover {
   border: 0;
   color: $ci-2;
   background: $ci-1;
 }
+
 .tnav-list {
   display: inline-block;
   width: 100%;
   white-space: nowrap;
 }
+
 /* Initial menus should be inline-block so that they are horizontal */
 .tnav-horizontal .tnav-item,
 .tnav-horizontal .tnav-heading,
@@ -64,25 +72,43 @@ devices. You find it in _sass/_layout/_layout_media_queries.scss
   zoom: 1;
   vertical-align: middle;
 }
+
 /* Submenus should still be display: block; */
 .tnav-item .tnav-item {
   display: block;
 }
+
 .tnav-children {
   display: none;
   position: absolute;
-  left: 100%;
   top: 0;
   margin: 0;
   padding: 0;
   z-index: 3;
   background: $line-color;
 }
+
+.tnav-left .tnav-children {
+  left: 100%;
+}
+
+.tnav-right .tnav-children {
+  right: 100%;
+}
+
 .tnav-horizontal .tnav-children {
-  left: 0;
   top: auto;
   width: inherit;
 }
+
+.tnav-horizontal .tnav-left .tnav-children {
+  left: 0;
+}
+
+.tnav-horizontal .tnav-right .tnav-children {
+  right: 0;
+}
+
 .tnav-allow-hover:hover > .tnav-children,
 .tnav-active > .tnav-children {
   display: block;
@@ -112,20 +138,24 @@ devices. You find it in _sass/_layout/_layout_media_queries.scss
 .no-dropdown-arrow > a:after {
   content: "" !important;
 }
+
 #tnav-search,
 #tnav-share,
 #tnav-menu {
   float: right;
 }
+
 #tnav-menu > a {
   color: $line-color;
 }
+
 #tnav-share a,
 #tnav-search a {
   display: block;
   line-height: 1.5;
   padding: .65em 1em .5em 1em;
 }
+
 #tnav-share svg,
 #tnav-search svg {
   width: 1.5em;

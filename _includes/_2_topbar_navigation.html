@@ -6,7 +6,7 @@
   <ul class="tnav-list">
 
     {% if site.data.navigation_topbar %}
-      <li id="tnav-logo" class="tnav-item tnav-has-children tnav-allow-hover no-dropdown-arrow"><a href="#" accesskey="1">{{ site.name }}</a>
+      <li id="tnav-logo" class="tnav-item tnav-has-children tnav-allow-hover no-dropdown-arrow tnav-left"><a href="#" accesskey="1">{{ site.name }}</a>
         <ul class="tnav-children">
           {% include pages_menu_list menu_tag='top_menu' %}
           {% include data_menu_list list='navigation_topbar' %}
@@ -22,17 +22,21 @@
 
     {% include share_menu_list.html %}
 
-    <li id="tnav-menu" class="tnav-item tnav-has-children tnav-allow-hover"><a href="#">Navigation</a>
+    <li id="tnav-menu" class="tnav-item tnav-has-children tnav-allow-hover tnav-right"><a href="#">Navigation</a>
       <ul class="tnav-children">
         {% assign need_divider = false %}
+        {% assign hideforpath = false %}
 
         {% include data_menu_list list='navigation_navbar' %}
 
-        {% if pathtop == 'docs' or pathtop == 'blog' %}
+        {% if pathtop == 'docs' and splitpath.size > 2 %}
           {% include pages_menu_list path=path %}
+          {% assign hideforpath = true %}
+        {% elsif pathtop == 'blog' %}
+          {% include pages_menu_list path=path %}
+          {% assign hideforpath = true %}
         {% endif %}
 
-        {% assign hideforpath = false %}{% if pathtop == 'docs' or pathtop == 'blog' %}{% assign hideforpath = true %}{% endif %}
         {% include pages_menu_list menu_tag='navigation_menu' path=path hide_for_path=hideforpath %}
       </ul>
     </li>
