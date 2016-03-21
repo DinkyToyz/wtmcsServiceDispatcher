@@ -10,7 +10,13 @@
     <ul class="toc">
   {% endif %}
 
-  <li><a href="{{ site.url }}{{ site.baseurl }}{{ post.url }}">{% if post.subheadline %}<span>{{ post.subheadline }}</span>{% endif %}{{ post.title }}</a></li>
+  <li>
+    <a href="{{ site.url }}{{ site.baseurl }}{{ post.url }}">
+      {% if post.subheadline %}<span>{{ post.subheadline }}</span>{% endif %}
+      {{ post.title }}
+      {% if post.date %}<span class="visible">({{ post.date | date:'%Y-%m-%d' }})</span>{% endif %}
+    </a>
+  </li>
 
   {% if forloop.last %}
     {% if include.link_to_archive %}

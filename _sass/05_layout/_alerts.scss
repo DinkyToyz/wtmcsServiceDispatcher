@@ -1,4 +1,4 @@
-/* Alerts
+﻿/* Alerts
 ------------------------------------------------------------------- */
 
 .alert-box {
@@ -59,7 +59,8 @@
 .alert-box.warning::before,
 .alert-box.alert::before,
 .alert-box.info::before,
-.alert-box.success::before {
+.alert-box.success::before,
+.alert-box.text::before {
   margin-left: -1em;
   font-size: 2em;
   line-height: .75em;
@@ -93,3 +94,7 @@
   color: $success-color;
 }
 
+.alert-box.text::before {
+  content: "›";
+  color: $grey-color-light;
+}

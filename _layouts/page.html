@@ -8,6 +8,20 @@ format: page
       <meta content="{{ site.language.html_language }}" itemprop="inLanguage" />
       <header>
 
+        {% assign pagepath = page.path | split:'/' %}
+        {% if pagepath[0] == 'docs' and pagepath.size > 2 %}
+          {% assign docpath = pagepath[0] | append:'/' | append:pagepath[1] | append:'/' | prepend:'/' %}
+          {% unless docpath == site.current_url %}
+            {% assign verver = pagepath[1] | split:'.' %}
+            {% if verver.size == 2 %}
+              {% assign current_link = site.language.current_link | replace:'[current_version]',site.current_version %}
+              {% capture current_href %}<a href="{{ site.baseurl }}{{ site.current_url }}">{{ current_link }}</a>{% endcapture %}
+              {% assign text = site.language.not_current_version | replace:'[current_link]',current_href %}
+              {% include alert text=text %}
+            {% endif %}
+          {% endunless %}
+        {% endif %}
+        
         {% include _video_embed.html %}
 
         {% if page.video or page.embed %}

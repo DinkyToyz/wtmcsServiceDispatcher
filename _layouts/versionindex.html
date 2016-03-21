@@ -1,0 +1,46 @@
+---
+layout: compress
+format: versionindex
+---
+{% include _1_head.html %}
+
+{% include _2_topbar_navigation.html %}
+
+{% include _3_masthead.html %}
+
+<main role="main" id="content" class="row">
+  <div class="medium-8 medium-centered columns">
+
+		<h1>{{ page.title }}</h1>
+
+    {{ content }}
+
+    <ul class="toc">
+      {% assign pages = site.pages | sort:'path' %}
+      {% for page in pages %}
+        {% assign pagepath = page.path | split:'/' %}
+        {% if pagepath[0] == 'docs' and pagepath.last == 'index.md' and pagepath.size == 3 %}
+          {% assign verver = pagepath[1] | split:'.' %}
+          {% if verver.size == 2 %}
+            {% assign verpath = '/' | append:pagepath[0] | append:'/' | append:pagepath[1] | append:'/' %}
+            {% assign info = '' %}
+            {% if page.date %}{% assign info = page.date | date:'%Y-%m-%d' %}{% endif %}
+            {% if verpath == site.current_url %}{% if info %}{% assign info = info | append:', ' %}{% endif %}{% assign info = info | append:site.language.current_mark %}{% endif %}
+            <li><a href="{{ site.baseurl }}{{ verpath }}">
+              {{ pagepath[1] }}
+              {% if info %}{% unless info == '' %}<span class="visible">({{ info }})</span>{% endunless %}{% endif %}
+            </a></li>  
+          {% endif %}
+        {% endif %}
+      {% endfor %}
+    </ul>
+
+  </div>
+</main><!-- /#content/.row -->
+
+{% include _4_footer.html %}
+
+{% include _5_footer_scripts.html %}
+
+</body>
+</html>

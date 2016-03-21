@@ -1,8 +1,8 @@
 ---
 layout: archive
-title: Archive
+title: Updates Archive
 ---
-Welcome to the archive! There are {% include post-count %} updates here.
+
 
 
 

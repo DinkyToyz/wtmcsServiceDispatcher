@@ -11,6 +11,9 @@ format: blogindex
 <main role="main" id="content" class="row">
     <div class="medium-8 medium-centered columns">
 
+		<h1>{{ page.title }}</h1>
+
+    {{ content }}
 
     {% for post in site.posts limit:site.posts_with_teaser_limit %}
 
@@ -75,7 +78,6 @@ format: blogindex
 
       {% include posts-toc header=site.language.more_articles limit=site.posts_list_limit offset=site.posts_with_teaser_limit link_to_archive=true %}
 
-        {{ content }}
     </div>
 </main><!-- /#content/.row -->
 

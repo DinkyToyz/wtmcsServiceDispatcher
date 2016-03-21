@@ -63,3 +63,7 @@ ul.toc li:hover {
   padding-left: .25em;
 }
 
+ul.toc a span.visible {
+  display: inline;
+  color: $text-color;
+}

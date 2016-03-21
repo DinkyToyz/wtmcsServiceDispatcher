@@ -1,7 +1,6 @@
 ---
 title: General Info
 subheadline: version 1.1
-navigation_menu: I100100
 menu_title: 1.1
 ---
 ## Purpose

@@ -167,3 +167,6 @@ language:
   subscribe_to_my_rss_feed:                'Subscribe to my RSS Feed'
   if_you_are_not_redirected_automatically: 'If you are not redirected automatically'
   click_here:                              'click here'
+  not_current_version:                     'Please see [current_link] for the current release.'
+  current_link:                            'version [current_version]'
+  current_mark:                            'current release'

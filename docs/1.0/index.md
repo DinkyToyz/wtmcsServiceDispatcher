@@ -2,7 +2,6 @@
 date: 2016-03-18
 title: Central Services Dispatcher (WtM)
 subheadline: version 1.0
-navigation_menu: I100000
 menu_title: 1.0
 ---
 {: #toc }

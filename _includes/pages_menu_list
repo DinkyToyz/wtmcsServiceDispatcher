@@ -41,6 +41,8 @@
   {% assign liclass = 'tnav-item' %}
   {% if include.menu_tag and navpage.menu_hide %}{% assign liclass = liclass | append:' tnav-hide'  %}{% endif %}
   {% if need_divider or include.need_divider %}{% if forloop.first %}{% assign liclass = liclass | append:' tnav-item-first-in-section' %}{% endif %}{% endif %}
-  <li{% unless include.no_class %} class="{{ liclass }}"{% endunless %}><a href="{{ site.baseurl }}{{ navpage.url }}">{{ navtitle }}</a></li>
+  {% assign url = navpage.url %}
+  {% if navpage.menu_url %}{% assign url = navpage.menu_url | replace:'[current_url]',site.current_url %}{% endif %}
+  <li{% unless include.no_class %} class="{{ liclass }}"{% endunless %}><a href="{{ site.baseurl }}{{ url }}">{{ navtitle }}</a></li>
   {% assign need_divider = true %}
 {% endfor %}
