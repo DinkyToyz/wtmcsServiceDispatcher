@@ -33,11 +33,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public static uint ClassCheckInterval = 240u;
 
         /// <summary>
-        /// The transfer offers needs cleaning.
-        /// </summary>
-        public static bool TransferOffersCleaningNeeded = false;
-
-        /// <summary>
         /// The clean transfer offers delay.
         /// </summary>
         public static uint CleanTransferOffersDelay = 120u;
@@ -71,6 +66,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// The minimum object update interval.
         /// </summary>
         public static uint ObjectUpdateInterval = 120u;
+
+        /// <summary>
+        /// The recall confused delay.
+        /// </summary>
+        public static uint RecallConfusedDelay = 32;
 
         /// <summary>
         /// The delay before unused vehicles are recalled to service building.
@@ -111,6 +111,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// The target de-assign delay.
         /// </summary>
         public static uint TargetLingerDelay = 480u;
+
+        /// <summary>
+        /// The transfer offers needs cleaning.
+        /// </summary>
+        public static bool TransferOffersCleaningNeeded = false;
 
         /// <summary>
         /// The wait path stuck delay.
