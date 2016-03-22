@@ -25,14 +25,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         private Dispatcher.DispatcherTypes dispatcherType = Dispatcher.DispatcherTypes.None;
 
         /// <summary>
-        /// The last info update stamp.
-        /// </summary>
-        private uint lastInfoUpdate = 0;
-
-        /// <summary>
         /// The last capacity update stamp.
         /// </summary>
         private uint lastCapacityUpdate = 0;
+
+        /// <summary>
+        /// The last info update stamp.
+        /// </summary>
+        private uint lastInfoUpdate = 0;
 
         /// <summary>
         /// The last update stamp.
@@ -153,6 +153,18 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// The capacity maximum.
         /// </value>
         public int CapacityMax
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// Gets or the capacity overflow.
+        /// </summary>
+        /// <value>
+        /// The capacity overflow.
+        /// </value>
+        public int CapacityOverflow
         {
             get;
             private set;
@@ -309,18 +321,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
-        /// Gets or the capacity overflow.
-        /// </summary>
-        /// <value>
-        /// The capacity overflow.
-        /// </value>
-        public int CapacityOverflow
-        {
-            get;
-            private set;
-        }
-
-        /// <summary>
         /// Creates the vehicle.
         /// </summary>
         /// <param name="transferType">Type of the transfer.</param>
@@ -425,7 +425,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 this.lastCapacityUpdate = Global.CurrentFrame;
             }
 
-            this.CanReceive = (building.m_flags & (Building.Flags.CapacityFull | Building.Flags.Downgrading | Building.Flags.Demolishing | Building.Flags.Deleted | Building.Flags.BurnedDown)) == Building.Flags.None &&
+            this.CanReceive = (building.m_flags & (Building.Flags.CapacityFull | Building.Flags.Downgrading | Building.Flags.Demolishing | Building.Flags.Deleted | Building.Flags.Hidden | Building.Flags.BurnedDown)) == Building.Flags.None &&
                               (building.m_flags & (Building.Flags.Created | Building.Flags.Completed)) == (Building.Flags.Created | Building.Flags.Completed) &&
                               (building.m_problems & (Notification.Problem.Emptying | Notification.Problem.LandfillFull | Notification.Problem.RoadNotConnected | Notification.Problem.TurnedOff | Notification.Problem.FatalProblem)) == Notification.Problem.None &&
                               this.CapacityFree > 0 && !building.Info.m_buildingAI.IsFull(this.BuildingId, ref building);

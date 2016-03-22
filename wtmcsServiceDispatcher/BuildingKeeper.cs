@@ -430,7 +430,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             for (ushort id = firstBuildingId; id < lastBuildingId; id++)
             {
-                if (buildings[id].Info == null || (buildings[id].m_flags & Building.Flags.Created) == Building.Flags.None || (buildings[id].m_flags & (Building.Flags.Abandoned | Building.Flags.BurnedDown | Building.Flags.Deleted)) != Building.Flags.None)
+                if (buildings[id].Info == null || (buildings[id].m_flags & Building.Flags.Created) == Building.Flags.None || (buildings[id].m_flags & (Building.Flags.Abandoned | Building.Flags.BurnedDown | Building.Flags.Deleted | Building.Flags.Hidden)) != Building.Flags.None)
                 {
                     if (Global.Settings.DispatchHearses)
                     {
