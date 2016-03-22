@@ -47,7 +47,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             get
             {
-                return BuildConfig.MakeVersionNumber(1, 4, 0, BuildConfig.ReleaseType.Final, 0, BuildConfig.BuildType.Unknown);
+                return BuildConfig.MakeVersionNumber(1, 5, 0, BuildConfig.ReleaseType.Final, 0, BuildConfig.BuildType.Unknown);
             }
         }
 

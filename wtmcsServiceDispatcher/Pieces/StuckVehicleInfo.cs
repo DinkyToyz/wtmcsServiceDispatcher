@@ -178,9 +178,48 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <returns>True if ambulance is confused.</returns>
         private bool ConfusedAmbulance(ref Vehicle vehicle)
         {
-            // From AmbulanceAI.GetLocalizedStatus from original game code at version 1.3.2-f1.
-            return (vehicle.m_flags & (Vehicle.Flags.GoingBack | Vehicle.Flags.WaitingTarget)) == Vehicle.Flags.None &&
-                   ((vehicle.m_flags & Vehicle.Flags.Emergency2) == Vehicle.Flags.None || vehicle.m_targetBuilding != 0);
+            // From AmbulanceAI.GetLocalizedStatus from original game code at version 1.4.0-f3.
+            return !(((vehicle.m_flags & Vehicle.Flags.GoingBack) != Vehicle.Flags.None && // GoingBack
+                      (vehicle.m_transferSize == 0 || // VEHICLE_STATUS_AMBULANCE_RETURN_EMPTY
+                       true)) || // VEHICLE_STATUS_AMBULANCE_RETURN_FULL
+                     (vehicle.m_flags & Vehicle.Flags.WaitingTarget) != Vehicle.Flags.None || // VEHICLE_STATUS_AMBULANCE_WAIT
+                     ((vehicle.m_flags & Vehicle.Flags.Emergency2) != Vehicle.Flags.None && (int)vehicle.m_targetBuilding != 0)); // VEHICLE_STATUS_AMBULANCE_EMERGENCY
+        }
+
+        /// <summary>
+        /// Check if hearse is confused.
+        /// </summary>
+        /// <param name="vehicle">The vehicle.</param>
+        /// <returns>True if hearse is confused.</returns>
+        private bool ConfusedHearse(ref Vehicle vehicle)
+        {
+            // From HearseAI.GetLocalizedStatus from original game code at version 1.4.0-f3.
+            return !(((vehicle.m_flags & Vehicle.Flags.TransferToSource) != Vehicle.Flags.None && // TransferToSource
+                      ((vehicle.m_flags & (Vehicle.Flags.Stopped | Vehicle.Flags.WaitingTarget)) != Vehicle.Flags.None || // VEHICLE_STATUS_HEARSE_WAIT
+                       (vehicle.m_flags & Vehicle.Flags.GoingBack) != Vehicle.Flags.None || // VEHICLE_STATUS_HEARSE_RETURN
+                       vehicle.m_targetBuilding != 0)) || // VEHICLE_STATUS_HEARSE_COLLECT
+                     ((vehicle.m_flags & Vehicle.Flags.TransferToTarget) != Vehicle.Flags.None && // TransferToTarget
+                      ((vehicle.m_flags & Vehicle.Flags.GoingBack) != Vehicle.Flags.None || // VEHICLE_STATUS_HEARSE_RETURN
+                       (vehicle.m_flags & Vehicle.Flags.WaitingTarget) != Vehicle.Flags.None || // VEHICLE_STATUS_HEARSE_UNLOAD
+                       vehicle.m_targetBuilding != 0))); // VEHICLE_STATUS_HEARSE_TRANSFER
+        }
+
+        /// <summary>
+        /// Check if garbage truck is confused.
+        /// </summary>
+        /// <param name="vehicle">The vehicle.</param>
+        /// <returns>True if garbage truck is confused.</returns>
+        private bool ConfusedGarbageTruck(ref Vehicle vehicle)
+        {
+            // From GarbageTruckAI.GetLocalizedStatus from original game code at version 1.4.0-f3.
+            return !(((vehicle.m_flags & Vehicle.Flags.TransferToSource) != Vehicle.Flags.None && // TransferToSource
+                      ((vehicle.m_flags & Vehicle.Flags.GoingBack) != Vehicle.Flags.None || // VEHICLE_STATUS_GARBAGE_RETURN
+                       (vehicle.m_flags & Vehicle.Flags.WaitingTarget) != Vehicle.Flags.None || // VEHICLE_STATUS_GARBAGE_WAIT
+                       true)) || // VEHICLE_STATUS_GARBAGE_COLLECT
+                     ((vehicle.m_flags & Vehicle.Flags.TransferToTarget) != Vehicle.Flags.None && // TransferToTarget
+                      ((vehicle.m_flags & Vehicle.Flags.GoingBack) != Vehicle.Flags.None || // VEHICLE_STATUS_GARBAGE_RETURN
+                       (vehicle.m_flags & Vehicle.Flags.WaitingTarget) != Vehicle.Flags.None || // VEHICLE_STATUS_GARBAGE_UNLOAD
+                       vehicle.m_targetBuilding != 0))); // VEHICLE_STATUS_GARBAGE_TRANSFER
         }
 
         /// <summary>
