@@ -10,6 +10,16 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
     internal static class TransferManagerHelper
     {
         /// <summary>
+        /// The clean transfer offers maximum game version.
+        /// </summary>
+        private static uint cleanTransferOffersMaxGameVersion = BuildConfig.MakeVersionNumber(1, 6, 0, BuildConfig.ReleaseType.Final, 0, BuildConfig.BuildType.Unknown);
+
+        /// <summary>
+        /// The clean transfer offers minimum game version.
+        /// </summary>
+        private static uint cleanTransferOffersMinGameVersion = BuildConfig.MakeVersionNumber(1, 3, 0, BuildConfig.ReleaseType.Final, 0, BuildConfig.BuildType.Unknown);
+
+        /// <summary>
         /// There has been transfer manager helper errors.
         /// </summary>
         private static bool error = false;
@@ -19,7 +29,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// </summary>
         public static void CleanTransferOffers()
         {
-            if (Global.Settings.UseReflection && !error)
+            if (!error && Global.Settings.AllowReflection(cleanTransferOffersMinGameVersion, cleanTransferOffersMaxGameVersion))
             {
                 try
                 {
@@ -30,7 +40,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         {
                             Log.DevDebug(typeof(TransferManagerHelper), "CleanTransferOffers");
                         }
-                        
+
                         TransferManager transferManager = Singleton<TransferManager>.instance;
 
                         // Get private data.
@@ -167,6 +177,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public static TransferManager.TransferOffer[] IncomingOffers(TransferManager instance)
         {
             return (TransferManager.TransferOffer[])GetFieldValue(instance, "m_incomingOffers");
+        }
+
+        /// <summary>
+        /// Logs some information.
+        /// </summary>
+        public static void LogInfo()
+        {
+            Log.Info(typeof(TransferManagerHelper), "LogInfo", "AllowCleanTransferOffers", Global.Settings.ReflectionAllowanceText(cleanTransferOffersMinGameVersion, cleanTransferOffersMaxGameVersion));
         }
 
         /// <summary>

@@ -20,12 +20,28 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         private HashSet<Type> unhandledClasses = new HashSet<Type>();
 
         /// <summary>
+        /// Gets the maximum game version for method calls.
+        /// </summary>
+        protected abstract uint MaxGameVersion
+        {
+            get;
+        }
+
+        /// <summary>
         /// Gets the name of the method.
         /// </summary>
         /// <value>
         /// The name of the method.
         /// </value>
         protected abstract string MethodName
+        {
+            get;
+        }
+
+        /// <summary>
+        /// Gets the minimum game version for method calls.
+        /// </summary>
+        protected abstract uint MinGameVersion
         {
             get;
         }
@@ -112,7 +128,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <exception cref="System.NullReferenceException">Method info not returned.</exception>
         private MethodInfo GetMethodInfo(Type sourceClass)
         {
-            if (!Global.Settings.UseReflection)
+            if (!Global.Settings.AllowReflection(this.MinGameVersion, this.MaxGameVersion))
             {
                 return null;
             }

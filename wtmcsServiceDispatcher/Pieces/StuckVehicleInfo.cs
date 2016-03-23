@@ -10,6 +10,18 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
     internal class StuckVehicleInfo
     {
         /// <summary>
+        /// The vehicle has been confused since this frame.
+        /// Used for deciding when to recall vehicle.
+        /// </summary>
+        private uint confusedSinceFrame = 0u;
+
+        /// <summary>
+        /// The vehicle has been confused since this time stamp.
+        /// Used for deciding when to de-spawn vehicle.
+        /// </summary>
+        private double confusedSinceTime = 0.0;
+
+        /// <summary>
         /// The vehicle is broken.
         /// </summary>
         private bool isBroken = false;
@@ -18,18 +30,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// The vehicle is stuck.
         /// </summary>
         private bool isStuck = false;
-
-        /// <summary>
-        /// The vehicle has been confused since this frame.
-        /// Used for deciding when to recall vehicle.
-        /// </summary>
-        private uint confusedSinceFrame = 0u;
-
-        /// <summary>
-        /// The vehicle has been confused since this time stamp.
-        /// Used for deciding when to despawn vehicle.
-        /// </summary>
-        private double confusedSinceTime = 0.0;
 
         /// <summary>
         /// The vehicle's last position.
@@ -43,13 +43,13 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
         /// <summary>
         /// The frame since when the vehicle has been waiting for a path.
-        /// Used for deciding when to consider a vehcle as stuck.
+        /// Used for deciding when to consider a vehicle as stuck.
         /// </summary>
         private uint waitingForPathSinceFrame = 0u;
 
         /// <summary>
         /// The simulation time stamp since when the vehicle has been waiting for a path.
-        /// Used for deciding when to despawn vehicle.
+        /// Used for deciding when to de-spawn vehicle.
         /// </summary>
         private double waitingForPathSinceTime = 0.0;
 
@@ -136,7 +136,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 }
             }
 
-            if (this.confusedSinceFrame > Global.RecallConfusedDelay)
+            if (Global.CurrentFrame - this.confusedSinceFrame > Global.RecallConfusedDelay)
             {
                 try
                 {
@@ -182,7 +182,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 if (Log.LogALot)
                 {
-                    Log.DevDebug(this, "Update", "WaitingPath", this.vehicleId, this.waitingForPathSinceTime, Global.SimulationTime, Global.SimulationTime - this.waitingForPathSinceTime, this.lastPosition, position, vehicle.m_targetBuilding, vehicle.m_flags, VehicleHelper.GetVehicleName(this.vehicleId));
+                    Log.DevDebug(this, "Update", "WaitingPath", this.vehicleId, Global.SimulationTime - this.waitingForPathSinceTime, Global.CurrentFrame - this.waitingForPathSinceFrame, Global.Settings.RemoveStuckVehiclesDelaySeconds, Global.WaitPathStuckDelay, this.lastPosition, position, vehicle.m_targetBuilding, vehicle.m_flags, VehicleHelper.GetVehicleName(this.vehicleId));
                 }
 
                 // Remember first time stamp the vehicle was seen waiting at this position.
@@ -202,7 +202,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             {
                 if (Log.LogALot)
                 {
-                    Log.DevDebug(this, "Update", "Confused", this.vehicleId, this.waitingForPathSinceTime, Global.SimulationTime, Global.SimulationTime - this.waitingForPathSinceTime, this.lastPosition, position, vehicle.m_targetBuilding, vehicle.m_flags, VehicleHelper.GetVehicleName(this.vehicleId));
+                    Log.DevDebug(this, "Update", "Confused", this.vehicleId, Global.SimulationTime - this.confusedSinceTime, Global.CurrentFrame - this.confusedSinceFrame, Global.Settings.RemoveStuckVehiclesDelaySeconds, Global.RecallConfusedDelay, this.lastPosition, position, vehicle.m_targetBuilding, vehicle.m_flags, VehicleHelper.GetVehicleName(this.vehicleId));
                 }
 
                 if (this.confusedSinceFrame == 0 || this.confusedSinceTime == 0)
@@ -244,26 +244,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             }
         }
 
-        private static bool IsConfused(ref Vehicle vehicle)
-        {
-            if (vehicle.Info.m_vehicleAI is HearseAI)
-            {
-                return ConfusedHearse(ref vehicle);
-            }
-            else if (vehicle.Info.m_vehicleAI is GarbageTruckAI)
-            {
-                return ConfusedGarbageTruck(ref vehicle);
-            }
-            else if (vehicle.Info.m_vehicleAI is AmbulanceAI)
-            {
-                return ConfusedAmbulance(ref vehicle);
-            }
-            else
-            {
-                return false;
-            }
-        }
-
         /// <summary>
         /// Check if ambulance is confused.
         /// </summary>
@@ -298,65 +278,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 ////target.Building = data.m_targetBuilding;
                 ////return Locale.Get("VEHICLE_STATUS_AMBULANCE_EMERGENCY");
                 return false;
-            }
-            ////target = InstanceID.Empty;
-            ////return Locale.Get("VEHICLE_STATUS_CONFUSED");
-            return true;
-        }
-
-        /// <summary>
-        /// Check if hearse is confused.
-        /// </summary>
-        /// <param name="data">The vehicle.</param>
-        /// <returns>True if hearse is confused.</returns>
-        private static bool ConfusedHearse(ref Vehicle data)
-        {
-            // From HearseAI.GetLocalizedStatus from original game code at version 1.4.0-f3.
-            // Straight copy from game code even though that's slower than a simple condition check
-            // to make it easier to see that the same logic is used.
-            if ((data.m_flags & Vehicle.Flags.TransferToSource) != Vehicle.Flags.None)
-            {
-                if ((data.m_flags & (Vehicle.Flags.Stopped | Vehicle.Flags.WaitingTarget)) != Vehicle.Flags.None)
-                {
-                    ////target = InstanceID.Empty;
-                    ////return Locale.Get("VEHICLE_STATUS_HEARSE_WAIT");
-                    return false;
-                }
-                if ((data.m_flags & Vehicle.Flags.GoingBack) != Vehicle.Flags.None)
-                {
-                    //target = InstanceID.Empty;
-                    //return Locale.Get("VEHICLE_STATUS_HEARSE_RETURN");
-                    return false;
-                }
-                if ((int)data.m_targetBuilding != 0)
-                {
-                    //target = InstanceID.Empty;
-                    //target.Building = data.m_targetBuilding;
-                    //return Locale.Get("VEHICLE_STATUS_HEARSE_COLLECT");
-                    return false;
-                }
-            }
-            else if ((data.m_flags & Vehicle.Flags.TransferToTarget) != Vehicle.Flags.None)
-            {
-                if ((data.m_flags & Vehicle.Flags.GoingBack) != Vehicle.Flags.None)
-                {
-                    ////target = InstanceID.Empty;
-                    ////return Locale.Get("VEHICLE_STATUS_HEARSE_RETURN");
-                    return false;
-                }
-                if ((data.m_flags & Vehicle.Flags.WaitingTarget) != Vehicle.Flags.None)
-                {
-                    ////target = InstanceID.Empty;
-                    ////return Locale.Get("VEHICLE_STATUS_HEARSE_UNLOAD");
-                    return false;
-                }
-                if ((int)data.m_targetBuilding != 0)
-                {
-                    ////target = InstanceID.Empty;
-                    ////target.Building = data.m_targetBuilding;
-                    ////return Locale.Get("VEHICLE_STATUS_HEARSE_TRANSFER");
-                    return false;
-                }
             }
             ////target = InstanceID.Empty;
             ////return Locale.Get("VEHICLE_STATUS_CONFUSED");
@@ -416,6 +337,90 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             ////target = InstanceID.Empty;
             ////return Locale.Get("VEHICLE_STATUS_CONFUSED");
             return true;
+        }
+
+        /// <summary>
+        /// Check if hearse is confused.
+        /// </summary>
+        /// <param name="data">The vehicle.</param>
+        /// <returns>True if hearse is confused.</returns>
+        private static bool ConfusedHearse(ref Vehicle data)
+        {
+            // From HearseAI.GetLocalizedStatus from original game code at version 1.4.0-f3.
+            // Straight copy from game code even though that's slower than a simple condition check
+            // to make it easier to see that the same logic is used.
+            if ((data.m_flags & Vehicle.Flags.TransferToSource) != Vehicle.Flags.None)
+            {
+                if ((data.m_flags & (Vehicle.Flags.Stopped | Vehicle.Flags.WaitingTarget)) != Vehicle.Flags.None)
+                {
+                    ////target = InstanceID.Empty;
+                    ////return Locale.Get("VEHICLE_STATUS_HEARSE_WAIT");
+                    return false;
+                }
+                if ((data.m_flags & Vehicle.Flags.GoingBack) != Vehicle.Flags.None)
+                {
+                    ////target = InstanceID.Empty;
+                    ////return Locale.Get("VEHICLE_STATUS_HEARSE_RETURN");
+                    return false;
+                }
+                if ((int)data.m_targetBuilding != 0)
+                {
+                    ////target = InstanceID.Empty;
+                    ////target.Building = data.m_targetBuilding;
+                    ////return Locale.Get("VEHICLE_STATUS_HEARSE_COLLECT");
+                    return false;
+                }
+            }
+            else if ((data.m_flags & Vehicle.Flags.TransferToTarget) != Vehicle.Flags.None)
+            {
+                if ((data.m_flags & Vehicle.Flags.GoingBack) != Vehicle.Flags.None)
+                {
+                    ////target = InstanceID.Empty;
+                    ////return Locale.Get("VEHICLE_STATUS_HEARSE_RETURN");
+                    return false;
+                }
+                if ((data.m_flags & Vehicle.Flags.WaitingTarget) != Vehicle.Flags.None)
+                {
+                    ////target = InstanceID.Empty;
+                    ////return Locale.Get("VEHICLE_STATUS_HEARSE_UNLOAD");
+                    return false;
+                }
+                if ((int)data.m_targetBuilding != 0)
+                {
+                    ////target = InstanceID.Empty;
+                    ////target.Building = data.m_targetBuilding;
+                    ////return Locale.Get("VEHICLE_STATUS_HEARSE_TRANSFER");
+                    return false;
+                }
+            }
+            ////target = InstanceID.Empty;
+            ////return Locale.Get("VEHICLE_STATUS_CONFUSED");
+            return true;
+        }
+
+        /// <summary>
+        /// Determines whether the specified vehicle is confused.
+        /// </summary>
+        /// <param name="vehicle">The vehicle.</param>
+        /// <returns>True if the vehicle is confused.</returns>
+        private static bool IsConfused(ref Vehicle vehicle)
+        {
+            if (vehicle.Info.m_vehicleAI is HearseAI)
+            {
+                return ConfusedHearse(ref vehicle);
+            }
+            else if (vehicle.Info.m_vehicleAI is GarbageTruckAI)
+            {
+                return ConfusedGarbageTruck(ref vehicle);
+            }
+            else if (vehicle.Info.m_vehicleAI is AmbulanceAI)
+            {
+                return ConfusedAmbulance(ref vehicle);
+            }
+            else
+            {
+                return false;
+            }
         }
 
         /// <summary>

@@ -98,6 +98,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 if (Global.CurrentFrame == 0 && Log.LogDebugLists)
                 {
+                    Detours.LogInfo();
+                    TransferManagerHelper.LogInfo();
                     VehicleHelper.DebugListLog();
                     BuildingHelper.DebugListLog();
                     TransferManagerHelper.DebugListLog();

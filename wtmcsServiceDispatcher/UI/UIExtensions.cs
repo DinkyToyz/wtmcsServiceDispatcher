@@ -61,6 +61,33 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Adds the informational text to the helper component.
+        /// </summary>
+        /// <param name="helper">The UI helper.</param>
+        /// <param name="labelText">The label text.</param>
+        /// <param name="informationalText">The informational text.</param>
+        /// <returns>A text label.</returns>
+        public static UIComponent AddInformationalText(this UIHelperBase helper, string labelText, string informationalText)
+        {
+            UITextField textField = (UITextField)helper.AddTextfield(
+                labelText,
+                informationalText,
+                value =>
+                {
+                });
+
+            UIComponent textFieldParent = textField.parent;
+            textField.Hide();
+            textField.Disable();
+            //// textFieldParent.RemoveUIComponent(textField);
+
+            UILabel textFieldLabel = (UILabel)textFieldParent.AddUIComponent(typeof(UILabel));
+            textFieldLabel.text = informationalText;
+
+            return textFieldLabel;
+        }
+
+        /// <summary>
         /// Returns the UI helper as a UI component.
         /// </summary>
         /// <param name="helper">The UI helper.</param>

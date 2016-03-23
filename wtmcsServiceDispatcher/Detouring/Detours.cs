@@ -76,6 +76,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <returns>True if the method can be detoured.</returns>
         public static bool CanDetour(Methods method)
         {
+            if (!Global.Settings.AllowReflection())
+            {
+                return false;
+            }
+
             Assure();
 
             MethodDetoursBase detours;
@@ -119,7 +124,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             Assure();
 
-            if (Global.Settings.UseReflection && Global.Settings.DispatchHearses)
+            if (Global.Settings.DispatchHearses && CanDetour(Methods.HearseAI_ShouldReturnToSource))
             {
                 Detour(Methods.HearseAI_ShouldReturnToSource);
             }
@@ -128,7 +133,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 Revert(Methods.HearseAI_ShouldReturnToSource);
             }
 
-            if (Global.Settings.UseReflection && Global.Settings.DispatchGarbageTrucks)
+            if (Global.Settings.DispatchGarbageTrucks && CanDetour(Methods.GarbageTruckAI_ShouldReturnToSource))
             {
                 Detour(Methods.GarbageTruckAI_ShouldReturnToSource);
             }
@@ -137,7 +142,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 Revert(Methods.GarbageTruckAI_ShouldReturnToSource);
             }
 
-            if (Global.Settings.UseReflection && Global.Settings.DispatchGarbageTrucks && Global.Settings.LimitOpportunisticGarbageCollection)
+            if (Global.Settings.DispatchGarbageTrucks && Global.Settings.LimitOpportunisticGarbageCollection && CanDetour(Methods.GarbageTruckAI_TryCollectGarbage))
             {
                 Detour(Methods.GarbageTruckAI_TryCollectGarbage);
             }
@@ -161,6 +166,23 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     if (detour != null)
                     {
                         detour.LogCounts();
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Logs some information.
+        /// </summary>
+        public static void LogInfo()
+        {
+            if (methodsDetours != null)
+            {
+                foreach (MethodDetoursBase detour in methodsDetours.Values)
+                {
+                    if (detour != null)
+                    {
+                        detour.LogInfo();
                     }
                 }
             }

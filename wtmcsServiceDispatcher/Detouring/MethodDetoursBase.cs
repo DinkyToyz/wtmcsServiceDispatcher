@@ -45,10 +45,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             get
             {
-                return Global.Settings.UseReflection && !this.error &&
-                       MonoDetour.CanDetour &&
-                       BuildConfig.APPLICATION_VERSION >= this.MinGameVersion &&
-                       BuildConfig.APPLICATION_VERSION < this.MaxGameVersion;
+                return !this.error && MonoDetour.CanDetour &&
+                       Global.Settings.AllowReflection(this.MinGameVersion, this.MaxGameVersion);
             }
         }
 
@@ -136,6 +134,18 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Determines whether this instance can detour the method for the specified original class.
+        /// </summary>
+        /// <param name="originalClass">The original class.</param>
+        /// <returns>
+        ///   <c>true</c> if the method can be detoured for the class.; otherwise, <c>false</c>.
+        /// </returns>
+        public bool CanDetourClass(Type originalClass)
+        {
+            return originalClass == this.OriginalClassType || originalClass.IsSubclassOf(this.OriginalClassType);
+        }
+
+        /// <summary>
         /// Detours the method.
         /// </summary>
         public void Detour()
@@ -219,23 +229,26 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public abstract void LogCounts();
 
         /// <summary>
+        /// Logs some information.
+        /// </summary>
+        public void LogInfo()
+        {
+            if (!MonoDetour.CanDetour)
+            {
+                Log.Info(this, "LogInfo", "AllowDetour", "No (cannot)");
+            }
+            else
+            {
+                Log.Info(this, "LogInfo", "AllowDetour", Global.Settings.ReflectionAllowanceText(this.MinGameVersion, this.MaxGameVersion));
+            }
+        }
+
+        /// <summary>
         /// Reverts all detours.
         /// </summary>
         public void Revert()
         {
             this.Revert(false);
-        }
-
-        /// <summary>
-        /// Determines whether this instance can detour the method for the specified original class.
-        /// </summary>
-        /// <param name="originalClass">The original class.</param>
-        /// <returns>
-        ///   <c>true</c> if the method can be detoured for the class.; otherwise, <c>false</c>.
-        /// </returns>
-        public bool CanDetourClass(Type originalClass)
-        {
-            return originalClass == this.OriginalClassType || originalClass.IsSubclassOf(this.OriginalClassType);
         }
 
         /// <summary>

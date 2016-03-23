@@ -210,82 +210,119 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Re-initializes the garbage truck dispatcher.
+        /// </summary>
+        public static void ReInitializeGarbageTruckDispatcher()
+        {
+            try
+            {
+                GarbageTruckDispatcher.ReInitialize();
+            }
+            catch (Exception ex)
+            {
+                Log.Error(typeof(Global), "ReInitializeGarbageTruckDispatcher", ex);
+            }
+        }
+
+        /// <summary>
         /// Initializes the dispatchers.
         /// </summary>
         public static void ReInitializeHandlers()
         {
             // Initialize dispatch objects.
-            if (Settings.DispatchHearses || Settings.DispatchGarbageTrucks)
+            try
             {
-                // Initialize buildings.
-                if (Buildings == null)
+                if (Settings.DispatchHearses || Settings.DispatchGarbageTrucks)
                 {
-                    Buildings = new BuildingKeeper();
-                }
-                else
-                {
-                    Buildings.ReInitialize();
-                }
-
-                if (TargetBuildingInfoPriorityComparer == null)
-                {
-                    TargetBuildingInfoPriorityComparer = new TargetBuildingInfo.PriorityComparer();
-                }
-                else
-                {
-                    TargetBuildingInfoPriorityComparer.ReInitialize();
-                }
-
-                if (ServiceBuildingInfoPriorityComparer == null)
-                {
-                    ServiceBuildingInfoPriorityComparer = new ServiceBuildingInfo.PriorityComparer();
-                }
-                else
-                {
-                    ServiceBuildingInfoPriorityComparer.ReInitialize();
-                }
-
-                // Initialize hearse objects.
-                if (Settings.DispatchHearses)
-                {
-                    if (HearseDispatcher == null)
+                    // Initialize buildings.
+                    if (Buildings == null)
                     {
-                        HearseDispatcher = new Dispatcher(Dispatcher.DispatcherTypes.HearseDispatcher);
+                        Buildings = new BuildingKeeper();
                     }
                     else
                     {
-                        HearseDispatcher.ReInitialize();
+                        Buildings.ReInitialize();
                     }
-                }
 
-                // Initialize garbage truck objects.
-                if (Settings.DispatchGarbageTrucks)
-                {
-                    if (GarbageTruckDispatcher == null)
+                    if (TargetBuildingInfoPriorityComparer == null)
                     {
-                        GarbageTruckDispatcher = new Dispatcher(Dispatcher.DispatcherTypes.GarbageTruckDispatcher);
+                        TargetBuildingInfoPriorityComparer = new TargetBuildingInfo.PriorityComparer();
                     }
                     else
                     {
-                        GarbageTruckDispatcher.ReInitialize();
+                        TargetBuildingInfoPriorityComparer.ReInitialize();
+                    }
+
+                    if (ServiceBuildingInfoPriorityComparer == null)
+                    {
+                        ServiceBuildingInfoPriorityComparer = new ServiceBuildingInfo.PriorityComparer();
+                    }
+                    else
+                    {
+                        ServiceBuildingInfoPriorityComparer.ReInitialize();
+                    }
+
+                    // Initialize hearse objects.
+                    if (Settings.DispatchHearses)
+                    {
+                        if (HearseDispatcher == null)
+                        {
+                            HearseDispatcher = new Dispatcher(Dispatcher.DispatcherTypes.HearseDispatcher);
+                        }
+                        else
+                        {
+                            HearseDispatcher.ReInitialize();
+                        }
+                    }
+
+                    // Initialize garbage truck objects.
+                    if (Settings.DispatchGarbageTrucks)
+                    {
+                        if (GarbageTruckDispatcher == null)
+                        {
+                            GarbageTruckDispatcher = new Dispatcher(Dispatcher.DispatcherTypes.GarbageTruckDispatcher);
+                        }
+                        else
+                        {
+                            GarbageTruckDispatcher.ReInitialize();
+                        }
                     }
                 }
-            }
 
-            // Initialize vehicle objects.
-            if (Settings.DispatchHearses || Settings.DispatchGarbageTrucks || Settings.RemoveHearsesFromGrid /* || Settings.RemoveGarbageTrucksFromGrid */)
+                // Initialize vehicle objects.
+                if (Settings.DispatchHearses || Settings.DispatchGarbageTrucks || Settings.RemoveHearsesFromGrid /* || Settings.RemoveGarbageTrucksFromGrid */)
+                {
+                    if (Vehicles == null)
+                    {
+                        Vehicles = new VehicleKeeper();
+                    }
+                    else
+                    {
+                        Vehicles.ReInitialize();
+                    }
+                }
+
+                BuildingUpdateNeeded = true;
+            }
+            catch (Exception ex)
             {
-                if (Vehicles == null)
-                {
-                    Vehicles = new VehicleKeeper();
-                }
-                else
-                {
-                    Vehicles.ReInitialize();
-                }
+                Log.Error(typeof(Global), "ReInitializeHandlers", ex);
             }
+        }
 
-            BuildingUpdateNeeded = true;
+        /// <summary>
+        /// Re-initializes the hearse dispatcher.
+        /// </summary>
+        public static void ReInitializeHearseDispatcher()
+        {
+            try
+            {
+                HearseDispatcher.ReInitialize();
+            }
+            catch (Exception ex)
+            {
+                Log.Error(typeof(Global), "ReInitializeHearseDispatcher", ex);
+            }
         }
     }
 }

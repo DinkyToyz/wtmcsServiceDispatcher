@@ -112,6 +112,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public bool RecallHearses = true;
 
         /// <summary>
+        /// Whether code overrides are allowed or not.
+        /// </summary>
+        public Allowance ReflectionAllowance = Allowance.Default;
+
+        /// <summary>
         /// Whether stopped hearses should be removed from grid or not.
         /// </summary>
         public bool RemoveHearsesFromGrid = true;
@@ -130,11 +135,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// The save count.
         /// </summary>
         public uint SaveCount = 0;
-
-        /// <summary>
-        /// Whether code overrides are allowed or not.
-        /// </summary>
-        public bool UseReflection = true;
 
         /// <summary>
         /// The descriptions for the building checks orders.
@@ -222,7 +222,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 this.RangeLimit = settings.RangeLimit;
                 this.RangeMaximum = settings.RangeMaximum;
                 this.RangeMinimum = settings.RangeMinimum;
-                this.UseReflection = settings.UseReflection;
+                this.ReflectionAllowance = settings.ReflectionAllowance;
 
                 this.DispatchHearses = settings.DispatchHearses;
                 this.DispatchHearsesByDistrict = settings.DispatchHearsesByDistrict;
@@ -253,6 +253,27 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 this.AutoBulldozeBuildings = settings.AutoBulldozeBuildings;
                 this.AutoBulldozeBuildingsDelaySeconds = settings.AutoBulldozeBuildingsDelaySeconds;
             }
+        }
+
+        /// <summary>
+        /// Whether something is allowed or not.
+        /// </summary>
+        public enum Allowance
+        {
+            /// <summary>
+            /// The default rules applies.
+            /// </summary>
+            Default = 0,
+
+            /// <summary>
+            /// Never allowed.
+            /// </summary>
+            Never = 1,
+
+            /// <summary>
+            /// Always allowed.
+            /// </summary>
+            Always = 2
         }
 
         /// <summary>
@@ -520,6 +541,16 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Gets the name of the allowance.
+        /// </summary>
+        /// <param name="allowance">The allowance.</param>
+        /// <returns>The name of the allowance.</returns>
+        public static string GetAllowanceName(Allowance allowance)
+        {
+            return allowance.ToString();
+        }
+
+        /// <summary>
         /// Gets the display name of the building check order.
         /// </summary>
         /// <param name="checkOrder">The check order.</param>
@@ -674,6 +705,17 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Checks whether to allow reflection or not.
+        /// </summary>
+        /// <param name="minGameVersion">The minimum game version.</param>
+        /// <param name="maxGameVersion">The maximum game version.</param>
+        /// <returns>True if use of reflection is allowed.</returns>
+        public bool AllowReflection(uint minGameVersion = 0, uint maxGameVersion = 0)
+        {
+            return this.AllowanceCheck(this.ReflectionAllowance, minGameVersion, maxGameVersion);
+        }
+
+        /// <summary>
         /// Logs the settings.
         /// </summary>
         public void LogSettings()
@@ -713,6 +755,17 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Returns text showing the refection allowance.
+        /// </summary>
+        /// <param name="minGameVersion">The minimum game version.</param>
+        /// <param name="maxGameVersion">The maximum game version.</param>
+        /// <returns>The reflection allowance description.</returns>
+        public string ReflectionAllowanceText(uint minGameVersion = 0, uint maxGameVersion = 0)
+        {
+            return this.AllowanceText(this.ReflectionAllowance, minGameVersion, maxGameVersion);
+        }
+
+        /// <summary>
         /// Saves settings to the specified file name.
         /// </summary>
         /// <param name="fileName">Name of the file.</param>
@@ -721,7 +774,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             Log.Debug(this, "Save", "Begin");
 
             if (Log.LogALot || Library.IsDebugBuild)
+            {
                 this.LogSettings();
+            }
 
             try
             {
@@ -749,7 +804,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     cfg.RangeLimit = this.RangeLimit;
                     cfg.RangeMaximum = this.RangeMaximum;
                     cfg.RangeMinimum = this.RangeMinimum;
-                    cfg.UseReflection = this.UseReflection;
+                    cfg.ReflectionAllowance = this.ReflectionAllowance;
 
                     cfg.DispatchHearses = this.DispatchHearses;
                     cfg.DispatchHearsesByDistrict = this.DispatchHearsesByDistrict;
@@ -792,6 +847,55 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             }
 
             Log.Debug(this, "Save", "End");
+        }
+
+        /// <summary>
+        /// Check whether something is allowed.
+        /// </summary>
+        /// <param name="allowance">The allowance.</param>
+        /// <param name="minGameVersion">The minimum game version.</param>
+        /// <param name="maxGameVersion">The maximum game version.</param>
+        /// <returns>True if allowed.</returns>
+        private bool AllowanceCheck(Allowance allowance, uint minGameVersion = 0, uint maxGameVersion = uint.MaxValue)
+        {
+            return allowance != Allowance.Never &&
+                   BuildConfig.APPLICATION_VERSION >= minGameVersion &&
+                   (allowance == Allowance.Always || BuildConfig.APPLICATION_VERSION < maxGameVersion);
+        }
+
+        /// <summary>
+        /// Describes something's allowance.
+        /// </summary>
+        /// <param name="allowance">The allowance.</param>
+        /// <param name="minGameVersion">The minimum game version.</param>
+        /// <param name="maxGameVersion">The maximum game version.</param>
+        /// <returns>The allowance description.</returns>
+        private string AllowanceText(Allowance allowance, uint minGameVersion = 0, uint maxGameVersion = uint.MaxValue)
+        {
+            if (allowance == Allowance.Never)
+            {
+                return "No (disabled)";
+            }
+            else if (BuildConfig.APPLICATION_VERSION < minGameVersion)
+            {
+                return "No (game version too low)";
+            }
+            else if (allowance == Allowance.Always)
+            {
+                return "Yes (overridden)";
+            }
+            else if (BuildConfig.APPLICATION_VERSION >= maxGameVersion)
+            {
+                return "No (game version too high)";
+            }
+            else if (minGameVersion > 0 || maxGameVersion < uint.MaxValue)
+            {
+                return "Yes (game version within limits)";
+            }
+            else
+            {
+                return "Yes (enabled)";
+            }
         }
 
         /// <summary>
@@ -936,6 +1040,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             public float RangeModifier = 1.0f;
 
             /// <summary>
+            /// Whether code overrides are allowed or not.
+            /// </summary>
+            public Allowance ReflectionAllowance = Allowance.Default;
+
+            /// <summary>
             /// Whether stopped garbage trucks should be removed from grid or not.
             /// </summary>
             public bool RemoveGarbageTrucksFromGrid = false;
@@ -949,11 +1058,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             /// The save count.
             /// </summary>
             public uint SaveCount = 0;
-
-            /// <summary>
-            /// Whether code overrides are allowed or not.
-            /// </summary>
-            public bool UseReflection = true;
 
             /// <summary>
             /// The settings version.
