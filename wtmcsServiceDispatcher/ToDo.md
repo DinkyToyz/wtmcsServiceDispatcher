@@ -1,12 +1,3 @@
-# CS 1.3.0 incl Snowfall
-
-- Check replacemnet helper methods (create, settarget, ...).
-- Check TransferManager limits.
-- Check pathfind.
-- Chek everything accessed by reflection.
-- Check new level stuff, to see if it affects or should affect the dispatcher
-- Test...
-
 # Doing
 
 - Use own SetTarget instead of (vehicle)AI, and recall vehicle instead of despawning when path can not be found.
@@ -14,27 +5,28 @@
 - Override ServiceVehicleAI.ShouldReturnToSource:
   - Allways true -> vehicle won't make transfer offer when trasferring to source.
   - Reassign vehicles returning to source.
+- road and rail recovery service crews (to remove stuck vehicles, including forgotten trailers and railway cars).
+  - Effective for handled service vehicle.
+- house wrecking crews (bulldozers).
+- Clean offers.
 
 # Additions and fixes
 
-- road and rail recovery service crews (to remove stuck vehicles, including forgotten trailers and railway cars)
-- house wrecking crews (bulldozers)
-- ambulance services?
+- ambulance services.
 - fire fighting services?
 - law enforcement services?
 - send service now button on buildings?
 - pipe and electricty area range (Central Services even if not really dispatching)?
 - Save in vehciles how much capacity they will have left after pickup and add send-out-option to send when no vehicles are free now or will be free with enough capacity after next pickup?
+- Remember problematic targets and delay next assigment to such target, so that it does not ceate a problem for the whole city.
 
 # Changes and experiments
 
 - Override TransferManager AddOutgoingOffer and AddIncomingOffer?
-- Clean offers?
-- Use detoring instead of invoke for faster calls of private/protected methods (ie StartPathFind in VehicleHelper).
 - citizens?
 - Detour ProduceGoods or transfer stuff???
 - sort by distance capacity %?
-- When spawning, stop building from offering incoming transfers. Override ProduceGoods? Regularly remove offers (fast by zeroing m_incomingCount?)? Override something else to stop outgoing dead offers?
+- When spawning, stop building from offering incoming transfers. Override ProduceGoods? Override something else to stop outgoing dead offers?
 
 # Notes
 
