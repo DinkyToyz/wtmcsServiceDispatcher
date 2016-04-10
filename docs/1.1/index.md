@@ -2,16 +2,17 @@
 title: General Info
 subheadline: version 1.1
 menu_title: 1.1
+sort_order: 100
 ---
 ## Purpose
 
-The Central Services Dispatcher dispatches service vehicles and crews for various functions in a City.
+The Central Services Dispatcher dispatches service vehicles and crews for various functions in a City, taking distances between buildings, services and vehicles in account, in order to use service vehices more efficently, with options for limiting by district and finetuning many settings.
 
 Currently the following services can be handled by Central Services:
 
-- [Hearses](Hearses.html)
-- [Garbage Trucks](Garbage Trucks.html)
-- [Bulldozers](Bulldozers)
+- [Hearses](ServiceHearses.html)
+- [Garbage Trucks](ServiceGarbageTrucks.html)
+- [Bulldozers](ServiceBulldozers.html)
 
 ## Dispatching
 
@@ -29,9 +30,29 @@ When something needs to be dne by the invisible services (such as bulldozing), t
 
 Which services should be dispatched by Central Services can be configured, as can the dispatch strategy, in the mod options in the content manager, or a configuration file.If no services are set to be dispatch by the mod, it should not affect the game.
 
+For available options see:
+
+- [Global Options](OptionsGlobal.html)
+- [Standard Service Options](OptionsStandardServices.html)
+- [Invisible Service Options](OptionsInvisibleServices.html)
+- [Config File](Files.html#Config)
+
+## Compatibility
+
+For most options, this mod is not dependant on overriding any game code, which should minimize incompatibilities with other mods.
+
+Any mod that overrides, or replaces, service vehicle AIs may limit some of the dispatchers functionality, but hopefully in a non-fatal way.  
+
+## The Future
+
+Planned additons:
+
+- More standard services, with Ambulances as the top priority.
+- Recovery Services (removal of stuck vehicles).
+
 ## Whatever
 
 I made this for myself, and use it. Hopefully it works for others as well, but I make no promises.
 I also make no promises about updating or fixing things fast, as that depends on how busy I am with work and other stuff.
 
-[Source code](https://github.com/DinkyToyz/wtmcsServiceDispatcher) is released with MIT license.
+[Source code](https://github.com/DinkyToyz/wtmcsServiceDispatcher){:target="_blank"} is released with MIT license.

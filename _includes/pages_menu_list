@@ -22,8 +22,10 @@
 
 {% if include.menu_tag %}
   {% assign navpages = navpages | sort:include.menu_tag %}
+{% elsif include.ordered %}
+  {% assign navpages = navpages | sort:'sort_order', 'last' %}
 {% else %}
-  {% assign navpages = navpages | sort:'title' %}
+  {% assign navpages = navpages | sort:'title', 'last' %}
 {% endif %}
   
 {% for navpage in navpages %}

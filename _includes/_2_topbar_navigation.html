@@ -22,7 +22,7 @@
 
     {% include share_menu_list.html %}
 
-    <li id="tnav-menu" class="tnav-item tnav-has-children tnav-allow-hover tnav-right"><a href="#">Navigation</a>
+    <li id="tnav-menu" class="tnav-item tnav-has-children tnav-allow-hover tnav-right tnav-menu-main"><a href="#"><span class="tnav-menu-main">Navigation</span></a>
       <ul class="tnav-children">
         {% assign need_divider = false %}
         {% assign hideforpath = false %}
@@ -30,7 +30,7 @@
         {% include data_menu_list list='navigation_navbar' %}
 
         {% if pathtop == 'docs' and splitpath.size > 2 %}
-          {% include pages_menu_list path=path %}
+          {% include pages_menu_list path=path ordered=true %}
           {% assign hideforpath = true %}
         {% elsif pathtop == 'blog' %}
           {% include pages_menu_list path=path %}

@@ -166,3 +166,17 @@ devices. You find it in _sass/_layout/_layout_media_queries.scss
 .tnav-item-first-in-section {
   border-top: 1px solid $grey-color-dark;
 }
+
+/* Change Navigation text to navigation symbol... */
+/*
+@media (max-width: $small - 1) {
+
+  li.tnav-menu-main > a:after {
+    content: "=" !important;
+  }
+
+  span.tnav-menu-main {
+    display: none;
+  }
+}
+*/
