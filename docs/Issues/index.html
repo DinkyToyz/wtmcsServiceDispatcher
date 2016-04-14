@@ -1,0 +1,23 @@
+---
+layout: none
+title: Known Issues
+navigation_menu: I000000
+page_menu: I100
+menu_url: '[current_url]Issues.html'
+---
+<!DOCTYPE html>
+<html>
+<head>
+{% capture target %}{{ site.baseurl }}/docs/{{ site.current_version }}/Issues.html{% endcapture %}
+<link rel="canonical" href="{{ site.url }}{{ target }}"/>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<meta http-equiv="refresh" content="0;url={{ target }}" />
+<title>Redirect to /docs/{{ site.current_version }}/Issues.html</title>
+{% include minimal_css.html %}
+</head>
+<body>
+    <h1>Redirecting...</h1>
+      {{ site.language.if_you_are_not_redirected_automatically }} <a href="{{ target }}">{{ site.language.click_here }}<a>.
+      <script>location='{{ target }}'</script>
+</body>
+</html>

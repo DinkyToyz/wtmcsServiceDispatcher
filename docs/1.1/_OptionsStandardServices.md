@@ -9,7 +9,7 @@
 
 - **Send out spare {{ include.vehicles }}**: 
   When to send out new vehicles from the service building instead of sending one that's already driving.
-  See [Sending Out Spare Vehicles](OptionsStandardServices.html#SendoutSpares).  
+  See [Sending Out Spare Vehicles](OptionsStandardServices.html#SendOutSpares).  
 
 - **{{ include.vehicle }} dispatch strategy**: 
   Choose the dispatch strategy to use for these vehicles.
