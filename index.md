@@ -9,7 +9,7 @@ menu_title: Front Page
 
 The Central Services Dispatcher is a mod for [Cities: Skylines](http://www.citiesskylines.com/), and is available for [subscription at Steam](http://steamcommunity.com/sharedfiles/filedetails/?id=512341354){:target="_blank"}.
 
-The Dispatcher dispatches service vehicles and crews for various functions in a City, taking distances between buildings, services and vehicles in account, in order to use service vehices more efficently, with options for limiting by district and finetuning many settings.
+The Dispatcher dispatches service vehicles and crews for various functions in a City, taking distances between buildings, services and vehicles in account, in order to use service vehicles more efficiently, with options for limiting by district and fine tuning many settings.
 
 This site contains [documentation for the mod](docs/{{ site.current_version }}/),
 and possibly [sporadic status updates](blog/).

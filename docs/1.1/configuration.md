@@ -16,4 +16,4 @@ For more info about configuration, see:
 - [Bulldozer Service Options](ServiceBulldozers.html#Options)
 - [Logging Options](OptionsLogging.html)
 - [Advanced Options](OptionsAdvanced.html)
-- [Config File](Files.html#Config)
+- [Configuration File](Files.html#Config)

@@ -7,7 +7,7 @@ sort_order: 100
 ---
 ## Purpose
 
-The Central Services Dispatcher dispatches service vehicles and crews for various functions in a City, taking distances between buildings, services and vehicles in account, in order to use service vehices more efficently, with options for limiting by district and finetuning many settings.
+The Central Services Dispatcher dispatches service vehicles and crews for various functions in a City, taking distances between buildings, services and vehicles in account, in order to use service vehicles more efficiently, with options for limiting by district and fine tuning many settings.
 
 Currently the following services can be handled by Central Services:
 
@@ -25,7 +25,7 @@ Not all service buildings are willing to dispatch to all buildings, and there ar
 
 ### Invisible Services
 
-When something needs to be dne by the invisible services (such as bulldozing), the dispatcher will simply make it happen. 
+When something needs to be done by the invisible services (such as bulldozing), the dispatcher will simply make it happen. 
 
 ## Configuration
 
@@ -36,7 +36,7 @@ For available options see:
 - [Global Options](OptionsGlobal.html)
 - [Standard Service Options](OptionsStandardServices.html)
 - [Invisible Service Options](OptionsInvisibleServices.html)
-- [Config File](Files.html#Config)
+- [Configuration File](Files.html#Config)
 
 ## Compatibility
 
@@ -46,7 +46,7 @@ Any mod that overrides, or replaces, service vehicle AIs may limit some of the d
 
 ## The Future
 
-Planned additons:
+Planned additions:
 
 - More standard services, with Ambulances as the top priority.
 - Recovery Services (removal of stuck vehicles).

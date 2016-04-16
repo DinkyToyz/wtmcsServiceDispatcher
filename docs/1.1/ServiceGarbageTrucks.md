@@ -6,7 +6,7 @@ Garbage trucks picks up garbage from buildings they pass as well as the building
 
 One result of this is that if the trucks have to travel a long or convoluted way, and passes many buildings with garbage on the way to their target, they might have to turn back to unload before ever reaching their destination.
 
-The *prioritize assigned buildings* option limits this behaviour.
+The *prioritize assigned buildings* option limits this behavior.
 
 ## Garbage Truck Service Options {#Options}
 

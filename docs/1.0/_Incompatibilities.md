@@ -1,26 +1,26 @@
-As of this writing there are no confirmed incompatibilities, but there are some theoretical and/or suspected incompaitibilities.
+As of this writing there are no confirmed incompatibilities, but there are some theoretical and/or suspected incompatibilities.
 
-For most optons, this mod does not override any game code, which should minimize incompatibilities with other mods.
+For most options, this mod does not override any game code, which should minimize incompatibilities with other mods.
 
-The *prioritize assigned buildings* option does replace one method of the garbage truck ai, and may therefore be incompatible with any other mod that overrides or replaces the garbage truck ai.
+The *prioritize assigned buildings* option does replace one method of the garbage truck AI, and may therefore be incompatible with any other mod that overrides or replaces the garbage truck AI.
 
 ## Game Versions & Patches
 
-Whenever the game is patched/upgraded by the develpers, there is a risk that this mod becomes incompatible.
+Whenever the game is patched/upgraded by the developers, there is a risk that this mod becomes incompatible.
 
 The mod therefore has version limits, and some functionality may be disabled automatically when the game updates.
 
 ## Service Mods
 
-Any mod that override code in, or replaces, service vehicle AIs has a risk of beeing incompatible with this mod.
+Any mod that override code in, or replaces, service vehicle AIs has a risk of being incompatible with this mod.
 
-Hopefully such incompatibilities will only rusult in limited functinalit loss in the mod, and no crashes, but it is impossible to know for sure.
+Hopefully such incompatibilities will only result in limited functionality loss in the mod, and no crashes, but it is impossible to know for sure.
 
 Also, using two mods that assigns/reassigns the same service vehicles is likely to cause problems.
 
 - [Districts](http://steamcommunity.com/sharedfiles/filedetails/?id=649522495){:target="_blank"}
-  The *Dicstricts* mod completely replaces the AIs of service buildings an vehicles. 
-  This might break the garbage truck *Prioritize assigned buildings* options, and may also result in an increased number of reassigments.
+  The *Districts* mod completely replaces the AIs of service buildings an vehicles. 
+  This might break the garbage truck *Prioritize assigned buildings* options, and may also result in an increased number of reassignments.
 
 ## Road, Zone and Traffic Mods 
 

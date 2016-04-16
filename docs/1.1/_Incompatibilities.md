@@ -5,23 +5,23 @@ The [Allow Code Overrides](OptionsAdvanced.html#ReflectionAllowance) option can 
 
 ## Game Versions & Patches
 
-Whenever the game is patched/upgraded by the develpers, there is a risk that this mod becomes incompatible.
+Whenever the game is patched/upgraded by the developers, there is a risk that this mod becomes incompatible.
 
 The mod therefore has version limits, and some functionality may be disabled automatically when the game updates.
 
-To manualy allow or disallow code overrides and deep game calls regardless of version, use the [Allow Code Overrides](OptionsAdvanced.html#ReflectionAllowance) option.
+To manually allow or disallow code overrides and deep game calls regardless of version, use the [Allow Code Overrides](OptionsAdvanced.html#ReflectionAllowance) option.
 
 ## Service Mods
 
-Any mod that override code in, or replaces, service vehicle AIs has a risk of beeing incompatible with this mod.
+Any mod that override code in, or replaces, service vehicle AIs has a risk of being incompatible with this mod.
 
-Hopefully such incompatibilities will only rusult in limited functinalit loss in the mod, and no crashes, but is is impossible to know for sure.
+Hopefully such incompatibilities will only result in limited functionality loss in the mod, and no crashes, but it is impossible to know for sure.
 
 Also, using two mods that assigns/reassigns the same service vehicles is likely to cause problems.
 
 - [Districts](http://steamcommunity.com/sharedfiles/filedetails/?id=649522495){:target="_blank"}
-  The *Dicstricts* mod completely replaces the AIs ogf service buildings an vehicles. 
-  This might break the garbage truck *Prioritize assigned buildings* options, and may also result in an increased number of reassigments.   
+  The *Districts* mod completely replaces the AIs of service buildings an vehicles. 
+  This might break the garbage truck *Prioritize assigned buildings* options, and may also result in an increased number of reassignments.   
 
 ## Road, Zone and Traffic Mods 
 

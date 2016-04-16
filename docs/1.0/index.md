@@ -36,7 +36,7 @@ Garbage trucks picks up garbage from buildings they pass as well as the building
 
 One result of this is that if the trucks have to travel a long or convoluted way, and passes many buildings with garbage on the way to their target, they might have to turn back to unload before ever reaching their destination.
 
-The *prioritize assigned buildings* option limits this behaviour.
+The *prioritize assigned buildings* option limits this behavior.
 
 ## Configuration
 
@@ -50,13 +50,13 @@ If no services are set to be dispatch by the mod, it should not affect the game.
   Limit the minimum and maximum range of service building (mitigates effects of assets with extreme range).
 
 - **Range modifier**: 
-  A value with which service buildings ranges are multiplied. Only available i the config file at the moment.
+  A value with which service buildings ranges are multiplied. Only available in the configuration file at the moment.
 
 - **Range minimum**: 
-  Minimum service building range value when limiting building ranges. Only available i the config file at the moment.
+  Minimum service building range value when limiting building ranges. Only available in the configuration file at the moment.
 
 - **Range maximum**: 
-  Maximum service building range value when limiting building ranges. Only available i the config file at the moment.
+  Maximum service building range value when limiting building ranges. Only available in the configuration file at the moment.
 
 ### Standard Service Options
 
@@ -136,9 +136,9 @@ Services are dispatched based on problem magnitude within the strategy rules.
 - **Custom**: 
   Custom strategy manually defined in the configuration file.
 
-### Config File
+### Configuration File
 
-The config file, wtmcsServiceDispatcher.xml, is stored in the folder "ModConfig" wherever the game points to with [`DataLocation.localApplicationData`]. On a Windows system that'll usually be some where like "C:\\Users\\[`UserName`]\\AppData\\Local\\Colossal Order\\Cities\_Skylines\\ModConfig".
+The configuration file, wtmcsServiceDispatcher.xml, is stored in the folder "ModConfig" wherever the game points to with [`DataLocation.localApplicationData`]. On a Windows system that'll usually be some where like "C:\\Users\\[`UserName`]\\AppData\\Local\\Colossal Order\\Cities\_Skylines\\ModConfig".
 
 ## Errors & Logging {#Logs}
 
