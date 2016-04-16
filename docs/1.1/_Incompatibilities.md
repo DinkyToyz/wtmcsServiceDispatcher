@@ -1,8 +1,6 @@
-_See also: [Issues](Issues.html)_
+As of this writing there are no confirmed incompatibilities, but there are some theoretical and/or suspected incompatibilities.
 
-As of this writing there are no confirmed incompatibilities, but there are some theoretical and/or suspected incompaitibilities.
-
-This mod does not completely replace any AIs or other original game objects, but it does ocerride a few methods.
+This mod does not completely replace any AIs or other original game objects, but it does override a few methods.
 The [Allow Code Overrides](OptionsAdvanced.html#ReflectionAllowance) option can be used to stop the mod from overriding any code.
 
 ## Game Versions & Patches

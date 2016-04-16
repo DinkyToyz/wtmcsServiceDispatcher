@@ -12,13 +12,11 @@ sort_order: 100
 
 ## Compatibility
 
-For most optons, this mod does not override any game code, which should minimize incompatibilities with other mods.
-
-The *prioritize assigned buildings* option does replace one method of the garbage truck ai, and may therefore be incompatible with any other mod that overrides or replaces the garbage truck ai.
+See _[Incompatibilities](Incompatibilities.html)_
 
 ## Known Issues
 
-Some people have observed a problem where hearses go to their target buildings but don't load dead bodies.
+See _[Known Issues](Issues.html)_
 
 ## Services
 
@@ -142,25 +140,11 @@ Services are dispatched based on problem magnitude within the strategy rules.
 
 The config file, wtmcsServiceDispatcher.xml, is stored in the folder "ModConfig" wherever the game points to with [`DataLocation.localApplicationData`]. On a Windows system that'll usually be some where like "C:\\Users\\[`UserName`]\\AppData\\Local\\Colossal Order\\Cities\_Skylines\\ModConfig".
 
-## Errors & Logging
+## Errors & Logging {#Logs}
 
-When reporting severe errors, please upload [the games complete log file](http://steamcommunity.com/sharedfiles/filedetails/?id=463645931) and/or the separate log file (see below) somewhere and post a link.
+_See also: [Incompatibilities](Incompatibilities.html) and [Known Issues](Issues.html)_
 
-The mod logs to [the games normal output log](http://steamcommunity.com/sharedfiles/filedetails/?id=463645931), and can also log to a separate log file, wtmcsServiceDispatcher.log, stored in the same directory as the settings.
-
-Create one or more of the following files in the same directory in order to enable debug log stuff (which might slow things down quite a bit) and logging to file.
-
-- **wtmcsServiceDispatcher.debug**: 
-  Enables logging debug data to mod log file, and slightly more logging to the games standard log destinations.
-
-- **wtmcsServiceDispatcher.debug.dev**: 
-  Log more stuff to mod log file.
-
-- **wtmcsServiceDispatcher.debug.names**: 
-  Log object names in some debug log entries.
-
-- **wtmcsServiceDispatcher.debug.lists**: 
-  Log object debug lists to mod log file at startup. What this actually does, if anything, may differ between builds.
+{% capture ErrorsLogging %}{% include_relative _ErrorsLogging.md %}{% endcapture %}{{ ErrorsLogging | markdownify }}
 
 ## Whatever
 

@@ -86,7 +86,9 @@ format: blogindex
               <h1><a href="{{ site.url }}{{ site.baseurl }}{{ post.url }}">{{ post.title }}</a>{{ time }}</h1>
               <div class="teaser">
                 {% if preview_content %}
-                    {{ post.content | markdownify | replace:'$site.baseurl$',site.baseurl }}
+                    {% capture sitebaseurl %}{% raw %}{{ site.baseurl }}{% endraw %}{% endcapture %}
+                    {% capture sitecurrenturl %}{% raw %}{{ site.current_url }}{% endraw %}{% endcapture %}
+                    {{ post.content | markdownify | replace:sitebaseurl,site.baseurl | replace:sitecurrenturl,site.current_url }}
                 {% else %}
                     {{ post.excerpt }}
                     <a href="{{ site.url }}{{ site.baseurl }}{{ post.url }}">{{ site.language.read_more }}</a>

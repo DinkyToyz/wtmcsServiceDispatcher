@@ -1,9 +1,8 @@
-_See also: [Issues](Issues.html)_
-
 As of this writing there are no confirmed incompatibilities, but there are some theoretical and/or suspected incompaitibilities.
 
-This mod does not completely replace any AIs or other original game objects, but it does ocerride a few methods.
-The [Allow Code Overrides](OptionsAdvanced.html#ReflectionAllowance) option can be used to stop the mod from overriding any code.
+For most optons, this mod does not override any game code, which should minimize incompatibilities with other mods.
+
+The *prioritize assigned buildings* option does replace one method of the garbage truck ai, and may therefore be incompatible with any other mod that overrides or replaces the garbage truck ai.
 
 ## Game Versions & Patches
 
@@ -11,19 +10,17 @@ Whenever the game is patched/upgraded by the develpers, there is a risk that thi
 
 The mod therefore has version limits, and some functionality may be disabled automatically when the game updates.
 
-To manualy allow or disallow code overrides and deep game calls regardless of version, use the [Allow Code Overrides](OptionsAdvanced.html#ReflectionAllowance) option.
-
 ## Service Mods
 
 Any mod that override code in, or replaces, service vehicle AIs has a risk of beeing incompatible with this mod.
 
-Hopefully such incompatibilities will only rusult in limited functinalit loss in the mod, and no crashes, but is is impossible to know for sure.
+Hopefully such incompatibilities will only rusult in limited functinalit loss in the mod, and no crashes, but it is impossible to know for sure.
 
 Also, using two mods that assigns/reassigns the same service vehicles is likely to cause problems.
 
 - [Districts](http://steamcommunity.com/sharedfiles/filedetails/?id=649522495){:target="_blank"}
-  The *Dicstricts* mod completely replaces the AIs ogf service buildings an vehicles. 
-  This might break the garbage truck *Prioritize assigned buildings* options, and may also result in an increased number of reassigments.   
+  The *Dicstricts* mod completely replaces the AIs of service buildings an vehicles. 
+  This might break the garbage truck *Prioritize assigned buildings* options, and may also result in an increased number of reassigments.
 
 ## Road, Zone and Traffic Mods 
 
