@@ -12,15 +12,22 @@ Future plans include supporting more services and removing stuck vehicles.
 
 [h1]Documentation[/h1]
 
-[url=http://dinkytoyz.github.io/wtmcsServiceDispatcher/docs/]Documentation[/url], and more information, is available at the [url=http://dinkytoyz.github.io/wtmcsServiceDispatcher/]mods project site[/url].
+For documentation and more information, please see the following.
 
-[h1]Compatibility[/h1]
+[list]
+[*][url=http://dinkytoyz.github.io/wtmcsServiceDispatcher/docs/]Documentation[/url]
+[*][url=http://dinkytoyz.github.io/wtmcsServiceDispatcher/]CSD project site[/url]
+[/list]
 
-For most options, this mod is not dependant on overriding game code, which should minimize incompatibilities with other mods.
+[h1]Problems, Incompatibilities & Issues[/h1]
 
-[h1]Known Issues[/h1]
+If you have problems with the mod, or thinks it may conflict with something else, please see the following before reporting it.
 
-Some people have observed a problem where hearses go to their target buildings but don't load dead bodies.
+[list]
+[*][url=http://dinkytoyz.github.io/wtmcsServiceDispatcher/docs/Incompatibilities.html]Incompatibilities[/url]
+[*][url=http://dinkytoyz.github.io/wtmcsServiceDispatcher/docs/Issues.html]Known Issues[/url]
+[*][url=http://dinkytoyz.github.io/wtmcsServiceDispatcher/docs/ErrorsLogging.html]Errors & Logging[/url]
+[/list]
 
 [h1]Whatever[/h1]
 
