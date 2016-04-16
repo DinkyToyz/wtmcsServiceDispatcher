@@ -22,25 +22,30 @@
 
     {% include share_menu_list.html %}
 
-    <li id="tnav-menu" class="tnav-item tnav-has-children tnav-allow-hover tnav-right tnav-menu-main"><a href="#"><span class="tnav-menu-main">Navigation</span></a>
+    <li id="tnav-menu" class="tnav-item tnav-has-children tnav-allow-hover tnav-right tnav-menu-main">
+      <a href="#"><span class="tnav-menu-main">
+        <span class="tnav-menu-main-text">Navigation</span>
+        <span class="tnav-menu-main-glyph">{% include svg/nav.svg %}</span>
+      </span></a>
       <ul class="tnav-children">
         {% assign need_divider = false %}
         {% assign hideforpath = false %}
+        {% assign hideforcurrent = false %}
 
         {% include data_menu_list list='navigation_navbar' %}
 
         {% if pathtop == 'docs' and splitpath.size > 2 %}
           {% include pages_menu_list path=path ordered=true %}
           {% assign hideforpath = true %}
+          {% assign hideforcurrent = true %}
         {% elsif pathtop == 'blog' %}
           {% include pages_menu_list path=path %}
           {% assign hideforpath = true %}
         {% endif %}
 
-        {% include pages_menu_list menu_tag='navigation_menu' path=path hide_for_path=hideforpath %}
+        {% include pages_menu_list menu_tag='navigation_menu' path=path hide_for_path=hideforpath hide_for_current=hideforcurrent %}
       </ul>
     </li>
 
   </ul>
 </nav>
-

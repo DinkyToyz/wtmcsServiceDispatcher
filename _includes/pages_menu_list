@@ -2,20 +2,23 @@
 
 {% assign pathlen = include.path | size %}
 {% assign navpages = '' | split:'|' %}
+{% assign curverpath = 'docs/' | append:site.current_version | append:'/' %}
 
 {% for navpage in site.pages %}
   {% unless navpage.path == page.path %}
     {% assign navpath = navpage.path | slice:0,pathlen %}
     {% unless include.hide_for_path and navpath == include.path %}
-      {% if include.menu_tag %}
-        {% if navpage.[include.menu_tag] %}
-          {% assign navpages = navpages | push:navpage %}
+      {% unless include.hide_for_current and navpage.hide_for_current and include.path == curverpath %}
+        {% if include.menu_tag %}
+          {% if navpage.[include.menu_tag] %}
+            {% assign navpages = navpages | push:navpage %}
+          {% endif %}
+        {% elsif navpage.title %}
+          {% if navpath == include.path %}
+            {% assign navpages = navpages | push:navpage %}
+          {% endif %}
         {% endif %}
-      {% elsif navpage.title %}
-        {% if navpath == include.path %}
-          {% assign navpages = navpages | push:navpage %}
-        {% endif %}
-      {% endif %}
+      {% endunless %}
     {% endunless %}
   {% endunless %}
 {% endfor %}
@@ -28,12 +31,15 @@
   {% assign navpages = navpages | sort:'title', 'last' %}
 {% endif %}
   
+{% assign firstitem = true %}
 {% for navpage in navpages %}
   {% assign url = navpage.url %}
   {% if navpage.menu_url %}{% assign url = navpage.menu_url | replace:'[current_url]',site.current_url %}{% endif %}
   {% unless include.hide_for_path and url == page.url %}
     {% if include.menu_tag and navpage.menu_title %}
       {% assign navtitle = navpage.menu_title %}
+    {% elsif navpage.pages_title %}
+      {% assign navtitle = navpage.pages_title %}
     {% elsif navpage.title %}
       {% assign navtitle = navpage.title %}
     {% else %}
@@ -45,8 +51,10 @@
     {% endif %}
     {% assign liclass = 'tnav-item' %}
     {% if include.menu_tag and navpage.menu_hide %}{% assign liclass = liclass | append:' tnav-hide'  %}{% endif %}
-    {% if need_divider or include.need_divider %}{% if forloop.first %}{% assign liclass = liclass | append:' tnav-item-first-in-section' %}{% endif %}{% endif %}
+    {% if need_divider or include.need_divider %}{% if firstitem %}{% assign liclass = liclass | append:' tnav-item-first-in-section' %}{% endif %}{% endif %}
+    {% comment %}{% assign navtitle = navtitle | append:'; i.hfc:' | append:include.hide_for_current | append:', np.hfc:' | append:navpage.hide_for_current | append: ', i.p:' | append:include.path | append:', cp:' | append:curverpath %}{% endcomment %}
     <li{% unless include.no_class %} class="{{ liclass }}"{% endunless %}><a href="{{ site.baseurl }}{{ url }}">{{ navtitle }}</a></li>
+    {% assign firstitem = false %}
     {% assign need_divider = true %}
   {% endunless %}
 {% endfor %}

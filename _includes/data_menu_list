@@ -1,5 +1,6 @@
 {% comment %} Collect items into a menu navigationmlist. {% endcomment %}
 
+{% assign firstitem = true %}
 {% if site.data.[include.list] %}
   {% for nav in site.data.[include.list] %}
     {% if nav.url contains 'http' %}
@@ -15,7 +16,9 @@
     {% unless include.no_class %}
       {% assign liclass = liclass | append:' tnav-item' %}
       {% if nav.hide %}{% assign liclass = liclass | append:' tnav-hide'  %}{% endif %}
-      {% if need_divider or include.need_divider %}{% if forloop.first %}{% assign liclass = liclass | append:' tnav-item-first-in-section' %}{% endif %}{% endif %}
+      {% if need_divider or include.need_divider %}{% if firstitem %}{% assign liclass = liclass | append:' tnav-item-first-in-section' %}{% endif %}{% endif %}
+      {% assign firstitem = false %}
+      {% assign need_divider = true %}
     {% endunless %}
     <li{% if liclass %} class="{{ liclass | strip }}"{% endif %}><a href="{{ urlpre }}{{ nav.url }}"{% if nav.url contains 'http' %} target="_blank"{% endif %}>{{ nav.name }}</a></li>
   {% endfor %}

@@ -2,7 +2,7 @@
 ------------------------------------------------------------------- */
 
 #footer {
-  margin-top: 7em;
+  margin-top: 2em;
   padding-bottom: 2em;
   letter-spacing: 1px;
   line-height: $font-size-small;
@@ -37,10 +37,10 @@
 //}
 article footer {
   border-top: 1px solid $line-color;
-  margin: 2em auto 3em auto;
+  margin: 2em auto 0 auto;
   color: $footer-color;
-  font-size: 60%;
+  font-size: 70%;
 }
-//article footer p {
-//    padding-top: .25em;
-//}
+article footer p {
+  margin-top: 0;
+}

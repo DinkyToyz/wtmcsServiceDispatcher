@@ -49,28 +49,49 @@ format: blogindex
             </figure>
             {% endif %}
 
+            {% if post.date %}
+              {% capture time %}{{ post.date }}{% endcapture %}
+              {% capture time %} (<time datetime="{{ time | truncate: 13 | remove: '...' }}">{{ time | truncate: 13 | remove: '...' }}</time>){% endcapture %}
+            {% endif %}
+            {% if post.preview_content %}
+              {% assign preview_content = true %}
+            {% elsif post.preview_excerpt %}
+              {% assign preview_content = false %}
+            {% elsif page.preview_content %}
+              {% assign preview_content = true %}
+            {% elsif page.preview_excerpt %}
+              {% assign preview_content = false %}
+            {% endif %}
 
             {% if post.link %}
-                <p class="subheadline">{{ post.subheadline }} Link</p>
-                <h1><a href="{{ post.link }}" target="_blank">{{ post.title }}</a></h1>
-                <p class="teaser">
-                    {{ post.excerpt  | replace: '<p>', '' | replace: '</p>', ''}}
-                    <a href="{{ post.link }}">Visit Link ›</a>
-                </p>
-            {% elsif post.quote %}
-                {% if post.subheadline %}<p class="subheadline">{{ post.subheadline }}</p>{% endif %}
-                {% if post.quote_url %}
-                    <a href="{{ site.url }}{{ site.baseurl }}{{ post.quote_url }}" target="_blank"><blockquote>{{ post.quote }}</blockquote></a>
+              <p class="subheadline">{{ post.subheadline }} Link</p>
+              <h1><a href="{{ post.link }}" target="_blank">{{ post.title }}</a>{{ time }}</h1>
+              <div class="teaser">
+                {% if preview_content %}
+                    {{ post.content | markdownify | replace:'$site.baseurl$',site.baseurl }}
                 {% else %}
-                    <blockquote>{{ post.quote }}</blockquote>
+                    {{ post.excerpt }}
                 {% endif %}
+                <a href="{{ post.link }}">Visit Link ›</a>
+              </div>
+            {% elsif post.quote %}
+              {% if post.subheadline %}<p class="subheadline">{{ post.subheadline }}</p>{% endif %}
+              {% if post.quote_url %}
+                  <a href="{{ site.url }}{{ site.baseurl }}{{ post.quote_url }}" target="_blank"><blockquote>{{ post.quote }}</blockquote></a>
+              {% else %}
+                  <blockquote>{{ post.quote }}</blockquote>
+              {% endif %}
             {% else %}
-                {% if post.subheadline %}<p class="subheadline">{{ post.subheadline }}</p>{% endif %}
-                <h1><a href="{{ site.url }}{{ site.baseurl }}{{ post.url }}">{{ post.title }}</a></h1>
-                <p class="teaser">
-                    {{ post.excerpt  | replace: '<p>', '' | replace: '</p>', ''}}
+              {% if post.subheadline %}<p class="subheadline">{{ post.subheadline }}</p>{% endif %}
+              <h1><a href="{{ site.url }}{{ site.baseurl }}{{ post.url }}">{{ post.title }}</a>{{ time }}</h1>
+              <div class="teaser">
+                {% if preview_content %}
+                    {{ post.content | markdownify | replace:'$site.baseurl$',site.baseurl }}
+                {% else %}
+                    {{ post.excerpt }}
                     <a href="{{ site.url }}{{ site.baseurl }}{{ post.url }}">{{ site.language.read_more }}</a>
-                </p>
+                {% endif %}
+              </div>
             {% endif %}
 
         <div class="tem2 bem2">&nbsp;</div>

@@ -3,6 +3,8 @@ date: 2016-03-18
 title: Central Services Dispatcher (WtM)
 subheadline: version 1.0
 menu_title: 1.0
+pages_title: Documentation
+sort_order: 100
 ---
 {: #toc }
 *  TOC
