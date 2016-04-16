@@ -142,7 +142,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         private static Dictionary<BuildingCheckOrder, string> buildingCheckOrderDescriptions = new Dictionary<BuildingCheckOrder, string>()
         {
             { BuildingCheckOrder.FirstFirst, "All buldings regardless of range." },
-            { BuildingCheckOrder.ForgottenFirst, "Forgotten buidlings in range, followed by forgotten buildings out of range, buildings in range and finally problematic buildings in or out of range." },
+            { BuildingCheckOrder.ForgottenFirst, "Forgotten buildings in range, followed by forgotten buildings out of range, buildings in range and finally problematic buildings in or out of range." },
             { BuildingCheckOrder.InRange, "Buildings in range followed by forgotten buildings out of range." },
             { BuildingCheckOrder.InRangeFirst, "Buildings in range followed by problematic buildings in or out of range." },
             { BuildingCheckOrder.ProblematicFirst, "Problematic buildings in range followed by problematic buildings out of range and finally buildings in range." },
@@ -940,7 +940,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             public BuildingCheckParameters[] DeathChecksCurrent = null;
 
             /// <summary>
-            /// The custom building checks.
+            /// The custom hearse building checks.
             /// </summary>
             public BuildingCheckParameters[] DeathChecksCustom = null;
 
@@ -995,7 +995,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             public BuildingCheckParameters[] GarbageChecksCurrent = null;
 
             /// <summary>
-            /// The custom building checks.
+            /// The custom garbage building checks.
             /// </summary>
             public BuildingCheckParameters[] GarbageChecksCustom = null;
 
