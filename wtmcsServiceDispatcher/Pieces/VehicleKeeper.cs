@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using ColossalFramework;
 
 namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
@@ -56,6 +57,17 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             if (this.stuckVehicles == null)
             {
                 this.stuckVehicles = new Dictionary<ushort, StuckVehicleInfo>();
+            }
+
+            // Forget stuck vehicles that are no longer the dispatcher's responcibility.
+            if (this.stuckVehicles != null && !Global.Settings.RemoveStuckVehicles)
+            {
+                List<ushort> vehicleIds = this.stuckVehicles.Where(kvp => kvp.Value.DispatchersResponsibility).Select(kvp => kvp.Key).ToList();
+
+                foreach (ushort id in vehicleIds)
+                {
+                    this.stuckVehicles.Remove(id);
+                }
             }
         }
 
@@ -140,7 +152,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 else
                 {
                     // Check target assignments for service vehicles.
-                    if ((vehicles[id].m_flags & Vehicle.Flags.TransferToSource) != Vehicle.Flags.None && 
+                    if ((vehicles[id].m_flags & Vehicle.Flags.TransferToSource) != Vehicle.Flags.None &&
                         (vehicles[id].m_flags & (Vehicle.Flags.TransferToTarget | Vehicle.Flags.Arriving | Vehicle.Flags.Stopped)) == Vehicle.Flags.None &&
                         (vehicles[id].m_flags & VehicleHelper.VehicleUnavailable) == Vehicle.Flags.None &&
                         vehicles[id].m_targetBuilding != vehicles[id].m_sourceBuilding && (buildings[vehicles[id].m_sourceBuilding].m_flags & Building.Flags.Downgrading) == Building.Flags.None)
@@ -186,7 +198,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     // Try to fix stuck vehicles.
                     if (this.stuckVehicles != null)
                     {
-                        if (StuckVehicleInfo.HasProblem(ref vehicles[id]))
+                        if (StuckVehicleInfo.HasProblem(id, ref vehicles[id]))
                         {
                             StuckVehicleInfo stuckVehicle;
                             if (this.stuckVehicles.TryGetValue(id, out stuckVehicle))

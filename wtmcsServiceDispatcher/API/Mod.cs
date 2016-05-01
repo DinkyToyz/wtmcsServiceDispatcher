@@ -659,7 +659,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         }
                     });
 
-                // Add bulldoze group.
+                // Add bulldoze and recovery group.
                 UIHelperBase wreckingRecoveryGroup = helper.AddGroup("Wrecking & Recovery");
 
                 if (BulldozeHelper.CanBulldoze)
@@ -717,6 +717,52 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                             Log.Error(this, "OnSettingsUI", ex, "WreckingRecoveryGroup", "AutoBulldozeBuildingsDelayMinutes", value);
                         }
                     });
+
+                if (Global.Settings.RemoveStuckVehicles || Global.EnableExperiments)
+                {
+                    wreckingRecoveryGroup.AddCheckbox(
+                        "Dispatch recovery services",
+                        Global.Settings.RemoveStuckVehicles,
+                        value =>
+                        {
+                            try
+                            {
+                                if (Global.Settings.RemoveStuckVehicles != value)
+                                {
+                                    Global.Settings.RemoveStuckVehicles = value;
+                                    Global.Settings.Save();
+                                    Global.ReInitializeHandlers();
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                Log.Error(this, "OnSettingsUI", ex, "WreckingRecoveryGroup", "RemoveStuckVehicles", value);
+                            }
+                        });
+
+                    wreckingRecoveryGroup.AddExtendedSlider(
+                        "Recovery delay",
+                        0.0f,
+                        60.0f * 24.0f,
+                        0.01f,
+                        (float)Global.Settings.RemoveStuckVehiclesDelayMinutes,
+                        true,
+                        value =>
+                        {
+                            try
+                            {
+                                if (Global.Settings.RemoveStuckVehiclesDelayMinutes != (double)value)
+                                {
+                                    Global.Settings.RemoveStuckVehiclesDelayMinutes = (double)value;
+                                    Global.Settings.Save();
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                Log.Error(this, "OnSettingsUI", ex, "WreckingRecoveryGroup", "RemoveStuckVehiclesDelayMinutes", value);
+                            }
+                        });
+                }
 
                 // Add logging group.
                 UIHelperBase logGroup = helper.AddGroup("Logging (not saved in settings)");
@@ -872,6 +918,13 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 catch
                 {
                 }
+
+                advancedGroup.AddButton(
+                    "Dump vehicles",
+                    () =>
+                    {
+                        VehicleHelper.DumpVehicles();
+                    });
 
                 Log.FlushBuffer();
             }

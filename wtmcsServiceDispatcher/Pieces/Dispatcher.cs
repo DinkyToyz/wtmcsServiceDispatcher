@@ -177,6 +177,27 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Gets the type of the dispatcher.
+        /// </summary>
+        /// <param name="vehicle">The vehicle.</param>
+        /// <returns>The type of the dispatcher.</returns>
+        public static DispatcherTypes GetDispatcherType(ref Vehicle vehicle)
+        {
+            if (vehicle.Info.m_vehicleAI is HearseAI)
+            {
+                return Dispatcher.DispatcherTypes.HearseDispatcher;
+            }
+            else if (vehicle.Info.m_vehicleAI is GarbageTruckAI)
+            {
+                return Dispatcher.DispatcherTypes.GarbageTruckDispatcher;
+            }
+            else
+            {
+                return Dispatcher.DispatcherTypes.None;
+            }
+        }
+
+        /// <summary>
         /// Checks the vehicle target.
         /// </summary>
         /// <param name="vehicleId">The vehicle identifier.</param>

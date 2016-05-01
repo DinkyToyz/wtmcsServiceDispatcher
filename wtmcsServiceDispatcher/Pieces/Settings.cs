@@ -541,6 +541,25 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Gets or sets the automatic vehicle recovery delay in minutes.
+        /// </summary>
+        /// <value>
+        /// The automatic vehicle recovery delay in minutes.
+        /// </value>
+        public double RemoveStuckVehiclesDelayMinutes
+        {
+            get
+            {
+                return this.RemoveStuckVehiclesDelaySeconds / 60.0;
+            }
+
+            set
+            {
+                this.RemoveStuckVehiclesDelaySeconds = (value < 0.0) ? 0.0 : value * 60.0;
+            }
+        }
+
+        /// <summary>
         /// Gets the name of the allowance.
         /// </summary>
         /// <param name="allowance">The allowance.</param>

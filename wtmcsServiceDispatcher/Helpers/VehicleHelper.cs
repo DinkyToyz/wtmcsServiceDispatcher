@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using ColossalFramework;
 using ColossalFramework.Math;
 using UnityEngine;
@@ -242,6 +243,44 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Saves a list of vehicle info for debug use.
+        /// </summary>
+        public static void DumpVehicles()
+        {
+            try
+            {
+                List<string> vehicleList = new List<string>();
+
+                Vehicle[] vehicles = Singleton<VehicleManager>.instance.m_vehicles.m_buffer;
+                Building[] buildings = Singleton<BuildingManager>.instance.m_buildings.m_buffer;
+
+                for (ushort id = 0; id < vehicles.Length; id++)
+                {
+                    if (vehicles[id].m_flags != Vehicle.Flags.None)
+                    {
+                        vehicleList.Add(DebugInfoMsg(vehicles, buildings, id, true).ToString());
+                    }
+                }
+
+                if (vehicleList.Count == 0)
+                {
+                    throw new InvalidDataException("No network objects");
+                }
+
+                vehicleList.Add("");
+                using (StreamWriter dumpFile = new StreamWriter(FileSystem.FilePathName(".Vehicles.txt"), false))
+                {
+                    dumpFile.Write(String.Join("\n", vehicleList.ToArray()).ConformNewlines());
+                    dumpFile.Close();
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error(typeof(VehicleKeeper), "DumpVehicles", ex);
+            }
+        }
+
+        /// <summary>
         /// Gets the spawn position.
         /// </summary>
         /// <param name="vehicleId">The vehicle identifier.</param>
@@ -385,6 +424,130 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Collects vehicle debug information.
+        /// </summary>
+        /// <param name="vehicles">The vehicles.</param>
+        /// <param name="buildings">The buildings.</param>
+        /// <param name="vehicleId">The vehicle identifier.</param>
+        /// <returns>Vehicle information.</returns>
+        private static Log.InfoList DebugInfoMsg(Vehicle[] vehicles, Building[] buildings, ushort vehicleId, bool verbose = false)
+        {
+            Log.InfoList info = new Log.InfoList();
+
+            InstanceID instanceId;
+            float prgCur, prgMax;
+            int bufCur, bufMax;
+            string localeKey;
+            float distance;
+
+            info.Add("VehicleId", vehicleId);
+            info.Add("AI", vehicles[vehicleId].Info.m_vehicleAI.GetType());
+            info.Add("InfoName", vehicles[vehicleId].Info.name);
+
+            string name = GetVehicleName(vehicleId);
+            if (!String.IsNullOrEmpty(name) && name != vehicles[vehicleId].Info.name)
+            {
+                info.Add("VehicleName", name);
+            }
+
+            string type = vehicles[vehicleId].m_transferType.ToString();
+            foreach (TransferManager.TransferReason reason in Enum.GetValues(typeof(TransferManager.TransferReason)))
+            {
+                if ((byte)reason == vehicles[vehicleId].m_transferType)
+                {
+                    type = reason.ToString();
+                    break;
+                }
+            }
+            info.Add("Type", type);
+
+            if (vehicles[vehicleId].m_sourceBuilding != 0 && buildings[vehicles[vehicleId].m_sourceBuilding].Info != null)
+            {
+                distance = (vehicles[vehicleId].GetLastFramePosition() - buildings[vehicles[vehicleId].m_sourceBuilding].m_position).sqrMagnitude;
+                name = BuildingHelper.GetBuildingName(vehicles[vehicleId].m_sourceBuilding);
+                if (String.IsNullOrEmpty(name))
+                {
+                    name = buildings[vehicles[vehicleId].m_sourceBuilding].Info.name;
+                }
+
+                info.Add("Source", vehicles[vehicleId].m_sourceBuilding, name, distance);
+            }
+
+            if (vehicles[vehicleId].m_targetBuilding != 0 && buildings[vehicles[vehicleId].m_targetBuilding].Info != null)
+            {
+                distance = (vehicles[vehicleId].GetLastFramePosition() - buildings[vehicles[vehicleId].m_targetBuilding].m_position).sqrMagnitude;
+                name = BuildingHelper.GetBuildingName(vehicles[vehicleId].m_targetBuilding);
+                if (String.IsNullOrEmpty(name))
+                {
+                    name = buildings[vehicles[vehicleId].m_targetBuilding].Info.name;
+                }
+
+                info.Add("Target", vehicles[vehicleId].m_targetBuilding, name, distance);
+            }
+
+            string flags = vehicles[vehicleId].m_flags.ToString();
+            if (flags.IndexOfAny(new char[] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' }) >= 0)
+            {
+                foreach (Vehicle.Flags flag in Enum.GetValues(typeof(Vehicle.Flags)))
+                {
+                    if (flag != Vehicle.Flags.None && (vehicles[vehicleId].m_flags & flag) == flag)
+                    {
+                        flags += ", " + flag.ToString();
+                    }
+                }
+            }
+            info.Add("Flags", flags);
+
+            info.Add("Enabled", vehicles[vehicleId].Info.enabled);
+            info.Add("Active", vehicles[vehicleId].Info.isActiveAndEnabled);
+            info.Add("AIEnabled", vehicles[vehicleId].Info.m_vehicleAI.enabled);
+            info.Add("AIActive", vehicles[vehicleId].Info.m_vehicleAI.isActiveAndEnabled);
+
+            if (vehicles[vehicleId].Info.m_vehicleAI.GetProgressStatus(vehicleId, ref vehicles[vehicleId], out prgCur, out prgMax))
+            {
+                info.Add("PrgCur", prgCur);
+                info.Add("PrgMax", prgMax);
+            }
+
+            vehicles[vehicleId].Info.m_vehicleAI.GetBufferStatus(vehicleId, ref vehicles[vehicleId], out localeKey, out bufCur, out bufMax);
+            if (!String.IsNullOrEmpty(localeKey))
+            {
+                info.Add("BufLocKey", localeKey);
+            }
+            info.Add("BufCur", bufCur);
+            info.Add("BufMax", bufMax);
+
+            info.Add("TransferSize", vehicles[vehicleId].m_transferSize);
+
+            if (vehicles[vehicleId].Info.m_vehicleAI is HearseAI)
+            {
+                info.Add("Capacity", ((HearseAI)vehicles[vehicleId].Info.m_vehicleAI).m_corpseCapacity);
+            }
+            else if (vehicles[vehicleId].Info.m_vehicleAI is GarbageTruckAI)
+            {
+                info.Add("Capacity", ((GarbageTruckAI)vehicles[vehicleId].Info.m_vehicleAI).m_cargoCapacity);
+            }
+
+            string status = vehicles[vehicleId].Info.m_vehicleAI.GetLocalizedStatus(vehicleId, ref vehicles[vehicleId], out instanceId);
+            if (!String.IsNullOrEmpty(status))
+            {
+                info.Add("Status", status);
+            }
+
+            if (verbose)
+            {
+                //vehicles[vehicleId].m_leadingVehicle
+                //vehicles[vehicleId].m_trailingVehicle
+                //vehicles[vehicleId].m_waitCounter
+                //position = vehicle.GetLastFramePosition();
+            }
+
+            info.Add("AI", vehicles[vehicleId].Info.m_vehicleAI.GetType().AssemblyQualifiedName);
+
+            return info;
+        }
+
+        /// <summary>
         /// Log vehicle info for debug use.
         /// </summary>
         /// <param name="vehicles">The vehicles.</param>
@@ -395,111 +558,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             if (vehicles[vehicleId].Info != null && (vehicles[vehicleId].m_flags & VehicleHelper.VehicleExists) != Vehicle.Flags.None &&
                 (vehicles[vehicleId].Info.m_vehicleAI is HearseAI || vehicles[vehicleId].Info.m_vehicleAI is GarbageTruckAI))
             {
-                Log.InfoList info = new Log.InfoList();
-
-                InstanceID instanceId;
-                float prgCur, prgMax;
-                int bufCur, bufMax;
-                string localeKey;
-                float distance;
-
-                info.Add("VehicleId", vehicleId);
-                info.Add("AI", vehicles[vehicleId].Info.m_vehicleAI.GetType());
-                info.Add("InfoName", vehicles[vehicleId].Info.name);
-
-                string name = GetVehicleName(vehicleId);
-                if (!String.IsNullOrEmpty(name) && name != vehicles[vehicleId].Info.name)
-                {
-                    info.Add("VehicleName", name);
-                }
-
-                string type = vehicles[vehicleId].m_transferType.ToString();
-                foreach (TransferManager.TransferReason reason in Enum.GetValues(typeof(TransferManager.TransferReason)))
-                {
-                    if ((byte)reason == vehicles[vehicleId].m_transferType)
-                    {
-                        type = reason.ToString();
-                        break;
-                    }
-                }
-                info.Add("Type", type);
-
-                if (vehicles[vehicleId].m_sourceBuilding != 0 && buildings[vehicles[vehicleId].m_sourceBuilding].Info != null)
-                {
-                    distance = (vehicles[vehicleId].GetLastFramePosition() - buildings[vehicles[vehicleId].m_sourceBuilding].m_position).sqrMagnitude;
-                    name = BuildingHelper.GetBuildingName(vehicles[vehicleId].m_sourceBuilding);
-                    if (String.IsNullOrEmpty(name))
-                    {
-                        name = buildings[vehicles[vehicleId].m_sourceBuilding].Info.name;
-                    }
-
-                    info.Add("Source", vehicles[vehicleId].m_sourceBuilding, name, distance);
-                }
-
-                if (vehicles[vehicleId].m_targetBuilding != 0 && buildings[vehicles[vehicleId].m_targetBuilding].Info != null)
-                {
-                    distance = (vehicles[vehicleId].GetLastFramePosition() - buildings[vehicles[vehicleId].m_targetBuilding].m_position).sqrMagnitude;
-                    name = BuildingHelper.GetBuildingName(vehicles[vehicleId].m_targetBuilding);
-                    if (String.IsNullOrEmpty(name))
-                    {
-                        name = buildings[vehicles[vehicleId].m_targetBuilding].Info.name;
-                    }
-
-                    info.Add("Target", vehicles[vehicleId].m_targetBuilding, name, distance);
-                }
-
-                string flags = vehicles[vehicleId].m_flags.ToString();
-                if (flags.IndexOfAny(new char[] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' }) >= 0)
-                {
-                    foreach (Vehicle.Flags flag in Enum.GetValues(typeof(Vehicle.Flags)))
-                    {
-                        if (flag != Vehicle.Flags.None && (vehicles[vehicleId].m_flags & flag) == flag)
-                        {
-                            flags += ", " + flag.ToString();
-                        }
-                    }
-                }
-                info.Add("Flags", flags);
-
-                info.Add("Enabled", vehicles[vehicleId].Info.enabled);
-                info.Add("Active", vehicles[vehicleId].Info.isActiveAndEnabled);
-                info.Add("AIEnabled", vehicles[vehicleId].Info.m_vehicleAI.enabled);
-                info.Add("AIActive", vehicles[vehicleId].Info.m_vehicleAI.isActiveAndEnabled);
-
-                if (vehicles[vehicleId].Info.m_vehicleAI.GetProgressStatus(vehicleId, ref vehicles[vehicleId], out prgCur, out prgMax))
-                {
-                    info.Add("PrgCur", prgCur);
-                    info.Add("PrgMax", prgMax);
-                }
-
-                vehicles[vehicleId].Info.m_vehicleAI.GetBufferStatus(vehicleId, ref vehicles[vehicleId], out localeKey, out bufCur, out bufMax);
-                if (!String.IsNullOrEmpty(localeKey))
-                {
-                    info.Add("BufLocKey", localeKey);
-                }
-                info.Add("BufCur", bufCur);
-                info.Add("BufMax", bufMax);
-
-                info.Add("TransferSize", vehicles[vehicleId].m_transferSize);
-
-                if (vehicles[vehicleId].Info.m_vehicleAI is HearseAI)
-                {
-                    info.Add("Capacity", ((HearseAI)vehicles[vehicleId].Info.m_vehicleAI).m_corpseCapacity);
-                }
-                else if (vehicles[vehicleId].Info.m_vehicleAI is GarbageTruckAI)
-                {
-                    info.Add("Capacity", ((GarbageTruckAI)vehicles[vehicleId].Info.m_vehicleAI).m_cargoCapacity);
-                }
-
-                string status = vehicles[vehicleId].Info.m_vehicleAI.GetLocalizedStatus(vehicleId, ref vehicles[vehicleId], out instanceId);
-                if (!String.IsNullOrEmpty(status))
-                {
-                    info.Add("Status", status);
-                }
-
-                info.Add("AI", vehicles[vehicleId].Info.m_vehicleAI.GetType().AssemblyQualifiedName);
-
-                Log.DevDebug(typeof(VehicleKeeper), "DebugListLog", info.ToString());
+                Log.DevDebug(typeof(VehicleKeeper), "DebugListLog", DebugInfoMsg(vehicles, buildings, vehicleId).ToString());
             }
         }
     }

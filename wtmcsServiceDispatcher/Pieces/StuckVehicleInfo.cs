@@ -22,6 +22,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         private double confusedSinceTime = 0.0;
 
         /// <summary>
+        /// The dispatcher type.
+        /// </summary>
+        private Dispatcher.DispatcherTypes dispatcherType = Dispatcher.DispatcherTypes.None;
+
+        /// <summary>
         /// The vehicle is broken.
         /// </summary>
         private bool isBroken = false;
@@ -67,14 +72,35 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             this.vehicleId = vehicleId;
             this.Update(ref vehicle);
+
+            this.dispatcherType = Dispatcher.GetDispatcherType(ref vehicle);
+        }
+
+        /// <summary>
+        /// Gets a value indicating whether the vehicle is the dispatcher's responsibility.
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if the vehicle is the dispatcher's responsibility; otherwise, <c>false</c>.
+        /// </value>
+        public bool DispatchersResponsibility
+        {
+            get
+            {
+                return Global.Settings.RemoveStuckVehicles ||
+                       (Global.HearseDispatcher != null && this.dispatcherType == Dispatcher.DispatcherTypes.HearseDispatcher) ||
+                       (Global.GarbageTruckDispatcher != null && this.dispatcherType == Dispatcher.DispatcherTypes.GarbageTruckDispatcher);
+            }
         }
 
         /// <summary>
         /// Determines whether the specified vehicle has a problem.
         /// </summary>
+        /// <param name="vehicleId">The vehicle identifier.</param>
         /// <param name="vehicle">The vehicle.</param>
-        /// <returns>True if the vehicle has at least one problem.</returns>
-        public static bool HasProblem(ref Vehicle vehicle)
+        /// <returns>
+        /// True if the vehicle has at least one problem.
+        /// </returns>
+        public static bool HasProblem(ushort vehicleId, ref Vehicle vehicle)
         {
             // Don't check unspawned vehicles.
             if (vehicle.Info == null || (vehicle.m_flags & Vehicle.Flags.Spawned) == Vehicle.Flags.None)
@@ -90,13 +116,20 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 return false;
             }
 
+            // Trailer?
+            if (vehicle.m_leadingVehicle != 0)
+            {
+                // Todo: Check lost trailers?
+                return false;
+            }
+
             // Check vehicles waiting for path.
             if ((vehicle.m_flags & Vehicle.Flags.WaitingPath) != Vehicle.Flags.None)
             {
                 return true;
             }
 
-            if (IsConfused(ref vehicle))
+            if (IsConfused(vehicleId, ref vehicle))
             {
                 return true;
             }
@@ -136,7 +169,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 }
             }
 
-            if (Global.CurrentFrame - this.confusedSinceFrame > Global.RecallConfusedDelay)
+            if (this.confusedSinceFrame > 0 && Global.CurrentFrame - this.confusedSinceFrame > Global.RecallConfusedDelay &&
+                ((Global.HearseDispatcher != null && this.dispatcherType == Dispatcher.DispatcherTypes.HearseDispatcher) ||
+                 (Global.GarbageTruckDispatcher != null && this.dispatcherType == Dispatcher.DispatcherTypes.GarbageTruckDispatcher)))
             {
                 try
                 {
@@ -193,7 +228,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 }
             }
 
-            if (!IsConfused(ref vehicle))
+            if (!IsConfused(this.vehicleId, ref vehicle))
             {
                 this.confusedSinceTime = 0;
                 this.confusedSinceFrame = 0;
@@ -399,11 +434,95 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Check if passenger car is confused.
+        /// </summary>
+        /// <param name="vehicleId">The vehicle identifier.</param>
+        /// <param name="data">The vehicle.</param>
+        /// <returns>True if passenger car is confused.</returns>
+        private static bool ConfusedPassengerCar(ushort vehicleId, ref Vehicle data)
+        {
+            // From PassengerCarAI.GetLocalizedStatus from original game code at version 1.4.1-f2.
+            // Straight copy from game code even though that's slower than a simple condition check
+            // to make it easier to see that the same logic is used.
+            CitizenManager instance = Singleton<CitizenManager>.instance;
+            ushort driverInstance = ConfusedPassengerCar_GetDriverInstance(vehicleId, ref data);
+            ushort num1 = (ushort)0;
+            if ((int)driverInstance != 0)
+            {
+                if ((data.m_flags & Vehicle.Flags.Parking) != Vehicle.Flags.None)
+                {
+                    uint num2 = instance.m_instances.m_buffer[(int)driverInstance].m_citizen;
+                    if ((int)num2 != 0 && (int)instance.m_citizens.m_buffer[num2].m_parkedVehicle != 0)
+                    {
+                        ////target = InstanceID.Empty;
+                        ////return Locale.Get("VEHICLE_STATUS_PARKING");
+                        return false;
+                    }
+                }
+                num1 = instance.m_instances.m_buffer[(int)driverInstance].m_targetBuilding;
+            }
+            if ((int)num1 != 0)
+            {
+                if ((Singleton<BuildingManager>.instance.m_buildings.m_buffer[(int)num1].m_flags & Building.Flags.IncomingOutgoing) != Building.Flags.None)
+                {
+                    ////target = InstanceID.Empty;
+                    ////return Locale.Get("VEHICLE_STATUS_LEAVING");
+                    return false;
+                }
+                ////target = InstanceID.Empty;
+                ////target.Building = num1;
+                ////return Locale.Get("VEHICLE_STATUS_GOINGTO");
+                return false;
+            }
+            ////target = InstanceID.Empty;
+            ////return Locale.Get("VEHICLE_STATUS_CONFUSED");
+            return true;
+        }
+
+        /// <summary>
+        /// Copy of PassengerCarAI.GetDriverInstance to be used by ConfusedPassengerCar.
+        /// </summary>
+        /// <param name="vehicleID">The vehicle identifier.</param>
+        /// <param name="data">The data.</param>
+        /// <returns>The driver instance.</returns>
+        private static ushort ConfusedPassengerCar_GetDriverInstance(ushort vehicleID, ref Vehicle data)
+        {
+            // Straight copy from PassengerCarAI.GetDriverInstance from original game code at version 1.4.1-f2.
+            CitizenManager instance = Singleton<CitizenManager>.instance;
+            uint num1 = data.m_citizenUnits;
+            int num2 = 0;
+            while ((int)num1 != 0)
+            {
+                uint num3 = instance.m_units.m_buffer[num1].m_nextUnit;
+                for (int index = 0; index < 5; ++index)
+                {
+                    uint citizen = instance.m_units.m_buffer[num1].GetCitizen(index);
+                    if ((int)citizen != 0)
+                    {
+                        ushort num4 = instance.m_citizens.m_buffer[citizen].m_instance;
+                        if ((int)num4 != 0)
+                            return num4;
+                    }
+                }
+                num1 = num3;
+                if (++num2 > 524288)
+                {
+                    CODebugBase<LogChannel>.Error(LogChannel.Core, "Invalid list detected!\n" + System.Environment.StackTrace);
+                    break;
+                }
+            }
+            return (ushort)0;
+        }
+
+        /// <summary>
         /// Determines whether the specified vehicle is confused.
         /// </summary>
+        /// <param name="vehicleId">The vehicle identifier.</param>
         /// <param name="vehicle">The vehicle.</param>
-        /// <returns>True if the vehicle is confused.</returns>
-        private static bool IsConfused(ref Vehicle vehicle)
+        /// <returns>
+        /// True if the vehicle is confused.
+        /// </returns>
+        private static bool IsConfused(ushort vehicleId, ref Vehicle vehicle)
         {
             if (vehicle.Info.m_vehicleAI is HearseAI)
             {
@@ -417,8 +536,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             {
                 return ConfusedAmbulance(ref vehicle);
             }
+            else if (vehicle.Info.m_vehicleAI is PassengerCarAI)
+            {
+                return ConfusedPassengerCar(vehicleId, ref vehicle);
+            }
             else
             {
+                ////BusAI CargoShipAI CargoTrainAI CargoTruckAI FireTruckAI MetroTrainAI PassengerPlaneAI
+                ////PassengerShipAI PassengerTrainAI PoliceCarAI CargoShipAI SnowTruckAI TaxiAI TramAI
                 return false;
             }
         }

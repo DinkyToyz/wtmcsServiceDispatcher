@@ -13,6 +13,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public static bool BucketedUpdates = true;
 
         /// <summary>
+        /// Indicates whether experiments are enabled.
+        /// </summary>
+        public static bool EnableExperiments = FileSystem.Exists(".enable.experiments");
+
+        /// <summary>
         /// The buildings.
         /// </summary>
         public static BuildingKeeper Buildings = null;

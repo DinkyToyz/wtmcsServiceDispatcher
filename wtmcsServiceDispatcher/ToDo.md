@@ -19,6 +19,7 @@
 - pipe and electricty area range (Central Services even if not really dispatching)?
 - Save in vehciles how much capacity they will have left after pickup and add send-out-option to send when no vehicles are free now or will be free with enough capacity after next pickup?
 - Remember problematic targets and delay next assigment to such target, so that it does not ceate a problem for the whole city.
+- Social services (taking care of confused citizens and tourists).
 
 # Changes and experiments
 
