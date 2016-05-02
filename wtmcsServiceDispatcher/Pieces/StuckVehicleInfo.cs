@@ -299,15 +299,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             }
             else
             {
-                Vector3 framePosition = vehicle.GetLastFramePosition();
-                Vector3 position = RoundVector(framePosition);
+                Vector3 position = vehicle.GetLastFramePosition();
 
                 // Remember first time stamp the vehicle was seen with this flag at this position.
-                if (this.checkFlagSinceFrame == 0 || this.checkFlagSinceTime == 0 || flags != this.checkFlags || position != this.checkFlagPosition)
+                if (this.checkFlagSinceFrame == 0 || this.checkFlagSinceTime == 0 || flags != this.checkFlags || (position - checkFlagPosition).sqrMagnitude > 0)
                 {
                     if (Log.LogALot)
                     {
-                        Log.DevDebug(this, "Update", "NewCheckFlag", flags, this.vehicleId, this.CheckFlaggedForSeconds, this.CheckFlaggedForFrames, Global.Settings.RemoveStuckVehiclesDelaySeconds, Global.CheckFlagStuckDelay, this.checkFlagPosition, framePosition, this.checkFlags, flags, vehicle.m_targetBuilding, vehicle.m_flags, VehicleHelper.GetVehicleName(this.vehicleId), this.GetHashCode().ToString());
+                        Log.DevDebug(this, "Update", "NewCheckFlag", flags, this.vehicleId, this.CheckFlaggedForSeconds, this.CheckFlaggedForFrames, Global.Settings.RemoveStuckVehiclesDelaySeconds, Global.CheckFlagStuckDelay, this.checkFlags, flags, this.checkFlagPosition, position, vehicle.m_targetBuilding, vehicle.m_flags, VehicleHelper.GetVehicleName(this.vehicleId), this.GetHashCode().ToString());
                     }
 
                     this.checkFlagPosition = position;
@@ -316,7 +315,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 }
                 else if (Log.LogALot)
                 {
-                    Log.DevDebug(this, "Update", "CheckFlag", flags, this.vehicleId, this.CheckFlaggedForSeconds, this.CheckFlaggedForFrames, Global.Settings.RemoveStuckVehiclesDelaySeconds, Global.CheckFlagStuckDelay, this.checkFlagPosition, framePosition, this.checkFlags, flags, vehicle.m_targetBuilding, vehicle.m_flags, VehicleHelper.GetVehicleName(this.vehicleId), this.GetHashCode().ToString());
+                    Log.DevDebug(this, "Update", "CheckFlag", flags, this.vehicleId, this.CheckFlaggedForSeconds, this.CheckFlaggedForFrames, Global.Settings.RemoveStuckVehiclesDelaySeconds, Global.CheckFlagStuckDelay, this.checkFlags, flags, this.checkFlagPosition, position, vehicle.m_targetBuilding, vehicle.m_flags, VehicleHelper.GetVehicleName(this.vehicleId), this.GetHashCode().ToString());
                 }
             }
 
@@ -432,17 +431,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             this.AddDebugInfoData(info, true);
 
             Log.DevDebug(this, "DebugLog", this.vehicleId, info);
-        }
-
-        private Vector3 RoundVector(Vector3 vector)
-        {
-            Vector3 rounded = vector;
-
-            rounded.x = (float)Math.Round(vector.x);
-            rounded.y = (float)Math.Round(vector.y);
-            rounded.z = (float)Math.Round(vector.z);
-
-            return rounded;
         }
     }
 }

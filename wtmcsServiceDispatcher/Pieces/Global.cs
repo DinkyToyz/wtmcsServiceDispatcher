@@ -30,7 +30,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// The wait path stuck delay.
         /// </summary>
-        public static uint CheckFlagStuckDelay = 240u;
+        public static uint CheckFlagStuckDelay = 600u;
 
         /// <summary>
         /// The minimum class check interval.
