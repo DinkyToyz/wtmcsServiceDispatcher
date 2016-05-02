@@ -30,11 +30,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         private uint bucketMask = 255;
 
         /// <summary>
-        /// The desolate buildings.
-        /// </summary>
-        private Dictionary<ushort, Double> desolateBuildings;
-
-        /// <summary>
         /// Initializes a new instance of the <see cref="BuildingKeeper"/> class.
         /// </summary>
         public BuildingKeeper()
@@ -47,6 +42,15 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// Gets the dead people buildings.
         /// </summary>
         public Dictionary<ushort, TargetBuildingInfo> DeadPeopleBuildings
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// Gets the desolate buildings.
+        /// </summary>
+        public Dictionary<ushort, Double> DesolateBuildings
         {
             get;
             private set;
@@ -138,9 +142,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 if (Global.Settings.AutoBulldozeBuildings)
                 {
-                    if (this.desolateBuildings != null)
+                    if (this.DesolateBuildings != null)
                     {
-                        BuildingHelper.DebugListLog(this.desolateBuildings, "DesolateBuildings");
+                        BuildingHelper.DebugListLog(this.DesolateBuildings, "DesolateBuildings");
                     }
                 }
             }
@@ -157,9 +161,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             try
             {
-                if (Global.Settings.AutoBulldozeBuildings && this.desolateBuildings != null)
+                if (Global.Settings.AutoBulldozeBuildings && this.DesolateBuildings != null)
                 {
-                    BuildingHelper.DebugListLog(this.desolateBuildings, "DesolateBuildings");
+                    BuildingHelper.DebugListLog(this.DesolateBuildings, "DesolateBuildings");
                 }
             }
             catch (Exception ex)
@@ -519,10 +523,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 }
 
                 // Handle abandonded and burnet down buildings.
-                if (this.desolateBuildings != null)
+                if (this.DesolateBuildings != null)
                 {
                     double stamp;
-                    bool known = this.desolateBuildings.TryGetValue(id, out stamp);
+                    bool known = this.DesolateBuildings.TryGetValue(id, out stamp);
 
                     if (desolateBuilding)
                     {
@@ -540,7 +544,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         else
                         {
                             delta = 0.0;
-                            this.desolateBuildings[id] = Global.SimulationTime;
+                            this.DesolateBuildings[id] = Global.SimulationTime;
                             Log.Debug(this, "CategorizeBuildings", "Desolate Building", id);
                         }
 
@@ -552,7 +556,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     }
                     else if (known)
                     {
-                        this.desolateBuildings.Remove(id);
+                        this.DesolateBuildings.Remove(id);
                         Log.Debug(this, "CategorizeBuildings", "Not Desolate Building", id);
                     }
                 }
@@ -618,15 +622,15 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             info.Add("CanBulldoze", BulldozeHelper.CanBulldoze);
             if (Global.Settings.AutoBulldozeBuildings && BulldozeHelper.CanBulldoze)
             {
-                if (this.desolateBuildings == null)
+                if (this.DesolateBuildings == null)
                 {
                     info.Add("Desolate", "new");
-                    this.desolateBuildings = new Dictionary<ushort, double>();
+                    this.DesolateBuildings = new Dictionary<ushort, double>();
                 }
             }
             else
             {
-                this.desolateBuildings = null;
+                this.DesolateBuildings = null;
             }
 
             Log.Debug(this, "Initialize", info);

@@ -36,11 +36,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         private HashSet<ushort> removedFromGrid = new HashSet<ushort>();
 
         /// <summary>
-        /// The stuck vehicles.
-        /// </summary>
-        private Dictionary<ushort, StuckVehicleInfo> stuckVehicles = null;
-
-        /// <summary>
         /// Initializes a new instance of the <see cref="VehicleKeeper"/> class.
         /// </summary>
         public VehicleKeeper()
@@ -50,23 +45,37 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Gets the stuck vehicles.
+        /// </summary>
+        public Dictionary<ushort, StuckVehicleInfo> StuckVehicles
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
         /// Re-initialize the part.
         /// </summary>
         public void ReInitialize()
         {
-            if (this.stuckVehicles == null)
+            if (this.StuckVehicles == null)
             {
-                this.stuckVehicles = new Dictionary<ushort, StuckVehicleInfo>();
+                this.StuckVehicles = new Dictionary<ushort, StuckVehicleInfo>();
             }
 
             // Forget stuck vehicles that are no longer the dispatcher's responcibility.
-            if (this.stuckVehicles != null && !Global.Settings.RemoveStuckVehicles)
+            if (this.StuckVehicles != null && !Global.Settings.RemoveStuckVehicles)
             {
-                List<ushort> vehicleIds = this.stuckVehicles.Where(kvp => kvp.Value.DispatchersResponsibility).Select(kvp => kvp.Key).ToList();
+                List<ushort> vehicleIds = this.StuckVehicles.Where(kvp => !kvp.Value.DispatchersResponsibility).Select(kvp => kvp.Key).ToList();
 
                 foreach (ushort id in vehicleIds)
                 {
-                    this.stuckVehicles.Remove(id);
+                    if (Log.LogALot && Log.LogToFile)
+                    {
+                        Log.Debug(this, "HandleVehicles", "StuckVehicles", "Irresponsible", id);
+                    }
+
+                    this.StuckVehicles.Remove(id);
                 }
             }
         }
@@ -144,9 +153,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         this.removedFromGrid.Remove(id);
                     }
 
-                    if (this.stuckVehicles != null && this.stuckVehicles.ContainsKey(id))
+                    if (this.StuckVehicles != null && this.StuckVehicles.ContainsKey(id))
                     {
-                        this.stuckVehicles.Remove(id);
+                        if (Log.LogALot && Log.LogToFile)
+                        {
+                            Log.Debug(this, "HandleVehicles", "StuckVehicles", "Gone", id);
+                        }
+
+                        this.StuckVehicles.Remove(id);
                     }
                 }
                 else
@@ -196,29 +210,40 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     }
 
                     // Try to fix stuck vehicles.
-                    if (this.stuckVehicles != null)
+                    if (this.StuckVehicles != null)
                     {
                         if (StuckVehicleInfo.HasProblem(id, ref vehicles[id]))
                         {
                             StuckVehicleInfo stuckVehicle;
-                            if (this.stuckVehicles.TryGetValue(id, out stuckVehicle))
+                            if (this.StuckVehicles.TryGetValue(id, out stuckVehicle))
                             {
                                 stuckVehicle.Update(ref vehicles[id]);
                             }
                             else
                             {
+                                Log.Debug(this, "HandleVehicles", "StuckVehicles", "New", id);
                                 stuckVehicle = new StuckVehicleInfo(id, ref vehicles[id]);
-                                this.stuckVehicles[id] = stuckVehicle;
+                                this.StuckVehicles[id] = stuckVehicle;
                             }
 
                             if (stuckVehicle.HandleProblem())
                             {
-                                this.stuckVehicles.Remove(id);
+                                if (Log.LogALot && Log.LogToFile)
+                                {
+                                    Log.Debug(this, "HandleVehicles", "StuckVehicles", "Handled", id);
+                                }
+
+                                this.StuckVehicles.Remove(id);
                             }
                         }
-                        else if (this.stuckVehicles.ContainsKey(id))
+                        else if (this.StuckVehicles.ContainsKey(id))
                         {
-                            this.stuckVehicles.Remove(id);
+                            if (Log.LogALot && Log.LogToFile)
+                            {
+                                Log.Debug(this, "HandleVehicles", "StuckVehicles", "NoProblem", id, vehicles[id].m_flags, vehicles[id].m_flags & StuckVehicleInfo.FlagsToCheck, ConfusionHelper.VehicleIsConfused(id, ref vehicles[id]));
+                            }
+
+                            this.StuckVehicles.Remove(id);
                         }
                     }
                 }

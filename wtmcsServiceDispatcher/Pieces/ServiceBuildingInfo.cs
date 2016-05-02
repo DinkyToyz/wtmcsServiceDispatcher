@@ -378,7 +378,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 return 0;
             }
 
-            ServiceVehicleInfo serviceVehicle = ServiceVehicleInfo.Create(this, (TransferManager.TransferReason)transferType, targetBuildingId);
+            ServiceVehicleInfo serviceVehicle = ServiceVehicleInfo.Create(this, (TransferManager.TransferReason)transferType, this.dispatcherType, targetBuildingId);
             if (serviceVehicle == null)
             {
                 return 0;
@@ -505,7 +505,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             if (Log.LogALot && !this.CanReceive)
             {
-                Log.DevDebug(this, "Update", this.BuildingId, this.BuildingName, building.m_flags, building.m_problems, this.CapacityFree, building.Info.m_buildingAI.IsFull(this.BuildingId, ref building));
+                Log.DevDebug(this, "Update", this.dispatcherType, this.BuildingId, this.BuildingName, building.m_flags, building.m_problems, this.CapacityFree, building.Info.m_buildingAI.IsFull(this.BuildingId, ref building));
             }
         }
 

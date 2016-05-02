@@ -9,6 +9,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
     internal class ServiceVehicleInfo
     {
         /// <summary>
+        /// The dispatcher type.
+        /// </summary>
+        private Dispatcher.DispatcherTypes dispatcherType = Dispatcher.DispatcherTypes.None;
+
+        /// <summary>
         /// The last target de-assign time stamp.
         /// </summary>
         private uint lastDeAssignStamp = 0;
@@ -19,9 +24,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <param name="vehicleId">The vehicle identifier.</param>
         /// <param name="vehicle">The vehicle.</param>
         /// <param name="freeToCollect">If set to <c>true</c> the vehicle is free.</param>
-        public ServiceVehicleInfo(ushort vehicleId, ref Vehicle vehicle, bool freeToCollect)
+        public ServiceVehicleInfo(ushort vehicleId, ref Vehicle vehicle, bool freeToCollect, Dispatcher.DispatcherTypes dispatcherType)
         {
             this.VehicleId = vehicleId;
+            this.dispatcherType = dispatcherType;
             this.LastAssigned = 0;
 
             this.Update(ref vehicle, freeToCollect, false);
@@ -131,7 +137,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <returns>
         /// The service vehicle.
         /// </returns>
-        public static ServiceVehicleInfo Create(ServiceBuildingInfo serviceBuilding, TransferManager.TransferReason material, ushort targetBuildingId = 0)
+        public static ServiceVehicleInfo Create(ServiceBuildingInfo serviceBuilding, TransferManager.TransferReason material, Dispatcher.DispatcherTypes dispatcherType, ushort targetBuildingId = 0)
         {
             ushort vehicleId;
             VehicleInfo info = VehicleHelper.CreateServiceVehicle(serviceBuilding, material, targetBuildingId, out vehicleId);
@@ -143,7 +149,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             VehicleManager manager = Singleton<VehicleManager>.instance;
 
-            return new ServiceVehicleInfo(vehicleId, ref manager.m_vehicles.m_buffer[vehicleId], true);
+            return new ServiceVehicleInfo(vehicleId, ref manager.m_vehicles.m_buffer[vehicleId], true, dispatcherType);
         }
 
         /// <summary>
@@ -174,7 +180,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             {
                 if (Log.LogALot)
                 {
-                    Log.DevDebug(this, "DeAssign", this.VehicleId);
+                    Log.DevDebug(this, "DeAssign", this.dispatcherType, this.VehicleId);
                 }
 
                 this.SetTarget(0, ref vehicle);
@@ -207,7 +213,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             if (Log.LogALot)
             {
-                Log.DevDebug(this, "Recall", this.VehicleId);
+                Log.DevDebug(this, "Recall", this.dispatcherType, this.VehicleId);
             }
 
             // Recall the vehicle.
@@ -270,7 +276,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     {
                         if (Log.LogALot)
                         {
-                            Log.DevDebug(this, "Update", "CheckAssignment", "Recall", this.VehicleId, vehicle.m_flags);
+                            Log.DevDebug(this, "Update", this.dispatcherType, "CheckAssignment", "Recall", this.VehicleId, vehicle.m_flags);
                         }
 
                         this.Recall(ref vehicle);
@@ -286,7 +292,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     {
                         if (Log.LogALot)
                         {
-                            Log.DevDebug(this, "Update", "CheckAssignment", "DeAssign", vehicle.m_targetBuilding, this.VehicleId);
+                            Log.DevDebug(this, "Update", this.dispatcherType, "CheckAssignment", "DeAssign", vehicle.m_targetBuilding, this.VehicleId);
                         }
 
                         this.DeAssign(ref vehicle);

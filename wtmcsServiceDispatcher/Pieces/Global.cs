@@ -13,11 +13,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public static bool BucketedUpdates = true;
 
         /// <summary>
-        /// Indicates whether experiments are enabled.
-        /// </summary>
-        public static bool EnableExperiments = FileSystem.Exists(".enable.experiments");
-
-        /// <summary>
         /// The buildings.
         /// </summary>
         public static BuildingKeeper Buildings = null;
@@ -31,6 +26,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// The minimum capacity update interval.
         /// </summary>
         public static uint CapacityUpdateInterval = 30u;
+
+        /// <summary>
+        /// The wait path stuck delay.
+        /// </summary>
+        public static uint CheckFlagStuckDelay = 240u;
 
         /// <summary>
         /// The minimum class check interval.
@@ -51,6 +51,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// The demand update delay.
         /// </summary>
         public static uint DemandLingerDelay = 0u;
+
+        /// <summary>
+        /// Indicates whether experiments are enabled.
+        /// </summary>
+        public static bool EnableExperiments = FileSystem.Exists(".enable.experiments");
 
         /// <summary>
         /// The garbage truck dispatcher.
@@ -121,11 +126,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// The transfer offers needs cleaning.
         /// </summary>
         public static bool TransferOffersCleaningNeeded = false;
-
-        /// <summary>
-        /// The wait path stuck delay.
-        /// </summary>
-        public static uint WaitPathStuckDelay = 600;
 
         /// <summary>
         /// The vehicles.

@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using ColossalFramework.Plugins;
+using UnityEngine;
 
 namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 {
@@ -367,6 +368,45 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
         }
 
+        private static string VectorToString(Vector4 vector)
+        {
+            return (new StringBuilder()).
+                    Append('(').
+                    Append(vector.x.ToString("#,0.###", CultureInfo.InvariantCulture)).
+                    Append(", ").
+                    Append(vector.y.ToString("#,0.###", CultureInfo.InvariantCulture)).
+                    Append(", ").
+                    Append(vector.z.ToString("#,0.###", CultureInfo.InvariantCulture)).
+                    Append(", ").
+                    Append(vector.w.ToString("#,0.###", CultureInfo.InvariantCulture)).
+                    Append(')').
+                    ToString();
+        }
+
+        private static string VectorToString(Vector3 vector)
+        {
+            return (new StringBuilder()).
+                    Append('(').
+                    Append(vector.x.ToString("#,0.###", CultureInfo.InvariantCulture)).
+                    Append(", ").
+                    Append(vector.y.ToString("#,0.###", CultureInfo.InvariantCulture)).
+                    Append(", ").
+                    Append(vector.z.ToString("#,0.###", CultureInfo.InvariantCulture)).
+                    Append(')').
+                    ToString();
+        }
+
+        private static string VectorToString(Vector2 vector)
+        {
+            return (new StringBuilder()).
+                    Append('(').
+                    Append(vector.x.ToString("#,0.###", CultureInfo.InvariantCulture)).
+                    Append(", ").
+                    Append(vector.y.ToString("#,0.###", CultureInfo.InvariantCulture)).
+                    Append(')').
+                    ToString();
+        }
+
         /// <summary>
         /// Outputs the specified message.
         /// </summary>
@@ -443,6 +483,18 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     else if (messages[i] is float)
                     {
                         message = ((float)messages[i]).ToString("#,0.##", CultureInfo.InvariantCulture);
+                    }
+                    else if (messages[i] is Vector3)
+                    {
+                        message = VectorToString((Vector3)messages[i]);
+                    }
+                    else if (messages[i] is Vector2)
+                    {
+                        message = VectorToString((Vector2)messages[i]);
+                    }
+                    else if (messages[i] is Vector4)
+                    {
+                        message = VectorToString((Vector4)messages[i]);
                     }
                     else
                     {
@@ -756,6 +808,21 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     {
                         this.AddNameOrSeparator(name, dc);
                         this.info.Append(data[i].ToString());
+                    }
+                    else if (data[i] is Vector3)
+                    {
+                        this.AddNameOrSeparator(name, dc);
+                        this.info.Append(VectorToString((Vector3)data[i]));
+                    }
+                    else if (data[i] is Vector2)
+                    {
+                        this.AddNameOrSeparator(name, dc);
+                        this.info.Append(VectorToString((Vector2)data[i]));
+                    }
+                    else if (data[i] is Vector4)
+                    {
+                        this.AddNameOrSeparator(name, dc);
+                        this.info.Append(VectorToString((Vector4)data[i]));
                     }
                     else
                     {

@@ -10,6 +10,33 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
     internal class StuckVehicleInfo
     {
         /// <summary>
+        /// The flags to check.
+        /// </summary>
+        public const Vehicle.Flags FlagsToCheck = Vehicle.Flags.WaitingPath | Vehicle.Flags.Parking;
+
+        /// <summary>
+        /// The vehicle's last position.
+        /// </summary>
+        private Vector3 checkFlagPosition = Vector3.zero;
+
+        /// <summary>
+        /// The flags that determined that this vehicle should be checked.
+        /// </summary>
+        private Vehicle.Flags checkFlags = Vehicle.Flags.None;
+
+        /// <summary>
+        /// The frame since when the vehicle has been had a flag that should be checked.
+        /// Used for deciding when to consider a vehicle as stuck.
+        /// </summary>
+        private uint checkFlagSinceFrame = 0u;
+
+        /// <summary>
+        /// The simulation time stamp since when the vehicle has had a flag that should be checked.
+        /// Used for deciding when to de-spawn vehicle.
+        /// </summary>
+        private double checkFlagSinceTime = 0.0;
+
+        /// <summary>
         /// The vehicle has been confused since this frame.
         /// Used for deciding when to recall vehicle.
         /// </summary>
@@ -37,26 +64,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         private bool isStuck = false;
 
         /// <summary>
-        /// The vehicle's last position.
-        /// </summary>
-        private Vector3 lastPosition = Vector3.zero;
-
-        /// <summary>
         /// The target building identifier.
         /// </summary>
         private ushort targetBuildingId = 0;
-
-        /// <summary>
-        /// The frame since when the vehicle has been waiting for a path.
-        /// Used for deciding when to consider a vehicle as stuck.
-        /// </summary>
-        private uint waitingForPathSinceFrame = 0u;
-
-        /// <summary>
-        /// The simulation time stamp since when the vehicle has been waiting for a path.
-        /// Used for deciding when to de-spawn vehicle.
-        /// </summary>
-        private double waitingForPathSinceTime = 0.0;
 
         /// <summary>
         /// The vehicle identifier.
@@ -93,6 +103,62 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Gets the amount of frames during which the vehicle has had a check flag.
+        /// </summary>
+        /// <value>
+        /// The check flag frame count.
+        /// </value>
+        private uint CheckFlaggedForFrames
+        {
+            get
+            {
+                return (this.checkFlagSinceFrame > 0 && this.checkFlagSinceFrame < Global.CurrentFrame) ? Global.CurrentFrame - this.checkFlagSinceFrame : 0;
+            }
+        }
+
+        /// <summary>
+        /// Gets the duration in seconds during which the vehicle has had a check flag.
+        /// </summary>
+        /// <value>
+        /// The check flag duration.
+        /// </value>
+        private double CheckFlaggedForSeconds
+        {
+            get
+            {
+                return (this.checkFlagSinceTime > 0 && this.checkFlagSinceTime < Global.SimulationTime) ? Global.SimulationTime - this.checkFlagSinceTime : 0;
+            }
+        }
+
+        /// <summary>
+        /// Gets the amount of frames during which the vehicle has been confused.
+        /// </summary>
+        /// <value>
+        /// The check confusion frame count.
+        /// </value>
+        private uint ConfusedForFrames
+        {
+            get
+            {
+                return (this.confusedSinceFrame > 0 && this.confusedSinceTime < Global.CurrentFrame) ? Global.CurrentFrame - this.confusedSinceFrame : 0;
+            }
+        }
+
+        /// <summary>
+        /// Gets the duration in seconds during which the vehicle has been confused.
+        /// </summary>
+        /// <value>
+        /// The confusion duration.
+        /// </value>
+        private double ConfusedForSeconds
+        {
+            get
+            {
+                return (this.confusedSinceTime > 0 && this.confusedSinceTime < Global.SimulationTime) ? Global.SimulationTime - this.confusedSinceTime : 0;
+            }
+        }
+
+        /// <summary>
         /// Determines whether the specified vehicle has a problem.
         /// </summary>
         /// <param name="vehicleId">The vehicle identifier.</param>
@@ -108,6 +174,20 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 return false;
             }
 
+            // Trailer?
+            if (vehicle.m_leadingVehicle != 0)
+            {
+                // Todo: Check lost trailers?
+                return false;
+            }
+
+            // Cargo parent?
+            if (vehicle.m_cargoParent != 0)
+            {
+                // Todo: investigate how cargo parent works, so the can be checked as well.
+                return false;
+            }
+
             // Only check vehicles we dispatch unless told to check other vehicles as well.
             if (!(Global.Settings.RemoveStuckVehicles ||
                   (Global.HearseDispatcher != null && vehicle.Info.m_vehicleAI is HearseAI) ||
@@ -116,25 +196,27 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 return false;
             }
 
-            // Trailer?
-            if (vehicle.m_leadingVehicle != 0)
-            {
-                // Todo: Check lost trailers?
-                return false;
-            }
-
-            // Check vehicles waiting for path.
-            if ((vehicle.m_flags & Vehicle.Flags.WaitingPath) != Vehicle.Flags.None)
+            // Check vehicles flags.
+            if ((vehicle.m_flags & FlagsToCheck) != Vehicle.Flags.None)
             {
                 return true;
             }
 
-            if (IsConfused(vehicleId, ref vehicle))
+            if (ConfusionHelper.VehicleIsConfused(vehicleId, ref vehicle))
             {
                 return true;
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Adds debug information data to information list.
+        /// </summary>
+        /// <param name="info">The information list.</param>
+        public void AddDebugInfoData(Log.InfoList info)
+        {
+            this.AddDebugInfoData(info, false);
         }
 
         /// <summary>
@@ -164,12 +246,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 {
                     this.isStuck = false;
                     this.isBroken = false;
-                    this.waitingForPathSinceTime = 0.0;
-                    this.waitingForPathSinceFrame = 0u;
+                    this.checkFlagSinceTime = 0.0;
+                    this.checkFlagSinceFrame = 0u;
                 }
             }
 
-            if (this.confusedSinceFrame > 0 && Global.CurrentFrame - this.confusedSinceFrame > Global.RecallConfusedDelay &&
+            if (this.ConfusedForFrames > Global.RecallConfusedDelay &&
                 ((Global.HearseDispatcher != null && this.dispatcherType == Dispatcher.DispatcherTypes.HearseDispatcher) ||
                  (Global.GarbageTruckDispatcher != null && this.dispatcherType == Dispatcher.DispatcherTypes.GarbageTruckDispatcher)))
             {
@@ -203,373 +285,164 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <param name="vehicle">The vehicle.</param>
         public void Update(ref Vehicle vehicle)
         {
-            Vector3 position = Vector3.zero;
-
-            // Check if vehicle is waiting for path.
-            if ((vehicle.m_flags & Vehicle.Flags.WaitingPath) == Vehicle.Flags.None)
+            // Check if vehicle has flag that should be checked.
+            Vehicle.Flags flags = vehicle.m_flags & FlagsToCheck;
+            if (flags == Vehicle.Flags.None)
             {
-                this.waitingForPathSinceTime = 0;
-                this.waitingForPathSinceFrame = 0;
+                if (Log.LogALot /*&& (this.checkFlags != Vehicle.Flags.None || this.checkFlagSinceFrame > 0 || this.checkFlagSinceTime > 0)*/)
+                {
+                    Log.DevDebug(this, "Update", "ResetCheckFlag", flags, this.vehicleId, this.CheckFlaggedForSeconds, this.CheckFlaggedForFrames, Global.Settings.RemoveStuckVehiclesDelaySeconds, Global.CheckFlagStuckDelay, this.checkFlags, flags, vehicle.m_targetBuilding, vehicle.m_flags, VehicleHelper.GetVehicleName(this.vehicleId), this.GetHashCode().ToString());
+                }
+
+                this.checkFlagSinceTime = 0;
+                this.checkFlagSinceFrame = 0;
             }
             else
             {
-                position = vehicle.GetLastFramePosition();
+                Vector3 framePosition = vehicle.GetLastFramePosition();
+                Vector3 position = RoundVector(framePosition);
 
-                if (Log.LogALot)
+                // Remember first time stamp the vehicle was seen with this flag at this position.
+                if (this.checkFlagSinceFrame == 0 || this.checkFlagSinceTime == 0 || flags != this.checkFlags || position != this.checkFlagPosition)
                 {
-                    Log.DevDebug(this, "Update", "WaitingPath", this.vehicleId, Global.SimulationTime - this.waitingForPathSinceTime, Global.CurrentFrame - this.waitingForPathSinceFrame, Global.Settings.RemoveStuckVehiclesDelaySeconds, Global.WaitPathStuckDelay, this.lastPosition, position, vehicle.m_targetBuilding, vehicle.m_flags, VehicleHelper.GetVehicleName(this.vehicleId));
+                    if (Log.LogALot)
+                    {
+                        Log.DevDebug(this, "Update", "NewCheckFlag", flags, this.vehicleId, this.CheckFlaggedForSeconds, this.CheckFlaggedForFrames, Global.Settings.RemoveStuckVehiclesDelaySeconds, Global.CheckFlagStuckDelay, this.checkFlagPosition, framePosition, this.checkFlags, flags, vehicle.m_targetBuilding, vehicle.m_flags, VehicleHelper.GetVehicleName(this.vehicleId), this.GetHashCode().ToString());
+                    }
+
+                    this.checkFlagPosition = position;
+                    this.checkFlagSinceTime = Global.SimulationTime;
+                    this.checkFlagSinceFrame = Global.CurrentFrame;
                 }
-
-                // Remember first time stamp the vehicle was seen waiting at this position.
-                if (this.waitingForPathSinceFrame == 0 || this.waitingForPathSinceTime == 0 || position != this.lastPosition)
+                else if (Log.LogALot)
                 {
-                    this.waitingForPathSinceTime = Global.SimulationTime;
-                    this.waitingForPathSinceFrame = Global.CurrentFrame;
+                    Log.DevDebug(this, "Update", "CheckFlag", flags, this.vehicleId, this.CheckFlaggedForSeconds, this.CheckFlaggedForFrames, Global.Settings.RemoveStuckVehiclesDelaySeconds, Global.CheckFlagStuckDelay, this.checkFlagPosition, framePosition, this.checkFlags, flags, vehicle.m_targetBuilding, vehicle.m_flags, VehicleHelper.GetVehicleName(this.vehicleId), this.GetHashCode().ToString());
                 }
             }
 
-            if (!IsConfused(this.vehicleId, ref vehicle))
+            if (!ConfusionHelper.VehicleIsConfused(this.vehicleId, ref vehicle))
             {
+                if (Log.LogALot /*&& (this.confusedSinceFrame > 0 || this.confusedSinceTime > 0)*/)
+                {
+                    Log.DevDebug(this, "Update", "ResetConfused", this.vehicleId, this.ConfusedForSeconds, this.ConfusedForFrames, Global.Settings.RemoveStuckVehiclesDelaySeconds, Global.RecallConfusedDelay, vehicle.m_targetBuilding, vehicle.m_flags, VehicleHelper.GetVehicleName(this.vehicleId));
+                }
+
                 this.confusedSinceTime = 0;
                 this.confusedSinceFrame = 0;
             }
             else
             {
-                if (Log.LogALot)
-                {
-                    Log.DevDebug(this, "Update", "Confused", this.vehicleId, Global.SimulationTime - this.confusedSinceTime, Global.CurrentFrame - this.confusedSinceFrame, Global.Settings.RemoveStuckVehiclesDelaySeconds, Global.RecallConfusedDelay, this.lastPosition, position, vehicle.m_targetBuilding, vehicle.m_flags, VehicleHelper.GetVehicleName(this.vehicleId));
-                }
-
                 if (this.confusedSinceFrame == 0 || this.confusedSinceTime == 0)
                 {
+                    if (Log.LogALot)
+                    {
+                        Log.DevDebug(this, "Update", "NewConfused", this.vehicleId, this.ConfusedForSeconds, this.ConfusedForFrames, Global.Settings.RemoveStuckVehiclesDelaySeconds, Global.RecallConfusedDelay, vehicle.m_targetBuilding, vehicle.m_flags, VehicleHelper.GetVehicleName(this.vehicleId));
+                    }
+
                     this.confusedSinceTime = Global.SimulationTime;
                     this.confusedSinceFrame = Global.CurrentFrame;
                 }
+                else if (Log.LogALot)
+                {
+                    Log.DevDebug(this, "Update", "Confused", this.vehicleId, this.ConfusedForSeconds, this.ConfusedForFrames, Global.Settings.RemoveStuckVehiclesDelaySeconds, Global.RecallConfusedDelay, vehicle.m_targetBuilding, vehicle.m_flags, VehicleHelper.GetVehicleName(this.vehicleId));
+                }
             }
 
-            this.lastPosition = position;
+            this.checkFlags = flags;
             this.targetBuildingId = vehicle.m_targetBuilding;
 
             if (!this.isStuck)
             {
-                // Check if stuck waiting for path.
-                if (this.waitingForPathSinceTime > 0.0)
+                double delta;
+
+                // Check if stuck with flag.
+                if (this.checkFlags != Vehicle.Flags.None && this.CheckFlaggedForFrames > Global.CheckFlagStuckDelay)
                 {
-                    double delta = Global.SimulationTime - this.waitingForPathSinceTime;
-
-                    if (delta > Global.Settings.RemoveStuckVehiclesDelaySeconds && Global.CurrentFrame - this.waitingForPathSinceFrame > Global.WaitPathStuckDelay)
-                    {
-                        Log.Info(this, "IsStuck", "WaitingForPath", this.vehicleId, delta, VehicleHelper.GetVehicleName(this.vehicleId));
-
-                        this.isStuck = true;
-                    }
-                }
-
-                if (this.confusedSinceTime > 0.0)
-                {
-                    double delta = Global.SimulationTime - this.confusedSinceTime;
+                    delta = this.CheckFlaggedForSeconds;
 
                     if (delta > Global.Settings.RemoveStuckVehiclesDelaySeconds)
                     {
-                        Log.Info(this, "IsStuck", "Confused", this.vehicleId, delta, VehicleHelper.GetVehicleName(this.vehicleId));
+                        Log.Info(this, "IsStuck", this.checkFlags, this.vehicleId, delta, VehicleHelper.GetVehicleName(this.vehicleId));
 
                         this.isStuck = true;
                     }
                 }
+
+                // Check if stuck confused.
+                delta = this.ConfusedForSeconds;
+
+                if (delta > Global.Settings.RemoveStuckVehiclesDelaySeconds)
+                {
+                    Log.Info(this, "IsStuck", "Confused", this.vehicleId, delta, VehicleHelper.GetVehicleName(this.vehicleId));
+
+                    this.isStuck = true;
+                }
             }
         }
 
         /// <summary>
-        /// Check if ambulance is confused.
+        /// Adds debug information data to information list.
         /// </summary>
-        /// <param name="data">The vehicle.</param>
-        /// <returns>True if ambulance is confused.</returns>
-        private static bool ConfusedAmbulance(ref Vehicle data)
+        /// <param name="info">The information list.</param>
+        /// <param name="complete">If set to <c>true</c> add complete information.</param>
+        private void AddDebugInfoData(Log.InfoList info, bool complete)
         {
-            // From AmbulanceAI.GetLocalizedStatus from original game code at version 1.4.0-f3.
-            // Straight copy from game code even though that's slower than a simple condition check
-            // to make it easier to see that the same logic is used.
-            if ((data.m_flags & Vehicle.Flags.GoingBack) != Vehicle.Flags.None)
+            if (complete)
             {
-                if ((int)data.m_transferSize == 0)
-                {
-                    ////target = InstanceID.Empty;
-                    ////return Locale.Get("VEHICLE_STATUS_AMBULANCE_RETURN_EMPTY");
-                    return false;
-                }
-                ////target = InstanceID.Empty;
-                ////return Locale.Get("VEHICLE_STATUS_AMBULANCE_RETURN_FULL");
-                return false;
-            }
-            if ((data.m_flags & Vehicle.Flags.WaitingTarget) != Vehicle.Flags.None)
-            {
-                ////target = InstanceID.Empty;
-                ////return Locale.Get("VEHICLE_STATUS_AMBULANCE_WAIT");
-                return false;
-            }
-            if ((data.m_flags & Vehicle.Flags.Emergency2) != Vehicle.Flags.None && (int)data.m_targetBuilding != 0)
-            {
-                ////target = InstanceID.Empty;
-                ////target.Building = data.m_targetBuilding;
-                ////return Locale.Get("VEHICLE_STATUS_AMBULANCE_EMERGENCY");
-                return false;
-            }
-            ////target = InstanceID.Empty;
-            ////return Locale.Get("VEHICLE_STATUS_CONFUSED");
-            return true;
-        }
+                info.Add("VehicleId", this.vehicleId);
 
-        /// <summary>
-        /// Check if garbage truck is confused.
-        /// </summary>
-        /// <param name="data">The vehicle.</param>
-        /// <returns>True if garbage truck is confused.</returns>
-        private static bool ConfusedGarbageTruck(ref Vehicle data)
-        {
-            // From GarbageTruckAI.GetLocalizedStatus from original game code at version 1.4.0-f3.
-            // Straight copy from game code even though that's slower than a simple condition check
-            // to make it easier to see that the same logic is used.
-            if ((data.m_flags & Vehicle.Flags.TransferToSource) != Vehicle.Flags.None)
-            {
-                if ((data.m_flags & Vehicle.Flags.GoingBack) != Vehicle.Flags.None)
-                {
-                    ////target = InstanceID.Empty;
-                    ////return Locale.Get("VEHICLE_STATUS_GARBAGE_RETURN");
-                    return false;
-                }
-                if ((data.m_flags & Vehicle.Flags.WaitingTarget) != Vehicle.Flags.None)
-                {
-                    ////target = InstanceID.Empty;
-                    ////return Locale.Get("VEHICLE_STATUS_GARBAGE_WAIT");
-                    return false;
-                }
-                ////target = InstanceID.Empty;
-                ////return Locale.Get("VEHICLE_STATUS_GARBAGE_COLLECT");
-                return false;
-            }
-            if ((data.m_flags & Vehicle.Flags.TransferToTarget) != Vehicle.Flags.None)
-            {
-                if ((data.m_flags & Vehicle.Flags.GoingBack) != Vehicle.Flags.None)
-                {
-                    ////target = InstanceID.Empty;
-                    ////return Locale.Get("VEHICLE_STATUS_GARBAGE_RETURN");
-                    return false;
-                }
-                if ((data.m_flags & Vehicle.Flags.WaitingTarget) != Vehicle.Flags.None)
-                {
-                    ////target = InstanceID.Empty;
-                    ////return Locale.Get("VEHICLE_STATUS_GARBAGE_UNLOAD");
-                    return false;
-                }
-                if ((int)data.m_targetBuilding != 0)
-                {
-                    ////target = InstanceID.Empty;
-                    ////target.Building = data.m_targetBuilding;
-                    ////return Locale.Get("VEHICLE_STATUS_GARBAGE_TRANSFER");
-                    return false;
-                }
-            }
-            ////target = InstanceID.Empty;
-            ////return Locale.Get("VEHICLE_STATUS_CONFUSED");
-            return true;
-        }
+                Vehicle vehicle = Singleton<VehicleManager>.instance.m_vehicles.m_buffer[this.vehicleId];
 
-        /// <summary>
-        /// Check if hearse is confused.
-        /// </summary>
-        /// <param name="data">The vehicle.</param>
-        /// <returns>True if hearse is confused.</returns>
-        private static bool ConfusedHearse(ref Vehicle data)
-        {
-            // From HearseAI.GetLocalizedStatus from original game code at version 1.4.0-f3.
-            // Straight copy from game code even though that's slower than a simple condition check
-            // to make it easier to see that the same logic is used.
-            if ((data.m_flags & Vehicle.Flags.TransferToSource) != Vehicle.Flags.None)
-            {
-                if ((data.m_flags & (Vehicle.Flags.Stopped | Vehicle.Flags.WaitingTarget)) != Vehicle.Flags.None)
-                {
-                    ////target = InstanceID.Empty;
-                    ////return Locale.Get("VEHICLE_STATUS_HEARSE_WAIT");
-                    return false;
-                }
-                if ((data.m_flags & Vehicle.Flags.GoingBack) != Vehicle.Flags.None)
-                {
-                    ////target = InstanceID.Empty;
-                    ////return Locale.Get("VEHICLE_STATUS_HEARSE_RETURN");
-                    return false;
-                }
-                if ((int)data.m_targetBuilding != 0)
-                {
-                    ////target = InstanceID.Empty;
-                    ////target.Building = data.m_targetBuilding;
-                    ////return Locale.Get("VEHICLE_STATUS_HEARSE_COLLECT");
-                    return false;
-                }
-            }
-            else if ((data.m_flags & Vehicle.Flags.TransferToTarget) != Vehicle.Flags.None)
-            {
-                if ((data.m_flags & Vehicle.Flags.GoingBack) != Vehicle.Flags.None)
-                {
-                    ////target = InstanceID.Empty;
-                    ////return Locale.Get("VEHICLE_STATUS_HEARSE_RETURN");
-                    return false;
-                }
-                if ((data.m_flags & Vehicle.Flags.WaitingTarget) != Vehicle.Flags.None)
-                {
-                    ////target = InstanceID.Empty;
-                    ////return Locale.Get("VEHICLE_STATUS_HEARSE_UNLOAD");
-                    return false;
-                }
-                if ((int)data.m_targetBuilding != 0)
-                {
-                    ////target = InstanceID.Empty;
-                    ////target.Building = data.m_targetBuilding;
-                    ////return Locale.Get("VEHICLE_STATUS_HEARSE_TRANSFER");
-                    return false;
-                }
-            }
-            ////target = InstanceID.Empty;
-            ////return Locale.Get("VEHICLE_STATUS_CONFUSED");
-            return true;
-        }
+                info.Add("LeadingVehicle", vehicle.m_leadingVehicle);
+                info.Add("TrailingVehicle", vehicle.m_trailingVehicle);
+                info.Add("Spawned", vehicle.m_flags & Vehicle.Flags.Spawned);
+                info.Add("Flags", vehicle.m_flags);
+                info.Add("Info", vehicle.Info);
 
-        /// <summary>
-        /// Check if passenger car is confused.
-        /// </summary>
-        /// <param name="vehicleId">The vehicle identifier.</param>
-        /// <param name="data">The vehicle.</param>
-        /// <returns>True if passenger car is confused.</returns>
-        private static bool ConfusedPassengerCar(ushort vehicleId, ref Vehicle data)
-        {
-            // From PassengerCarAI.GetLocalizedStatus from original game code at version 1.4.1-f2.
-            // Straight copy from game code even though that's slower than a simple condition check
-            // to make it easier to see that the same logic is used.
-            CitizenManager instance = Singleton<CitizenManager>.instance;
-            ushort driverInstance = ConfusedPassengerCar_GetDriverInstance(vehicleId, ref data);
-            ushort num1 = (ushort)0;
-            if ((int)driverInstance != 0)
-            {
-                if ((data.m_flags & Vehicle.Flags.Parking) != Vehicle.Flags.None)
+                if (vehicle.Info != null)
                 {
-                    uint num2 = instance.m_instances.m_buffer[(int)driverInstance].m_citizen;
-                    if ((int)num2 != 0 && (int)instance.m_citizens.m_buffer[num2].m_parkedVehicle != 0)
-                    {
-                        ////target = InstanceID.Empty;
-                        ////return Locale.Get("VEHICLE_STATUS_PARKING");
-                        return false;
-                    }
+                    info.Add("IsLargeVehicle", vehicle.Info.m_isLargeVehicle);
                 }
-                num1 = instance.m_instances.m_buffer[(int)driverInstance].m_targetBuilding;
             }
-            if ((int)num1 != 0)
-            {
-                if ((Singleton<BuildingManager>.instance.m_buildings.m_buffer[(int)num1].m_flags & Building.Flags.IncomingOutgoing) != Building.Flags.None)
-                {
-                    ////target = InstanceID.Empty;
-                    ////return Locale.Get("VEHICLE_STATUS_LEAVING");
-                    return false;
-                }
-                ////target = InstanceID.Empty;
-                ////target.Building = num1;
-                ////return Locale.Get("VEHICLE_STATUS_GOINGTO");
-                return false;
-            }
-            ////target = InstanceID.Empty;
-            ////return Locale.Get("VEHICLE_STATUS_CONFUSED");
-            return true;
-        }
 
-        /// <summary>
-        /// Copy of PassengerCarAI.GetDriverInstance to be used by ConfusedPassengerCar.
-        /// </summary>
-        /// <param name="vehicleID">The vehicle identifier.</param>
-        /// <param name="data">The data.</param>
-        /// <returns>The driver instance.</returns>
-        private static ushort ConfusedPassengerCar_GetDriverInstance(ushort vehicleID, ref Vehicle data)
-        {
-            // Straight copy from PassengerCarAI.GetDriverInstance from original game code at version 1.4.1-f2.
-            CitizenManager instance = Singleton<CitizenManager>.instance;
-            uint num1 = data.m_citizenUnits;
-            int num2 = 0;
-            while ((int)num1 != 0)
+            if (this.isStuck || this.isBroken)
             {
-                uint num3 = instance.m_units.m_buffer[num1].m_nextUnit;
-                for (int index = 0; index < 5; ++index)
-                {
-                    uint citizen = instance.m_units.m_buffer[num1].GetCitizen(index);
-                    if ((int)citizen != 0)
-                    {
-                        ushort num4 = instance.m_citizens.m_buffer[citizen].m_instance;
-                        if ((int)num4 != 0)
-                            return num4;
-                    }
-                }
-                num1 = num3;
-                if (++num2 > 524288)
-                {
-                    CODebugBase<LogChannel>.Error(LogChannel.Core, "Invalid list detected!\n" + System.Environment.StackTrace);
-                    break;
-                }
+                info.Add("Problem", this.isStuck ? "Stuck" : null, this.isBroken ? "Broken" : null);
             }
-            return (ushort)0;
-        }
 
-        /// <summary>
-        /// Determines whether the specified vehicle is confused.
-        /// </summary>
-        /// <param name="vehicleId">The vehicle identifier.</param>
-        /// <param name="vehicle">The vehicle.</param>
-        /// <returns>
-        /// True if the vehicle is confused.
-        /// </returns>
-        private static bool IsConfused(ushort vehicleId, ref Vehicle vehicle)
-        {
-            if (vehicle.Info.m_vehicleAI is HearseAI)
+            if (this.confusedSinceFrame > 0 || this.confusedSinceTime > 0)
             {
-                return ConfusedHearse(ref vehicle);
+                info.Add("Confused", this.ConfusedForSeconds, this.ConfusedForFrames);
             }
-            else if (vehicle.Info.m_vehicleAI is GarbageTruckAI)
+
+            if (this.checkFlagSinceFrame > 0 || this.checkFlagSinceTime > 0)
             {
-                return ConfusedGarbageTruck(ref vehicle);
-            }
-            else if (vehicle.Info.m_vehicleAI is AmbulanceAI)
-            {
-                return ConfusedAmbulance(ref vehicle);
-            }
-            else if (vehicle.Info.m_vehicleAI is PassengerCarAI)
-            {
-                return ConfusedPassengerCar(vehicleId, ref vehicle);
-            }
-            else
-            {
-                ////BusAI CargoShipAI CargoTrainAI CargoTruckAI FireTruckAI MetroTrainAI PassengerPlaneAI
-                ////PassengerShipAI PassengerTrainAI PoliceCarAI CargoShipAI SnowTruckAI TaxiAI TramAI
-                return false;
+                info.Add("Flagged", this.checkFlags, this.CheckFlaggedForSeconds, this.CheckFlaggedForFrames);
             }
         }
 
         /// <summary>
         /// Log debug info.
         /// </summary>
-        /// <param name="vehicleId">The vehicle identifier.</param>
-        private void DebugLog(ushort vehicleId)
+        private void DebugLog()
         {
             Vehicle vehicle = Singleton<VehicleManager>.instance.m_vehicles.m_buffer[this.vehicleId];
 
             Log.InfoList info = new Log.InfoList();
+            this.AddDebugInfoData(info, true);
 
-            info.Add("m_leadingVehicle", vehicle.m_leadingVehicle);
-            info.Add("m_trailingVehicle", vehicle.m_trailingVehicle);
-            info.Add("Spawned", vehicle.m_flags & Vehicle.Flags.Spawned);
-            info.Add("Flags", vehicle.m_flags);
-            info.Add("Info", vehicle.Info);
+            Log.DevDebug(this, "DebugLog", this.vehicleId, info);
+        }
 
-            if (vehicle.Info != null)
-            {
-                info.Add("Info.m_isLargeVehicle", vehicle.Info.m_isLargeVehicle);
-            }
+        private Vector3 RoundVector(Vector3 vector)
+        {
+            Vector3 rounded = vector;
 
-            Log.DevDebug(this, "DebugLog", vehicleId, info);
+            rounded.x = (float)Math.Round(vector.x);
+            rounded.y = (float)Math.Round(vector.y);
+            rounded.z = (float)Math.Round(vector.z);
+
+            return rounded;
         }
     }
 }

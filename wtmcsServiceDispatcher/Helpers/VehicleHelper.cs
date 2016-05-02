@@ -245,26 +245,59 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// Saves a list of vehicle info for debug use.
         /// </summary>
+        /// <exception cref="InvalidDataException">No vehicle objects.</exception>
         public static void DumpVehicles()
         {
+            bool logNames = Log.LogNames;
+            Log.LogNames = true;
+
             try
             {
                 List<string> vehicleList = new List<string>();
+                HashSet<ushort> listed = new HashSet<ushort>();
 
                 Vehicle[] vehicles = Singleton<VehicleManager>.instance.m_vehicles.m_buffer;
                 Building[] buildings = Singleton<BuildingManager>.instance.m_buildings.m_buffer;
 
                 for (ushort id = 0; id < vehicles.Length; id++)
                 {
-                    if (vehicles[id].m_flags != Vehicle.Flags.None)
+                    if (vehicles[id].m_flags != Vehicle.Flags.None && vehicles[id].m_leadingVehicle == 0)
                     {
+                        listed.Add(id);
+                        vehicleList.Add(DebugInfoMsg(vehicles, buildings, id, true).ToString());
+
+                        if (vehicles[id].m_trailingVehicle != 0)
+                        {
+                            ushort trailerCount = 0;
+                            ushort trailerId = vehicles[id].m_trailingVehicle;
+
+                            while (trailerId != 0 && trailerCount < ushort.MaxValue)
+                            {
+                                if (!listed.Contains(trailerId))
+                                {
+                                    listed.Add(trailerId);
+                                    vehicleList.Add(DebugInfoMsg(vehicles, buildings, trailerId, true).ToString());
+                                }
+
+                                trailerId = vehicles[trailerId].m_trailingVehicle;
+                                trailerCount++;
+                            }
+                        }
+                    }
+                }
+
+                for (ushort id = 0; id < vehicles.Length; id++)
+                {
+                    if (!listed.Contains(id) && vehicles[id].m_flags != Vehicle.Flags.None)
+                    {
+                        listed.Add(id);
                         vehicleList.Add(DebugInfoMsg(vehicles, buildings, id, true).ToString());
                     }
                 }
 
                 if (vehicleList.Count == 0)
                 {
-                    throw new InvalidDataException("No network objects");
+                    throw new InvalidDataException("No vehicle objects");
                 }
 
                 vehicleList.Add("");
@@ -278,6 +311,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             {
                 Log.Error(typeof(VehicleKeeper), "DumpVehicles", ex);
             }
+
+            Log.LogNames = logNames;
         }
 
         /// <summary>
@@ -429,7 +464,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <param name="vehicles">The vehicles.</param>
         /// <param name="buildings">The buildings.</param>
         /// <param name="vehicleId">The vehicle identifier.</param>
-        /// <returns>Vehicle information.</returns>
+        /// <param name="verbose">If set to <c>true</c> include more information.</param>
+        /// <returns>
+        /// Vehicle information.
+        /// </returns>
         private static Log.InfoList DebugInfoMsg(Vehicle[] vehicles, Building[] buildings, ushort vehicleId, bool verbose = false)
         {
             Log.InfoList info = new Log.InfoList();
@@ -441,6 +479,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             float distance;
 
             info.Add("VehicleId", vehicleId);
+
+            if (verbose)
+            {
+                info.Add("LeadingVehicle", vehicles[vehicleId].m_leadingVehicle);
+                info.Add("TrailingVehicle", vehicles[vehicleId].m_trailingVehicle);
+                info.Add("CargoParent", vehicles[vehicleId].m_cargoParent);
+            }
+
             info.Add("AI", vehicles[vehicleId].Info.m_vehicleAI.GetType());
             info.Add("InfoName", vehicles[vehicleId].Info.name);
 
@@ -536,10 +582,34 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             if (verbose)
             {
-                //vehicles[vehicleId].m_leadingVehicle
-                //vehicles[vehicleId].m_trailingVehicle
-                //vehicles[vehicleId].m_waitCounter
-                //position = vehicle.GetLastFramePosition();
+                if (vehicles[vehicleId].m_leadingVehicle == 0 && vehicles[vehicleId].m_trailingVehicle != 0)
+                {
+                    ushort trailerCount = 0;
+                    ushort trailerId = vehicles[vehicleId].m_trailingVehicle;
+
+                    while (trailerId != 0 && trailerCount < ushort.MaxValue)
+                    {
+                        trailerId = vehicles[trailerId].m_trailingVehicle;
+                        trailerCount++;
+                    }
+
+                    info.Add("TrailerCount", trailerCount);
+                }
+
+                info.Add("WaitCounter", vehicles[vehicleId].m_waitCounter);
+                info.Add("Position", vehicles[vehicleId].GetLastFramePosition());
+
+                if (Global.Vehicles != null)
+                {
+                    if (Global.Vehicles.StuckVehicles != null)
+                    {
+                        StuckVehicleInfo stuckVehicle;
+                        if (Global.Vehicles.StuckVehicles.TryGetValue(vehicleId, out stuckVehicle))
+                        {
+                            stuckVehicle.AddDebugInfoData(info);
+                        }
+                    }
+                }
             }
 
             info.Add("AI", vehicles[vehicleId].Info.m_vehicleAI.GetType().AssemblyQualifiedName);

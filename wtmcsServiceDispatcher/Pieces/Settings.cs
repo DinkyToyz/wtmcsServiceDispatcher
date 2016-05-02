@@ -24,7 +24,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// The automatic bulldoze buildings delay.
         /// </summary>
-        public double AutoBulldozeBuildingsDelaySeconds = 3.0 * 60.0;
+        public double AutoBulldozeBuildingsDelaySeconds = 5.0 * 60.0;
 
         /// <summary>
         /// When to create spare garbage trucks.
@@ -129,7 +129,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// The automatic vehicle removal delay.
         /// </summary>
-        public double RemoveStuckVehiclesDelaySeconds = 60.0;
+        public double RemoveStuckVehiclesDelaySeconds = 5 * 60.0;
 
         /// <summary>
         /// The save count.
@@ -252,6 +252,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 this.AutoBulldozeBuildings = settings.AutoBulldozeBuildings;
                 this.AutoBulldozeBuildingsDelaySeconds = settings.AutoBulldozeBuildingsDelaySeconds;
+
+                this.RemoveStuckVehicles = settings.RemoveStuckVehicles;
+                this.RemoveStuckVehiclesDelaySeconds = settings.RemoveStuckVehiclesDelaySeconds;
             }
         }
 
@@ -848,6 +851,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     cfg.AutoBulldozeBuildings = this.AutoBulldozeBuildings;
                     cfg.AutoBulldozeBuildingsDelaySeconds = this.AutoBulldozeBuildingsDelaySeconds;
 
+                    cfg.RemoveStuckVehicles = this.RemoveStuckVehicles;
+                    cfg.RemoveStuckVehiclesDelaySeconds = this.RemoveStuckVehiclesDelaySeconds;
+
                     cfg.BuildingChecksPresets = (Enum.GetValues(typeof(BuildingCheckOrder)) as BuildingCheckOrder[]).Where(bco => bco != BuildingCheckOrder.Custom).Select(bco => new ServiceDispatcherSettings.BuildingChecksPresetInfo(bco)).ToArray();
                     cfg.BuildingChecksPossible = (Enum.GetValues(typeof(BuildingCheckParameters)) as BuildingCheckParameters[]).Where(bcp => bcp != BuildingCheckParameters.Custom).ToArray();
 
@@ -931,7 +937,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             /// <summary>
             /// The automatic bulldoze buildings delay.
             /// </summary>
-            public double AutoBulldozeBuildingsDelaySeconds = 10.0 * 60.0;
+            public double AutoBulldozeBuildingsDelaySeconds = 5.0 * 60.0;
 
             /// <summary>
             /// The possible building checks.
@@ -1072,6 +1078,16 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             /// Whether stopped hearses should be removed from grid or not.
             /// </summary>
             public bool RemoveHearsesFromGrid = false;
+
+            /// <summary>
+            /// Automatic removal of stuck vehicles.
+            /// </summary>
+            public bool RemoveStuckVehicles = false;
+
+            /// <summary>
+            /// The automatic vehicle removal delay.
+            /// </summary>
+            public double RemoveStuckVehiclesDelaySeconds = 5.0 * 60.0;
 
             /// <summary>
             /// The save count.

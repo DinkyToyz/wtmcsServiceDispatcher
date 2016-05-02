@@ -931,7 +931,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                                     hasTarget = false;
                                 }
 
-                                ServiceVehicleInfo serviceVehicle = new ServiceVehicleInfo(vehicleId, ref vehicles[vehicleId], canCollect && !hasTarget && !unavailable);
+                                ServiceVehicleInfo serviceVehicle = new ServiceVehicleInfo(vehicleId, ref vehicles[vehicleId], canCollect && !hasTarget && !unavailable, this.DispatcherType);
                                 if (Log.LogALot)
                                 {
                                     Log.DevDebug(this, "CollectVehicles", "AddVehicle", serviceBuilding.BuildingId, vehicleId, vehicles[vehicleId].Info.name, serviceVehicle.VehicleName, serviceVehicle.FreeToCollect, collecting);

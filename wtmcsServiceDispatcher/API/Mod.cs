@@ -920,6 +920,13 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 }
 
                 advancedGroup.AddButton(
+                    "Dump buildings",
+                    () =>
+                    {
+                        BuildingHelper.DumpBuildings();
+                    });
+
+                advancedGroup.AddButton(
                     "Dump vehicles",
                     () =>
                     {

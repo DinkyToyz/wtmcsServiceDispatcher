@@ -68,6 +68,7 @@
     <Compile Include="Helpers\BuildingHelper.cs" />
     <Compile Include="Helpers\BulldozeHelper.cs" />
     <Compile Include="Helpers\CitizenHelper.cs" />
+    <Compile Include="Helpers\ConfusionHelper.cs" />
     <Compile Include="Helpers\TransportLineHelper.cs" />
     <Compile Include="Pieces\BuildingKeeper.cs" />
     <Compile Include="Detouring\Detours.cs" />
