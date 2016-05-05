@@ -718,51 +718,50 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         }
                     });
 
-                if (Global.Settings.RemoveStuckVehicles || Global.EnableExperiments)
-                {
-                    wreckingRecoveryGroup.AddCheckbox(
-                        "Dispatch recovery services",
-                        Global.Settings.RemoveStuckVehicles,
-                        value =>
-                        {
-                            try
-                            {
-                                if (Global.Settings.RemoveStuckVehicles != value)
-                                {
-                                    Global.Settings.RemoveStuckVehicles = value;
-                                    Global.Settings.Save();
-                                    Global.ReInitializeHandlers();
-                                }
-                            }
-                            catch (Exception ex)
-                            {
-                                Log.Error(this, "OnSettingsUI", ex, "WreckingRecoveryGroup", "RemoveStuckVehicles", value);
-                            }
-                        });
+                wreckingRecoveryGroup.AddInformationalText("Experimental Recovery Services:", "The recovery services are experimental, and might create more problems than they solve.");
 
-                    wreckingRecoveryGroup.AddExtendedSlider(
-                        "Recovery delay",
-                        0.0f,
-                        60.0f * 24.0f,
-                        0.01f,
-                        (float)Global.Settings.RemoveStuckVehiclesDelayMinutes,
-                        true,
-                        value =>
+                wreckingRecoveryGroup.AddCheckbox(
+                    "Dispatch recovery services",
+                    Global.Settings.RemoveStuckVehicles,
+                    value =>
+                    {
+                        try
                         {
-                            try
+                            if (Global.Settings.RemoveStuckVehicles != value)
                             {
-                                if (Global.Settings.RemoveStuckVehiclesDelayMinutes != (double)value)
-                                {
-                                    Global.Settings.RemoveStuckVehiclesDelayMinutes = (double)value;
-                                    Global.Settings.Save();
-                                }
+                                Global.Settings.RemoveStuckVehicles = value;
+                                Global.Settings.Save();
+                                Global.ReInitializeHandlers();
                             }
-                            catch (Exception ex)
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.Error(this, "OnSettingsUI", ex, "WreckingRecoveryGroup", "RemoveStuckVehicles", value);
+                        }
+                    });
+
+                wreckingRecoveryGroup.AddExtendedSlider(
+                    "Recovery delay",
+                    0.0f,
+                    60.0f * 24.0f,
+                    0.01f,
+                    (float)Global.Settings.RemoveStuckVehiclesDelayMinutes,
+                    true,
+                    value =>
+                    {
+                        try
+                        {
+                            if (Global.Settings.RemoveStuckVehiclesDelayMinutes != (double)value)
                             {
-                                Log.Error(this, "OnSettingsUI", ex, "WreckingRecoveryGroup", "RemoveStuckVehiclesDelayMinutes", value);
+                                Global.Settings.RemoveStuckVehiclesDelayMinutes = (double)value;
+                                Global.Settings.Save();
                             }
-                        });
-                }
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.Error(this, "OnSettingsUI", ex, "WreckingRecoveryGroup", "RemoveStuckVehiclesDelayMinutes", value);
+                        }
+                    });
 
                 // Add logging group.
                 UIHelperBase logGroup = helper.AddGroup("Logging (not saved in settings)");

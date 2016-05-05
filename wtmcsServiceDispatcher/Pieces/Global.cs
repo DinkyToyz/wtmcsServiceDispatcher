@@ -80,7 +80,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// The recall confused delay.
         /// </summary>
-        public static uint RecallConfusedDelay = 32;
+        public static uint RecallConfusedDelay = 240;
 
         /// <summary>
         /// The delay before unused vehicles are recalled to service building.

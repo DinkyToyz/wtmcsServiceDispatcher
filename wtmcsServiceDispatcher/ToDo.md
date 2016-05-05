@@ -1,7 +1,5 @@
 # Doing
 
-- Use own SetTarget instead of (vehicle)AI, and recall vehicle instead of despawning when path can not be found.
-- Continue checking for vehicles a bit instead of failing if found and assigend vehicle cannot find path to target.
 - Override ServiceVehicleAI.ShouldReturnToSource:
   - Allways true -> vehicle won't make transfer offer when trasferring to source.
   - Reassign vehicles returning to source.
@@ -13,12 +11,12 @@
 # Additions and fixes
 
 - ambulance services.
+- Remember problematic targets and delay next assigment to such target, so that it does not ceate a problem for the whole city.
 - fire fighting services?
 - law enforcement services?
 - send service now button on buildings?
 - pipe and electricty area range (Central Services even if not really dispatching)?
 - Save in vehciles how much capacity they will have left after pickup and add send-out-option to send when no vehicles are free now or will be free with enough capacity after next pickup?
-- Remember problematic targets and delay next assigment to such target, so that it does not ceate a problem for the whole city.
 - Social services (taking care of confused citizens and tourists).
 
 # Changes and experiments

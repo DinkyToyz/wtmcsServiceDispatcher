@@ -516,6 +516,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                             continue;
                         }
 
+                        if (vehicleInfo.IsConfused)
+                        {
+                            lostVehicles.Add(vehicleInfo.VehicleId);
+                            continue;
+                        }
+
                         float distance = (targetBuilding.Position - vehicleInfo.Position).sqrMagnitude;
 
                         if (Log.LogALot)

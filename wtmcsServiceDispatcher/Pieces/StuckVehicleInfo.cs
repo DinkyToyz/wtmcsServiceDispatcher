@@ -43,6 +43,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         private uint confusedSinceFrame = 0u;
 
         /// <summary>
+        /// The vehicle has been confused/recalled since this frame.
+        /// Used for deciding when to recall vehicle.
+        /// </summary>
+        private uint confusedRecalledSinceFrame = 0u;
+
+        /// <summary>
         /// The vehicle has been confused since this time stamp.
         /// Used for deciding when to de-spawn vehicle.
         /// </summary>
@@ -140,7 +146,21 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             get
             {
-                return (this.confusedSinceFrame > 0 && this.confusedSinceTime < Global.CurrentFrame) ? Global.CurrentFrame - this.confusedSinceFrame : 0;
+                return (this.confusedSinceFrame > 0 && this.confusedSinceFrame < Global.CurrentFrame) ? Global.CurrentFrame - this.confusedSinceFrame : 0;
+            }
+        }
+
+        /// <summary>
+        /// Gets the amount of frames during which the vehicle has been confused/recalled.
+        /// </summary>
+        /// <value>
+        /// The recall check confusion frame count.
+        /// </value>
+        private uint ConfusedRecalledForFrames
+        {
+            get
+            {
+                return (this.confusedRecalledSinceFrame > 0 && this.confusedRecalledSinceFrame < Global.CurrentFrame) ? Global.CurrentFrame - this.confusedRecalledSinceFrame : 0;
             }
         }
 
@@ -251,7 +271,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 }
             }
 
-            if (this.ConfusedForFrames > Global.RecallConfusedDelay &&
+            if (this.ConfusedRecalledForFrames > Global.RecallConfusedDelay &&
                 ((Global.HearseDispatcher != null && this.dispatcherType == Dispatcher.DispatcherTypes.HearseDispatcher) ||
                  (Global.GarbageTruckDispatcher != null && this.dispatcherType == Dispatcher.DispatcherTypes.GarbageTruckDispatcher)))
             {
@@ -272,7 +292,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 }
                 finally
                 {
-                    this.confusedSinceFrame = Global.CurrentFrame;
+                    this.confusedRecalledSinceFrame = Global.CurrentFrame;
                 }
             }
 
@@ -285,52 +305,59 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <param name="vehicle">The vehicle.</param>
         public void Update(ref Vehicle vehicle)
         {
+            this.targetBuildingId = vehicle.m_targetBuilding;
+
             // Check if vehicle has flag that should be checked.
             Vehicle.Flags flags = vehicle.m_flags & FlagsToCheck;
-            if (flags == Vehicle.Flags.None)
-            {
-                if (Log.LogALot /*&& (this.checkFlags != Vehicle.Flags.None || this.checkFlagSinceFrame > 0 || this.checkFlagSinceTime > 0)*/)
-                {
-                    Log.DevDebug(this, "Update", "ResetCheckFlag", flags, this.vehicleId, this.CheckFlaggedForSeconds, this.CheckFlaggedForFrames, Global.Settings.RemoveStuckVehiclesDelaySeconds, Global.CheckFlagStuckDelay, this.checkFlags, flags, vehicle.m_targetBuilding, vehicle.m_flags, VehicleHelper.GetVehicleName(this.vehicleId), this.GetHashCode().ToString());
-                }
-
-                this.checkFlagSinceTime = 0;
-                this.checkFlagSinceFrame = 0;
-            }
-            else
+            if (flags != Vehicle.Flags.None)
             {
                 Vector3 position = vehicle.GetLastFramePosition();
 
                 // Remember first time stamp the vehicle was seen with this flag at this position.
-                if (this.checkFlagSinceFrame == 0 || this.checkFlagSinceTime == 0 || flags != this.checkFlags || (position - checkFlagPosition).sqrMagnitude > 0)
+                if (this.checkFlagSinceFrame == 0 || this.checkFlagSinceTime == 0 || flags != this.checkFlags || Math.Truncate((position - this.checkFlagPosition).sqrMagnitude) > 0)
                 {
                     if (Log.LogALot)
                     {
-                        Log.DevDebug(this, "Update", "NewCheckFlag", flags, this.vehicleId, this.CheckFlaggedForSeconds, this.CheckFlaggedForFrames, Global.Settings.RemoveStuckVehiclesDelaySeconds, Global.CheckFlagStuckDelay, this.checkFlags, flags, this.checkFlagPosition, position, vehicle.m_targetBuilding, vehicle.m_flags, VehicleHelper.GetVehicleName(this.vehicleId), this.GetHashCode().ToString());
+                        if (this.checkFlags == Vehicle.Flags.None)
+                        {
+                            Log.DevDebug(this, "Update", "NewCheckFlag", flags, this.vehicleId, this.CheckFlaggedForSeconds, this.CheckFlaggedForFrames, Global.Settings.RemoveStuckVehiclesDelaySeconds, Global.CheckFlagStuckDelay, this.checkFlags, flags, this.checkFlagPosition, position, '-', vehicle.m_targetBuilding, vehicle.m_flags, VehicleHelper.GetVehicleName(this.vehicleId), this.GetHashCode().ToString());
+                        }
+                        else
+                        {
+                            Log.DevDebug(this, "Update", "NewCheckFlag", flags, this.vehicleId, this.CheckFlaggedForSeconds, this.CheckFlaggedForFrames, Global.Settings.RemoveStuckVehiclesDelaySeconds, Global.CheckFlagStuckDelay, this.checkFlags, flags, this.checkFlagPosition, position, (position - this.checkFlagPosition).sqrMagnitude, vehicle.m_targetBuilding, vehicle.m_flags, VehicleHelper.GetVehicleName(this.vehicleId), this.GetHashCode().ToString());
+                        }
                     }
 
+                    this.checkFlags = flags;
                     this.checkFlagPosition = position;
                     this.checkFlagSinceTime = Global.SimulationTime;
                     this.checkFlagSinceFrame = Global.CurrentFrame;
                 }
                 else if (Log.LogALot)
                 {
-                    Log.DevDebug(this, "Update", "CheckFlag", flags, this.vehicleId, this.CheckFlaggedForSeconds, this.CheckFlaggedForFrames, Global.Settings.RemoveStuckVehiclesDelaySeconds, Global.CheckFlagStuckDelay, this.checkFlags, flags, this.checkFlagPosition, position, vehicle.m_targetBuilding, vehicle.m_flags, VehicleHelper.GetVehicleName(this.vehicleId), this.GetHashCode().ToString());
+                    Log.DevDebug(this, "Update", "CheckFlag", flags, this.vehicleId, this.CheckFlaggedForSeconds, this.CheckFlaggedForFrames, Global.Settings.RemoveStuckVehiclesDelaySeconds, Global.CheckFlagStuckDelay, this.checkFlags, flags, this.checkFlagPosition, position, (position - this.checkFlagPosition).sqrMagnitude, vehicle.m_targetBuilding, vehicle.m_flags, VehicleHelper.GetVehicleName(this.vehicleId), this.GetHashCode().ToString());
                 }
             }
-
-            if (!ConfusionHelper.VehicleIsConfused(this.vehicleId, ref vehicle))
+            else if (this.checkFlags != Vehicle.Flags.None || this.checkFlagSinceTime != 0 || this.checkFlagSinceFrame != 0)
             {
-                if (Log.LogALot /*&& (this.confusedSinceFrame > 0 || this.confusedSinceTime > 0)*/)
+                if (Log.LogALot)
                 {
-                    Log.DevDebug(this, "Update", "ResetConfused", this.vehicleId, this.ConfusedForSeconds, this.ConfusedForFrames, Global.Settings.RemoveStuckVehiclesDelaySeconds, Global.RecallConfusedDelay, vehicle.m_targetBuilding, vehicle.m_flags, VehicleHelper.GetVehicleName(this.vehicleId));
+                    Log.DevDebug(this, "Update", "ResetCheckFlag", flags, this.vehicleId, this.CheckFlaggedForSeconds, this.CheckFlaggedForFrames, Global.Settings.RemoveStuckVehiclesDelaySeconds, Global.CheckFlagStuckDelay, this.checkFlags, flags, vehicle.m_targetBuilding, vehicle.m_flags, VehicleHelper.GetVehicleName(this.vehicleId), this.GetHashCode().ToString());
                 }
 
-                this.confusedSinceTime = 0;
-                this.confusedSinceFrame = 0;
+                this.checkFlags = Vehicle.Flags.None;
+                this.checkFlagSinceTime = 0;
+                this.checkFlagSinceFrame = 0;
             }
-            else
+
+            // Check if vehicle is confused.
+            if (ConfusionHelper.VehicleIsConfused(this.vehicleId, ref vehicle))
             {
+                if (this.confusedRecalledSinceFrame == 0)
+                {
+                    this.confusedRecalledSinceFrame = Global.CurrentFrame;
+                }
+
                 if (this.confusedSinceFrame == 0 || this.confusedSinceTime == 0)
                 {
                     if (Log.LogALot)
@@ -340,16 +367,26 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                     this.confusedSinceTime = Global.SimulationTime;
                     this.confusedSinceFrame = Global.CurrentFrame;
+                    this.confusedRecalledSinceFrame = Global.CurrentFrame;
                 }
                 else if (Log.LogALot)
                 {
                     Log.DevDebug(this, "Update", "Confused", this.vehicleId, this.ConfusedForSeconds, this.ConfusedForFrames, Global.Settings.RemoveStuckVehiclesDelaySeconds, Global.RecallConfusedDelay, vehicle.m_targetBuilding, vehicle.m_flags, VehicleHelper.GetVehicleName(this.vehicleId));
                 }
             }
+            else if (this.confusedSinceTime != 0 || this.confusedSinceFrame != 0 || confusedRecalledSinceFrame != 0)
+            {
+                if (Log.LogALot)
+                {
+                    Log.DevDebug(this, "Update", "ResetConfused", this.vehicleId, this.ConfusedForSeconds, this.ConfusedForFrames, Global.Settings.RemoveStuckVehiclesDelaySeconds, Global.RecallConfusedDelay, vehicle.m_targetBuilding, vehicle.m_flags, VehicleHelper.GetVehicleName(this.vehicleId));
+                }
 
-            this.checkFlags = flags;
-            this.targetBuildingId = vehicle.m_targetBuilding;
+                this.confusedSinceTime = 0;
+                this.confusedSinceFrame = 0;
+                this.confusedRecalledSinceFrame = 0;
+            }
 
+            // Check if vehicle is stuck.
             if (!this.isStuck)
             {
                 double delta;
@@ -368,13 +405,16 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 }
 
                 // Check if stuck confused.
-                delta = this.ConfusedForSeconds;
-
-                if (delta > Global.Settings.RemoveStuckVehiclesDelaySeconds)
+                if (this.ConfusedForFrames > Global.CheckFlagStuckDelay)
                 {
-                    Log.Info(this, "IsStuck", "Confused", this.vehicleId, delta, VehicleHelper.GetVehicleName(this.vehicleId));
+                    delta = this.ConfusedForSeconds;
 
-                    this.isStuck = true;
+                    if (delta > Global.Settings.RemoveStuckVehiclesDelaySeconds)
+                    {
+                        Log.Info(this, "IsStuck", "Confused", this.vehicleId, delta, VehicleHelper.GetVehicleName(this.vehicleId));
+
+                        this.isStuck = true;
+                    }
                 }
             }
         }

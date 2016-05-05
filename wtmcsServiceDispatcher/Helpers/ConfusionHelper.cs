@@ -226,27 +226,27 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 }
                 if ((int)num != 0)
                 {
-                    //Building.Flags flags = Singleton<BuildingManager>.instance.m_buildings.m_buffer[(int)num].m_flags;
-                    //TransferManager.TransferReason transferReason = (TransferManager.TransferReason)data.m_transferType;
-                    //if ((data.m_flags & Vehicle.Flags.Exporting) != Vehicle.Flags.None || (flags & Building.Flags.IncomingOutgoing) != Building.Flags.None)
-                    //{
-                    //    target = InstanceID.Empty;
-                    //    return Locale.Get("VEHICLE_STATUS_CARGOTRUCK_EXPORT", transferReason.ToString());
-                    //}
-                    //if ((data.m_flags & Vehicle.Flags.Importing) != Vehicle.Flags.None)
-                    //{
-                    //    target = InstanceID.Empty;
-                    //    target.Building = num;
-                    //    return Locale.Get("VEHICLE_STATUS_CARGOTRUCK_IMPORT", transferReason.ToString());
-                    //}
-                    //target = InstanceID.Empty;
-                    //target.Building = num;
-                    //return Locale.Get("VEHICLE_STATUS_CARGOTRUCK_DELIVER", transferReason.ToString());
+                    ////Building.Flags flags = Singleton<BuildingManager>.instance.m_buildings.m_buffer[(int)num].m_flags;
+                    ////TransferManager.TransferReason transferReason = (TransferManager.TransferReason)data.m_transferType;
+                    ////if ((data.m_flags & Vehicle.Flags.Exporting) != Vehicle.Flags.None || (flags & Building.Flags.IncomingOutgoing) != Building.Flags.None)
+                    ////{
+                    ////    target = InstanceID.Empty;
+                    ////    return Locale.Get("VEHICLE_STATUS_CARGOTRUCK_EXPORT", transferReason.ToString());
+                    ////}
+                    ////if ((data.m_flags & Vehicle.Flags.Importing) != Vehicle.Flags.None)
+                    ////{
+                    ////    target = InstanceID.Empty;
+                    ////    target.Building = num;
+                    ////    return Locale.Get("VEHICLE_STATUS_CARGOTRUCK_IMPORT", transferReason.ToString());
+                    ////}
+                    ////target = InstanceID.Empty;
+                    ////target.Building = num;
+                    ////return Locale.Get("VEHICLE_STATUS_CARGOTRUCK_DELIVER", transferReason.ToString());
                     return false;
                 }
             }
-            //target = InstanceID.Empty;
-            //return Locale.Get("VEHICLE_STATUS_CONFUSED");
+            ////target = InstanceID.Empty;
+            ////return Locale.Get("VEHICLE_STATUS_CONFUSED");
             return true;
         }
 

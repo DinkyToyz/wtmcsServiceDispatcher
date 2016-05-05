@@ -9,9 +9,19 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
     internal class ServiceVehicleInfo
     {
         /// <summary>
+        /// The last confused check stamp.
+        /// </summary>
+        private uint confusedStamp = 0;
+
+        /// <summary>
         /// The dispatcher type.
         /// </summary>
         private Dispatcher.DispatcherTypes dispatcherType = Dispatcher.DispatcherTypes.None;
+
+        /// <summary>
+        /// The vehicle is confused.
+        /// </summary>
+        private bool isConfused = false;
 
         /// <summary>
         /// The last target de-assign time stamp.
@@ -24,6 +34,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <param name="vehicleId">The vehicle identifier.</param>
         /// <param name="vehicle">The vehicle.</param>
         /// <param name="freeToCollect">If set to <c>true</c> the vehicle is free.</param>
+        /// <param name="dispatcherType">Type of the dispatcher.</param>
         public ServiceVehicleInfo(ushort vehicleId, ref Vehicle vehicle, bool freeToCollect, Dispatcher.DispatcherTypes dispatcherType)
         {
             this.VehicleId = vehicleId;
@@ -67,6 +78,34 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             get;
             private set;
+        }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether this vehicle confused.
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if this vehicle is confused; otherwise, <c>false</c>.
+        /// </value>
+        public bool IsConfused
+        {
+            get
+            {
+                if (this.confusedStamp != Global.CurrentFrame)
+                {
+                    Vehicle[] vehicles = Singleton<VehicleManager>.instance.m_vehicles.m_buffer;
+
+                    this.isConfused = ConfusionHelper.VehicleIsConfused(this.VehicleId, ref vehicles[this.VehicleId]);
+                    this.confusedStamp = Global.CurrentFrame;
+                }
+
+                return this.isConfused;
+            }
+
+            set
+            {
+                this.isConfused = value;
+                this.confusedStamp = Global.CurrentFrame;
+            }
         }
 
         /// <summary>
@@ -133,6 +172,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// </summary>
         /// <param name="serviceBuilding">The service building.</param>
         /// <param name="material">The material.</param>
+        /// <param name="dispatcherType">Type of the dispatcher.</param>
         /// <param name="targetBuildingId">The target building identifier.</param>
         /// <returns>
         /// The service vehicle.

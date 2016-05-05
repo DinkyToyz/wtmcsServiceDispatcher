@@ -368,45 +368,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
         }
 
-        private static string VectorToString(Vector4 vector)
-        {
-            return (new StringBuilder()).
-                    Append('(').
-                    Append(vector.x.ToString("#,0.###", CultureInfo.InvariantCulture)).
-                    Append(", ").
-                    Append(vector.y.ToString("#,0.###", CultureInfo.InvariantCulture)).
-                    Append(", ").
-                    Append(vector.z.ToString("#,0.###", CultureInfo.InvariantCulture)).
-                    Append(", ").
-                    Append(vector.w.ToString("#,0.###", CultureInfo.InvariantCulture)).
-                    Append(')').
-                    ToString();
-        }
-
-        private static string VectorToString(Vector3 vector)
-        {
-            return (new StringBuilder()).
-                    Append('(').
-                    Append(vector.x.ToString("#,0.###", CultureInfo.InvariantCulture)).
-                    Append(", ").
-                    Append(vector.y.ToString("#,0.###", CultureInfo.InvariantCulture)).
-                    Append(", ").
-                    Append(vector.z.ToString("#,0.###", CultureInfo.InvariantCulture)).
-                    Append(')').
-                    ToString();
-        }
-
-        private static string VectorToString(Vector2 vector)
-        {
-            return (new StringBuilder()).
-                    Append('(').
-                    Append(vector.x.ToString("#,0.###", CultureInfo.InvariantCulture)).
-                    Append(", ").
-                    Append(vector.y.ToString("#,0.###", CultureInfo.InvariantCulture)).
-                    Append(')').
-                    ToString();
-        }
-
         /// <summary>
         /// Outputs the specified message.
         /// </summary>
@@ -712,6 +673,60 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 Log.Error(typeof(Log), "SetLogValues", ex);
             }
+        }
+
+        /// <summary>
+        /// Converts vector to readable string.
+        /// </summary>
+        /// <param name="vector">The vector.</param>
+        /// <returns>A readable string.</returns>
+        private static string VectorToString(Vector4 vector)
+        {
+            return (new StringBuilder())
+                    .Append('(')
+                    .Append(vector.x.ToString("#,0.###", CultureInfo.InvariantCulture))
+                    .Append(", ")
+                    .Append(vector.y.ToString("#,0.###", CultureInfo.InvariantCulture))
+                    .Append(", ")
+                    .Append(vector.z.ToString("#,0.###", CultureInfo.InvariantCulture))
+                    .Append(", ")
+                    .Append(vector.w.ToString("#,0.###", CultureInfo.InvariantCulture))
+                    .Append(')')
+                    .ToString();
+        }
+
+        /// <summary>
+        /// Converts vector to readable string.
+        /// </summary>
+        /// <param name="vector">The vector.</param>
+        /// <returns>A readable string.</returns>
+        private static string VectorToString(Vector3 vector)
+        {
+            return (new StringBuilder())
+                    .Append('(')
+                    .Append(vector.x.ToString("#,0.###", CultureInfo.InvariantCulture))
+                    .Append(", ")
+                    .Append(vector.y.ToString("#,0.###", CultureInfo.InvariantCulture))
+                    .Append(", ")
+                    .Append(vector.z.ToString("#,0.###", CultureInfo.InvariantCulture))
+                    .Append(')')
+                    .ToString();
+        }
+
+        /// <summary>
+        /// Converts vector to readable string.
+        /// </summary>
+        /// <param name="vector">The vector.</param>
+        /// <returns>A readable string.</returns>
+        private static string VectorToString(Vector2 vector)
+        {
+            return (new StringBuilder())
+                    .Append('(')
+                    .Append(vector.x.ToString("#,0.###", CultureInfo.InvariantCulture))
+                    .Append(", ")
+                    .Append(vector.y.ToString("#,0.###", CultureInfo.InvariantCulture))
+                    .Append(')')
+                    .ToString();
         }
 
         /// <summary>
