@@ -94,7 +94,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 {
                     Vehicle[] vehicles = Singleton<VehicleManager>.instance.m_vehicles.m_buffer;
 
-                    this.isConfused = ConfusionHelper.VehicleIsConfused(this.VehicleId, ref vehicles[this.VehicleId]);
+                    this.isConfused = ConfusionHelper.VehicleIsConfused(ref vehicles[this.VehicleId]);
                     this.confusedStamp = Global.CurrentFrame;
                 }
 

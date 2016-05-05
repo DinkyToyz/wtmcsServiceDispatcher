@@ -240,7 +240,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         {
                             if (Log.LogALot && Log.LogToFile)
                             {
-                                Log.Debug(this, "HandleVehicles", "StuckVehicles", "NoProblem", id, vehicles[id].m_flags, vehicles[id].m_flags & StuckVehicleInfo.FlagsToCheck, ConfusionHelper.VehicleIsConfused(id, ref vehicles[id]));
+                                Log.Debug(this, "HandleVehicles", "StuckVehicles", "NoProblem", id, vehicles[id].m_flags, vehicles[id].m_flags & StuckVehicleInfo.FlagsToCheck, ConfusionHelper.VehicleIsConfused(ref vehicles[id]));
                             }
 
                             this.StuckVehicles.Remove(id);

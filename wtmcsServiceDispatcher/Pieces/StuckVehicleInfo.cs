@@ -222,7 +222,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 return true;
             }
 
-            if (ConfusionHelper.VehicleIsConfused(vehicleId, ref vehicle))
+            if (ConfusionHelper.VehicleIsConfused(ref vehicle))
             {
                 return true;
             }
@@ -351,7 +351,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             }
 
             // Check if vehicle is confused.
-            if (ConfusionHelper.VehicleIsConfused(this.vehicleId, ref vehicle))
+            if (ConfusionHelper.VehicleIsConfused(ref vehicle))
             {
                 if (this.confusedRecalledSinceFrame == 0)
                 {
@@ -374,7 +374,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     Log.DevDebug(this, "Update", "Confused", this.vehicleId, this.ConfusedForSeconds, this.ConfusedForFrames, Global.Settings.RemoveStuckVehiclesDelaySeconds, Global.RecallConfusedDelay, vehicle.m_targetBuilding, vehicle.m_flags, VehicleHelper.GetVehicleName(this.vehicleId));
                 }
             }
-            else if (this.confusedSinceTime != 0 || this.confusedSinceFrame != 0 || confusedRecalledSinceFrame != 0)
+            else if (this.confusedSinceTime != 0 || this.confusedSinceFrame != 0 || this.confusedRecalledSinceFrame != 0)
             {
                 if (Log.LogALot)
                 {
