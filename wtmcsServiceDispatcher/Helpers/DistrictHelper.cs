@@ -24,9 +24,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             try
             {
                 DistrictManager districtManager = Singleton<DistrictManager>.instance;
-                string name = districtManager.GetDistrictName(district);
 
-                return String.IsNullOrEmpty(name) ? (string)null : name;
+                return GetDistrictName(districtManager, district);
             }
             catch
             {
@@ -39,7 +38,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// </summary>
         /// <param name="position">The position.</param>
         /// <returns>The name of the district.</returns>
-        public static string GetDistrictNameForPosition(Vector3 position)
+        public static string GetDistrictName(Vector3 position)
         {
             if (!Log.LogNames)
             {
@@ -49,9 +48,36 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             try
             {
                 DistrictManager districtManager = Singleton<DistrictManager>.instance;
-                string name = districtManager.GetDistrictName(districtManager.GetDistrict(position));
+                byte district = districtManager.GetDistrict(position);
 
-                return String.IsNullOrEmpty(name) ? (string)null : name;
+                return GetDistrictName(districtManager, district);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Gets the name of the district.
+        /// </summary>
+        /// <param name="districtManager">The district manager.</param>
+        /// <param name="district">The district.</param>
+        /// <returns>
+        /// The name of the district.
+        /// </returns>
+        private static string GetDistrictName(DistrictManager districtManager, int district)
+        {
+            if (district == 0)
+            {
+                return "(no district)";
+            }
+
+            try
+            {
+                string name = districtManager.GetDistrictName(district);
+
+                return String.IsNullOrEmpty(name) ? "(unknown district)" : name;
             }
             catch
             {

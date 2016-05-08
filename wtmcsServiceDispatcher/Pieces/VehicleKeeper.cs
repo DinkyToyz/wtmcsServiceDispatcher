@@ -72,7 +72,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 {
                     if (Log.LogALot && Log.LogToFile)
                     {
-                        Log.Debug(this, "HandleVehicles", "StuckVehicles", "Irresponsible", id);
+                        Log.DevDebug(this, "HandleVehicles", "StuckVehicles", "Irresponsible", id);
                     }
 
                     this.StuckVehicles.Remove(id);
@@ -157,7 +157,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     {
                         if (Log.LogALot && Log.LogToFile)
                         {
-                            Log.Debug(this, "HandleVehicles", "StuckVehicles", "Gone", id);
+                            Log.DevDebug(this, "HandleVehicles", "StuckVehicles", "Gone", id);
                         }
 
                         this.StuckVehicles.Remove(id);
@@ -230,7 +230,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                             {
                                 if (Log.LogALot && Log.LogToFile)
                                 {
-                                    Log.Debug(this, "HandleVehicles", "StuckVehicles", "Handled", id);
+                                    Log.DevDebug(this, "HandleVehicles", "StuckVehicles", "Handled", id);
                                 }
 
                                 this.StuckVehicles.Remove(id);
@@ -240,7 +240,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         {
                             if (Log.LogALot && Log.LogToFile)
                             {
-                                Log.Debug(this, "HandleVehicles", "StuckVehicles", "NoProblem", id, vehicles[id].m_flags, vehicles[id].m_flags & StuckVehicleInfo.FlagsToCheck, ConfusionHelper.VehicleIsConfused(ref vehicles[id]));
+                                Log.DevDebug(this, "HandleVehicles", "StuckVehicles", "NoProblem", id, vehicles[id].m_flags, vehicles[id].m_flags & StuckVehicleInfo.FlagsToCheck, ConfusionHelper.VehicleIsConfused(ref vehicles[id]));
                             }
 
                             this.StuckVehicles.Remove(id);

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using ColossalFramework;
 using UnityEngine;
 
@@ -37,22 +38,27 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         private double checkFlagSinceTime = 0.0;
 
         /// <summary>
-        /// The vehicle has been confused since this frame.
-        /// Used for deciding when to recall vehicle.
+        /// The vehicle has been confused/de-assigned since this frame.
+        /// Used for deciding when to de-assign vehicle.
         /// </summary>
-        private uint confusedSinceFrame = 0u;
+        private uint confusedDeAssignedSinceFrame = 0u;
 
         /// <summary>
-        /// The vehicle has been confused/recalled since this frame.
-        /// Used for deciding when to recall vehicle.
+        /// The vehicle has been confused since this frame.
+        /// Used for deciding when to de-assign vehicle.
         /// </summary>
-        private uint confusedRecalledSinceFrame = 0u;
+        private uint confusedSinceFrame = 0u;
 
         /// <summary>
         /// The vehicle has been confused since this time stamp.
         /// Used for deciding when to de-spawn vehicle.
         /// </summary>
         private double confusedSinceTime = 0.0;
+
+        /// <summary>
+        /// The last de-assign time stamp.
+        /// </summary>
+        private uint lastDeAssignStamp = 0u;
 
         /// <summary>
         /// The dispatcher type.
@@ -137,6 +143,20 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Gets the amount of frames during which the vehicle has been confused/de-assigned.
+        /// </summary>
+        /// <value>
+        /// The de-assign check confusion frame count.
+        /// </value>
+        private uint ConfusedDeAssignedForFrames
+        {
+            get
+            {
+                return (this.confusedDeAssignedSinceFrame > 0 && this.confusedDeAssignedSinceFrame < Global.CurrentFrame) ? Global.CurrentFrame - this.confusedDeAssignedSinceFrame : 0;
+            }
+        }
+
+        /// <summary>
         /// Gets the amount of frames during which the vehicle has been confused.
         /// </summary>
         /// <value>
@@ -147,20 +167,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             get
             {
                 return (this.confusedSinceFrame > 0 && this.confusedSinceFrame < Global.CurrentFrame) ? Global.CurrentFrame - this.confusedSinceFrame : 0;
-            }
-        }
-
-        /// <summary>
-        /// Gets the amount of frames during which the vehicle has been confused/recalled.
-        /// </summary>
-        /// <value>
-        /// The recall check confusion frame count.
-        /// </value>
-        private uint ConfusedRecalledForFrames
-        {
-            get
-            {
-                return (this.confusedRecalledSinceFrame > 0 && this.confusedRecalledSinceFrame < Global.CurrentFrame) ? Global.CurrentFrame - this.confusedRecalledSinceFrame : 0;
             }
         }
 
@@ -271,19 +277,17 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 }
             }
 
-            if (this.ConfusedRecalledForFrames > Global.RecallConfusedDelay &&
+            if (this.ConfusedDeAssignedForFrames > Global.DeAssignConfusedDelay &&
                 ((Global.HearseDispatcher != null && this.dispatcherType == Dispatcher.DispatcherTypes.HearseDispatcher) ||
                  (Global.GarbageTruckDispatcher != null && this.dispatcherType == Dispatcher.DispatcherTypes.GarbageTruckDispatcher)))
             {
                 try
                 {
-                    // Recall vehicle.
-                    Log.Debug(this, "HandleProblem", "Confused", "Recall", this.vehicleId, VehicleHelper.GetVehicleName(this.vehicleId));
+                    // De-assign vehicle.
+                    Log.Debug(this, "HandleProblem", "Confused", "DeAssign", this.vehicleId, VehicleHelper.GetVehicleName(this.vehicleId));
                     Log.FlushBuffer();
 
-                    VehicleHelper.RecallVehicle(this.vehicleId);
-
-                    return true;
+                    this.DeAssign();
                 }
                 catch (Exception ex)
                 {
@@ -292,7 +296,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 }
                 finally
                 {
-                    this.confusedRecalledSinceFrame = Global.CurrentFrame;
+                    this.confusedDeAssignedSinceFrame = Global.CurrentFrame;
                 }
             }
 
@@ -353,37 +357,37 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             // Check if vehicle is confused.
             if (ConfusionHelper.VehicleIsConfused(ref vehicle))
             {
-                if (this.confusedRecalledSinceFrame == 0)
+                if (this.confusedDeAssignedSinceFrame == 0)
                 {
-                    this.confusedRecalledSinceFrame = Global.CurrentFrame;
+                    this.confusedDeAssignedSinceFrame = Global.CurrentFrame;
                 }
 
                 if (this.confusedSinceFrame == 0 || this.confusedSinceTime == 0)
                 {
                     if (Log.LogALot)
                     {
-                        Log.DevDebug(this, "Update", "NewConfused", this.vehicleId, this.ConfusedForSeconds, this.ConfusedForFrames, Global.Settings.RemoveStuckVehiclesDelaySeconds, Global.RecallConfusedDelay, vehicle.m_targetBuilding, vehicle.m_flags, VehicleHelper.GetVehicleName(this.vehicleId));
+                        Log.DevDebug(this, "Update", "NewConfused", this.vehicleId, this.ConfusedForSeconds, this.ConfusedForFrames, Global.Settings.RemoveStuckVehiclesDelaySeconds, Global.DeAssignConfusedDelay, vehicle.m_targetBuilding, vehicle.m_flags, VehicleHelper.GetVehicleName(this.vehicleId));
                     }
 
                     this.confusedSinceTime = Global.SimulationTime;
                     this.confusedSinceFrame = Global.CurrentFrame;
-                    this.confusedRecalledSinceFrame = Global.CurrentFrame;
+                    this.confusedDeAssignedSinceFrame = Global.CurrentFrame;
                 }
                 else if (Log.LogALot)
                 {
-                    Log.DevDebug(this, "Update", "Confused", this.vehicleId, this.ConfusedForSeconds, this.ConfusedForFrames, Global.Settings.RemoveStuckVehiclesDelaySeconds, Global.RecallConfusedDelay, vehicle.m_targetBuilding, vehicle.m_flags, VehicleHelper.GetVehicleName(this.vehicleId));
+                    Log.DevDebug(this, "Update", "Confused", this.vehicleId, this.ConfusedForSeconds, this.ConfusedForFrames, Global.Settings.RemoveStuckVehiclesDelaySeconds, Global.DeAssignConfusedDelay, vehicle.m_targetBuilding, vehicle.m_flags, VehicleHelper.GetVehicleName(this.vehicleId));
                 }
             }
-            else if (this.confusedSinceTime != 0 || this.confusedSinceFrame != 0 || this.confusedRecalledSinceFrame != 0)
+            else if (this.confusedSinceTime != 0 || this.confusedSinceFrame != 0 || this.confusedDeAssignedSinceFrame != 0)
             {
                 if (Log.LogALot)
                 {
-                    Log.DevDebug(this, "Update", "ResetConfused", this.vehicleId, this.ConfusedForSeconds, this.ConfusedForFrames, Global.Settings.RemoveStuckVehiclesDelaySeconds, Global.RecallConfusedDelay, vehicle.m_targetBuilding, vehicle.m_flags, VehicleHelper.GetVehicleName(this.vehicleId));
+                    Log.DevDebug(this, "Update", "ResetConfused", this.vehicleId, this.ConfusedForSeconds, this.ConfusedForFrames, Global.Settings.RemoveStuckVehiclesDelaySeconds, Global.DeAssignConfusedDelay, vehicle.m_targetBuilding, vehicle.m_flags, VehicleHelper.GetVehicleName(this.vehicleId));
                 }
 
                 this.confusedSinceTime = 0;
                 this.confusedSinceFrame = 0;
-                this.confusedRecalledSinceFrame = 0;
+                this.confusedDeAssignedSinceFrame = 0;
             }
 
             // Check if vehicle is stuck.
@@ -457,6 +461,64 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             if (this.checkFlagSinceFrame > 0 || this.checkFlagSinceTime > 0)
             {
                 info.Add("Flagged", this.checkFlags, this.CheckFlaggedForSeconds, this.CheckFlaggedForFrames);
+            }
+        }
+
+        /// <summary>
+        /// De-assign the vehicle.
+        /// </summary>
+        /// <param name="serviceBuildings">The service buildings.</param>
+        /// <param name="targetBuildings">The target buildings.</param>
+        private void DeAssign(Dictionary<ushort, ServiceBuildingInfo> serviceBuildings, Dictionary<ushort, TargetBuildingInfo> targetBuildings)
+        {
+            if (serviceBuildings != null)
+            {
+                foreach (ServiceBuildingInfo serviceBuilding in serviceBuildings.Values)
+                {
+                    ServiceVehicleInfo serviceVehicle;
+
+                    if (serviceBuilding.Vehicles.TryGetValue(this.vehicleId, out serviceVehicle) && serviceVehicle.Target != 0)
+                    {
+                        if (targetBuildings != null)
+                        {
+                            TargetBuildingInfo targetBuilding;
+
+                            if (targetBuildings.TryGetValue(serviceVehicle.Target, out targetBuilding))
+                            {
+                                targetBuilding.Handled = false;
+                            }
+                        }
+
+                        if (this.lastDeAssignStamp != Global.CurrentFrame)
+                        {
+                            serviceVehicle.DeAssign();
+
+                            this.lastDeAssignStamp = Global.CurrentFrame;
+                        }
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// De-assigns the vehicle.
+        /// </summary>
+        private void DeAssign()
+        {
+            if (Global.Buildings != null)
+            {
+                this.DeAssign(Global.Buildings.HearseBuildings, Global.Buildings.DeadPeopleBuildings);
+                this.DeAssign(Global.Buildings.GarbageBuildings, Global.Buildings.DirtyBuildings);
+            }
+
+            if (this.lastDeAssignStamp != Global.CurrentFrame)
+            {
+                if (Log.LogALot)
+                {
+                    Log.DevDebug(this, "DeAssign", this.dispatcherType, this.vehicleId);
+                }
+
+                VehicleHelper.DeAssign(this.vehicleId);
             }
         }
 

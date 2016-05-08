@@ -102,16 +102,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public float RangeModifier = 1.0f;
 
         /// <summary>
-        /// Call back garbage trucks to service buildings when not needed for a while.
-        /// </summary>
-        public bool RecallGarbageTrucks = true;
-
-        /// <summary>
-        /// Call back hearses to service buildings when not needed for a while.
-        /// </summary>
-        public bool RecallHearses = true;
-
-        /// <summary>
         /// Whether code overrides are allowed or not.
         /// </summary>
         public Allowance ReflectionAllowance = Allowance.Default;

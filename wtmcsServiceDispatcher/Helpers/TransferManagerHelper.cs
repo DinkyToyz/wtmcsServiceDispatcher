@@ -26,6 +26,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
         /// <summary>
         /// Cleans the transfer offers for the handled materials.
+        /// This might not be a good idea.
         /// </summary>
         public static void CleanTransferOffers()
         {

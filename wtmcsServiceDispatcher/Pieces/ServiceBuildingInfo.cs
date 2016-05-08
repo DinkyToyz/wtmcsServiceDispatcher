@@ -421,8 +421,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             if (this.dispatchByDistrict)
             {
-                byte district = Singleton<DistrictManager>.instance.GetDistrict(building.Position);
-                this.InDistrict = district == this.District;
+                this.InDistrict = building.District == this.District;
             }
             else
             {
@@ -521,7 +520,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             if (this.lastInfoUpdate == 0 || (ignoreInterval && this.lastInfoUpdate != Global.CurrentFrame) || Global.CurrentFrame - this.lastInfoUpdate > Global.ObjectUpdateInterval)
             {
-                if (this.dispatchByDistrict)
+                if (this.dispatchByDistrict || Log.LogNames)
                 {
                     this.District = Singleton<DistrictManager>.instance.GetDistrict(this.Position);
                 }

@@ -63,18 +63,23 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
-        /// Gets a value indicating whether the vehicle is free.
+        /// Gets the name of the district.
         /// </summary>
-        public bool FreeToCollect
+        /// <value>
+        /// The name of the district.
+        /// </value>
+        public string DistrictName
         {
-            get;
-            private set;
+            get
+            {
+                return DistrictHelper.GetDistrictName(this.Position);
+            }
         }
 
         /// <summary>
-        /// Gets a value indicating whether the vehicle is going back the the service building.
+        /// Gets a value indicating whether the vehicle is free.
         /// </summary>
-        public bool GoingBack
+        public bool FreeToCollect
         {
             get;
             private set;
@@ -189,75 +194,53 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             VehicleManager manager = Singleton<VehicleManager>.instance;
 
-            return new ServiceVehicleInfo(vehicleId, ref manager.m_vehicles.m_buffer[vehicleId], true, dispatcherType);
+            return new ServiceVehicleInfo(vehicleId, ref manager.m_vehicles.m_buffer[vehicleId], targetBuildingId == 0, dispatcherType);
+        }
+
+        /// <summary>
+        /// De-assign target from vehicle.
+        /// </summary>
+        /// <param name="force">If set to <c>true</c> force de-assignment.</param>
+        /// <returns>
+        /// True if target is or was de-assigned.
+        /// </returns>
+        public bool DeAssign(bool force = false)
+        {
+            return this.DeAssign(ref Singleton<VehicleManager>.instance.m_vehicles.m_buffer[this.VehicleId], force);
         }
 
         /// <summary>
         /// De-assign target from vehicle.
         /// </summary>
         /// <param name="vehicle">The vehicle.</param>
-        /// <returns>True if target is or was de-assigned.</returns>
-        public bool DeAssign(ref Vehicle vehicle)
+        /// <param name="force">If set to <c>true</c> force de-assignment.</param>
+        /// <returns>
+        /// True if target is or was de-assigned.
+        /// </returns>
+        public bool DeAssign(ref Vehicle vehicle, bool force = false)
         {
-            this.lastDeAssignStamp = Global.CurrentFrame;
-
-            if (VehicleHelper.CanRecallVehicle(ref vehicle) && Global.CurrentFrame - this.LastAssigned > Global.RecallDelay)
+            if (this.lastDeAssignStamp == Global.CurrentFrame)
             {
-                if (!(vehicle.m_targetBuilding == 0 && this.Target == 0 && this.GoingBack && (vehicle.m_flags & Vehicle.Flags.GoingBack) == Vehicle.Flags.GoingBack))
+                return vehicle.m_targetBuilding == 0 && this.Target == 0;
+            }
+
+            if (force || Global.CurrentFrame - this.LastAssigned > Global.TargetLingerDelay || vehicle.m_targetBuilding != this.Target)
+            {
+                this.lastDeAssignStamp = Global.CurrentFrame;
+
+                if (vehicle.m_targetBuilding == 0 && this.Target == 0)
                 {
-                    this.Recall(ref vehicle);
+                    return true;
                 }
 
-                return true;
+                // Set internal target.
+                this.Target = 0;
+
+                // Unassign the vehicle.
+                return VehicleHelper.DeAssign(this.VehicleId, ref vehicle);
             }
 
-            if (vehicle.m_targetBuilding == 0 && this.Target == 0)
-            {
-                return true;
-            }
-
-            if (Global.CurrentFrame - this.LastAssigned > Global.TargetLingerDelay)
-            {
-                if (Log.LogALot)
-                {
-                    Log.DevDebug(this, "DeAssign", this.dispatcherType, this.VehicleId);
-                }
-
-                this.SetTarget(0, ref vehicle);
-                return true;
-            }
-
-            return this.Target == 0;
-        }
-
-        /// <summary>
-        /// Recalls the vehicle to the service building.
-        /// </summary>
-        /// <returns>True if vehicle recalled and found path the source.</returns>
-        public bool Recall()
-        {
-            // Get vehicle.
-            return this.Recall(ref Singleton<VehicleManager>.instance.m_vehicles.m_buffer[this.VehicleId]);
-        }
-
-        /// <summary>
-        /// Recalls the vehicle to the service building.
-        /// </summary>
-        /// <param name="vehicle">The vehicle data.</param>
-        /// <returns>True if vehicle recalled and found path the source.</returns>
-        public bool Recall(ref Vehicle vehicle)
-        {
-            // Set internal target.
-            this.Target = 0;
-            this.GoingBack = true;
-
-            if (Log.LogALot)
-            {
-                Log.DevDebug(this, "Recall", this.dispatcherType, this.VehicleId);
-            }
-
-            // Recall the vehicle.
-            return VehicleHelper.RecallVehicle(this.VehicleId, ref vehicle);
+            return vehicle.m_targetBuilding == 0 && this.Target == 0;
         }
 
         /// <summary>
@@ -268,27 +251,34 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <returns>True if target set vehicle found path the target.</returns>
         public bool SetTarget(ushort targetBuildingId, ref Vehicle vehicle)
         {
-            if (targetBuildingId == 0 && this.GoingBack)
+            if (targetBuildingId == 0)
             {
-                return this.Recall(ref vehicle);
+                if (this.Target == 0 && vehicle.m_targetBuilding == 0)
+                {
+                    return true;
+                }
+
+                return this.DeAssign(ref vehicle, true);
+            }
+
+            if (Log.LogALot)
+            {
+                Log.DevDebug(this, "SetTarget", this.VehicleId, targetBuildingId, this.Target, vehicle.m_targetBuilding, vehicle.m_flags);
             }
 
             if (VehicleHelper.SetTarget(this.VehicleId, ref vehicle, targetBuildingId))
             {
-                if (targetBuildingId != 0)
-                {
-                    this.LastAssigned = Global.CurrentFrame;
-                    this.FreeToCollect = false;
-                    this.GoingBack = false;
-                }
-
+                this.LastAssigned = Global.CurrentFrame;
+                this.FreeToCollect = false;
                 this.Target = targetBuildingId;
+
                 return true;
             }
 
+            Log.Debug(this, "SetTarget", "Failed", this.VehicleId, targetBuildingId, this.Target, vehicle.m_targetBuilding, vehicle.m_flags);
+
             this.LastAssigned = 0;
-            this.FreeToCollect = (vehicle.m_flags & VehicleHelper.VehicleExists) != Vehicle.Flags.None;
-            this.GoingBack = false;
+            this.FreeToCollect = false;
             this.Target = 0;
 
             return false;
@@ -299,32 +289,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// </summary>
         /// <param name="vehicle">The vehicle.</param>
         /// <param name="freeToCollect">If set to <c>true</c> the vehicle is free.</param>
-        /// <param name="checkAssignment">If set to <c>true</c> check vehicles assignment and possibly de-assign/recall vehicle].</param>
+        /// <param name="checkAssignment">If set to <c>true</c> check vehicles assignment and possibly de-assign vehicle].</param>
         public void Update(ref Vehicle vehicle, bool freeToCollect, bool checkAssignment = true)
         {
-            this.LastSeen = Global.CurrentFrame;
-            this.Position = vehicle.GetLastFramePosition();
-            this.FreeToCollect = freeToCollect;
-            this.GoingBack = vehicle.m_targetBuilding == 0 && (vehicle.m_flags & Vehicle.Flags.GoingBack) == Vehicle.Flags.GoingBack;
-            this.Target = vehicle.m_targetBuilding;
-
-            if (checkAssignment && (vehicle.m_flags & VehicleHelper.VehicleUnavailable) == Vehicle.Flags.None)
+            if (this.LastSeen != Global.CurrentFrame)
             {
-                if (vehicle.m_targetBuilding == 0)
+                if (checkAssignment && (vehicle.m_flags & (VehicleHelper.VehicleUnavailable | VehicleHelper.VehicleBusy)) == Vehicle.Flags.None && vehicle.m_targetBuilding != 0)
                 {
-                    if (!this.GoingBack && Global.CurrentFrame - this.LastAssigned > Global.RecallDelay && VehicleHelper.CanRecallVehicle(ref vehicle))
-                    {
-                        if (Log.LogALot)
-                        {
-                            Log.DevDebug(this, "Update", this.dispatcherType, "CheckAssignment", "Recall", this.VehicleId, vehicle.m_flags);
-                        }
-
-                        this.Recall(ref vehicle);
-                    }
-                }
-                else
-                {
-                    if (this.LastAssigned >= this.lastDeAssignStamp)
+                    if (this.LastAssigned >= this.lastDeAssignStamp || vehicle.m_targetBuilding != this.Target)
                     {
                         this.LastAssigned = Global.CurrentFrame;
                     }
@@ -332,19 +304,24 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     {
                         if (Log.LogALot)
                         {
-                            Log.DevDebug(this, "Update", this.dispatcherType, "CheckAssignment", "DeAssign", vehicle.m_targetBuilding, this.VehicleId);
+                            Log.DevDebug(this, "Update", this.dispatcherType, "CheckAssignment", "DeAssign", this.VehicleId, vehicle.m_targetBuilding, vehicle.m_flags);
                         }
 
                         this.DeAssign(ref vehicle);
                     }
                 }
+
+                string localeKey;
+                int bufCur, bufMax;
+                vehicle.Info.m_vehicleAI.GetBufferStatus(this.VehicleId, ref vehicle, out localeKey, out bufCur, out bufMax);
+                this.CapacityFree = bufMax - bufCur;
+                this.CapacityUsed = (float)bufCur / (float)bufMax;
             }
 
-            string localeKey;
-            int bufCur, bufMax;
-            vehicle.Info.m_vehicleAI.GetBufferStatus(this.VehicleId, ref vehicle, out localeKey, out bufCur, out bufMax);
-            this.CapacityFree = bufMax - bufCur;
-            this.CapacityUsed = (float)bufCur / (float)bufMax;
+            this.Position = vehicle.GetLastFramePosition();
+            this.LastSeen = Global.CurrentFrame;
+            this.Target = vehicle.m_targetBuilding;
+            this.FreeToCollect = freeToCollect;
         }
     }
 }

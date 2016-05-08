@@ -78,14 +78,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public static uint ObjectUpdateInterval = 120u;
 
         /// <summary>
-        /// The recall confused delay.
+        /// The de-assign confused delay.
         /// </summary>
-        public static uint RecallConfusedDelay = 240;
-
-        /// <summary>
-        /// The delay before unused vehicles are recalled to service building.
-        /// </summary>
-        public static uint RecallDelay = 240u;
+        public static uint DeAssignConfusedDelay = 240;
 
         /// <summary>
         /// The minimum recheck interval for handled targets.
@@ -120,7 +115,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// The target de-assign delay.
         /// </summary>
-        public static uint TargetLingerDelay = 480u;
+        public static uint TargetLingerDelay = 240u;
 
         /// <summary>
         /// The transfer offers needs cleaning.

@@ -13,6 +13,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
     internal static class VehicleHelper
     {
         /// <summary>
+        /// The vehicle is busy if any of these flags are set.
+        /// </summary>
+        public const Vehicle.Flags VehicleBusy = Vehicle.Flags.Arriving | Vehicle.Flags.Landing | Vehicle.Flags.Leaving | Vehicle.Flags.Parking | Vehicle.Flags.TakingOff;
+
+        /// <summary>
         /// The vehicle exists if any of these flags are set.
         /// </summary>
         public const Vehicle.Flags VehicleExists = Vehicle.Flags.Spawned | Vehicle.Flags.WaitingPath | Vehicle.Flags.WaitingSpace;
@@ -20,18 +25,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// The vehicle is unavailable if any of these flags are set.
         /// </summary>
-        public const Vehicle.Flags VehicleUnavailable = Vehicle.Flags.WaitingPath | Vehicle.Flags.WaitingSpace | Vehicle.Flags.WaitingLoading | Vehicle.Flags.Deleted;
-
-        /// <summary>
-        /// Determines whether the vehicle can be recalled.
-        /// </summary>
-        /// <param name="vehicle">The vehicle.</param>
-        /// <returns>True if the vehicle can be recalled.</returns>
-        public static bool CanRecallVehicle(ref Vehicle vehicle)
-        {
-            return (vehicle.Info.m_vehicleAI is HearseAI && Global.Settings.RecallHearses) ||
-                   (vehicle.Info.m_vehicleAI is GarbageTruckAI && Global.Settings.RecallGarbageTrucks);
-        }
+        public const Vehicle.Flags VehicleUnavailable = Vehicle.Flags.WaitingPath | Vehicle.Flags.WaitingSpace | Vehicle.Flags.WaitingLoading | Vehicle.Flags.GoingBack | Vehicle.Flags.Deleted;
 
         /// <summary>
         /// Creates the service vehicle.
@@ -119,6 +113,52 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             }
 
             return info;
+        }
+
+        /// <summary>
+        /// Removes target assignment from vehicle.
+        /// </summary>
+        /// <param name="vehicleId">The vehicle identifier.</param>
+        /// <returns>True if vehicle de-assigned and ok.</returns>
+        public static bool DeAssign(ushort vehicleId)
+        {
+            return DeAssign(vehicleId, ref Singleton<VehicleManager>.instance.m_vehicles.m_buffer[vehicleId]);
+        }
+
+        /// <summary>
+        /// Removes target assignment from vehicle.
+        /// </summary>
+        /// <param name="vehicleId">The vehicle identifier.</param>
+        /// <param name="vehicle">The vehicle data.</param>
+        /// <returns>True if vehicle de-assigned and ok.</returns>
+        public static bool DeAssign(ushort vehicleId, ref Vehicle vehicle)
+        {
+            try
+            {
+                // Vehicle has spawned but not moved, just unspawn.
+                Vector3 spawnPos = GetSpawnPosition(vehicleId, vehicle.Info, vehicle.m_sourceBuilding);
+                if (vehicle.m_frame0.m_position == spawnPos && vehicle.m_frame1.m_position == spawnPos && vehicle.m_frame2.m_position == spawnPos && vehicle.m_frame3.m_position == spawnPos)
+                {
+                    Log.Debug(typeof(VehicleHelper), "DeAssign", "DeSpawn", vehicleId, vehicle, vehicle.Info.m_vehicleAI);
+
+                    vehicle.m_flags &= ~Vehicle.Flags.WaitingSpace;
+                    vehicle.m_flags &= ~Vehicle.Flags.WaitingPath;
+                    vehicle.Unspawn(vehicleId);
+
+                    if (Log.LogToFile && Log.LogALot)
+                    {
+                        DebugListLog(vehicleId);
+                    }
+
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error(typeof(VehicleHelper), "DeAssign", ex);
+            }
+
+            return SetTarget(vehicleId, ref vehicle, 0);
         }
 
         /// <summary>
@@ -316,6 +356,28 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Gets the name of the district.
+        /// </summary>
+        /// <param name="vehicleId">The vehicle identifier.</param>
+        /// <returns>The name of the district.</returns>
+        public static string GetDistrictName(ushort vehicleId)
+        {
+            if (!Log.LogNames)
+            {
+                return null;
+            }
+
+            Vehicle[] vehicles = Singleton<VehicleManager>.instance.m_vehicles.m_buffer;
+
+            if ((vehicles[vehicleId].m_flags & VehicleExists) == Vehicle.Flags.None)
+            {
+                return null;
+            }
+
+            return DistrictHelper.GetDistrictName(vehicles[vehicleId].GetLastFramePosition());
+        }
+
+        /// <summary>
         /// Gets the spawn position.
         /// </summary>
         /// <param name="vehicleId">The vehicle identifier.</param>
@@ -373,53 +435,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
-        /// Recalls the vehicle to the service building.
-        /// </summary>
-        /// <param name="vehicleId">The vehicle identifier.</param>
-        /// <returns>True if vehicle recalled and found path the source.</returns>
-        public static bool RecallVehicle(ushort vehicleId)
-        {
-            return RecallVehicle(vehicleId, ref Singleton<VehicleManager>.instance.m_vehicles.m_buffer[vehicleId]);
-        }
-
-        /// <summary>
-        /// Recalls the vehicle to the service building.
-        /// </summary>
-        /// <param name="vehicleId">The vehicle identifier.</param>
-        /// <param name="vehicle">The vehicle data.</param>
-        /// <returns>True if vehicle recalled and found path the source.</returns>
-        /// <exception cref="System.InvalidOperationException">Vehicle is not using hearse of garbage truck ai.</exception>
-        public static bool RecallVehicle(ushort vehicleId, ref Vehicle vehicle)
-        {
-            try
-            {
-                // Vehicle has spawned but not moved, just unspawn.
-                Vector3 spawnPos = GetSpawnPosition(vehicleId, vehicle.Info, vehicle.m_sourceBuilding);
-                if (vehicle.m_frame0.m_position == spawnPos && vehicle.m_frame1.m_position == spawnPos && vehicle.m_frame2.m_position == spawnPos && vehicle.m_frame3.m_position == spawnPos)
-                {
-                    Log.Debug(typeof(VehicleHelper), "RecallVehicle", "DeSpawn", vehicleId, vehicle, vehicle.Info.m_vehicleAI);
-
-                    vehicle.m_flags &= ~Vehicle.Flags.WaitingSpace;
-                    vehicle.m_flags &= ~Vehicle.Flags.WaitingPath;
-                    vehicle.Unspawn(vehicleId);
-
-                    if (Log.LogToFile && Log.LogALot)
-                    {
-                        DebugListLog(vehicleId);
-                    }
-
-                    return true;
-                }
-            }
-            catch (Exception ex)
-            {
-                Log.Error(typeof(VehicleHelper), "RecallVehicle", ex);
-            }
-
-            return SetTarget(vehicleId, ref vehicle, 0);
-        }
-
-        /// <summary>
         /// Sets the vehicles' target.
         /// </summary>
         /// <param name="vehicleId">The vehicle identifier.</param>
@@ -436,17 +451,17 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <param name="vehicleId">The vehicle identifier.</param>
         /// <param name="vehicle">The vehicle.</param>
         /// <param name="targetBuildingId">The target building identifier.</param>
-        /// <returns>True if target set and path to target found.</returns>
+        /// <returns>
+        /// True if target set and path to target found.
+        /// </returns>
         public static bool SetTarget(ushort vehicleId, ref Vehicle vehicle, ushort targetBuildingId)
         {
             try
             {
                 vehicle.Info.m_vehicleAI.SetTarget(vehicleId, ref vehicle, targetBuildingId);
-
-                if ((vehicle.m_flags & Vehicle.Flags.WaitingTarget) != Vehicle.Flags.None)
+                if (vehicle.m_targetBuilding != 0)
                 {
-                    vehicle.m_flags &= ~Vehicle.Flags.WaitingTarget;
-                    Global.TransferOffersCleaningNeeded = true;
+                    vehicle.m_flags &= ~Vehicle.Flags.GoingBack;
                 }
 
                 return (vehicle.m_flags & VehicleHelper.VehicleExists) != Vehicle.Flags.None;

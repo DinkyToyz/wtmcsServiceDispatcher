@@ -221,7 +221,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     return null;
                 }
 
-                return DistrictHelper.GetDistrictNameForPosition(buildings[buildingId].m_position);
+                return DistrictHelper.GetDistrictName(buildings[buildingId].m_position);
             }
             catch
             {

@@ -127,7 +127,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             /// <summary>
             /// Log all messages.
             /// </summary>
-            All = 5
+            Dev = 5
         }
 
         /// <summary>
@@ -277,7 +277,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <param name="messages">The messages.</param>
         public static void DevDebug(object sourceObject, string sourceBlock, params object[] messages)
         {
-            Output(Level.All, sourceObject, sourceBlock, null, messages);
+            Output(Level.Dev, sourceObject, sourceBlock, null, messages);
         }
 
         /// <summary>
@@ -445,6 +445,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     {
                         message = ((float)messages[i]).ToString("#,0.##", CultureInfo.InvariantCulture);
                     }
+                    else if (messages[i] is double)
+                    {
+                        message = ((float)messages[i]).ToString("#,0.##", CultureInfo.InvariantCulture);
+                    }
                     else if (messages[i] is Vector3)
                     {
                         message = VectorToString((Vector3)messages[i]);
@@ -501,7 +505,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 msg.Insert(0, "] ").Insert(0, Library.Name).Insert(0, "[");
 
-                if (level != Level.None && level != Level.All && level <= logLevel)
+                if (level != Level.None && level != Level.Dev && level <= logLevel)
                 {
                     try
                     {
@@ -522,42 +526,17 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     }
                 }
 
-                try
+                msg.Insert(0, (((level == Level.None) ? "" : level.ToString()) + ":").PadRight(9));
+
+                if (level != Level.None && level != Level.Dev && level <= logLevel)
                 {
-                    switch (level)
+                    try
                     {
-                        case Level.Info:
-                            msg.Insert(0, "Info:    ");
-                            if (level <= logLevel)
-                                UnityEngine.Debug.Log(msg.CleanNewLines());
-                            break;
-
-                        case Level.Warning:
-                            msg.Insert(0, "Warning: ");
-                            if (level <= logLevel)
-                                UnityEngine.Debug.LogWarning(msg.CleanNewLines());
-                            break;
-
-                        case Level.Error:
-                            msg.Insert(0, "Error:   ");
-                            if (level <= logLevel)
-                                UnityEngine.Debug.LogError(msg.CleanNewLines());
-                            break;
-
-                        case Level.None:
-                        case Level.All:
-                            msg.Insert(0, "         ");
-                            break;
-
-                        default:
-                            msg.Insert(0, "Debug:   ");
-                            if (level <= logLevel)
-                                UnityEngine.Debug.Log(msg.CleanNewLines());
-                            break;
+                        UnityEngine.Debug.Log(msg.CleanNewLines());
                     }
-                }
-                catch
-                {
+                    catch
+                    {
+                    }
                 }
 
                 if (Log.logToFile)
@@ -814,6 +793,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         this.info.Append(escapeRex.Replace(((string)data[i]).Trim(), "^$1"));
                     }
                     else if (data[i] is float)
+                    {
+                        this.AddNameOrSeparator(name, dc);
+                        this.info.Append(((float)data[i]).ToString("#,0.##", CultureInfo.InvariantCulture));
+                    }
+                    else if (data[i] is double)
                     {
                         this.AddNameOrSeparator(name, dc);
                         this.info.Append(((float)data[i]).ToString("#,0.##", CultureInfo.InvariantCulture));

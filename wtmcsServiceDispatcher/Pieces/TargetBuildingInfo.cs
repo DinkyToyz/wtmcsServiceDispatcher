@@ -448,7 +448,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             if (this.lastInfoUpdate == 0 || (ignoreInterval && this.lastInfoUpdate != Global.CurrentFrame) || Global.CurrentFrame - this.lastInfoUpdate > Global.ObjectUpdateInterval)
             {
-                if (Global.Settings.DispatchAnyByDistrict)
+                if (Global.Settings.DispatchAnyByDistrict || Log.LogNames)
                 {
                     this.District = Singleton<DistrictManager>.instance.GetDistrict(this.Position);
                 }
