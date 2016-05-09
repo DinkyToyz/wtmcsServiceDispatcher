@@ -120,9 +120,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// </summary>
         /// <param name="vehicleId">The vehicle identifier.</param>
         /// <returns>True if vehicle de-assigned and ok.</returns>
-        public static bool DeAssign(ushort vehicleId)
+        /// <param name="recall">If set to <c>true</c> recall vehicle to service building.</param>
+        public static bool DeAssign(ushort vehicleId, bool recall = false)
         {
-            return DeAssign(vehicleId, ref Singleton<VehicleManager>.instance.m_vehicles.m_buffer[vehicleId]);
+            return DeAssign(vehicleId, ref Singleton<VehicleManager>.instance.m_vehicles.m_buffer[vehicleId], recall);
         }
 
         /// <summary>
@@ -131,7 +132,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <param name="vehicleId">The vehicle identifier.</param>
         /// <param name="vehicle">The vehicle data.</param>
         /// <returns>True if vehicle de-assigned and ok.</returns>
-        public static bool DeAssign(ushort vehicleId, ref Vehicle vehicle)
+        /// <param name="recall">If set to <c>true</c> recall vehicle to service building.</param>
+        public static bool DeAssign(ushort vehicleId, ref Vehicle vehicle, bool recall = false)
         {
             try
             {
@@ -158,28 +160,24 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 Log.Error(typeof(VehicleHelper), "DeAssign", ex);
             }
 
-            return SetTarget(vehicleId, ref vehicle, 0);
-        }
+            bool targetSet = SetTarget(vehicleId, ref vehicle, 0);
 
-        /// <summary>
-        /// De-assign target from vehicle.
-        /// </summary>
-        /// <param name="vehicleId">The vehicle identifier.</param>
-        /// <param name="force">If set to <c>true</c> de-assign vehicle even if it is not assigned.</param>
-        public static void DeAssignVehicle(ushort vehicleId, bool force = false)
-        {
-            DeAssignVehicle(vehicleId, ref Singleton<VehicleManager>.instance.m_vehicles.m_buffer[vehicleId], force);
-        }
+            if ((vehicle.m_flags & Vehicle.Flags.WaitingTarget) != Vehicle.Flags.None)
+            {
+                Global.TransferOffersCleaningNeeded = true;
 
-        /// <summary>
-        /// De-assign target from vehicle.
-        /// </summary>
-        /// <param name="vehicleId">The vehicle identifier.</param>
-        /// <param name="vehicle">The vehicle data.</param>
-        /// <param name="force">If set to <c>true</c> de-assign vehicle even if it is not assigned.</param>
-        public static void DeAssignVehicle(ushort vehicleId, ref Vehicle vehicle, bool force = false)
-        {
-            vehicle.Info.m_vehicleAI.SetTarget(vehicleId, ref vehicle, 0);
+                if (recall)
+                {
+                    if (Log.LogALot && Log.LogToFile)
+                    {
+                        Log.DevDebug(typeof(VehicleHelper), "DeAssign", "Recall", vehicleId, vehicle.m_targetBuilding, vehicle.m_flags);
+                    }
+
+                    vehicle.m_waitCounter = byte.MaxValue - 1;
+                }
+            }
+
+            return targetSet;
         }
 
         /// <summary>
@@ -458,11 +456,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             try
             {
-                vehicle.Info.m_vehicleAI.SetTarget(vehicleId, ref vehicle, targetBuildingId);
-                if (vehicle.m_targetBuilding != 0)
+                if (Log.LogALot && Log.LogToFile)
                 {
-                    vehicle.m_flags &= ~Vehicle.Flags.GoingBack;
+                    Log.DevDebug(typeof(VehicleHelper), "SetTarget", vehicleId, targetBuildingId, vehicle.m_targetBuilding, vehicle.m_flags);
                 }
+
+                vehicle.Info.m_vehicleAI.SetTarget(vehicleId, ref vehicle, targetBuildingId);
 
                 return (vehicle.m_flags & VehicleHelper.VehicleExists) != Vehicle.Flags.None;
             }

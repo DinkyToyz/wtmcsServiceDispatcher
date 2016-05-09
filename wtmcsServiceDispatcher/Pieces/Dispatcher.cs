@@ -247,26 +247,26 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     {
                         if (vehicle.m_targetBuilding != serviceVehicle.Target)
                         {
-                            if (serviceVehicle.DeAssign(ref vehicle) && Log.LogALot)
-                            {
-                                Log.DevDebug(this, "CheckVehicleTarget", "WrongTarget", vehicleId, vehicle.m_targetBuilding, serviceVehicle.Target);
-                            }
+                            serviceVehicle.DeAssign(ref vehicle, false, this, "CheckVehicleTarget", "WrongTarget");
                         }
                         else
                         {
                             TargetBuildingInfo targetBuilding;
                             if (!this.targetBuildings.TryGetValue(vehicle.m_targetBuilding, out targetBuilding) || !targetBuilding.WantedService)
                             {
-                                if (serviceVehicle.DeAssign(ref vehicle) && Log.LogALot)
-                                {
-                                    Log.DevDebug(this, "CheckVehicleTarget", "NoNeed", vehicleId, vehicle.m_targetBuilding);
-                                }
+                                serviceVehicle.DeAssign(ref vehicle, false, this, "CheckVehicleTarget", "NoNeed");
                             }
                         }
                     }
                 }
 
-                serviceVehicle.Update(ref vehicle, vehicle.m_targetBuilding == 0);
+                if (vehicle.m_targetBuilding == 0 && vehicle.m_waitCounter < byte.MaxValue - 1 &&
+                    (vehicle.m_flags & Vehicle.Flags.WaitingTarget) != Vehicle.Flags.None && (vehicle.m_flags & Vehicle.Flags.GoingBack) == Vehicle.Flags.None)
+                {
+                    vehicle.m_waitCounter = 0;
+                }
+
+                serviceVehicle.Update(ref vehicle, vehicle.m_targetBuilding == 0, true);
             }
         }
 
@@ -888,25 +888,15 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                                     if (targetBuilding == null || !targetBuilding.WantedService)
                                     {
-                                        if (serviceVehicle.DeAssign(ref vehicles[vehicleId]))
+                                        if (serviceVehicle.DeAssign(ref vehicles[vehicleId], false, this, "CollectVehicles", "NoNeed"))
                                         {
-                                            if (Log.LogALot)
-                                            {
-                                                Log.DevDebug(this, "CollectVehicles", "NoNeed", vehicleId, vehicles[vehicleId].m_targetBuilding, serviceVehicle.Target);
-                                            }
-
                                             hasTarget = false;
                                         }
                                     }
                                     else if (vehicles[vehicleId].m_targetBuilding != serviceVehicle.Target)
                                     {
-                                        if (serviceVehicle.DeAssign(ref vehicles[vehicleId]))
+                                        if (serviceVehicle.DeAssign(ref vehicles[vehicleId], false, this, "CollectVehicles", "WrongTarget"))
                                         {
-                                            if (Log.LogALot)
-                                            {
-                                                Log.DevDebug(this, "CollectVehicles", "WrongTarget", vehicleId, vehicles[vehicleId].m_targetBuilding, serviceVehicle.Target);
-                                            }
-
                                             hasTarget = false;
                                         }
                                     }
@@ -916,7 +906,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                                     }
                                 }
 
-                                serviceVehicle.Update(ref vehicles[vehicleId], canCollect && !hasTarget && !busy && !unavailable);
+                                serviceVehicle.Update(ref vehicles[vehicleId], canCollect && !hasTarget && !busy && !unavailable, false);
                             }
                             else
                             {
@@ -938,12 +928,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                             // If target doesn't need service, deassign...
                             if (collecting && !loading && vehicles[vehicleId].m_targetBuilding != 0 && vehicles[vehicleId].m_targetBuilding != serviceBuilding.BuildingId && !hasTarget && !unavailable && !busy)
                             {
-                                if (Log.LogALot)
-                                {
-                                    Log.DevDebug(this, "CollectVehicles", "NoNeed", vehicleId, vehicles[vehicleId].m_targetBuilding);
-                                }
-
-                                serviceBuilding.Vehicles[vehicleId].DeAssign(ref vehicles[vehicleId]);
+                                serviceBuilding.Vehicles[vehicleId].DeAssign(ref vehicles[vehicleId], false, this, "CollectVehicles", "NoNeeed");
                             }
 
                             // Update assigned target status.

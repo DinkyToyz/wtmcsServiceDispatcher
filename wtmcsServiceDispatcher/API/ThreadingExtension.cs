@@ -28,10 +28,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// </summary>
         private uint lastDebugListLog = 0;
 
-        /////// <summary>
-        /////// The last transfer offers clean stamp.
-        /////// </summary>
-        ////private uint lastTransferOffersClean = 0;
+        /// <summary>
+        /// The last transfer offers clean stamp.
+        /// </summary>
+        private uint lastTransferOffersClean = 0;
 
         /// <summary>
         /// The game has started.
@@ -145,14 +145,13 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         }
                     }
 
-                    // Probably not the right way to do this, so don't.
-                    ////if (Global.TransferOffersCleaningNeeded || Global.CurrentFrame - this.lastTransferOffersClean > Global.CleanTransferOffersDelay)
-                    ////{
-                    ////    TransferManagerHelper.CleanTransferOffers();
+                    if (Global.TransferOffersCleaningNeeded || Global.CurrentFrame - this.lastTransferOffersClean > Global.CleanTransferOffersDelay)
+                    {
+                        TransferManagerHelper.CleanTransferOffers();
 
-                    ////    this.lastTransferOffersClean = Global.CurrentFrame;
-                    ////    Global.TransferOffersCleaningNeeded = false;
-                    ////}
+                        this.lastTransferOffersClean = Global.CurrentFrame;
+                        Global.TransferOffersCleaningNeeded = false;
+                    }
                 }
 
                 if (Log.LogDebugLists && Global.CurrentFrame - this.lastDebugListLog >= 1800)

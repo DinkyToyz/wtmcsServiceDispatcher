@@ -56,11 +56,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         private double confusedSinceTime = 0.0;
 
         /// <summary>
-        /// The last de-assign time stamp.
-        /// </summary>
-        private uint lastDeAssignStamp = 0u;
-
-        /// <summary>
         /// The dispatcher type.
         /// </summary>
         private Dispatcher.DispatcherTypes dispatcherType = Dispatcher.DispatcherTypes.None;
@@ -74,6 +69,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// The vehicle is stuck.
         /// </summary>
         private bool isStuck = false;
+
+        /// <summary>
+        /// The last de-assign time stamp.
+        /// </summary>
+        private uint lastDeAssignStamp = 0u;
 
         /// <summary>
         /// The target building identifier.
@@ -93,9 +93,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public StuckVehicleInfo(ushort vehicleId, ref Vehicle vehicle)
         {
             this.vehicleId = vehicleId;
-            this.Update(ref vehicle);
-
             this.dispatcherType = Dispatcher.GetDispatcherType(ref vehicle);
+
+            this.Update(ref vehicle);
         }
 
         /// <summary>

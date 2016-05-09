@@ -48,6 +48,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public static uint CurrentFrame = 0u;
 
         /// <summary>
+        /// The de-assign confused delay.
+        /// </summary>
+        public static uint DeAssignConfusedDelay = 240;
+
+        /// <summary>
         /// The demand update delay.
         /// </summary>
         public static uint DemandLingerDelay = 0u;
@@ -78,9 +83,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public static uint ObjectUpdateInterval = 120u;
 
         /// <summary>
-        /// The de-assign confused delay.
+        /// The recall unused delay in seconds.
         /// </summary>
-        public static uint DeAssignConfusedDelay = 240;
+        public static double RecallUnusedDelaySeconds = 30.0;
 
         /// <summary>
         /// The minimum recheck interval for handled targets.
