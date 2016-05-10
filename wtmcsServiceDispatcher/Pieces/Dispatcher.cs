@@ -199,6 +199,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <param name="vehicle">The vehicle.</param>
         public void CheckVehicleTarget(ushort vehicleId, ref Vehicle vehicle)
         {
+            if (Log.LogALot && Global.EnableExperiments)
+            {
+                Log.DevDebug(this, "CheckVehicleTarget", "Begin", vehicleId, vehicle.m_targetBuilding, vehicle.m_flags, vehicle.m_waitCounter);
+            }
+
             ServiceBuildingInfo serviceBuilding;
             ServiceVehicleInfo serviceVehicle;
 
@@ -260,13 +265,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     }
                 }
 
-                if (vehicle.m_targetBuilding == 0 && vehicle.m_waitCounter < byte.MaxValue - 1 &&
-                    (vehicle.m_flags & Vehicle.Flags.WaitingTarget) != Vehicle.Flags.None && (vehicle.m_flags & Vehicle.Flags.GoingBack) == Vehicle.Flags.None)
-                {
-                    vehicle.m_waitCounter = 0;
-                }
+                serviceVehicle.Update(ref vehicle, vehicle.m_targetBuilding == 0, true, false);
+            }
 
-                serviceVehicle.Update(ref vehicle, vehicle.m_targetBuilding == 0, true);
+            if (Log.LogALot && Global.EnableExperiments)
+            {
+                Log.DevDebug(this, "CheckVehicleTarget", "End", vehicleId, vehicle.m_targetBuilding, vehicle.m_flags, vehicle.m_waitCounter);
             }
         }
 
@@ -906,7 +910,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                                     }
                                 }
 
-                                serviceVehicle.Update(ref vehicles[vehicleId], canCollect && !hasTarget && !busy && !unavailable, false);
+                                serviceVehicle.Update(ref vehicles[vehicleId], canCollect && !hasTarget && !busy && !unavailable, false, true);
                             }
                             else
                             {

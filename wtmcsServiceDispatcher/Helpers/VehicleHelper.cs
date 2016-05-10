@@ -25,7 +25,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// The vehicle is unavailable if any of these flags are set.
         /// </summary>
-        public const Vehicle.Flags VehicleUnavailable = Vehicle.Flags.WaitingPath | Vehicle.Flags.WaitingSpace | Vehicle.Flags.WaitingLoading | Vehicle.Flags.GoingBack | Vehicle.Flags.Deleted;
+        public const Vehicle.Flags VehicleUnavailable = Vehicle.Flags.WaitingPath | Vehicle.Flags.WaitingSpace | Vehicle.Flags.WaitingLoading | Vehicle.Flags.Deleted;
 
         /// <summary>
         /// Creates the service vehicle.
@@ -459,6 +459,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 if (Log.LogALot && Log.LogToFile)
                 {
                     Log.DevDebug(typeof(VehicleHelper), "SetTarget", vehicleId, targetBuildingId, vehicle.m_targetBuilding, vehicle.m_flags);
+                }
+
+                if (targetBuildingId != 0)
+                {
+                    vehicle.m_flags &= ~Vehicle.Flags.GoingBack;
                 }
 
                 vehicle.Info.m_vehicleAI.SetTarget(vehicleId, ref vehicle, targetBuildingId);

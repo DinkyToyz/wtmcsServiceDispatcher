@@ -29,17 +29,13 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         private uint lastDeAssignStamp = 0;
 
         /// <summary>
-        /// The last target stamp.
-        /// </summary>
-        private double lastTargetStamp = 0.0;
-
-        /// <summary>
         /// Initializes a new instance of the <see cref="ServiceVehicleInfo" /> class.
         /// </summary>
         /// <param name="vehicleId">The vehicle identifier.</param>
         /// <param name="vehicle">The vehicle.</param>
         /// <param name="freeToCollect">If set to <c>true</c> the vehicle is free.</param>
         /// <param name="dispatcherType">Type of the dispatcher.</param>
+        /// <param name="targetBuildingId">The target building identifier.</param>
         public ServiceVehicleInfo(ushort vehicleId, ref Vehicle vehicle, bool freeToCollect, Dispatcher.DispatcherTypes dispatcherType, ushort targetBuildingId = 0)
         {
             this.VehicleId = vehicleId;
@@ -47,7 +43,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             this.LastAssigned = 0;
             this.Target = targetBuildingId;
 
-            this.Update(ref vehicle, freeToCollect, false);
+            this.Update(ref vehicle, freeToCollect, false, false);
+
+            if (Log.LogALot)
+            {
+                Log.DevDebug(this, "ServiceVehicleInfo", vehicleId, vehicle.m_targetBuilding, this.Target, targetBuildingId);
+            }
         }
 
         /// <summary>
@@ -286,7 +287,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             if (VehicleHelper.SetTarget(this.VehicleId, ref vehicle, targetBuildingId))
             {
                 this.LastAssigned = Global.CurrentFrame;
-                this.lastTargetStamp = Global.SimulationTime;
                 this.FreeToCollect = false;
                 this.Target = targetBuildingId;
 
@@ -296,7 +296,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             Log.Debug(this, "SetTarget", "Failed", this.VehicleId, targetBuildingId, this.Target, vehicle.m_targetBuilding, vehicle.m_flags);
 
             this.LastAssigned = 0;
-            this.lastTargetStamp = 0.0;
             this.FreeToCollect = false;
             this.Target = 0;
 
@@ -309,11 +308,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <param name="vehicle">The vehicle.</param>
         /// <param name="freeToCollect">If set to <c>true</c> the vehicle is free.</param>
         /// <param name="checkAssignment">If set to <c>true</c> check vehicles assignment and possibly de-assign vehicle].</param>
-        public void Update(ref Vehicle vehicle, bool freeToCollect, bool checkAssignment)
+        /// <param name="updateValues">If set to <c>true</c> update vehicle values.</param>
+        public void Update(ref Vehicle vehicle, bool freeToCollect, bool checkAssignment, bool updateValues)
         {
             if (this.LastSeen != Global.CurrentFrame)
             {
-                if (!checkAssignment)
+                if (updateValues)
                 {
                     string localeKey;
                     int bufCur, bufMax;
@@ -321,47 +321,30 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     this.CapacityFree = bufMax - bufCur;
                     this.CapacityUsed = (float)bufCur / (float)bufMax;
                 }
-                else if ((vehicle.m_flags & (VehicleHelper.VehicleUnavailable | VehicleHelper.VehicleBusy)) == Vehicle.Flags.None)
+
+                if (checkAssignment && (vehicle.m_flags & (VehicleHelper.VehicleUnavailable | VehicleHelper.VehicleBusy)) == Vehicle.Flags.None &&
+                    vehicle.m_targetBuilding != 0 && vehicle.m_targetBuilding != this.Target && Global.CurrentFrame - this.LastAssigned > Global.DemandLingerDelay)
                 {
-                    if (this.Target == 0 && Global.SimulationTime - this.lastTargetStamp > Global.RecallUnusedDelaySeconds &&
-                        (vehicle.m_targetBuilding != 0 || (vehicle.m_flags & Vehicle.Flags.GoingBack) == Vehicle.Flags.None))
+                    if (Log.LogALot)
                     {
-                        if (this.lastTargetStamp != 0.0)
-                        {
-                            if (Log.LogALot)
-                            {
-                                Log.DevDebug(this, "Update", this.dispatcherType, "CheckAssignment", "Recall", this.VehicleId, vehicle.m_targetBuilding, vehicle.m_flags);
-                            }
-
-                            VehicleHelper.DeAssign(this.VehicleId, ref vehicle, true);
-                        }
-
-                        this.lastTargetStamp = Global.SimulationTime;
+                        Log.DevDebug(this, "Update", this.dispatcherType, "CheckAssignment", "DeAssign", this.VehicleId, vehicle.m_targetBuilding, vehicle.m_flags);
                     }
-                    else if (vehicle.m_targetBuilding != 0 && vehicle.m_targetBuilding != this.Target && Global.CurrentFrame - this.LastAssigned > Global.DemandLingerDelay)
-                    {
-                        if (Log.LogALot)
-                        {
-                            Log.DevDebug(this, "Update", this.dispatcherType, "CheckAssignment", "DeAssign", this.VehicleId, vehicle.m_targetBuilding, vehicle.m_flags);
-                        }
 
-                        this.DeAssign(ref vehicle, false, "Update");
-                    }
+                    this.DeAssign(ref vehicle, false, "Update");
                 }
             }
 
             this.Position = vehicle.GetLastFramePosition();
             this.LastSeen = Global.CurrentFrame;
-            this.FreeToCollect = freeToCollect && ((vehicle.m_flags & Vehicle.Flags.GoingBack) == Vehicle.Flags.None);
+            this.FreeToCollect = freeToCollect;
 
-            if (vehicle.m_targetBuilding != this.Target)
+            if (checkAssignment && vehicle.m_targetBuilding != this.Target)
             {
                 this.Target = 0;
             }
             else if (this.Target != 0)
             {
                 this.LastAssigned = Global.CurrentFrame;
-                this.lastTargetStamp = Global.SimulationTime;
             }
         }
     }

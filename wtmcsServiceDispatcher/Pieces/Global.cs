@@ -83,11 +83,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public static uint ObjectUpdateInterval = 120u;
 
         /// <summary>
-        /// The recall unused delay in seconds.
-        /// </summary>
-        public static double RecallUnusedDelaySeconds = 30.0;
-
-        /// <summary>
         /// The minimum recheck interval for handled targets.
         /// </summary>
         public static uint RecheckHandledInterval = 240u;
