@@ -114,7 +114,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     foreach (Settings.BuildingCheckOrder checks in Enum.GetValues(typeof(Settings.BuildingCheckOrder)))
                     {
                         if (Log.LogALot || Library.IsDebugBuild)
+                        {
                             Log.Debug(this, "OnSettingsUI", "Init", "BuildingCheckOrder", (byte)checks, checks, Settings.GetBuildingCheckOrderName(checks));
+                        }
 
                         string name = Settings.GetBuildingCheckOrderName(checks);
                         if (String.IsNullOrEmpty(name))
@@ -543,7 +545,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                                     if (Global.Settings.CreateSpareGarbageTrucks != option)
                                     {
                                         if (Log.LogALot || Library.IsDebugBuild)
+                                        {
                                             Log.Debug(this, "OnSettingsUI", "Set", "CreateSpareGarbageTrucks", value, option);
+                                        }
 
                                         Global.Settings.CreateSpareGarbageTrucks = option;
                                         if (Global.GarbageTruckDispatcher != null)

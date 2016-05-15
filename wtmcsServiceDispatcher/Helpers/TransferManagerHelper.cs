@@ -34,45 +34,41 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             {
                 try
                 {
-                    if ((Global.Settings.DispatchHearses && Global.Settings.CreateSpareHearses != Settings.SpareVehiclesCreation.Never) ||
-                        (Global.Settings.DispatchGarbageTrucks && Global.Settings.CreateSpareGarbageTrucks != Settings.SpareVehiclesCreation.Never))
+                    if (Log.LogALot)
+                    {
+                        Log.DevDebug(typeof(TransferManagerHelper), "CleanTransferOffers");
+                    }
+
+                    TransferManager transferManager = Singleton<TransferManager>.instance;
+
+                    // Get private data.
+                    TransferManager.TransferOffer[] outgoingOffers = OutgoingOffers(transferManager);
+                    TransferManager.TransferOffer[] incomingOffers = IncomingOffers(transferManager);
+                    ushort[] outgoingCount = OutgoingCount(transferManager);
+                    ushort[] incomingCount = IncomingCount(transferManager);
+                    int[] outgoingAmount = OutgoingAmount(transferManager);
+                    int[] incomingAmount = IncomingAmount(transferManager);
+
+                    // Clean for hearses.
+                    if (Global.CleanHearseTransferOffers)
                     {
                         if (Log.LogALot)
                         {
-                            Log.DevDebug(typeof(TransferManagerHelper), "CleanTransferOffers");
+                            Log.DevDebug(typeof(TransferManagerHelper), "CleanTransferOffers", "TransferManager.TransferReason.Dead");
                         }
 
-                        TransferManager transferManager = Singleton<TransferManager>.instance;
+                        CleanTransferOffers(outgoingOffers, incomingOffers, outgoingCount, incomingCount, outgoingAmount, incomingAmount, TransferManager.TransferReason.Dead);
+                    }
 
-                        // Get private data.
-                        TransferManager.TransferOffer[] outgoingOffers = OutgoingOffers(transferManager);
-                        TransferManager.TransferOffer[] incomingOffers = IncomingOffers(transferManager);
-                        ushort[] outgoingCount = OutgoingCount(transferManager);
-                        ushort[] incomingCount = IncomingCount(transferManager);
-                        int[] outgoingAmount = OutgoingAmount(transferManager);
-                        int[] incomingAmount = IncomingAmount(transferManager);
-
-                        // Clean for hearses.
-                        if (Global.Settings.DispatchHearses && Global.Settings.CreateSpareHearses != Settings.SpareVehiclesCreation.Never)
+                    // Clean for garbage trucks.
+                    if (Global.CleanGarbageTruckTransferOffers)
+                    {
+                        if (Log.LogALot)
                         {
-                            if (Log.LogALot)
-                            {
-                                Log.DevDebug(typeof(TransferManagerHelper), "CleanTransferOffers", "TransferManager.TransferReason.Dead");
-                            }
-
-                            CleanTransferOffers(outgoingOffers, incomingOffers, outgoingCount, incomingCount, outgoingAmount, incomingAmount, TransferManager.TransferReason.Dead);
+                            Log.DevDebug(typeof(TransferManagerHelper), "CleanTransferOffers", "TransferManager.TransferReason.Garbage");
                         }
 
-                        // Clean for garbage trucks.
-                        if (Global.Settings.DispatchGarbageTrucks && Global.Settings.CreateSpareGarbageTrucks != Settings.SpareVehiclesCreation.Never)
-                        {
-                            if (Log.LogALot)
-                            {
-                                Log.DevDebug(typeof(TransferManagerHelper), "CleanTransferOffers", "TransferManager.TransferReason.Garbage");
-                            }
-
-                            CleanTransferOffers(outgoingOffers, incomingOffers, outgoingCount, incomingCount, outgoingAmount, incomingAmount, TransferManager.TransferReason.Garbage);
-                        }
+                        CleanTransferOffers(outgoingOffers, incomingOffers, outgoingCount, incomingCount, outgoingAmount, incomingAmount, TransferManager.TransferReason.Garbage);
                     }
                 }
                 catch (Exception ex)
@@ -237,20 +233,20 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             int[] incomingAmount,
             TransferManager.TransferReason material)
         {
-            if (Log.LogALot && (incomingAmount[(int)material] != 0 || outgoingAmount[(int)material] != 0))
-            {
-                Log.DevDebug(typeof(TransferManagerHelper), "CleanTransferOffers", "Amounts", incomingAmount[(int)material], outgoingAmount[(int)material]);
-            }
+            ////if (Log.LogALot && (incomingAmount[(int)material] != 0 || outgoingAmount[(int)material] != 0))
+            ////{
+            ////    Log.DevDebug(typeof(TransferManagerHelper), "CleanTransferOffers", "Amounts", incomingAmount[(int)material], outgoingAmount[(int)material]);
+            ////}
 
             // Zero counts.
             for (int priority = 0; priority < 8; priority++)
             {
                 int index = ((int)material * 8) + priority;
 
-                if (Log.LogALot && (incomingCount[index] != 0 || outgoingCount[index] != 0))
-                {
-                    Log.DevDebug(typeof(TransferManagerHelper), "CleanTransferOffers", "Counts", index, incomingCount[index], outgoingCount[index]);
-                }
+                ////if (Log.LogALot && (incomingCount[index] != 0 || outgoingCount[index] != 0))
+                ////{
+                ////    Log.DevDebug(typeof(TransferManagerHelper), "CleanTransferOffers", "Counts", index, incomingCount[index], outgoingCount[index]);
+                ////}
 
                 incomingCount[index] = 0;
                 outgoingCount[index] = 0;

@@ -1,12 +1,6 @@
 # Doing
 
-- Override ServiceVehicleAI.ShouldReturnToSource:
-  - Allways true -> vehicle won't make transfer offer when trasferring to source.
-  - Reassign vehicles returning to source.
 - road and rail recovery service crews (to remove stuck vehicles, including forgotten trailers and railway cars).
-  - Effective for handled service vehicle.
-- house wrecking crews (bulldozers).
-- Clean offers.
 
 # Additions and fixes
 
@@ -21,11 +15,7 @@
 
 # Changes and experiments
 
-- Override TransferManager AddOutgoingOffer and AddIncomingOffer?
 - citizens?
-- Detour ProduceGoods or transfer stuff???
-- sort by distance capacity %?
-- When spawning, stop building from offering incoming transfers. Override ProduceGoods? Override something else to stop outgoing dead offers?
 
 # Notes
 

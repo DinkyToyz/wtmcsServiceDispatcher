@@ -158,7 +158,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// </summary>
         private static Dictionary<SpareVehiclesCreation, string> spareVehiclesCreationDescriptions = new Dictionary<SpareVehiclesCreation, string>()
         {
-            { SpareVehiclesCreation.Never, "Never send out spare vehicles." },
+            { SpareVehiclesCreation.Never, "Let the game's AI decide when to send out vehicles." },
             { SpareVehiclesCreation.WhenNoFree, "Send out spare vehicles when service building has no free vehicles." },
             { SpareVehiclesCreation.WhenBuildingIsCloser, "Send out spare vehicles when service building is closer than all free vehicles." }
         };
@@ -168,7 +168,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// </summary>
         private static Dictionary<SpareVehiclesCreation, string> spareVehiclesCreationNames = new Dictionary<SpareVehiclesCreation, string>()
         {
-            { SpareVehiclesCreation.Never, "Never" },
+            { SpareVehiclesCreation.Never, "Game decides" },
             { SpareVehiclesCreation.WhenNoFree, "None are free" },
             { SpareVehiclesCreation.WhenBuildingIsCloser, "Building is closer" }
         };

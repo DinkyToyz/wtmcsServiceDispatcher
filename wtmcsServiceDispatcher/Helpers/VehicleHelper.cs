@@ -147,10 +147,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     vehicle.m_flags &= ~Vehicle.Flags.WaitingPath;
                     vehicle.Unspawn(vehicleId);
 
-                    if (Log.LogToFile && Log.LogALot)
-                    {
-                        DebugListLog(vehicleId);
-                    }
+                    ////if (Log.LogToFile && Log.LogALot)
+                    ////{
+                    ////    DebugListLog(vehicleId);
+                    ////}
 
                     return true;
                 }

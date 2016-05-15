@@ -147,7 +147,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                     if (Global.TransferOffersCleaningNeeded || Global.CurrentFrame - this.lastTransferOffersClean > Global.CleanTransferOffersDelay)
                     {
-                        TransferManagerHelper.CleanTransferOffers();
+                        if (Global.CleanTransferOffers)
+                        {
+                            TransferManagerHelper.CleanTransferOffers();
+                        }
 
                         this.lastTransferOffersClean = Global.CurrentFrame;
                         Global.TransferOffersCleaningNeeded = false;

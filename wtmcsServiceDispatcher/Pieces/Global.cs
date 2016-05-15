@@ -128,6 +128,49 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public static VehicleKeeper Vehicles = null;
 
         /// <summary>
+        /// Gets a value indicating whether to clean garbage truck service offers.
+        /// </summary>
+        /// <value>
+        ///   <c>True</c> if garbage truck service offers should be cleaned; otherwise, <c>false</c>.
+        /// </value>
+        public static bool CleanGarbageTruckTransferOffers
+        {
+            get
+            {
+                return Global.Settings.DispatchGarbageTrucks && Global.Settings.CreateSpareGarbageTrucks != Settings.SpareVehiclesCreation.Never;
+            }
+        }
+
+        /// <summary>
+        /// Gets a value indicating whether to clean hearse service offers.
+        /// </summary>
+        /// <value>
+        ///   <c>True</c> if hearse service offers should be cleaned; otherwise, <c>false</c>.
+        /// </value>
+        public static bool CleanHearseTransferOffers
+        {
+            get
+            {
+                return Global.Settings.DispatchHearses && Global.Settings.CreateSpareHearses != Settings.SpareVehiclesCreation.Never;
+            }
+        }
+
+        /// <summary>
+        /// Gets a value indicating whether to clean service offers.
+        /// </summary>
+        /// <value>
+        ///   <c>True</c> if service offers should be cleaned; otherwise, <c>false</c>.
+        /// </value>
+        public static bool CleanTransferOffers
+        {
+            get
+            {
+                return (Global.Settings.DispatchHearses && Global.Settings.CreateSpareHearses != Settings.SpareVehiclesCreation.Never) ||
+                       (Global.Settings.DispatchGarbageTrucks && Global.Settings.CreateSpareGarbageTrucks != Settings.SpareVehiclesCreation.Never);
+            }
+        }
+
+        /// <summary>
         /// De-initializes the mod.
         /// </summary>
         public static void DeInitialize()

@@ -502,10 +502,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 this.CapacityLevel = CapacityLevels.High;
             }
 
-            if (Log.LogALot && !this.CanReceive)
-            {
-                Log.DevDebug(this, "Update", this.dispatcherType, this.BuildingId, this.BuildingName, building.m_flags, building.m_problems, this.CapacityFree, building.Info.m_buildingAI.IsFull(this.BuildingId, ref building));
-            }
+            ////if (Log.LogALot && !this.CanReceive)
+            ////{
+            ////    Log.DevDebug(this, "Update", this.dispatcherType, this.BuildingId, this.BuildingName, building.m_flags, building.m_problems, this.CapacityFree, building.Info.m_buildingAI.IsFull(this.BuildingId, ref building));
+            ////}
         }
 
         /// <summary>
