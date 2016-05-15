@@ -14,6 +14,7 @@ For more info about configuration, see:
 - [Hearse Service Options](ServiceHearses.md#Options)
 - [Invisible Service Options](OptionsInvisibleServices.html)
 - [Bulldozer Service Options](ServiceBulldozers.html#Options)
+- [Recovery Crews Options](ServiceRecoveryCrews.html#Options)
 - [Logging Options](OptionsLogging.html)
 - [Advanced Options](OptionsAdvanced.html)
 - [Configuration File](Files.html#Config)

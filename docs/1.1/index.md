@@ -14,6 +14,7 @@ Currently the following services can be handled by Central Services:
 - [Hearses](ServiceHearses.html)
 - [Garbage Trucks](ServiceGarbageTrucks.html)
 - [Bulldozers](ServiceBulldozers.html)
+- [Recovery Crews](ServiceRecoveryCrews.html) (experimental)
 
 ## Dispatching
 

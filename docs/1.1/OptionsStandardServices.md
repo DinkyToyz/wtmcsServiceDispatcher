@@ -17,8 +17,8 @@ See the different services for their unique options:
 
 The game will send out new vehicles when it deems it a good idea, but the dispatcher can be told to do it before the game would with the *Send out spare `service vehicles`' option, which have the following alternatives:
 
-- **Never**: 
-  Never send out new vehicles before the game would do it anyway.
+- **Game decides**: 
+  Let the game's original AIs decide when to send out vehicles.
 
 - **None are free**: 
   Send out new vehicles from the closest available service building when that building has no free vehicles out driving.
