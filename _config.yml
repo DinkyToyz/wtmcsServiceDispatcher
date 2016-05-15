@@ -2,8 +2,8 @@
 title: Central Services Dispatcher
 name: Central Services Dispatcher
 description: "Dispatches Cities: Skylines services."
-current_version: 1.0
-current_url: /docs/1.0/
+current_version: 1.1
+current_url: /docs/1.1/
 author: jonas
 
 # Build settings
