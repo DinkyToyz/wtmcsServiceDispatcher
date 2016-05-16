@@ -48,6 +48,15 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Gets the hearse buildings.
+        /// </summary>
+        public Dictionary<ushort, ServiceBuildingInfo> DeathCareBuildings
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
         /// Gets the desolate buildings.
         /// </summary>
         public Dictionary<ushort, Double> DesolateBuildings
@@ -99,9 +108,30 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
-        /// Gets the hearse buildings.
+        /// Gets a value indicating whether this instance has sick people buildings that should be checked.
         /// </summary>
-        public Dictionary<ushort, ServiceBuildingInfo> HearseBuildings
+        /// <value>
+        /// <c>true</c> if this instance has sick people buildings to check; otherwise, <c>false</c>.
+        /// </value>
+        public bool HasSickPeopleBuildingsToCheck
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// Gets the ambulance buildings.
+        /// </summary>
+        public Dictionary<ushort, ServiceBuildingInfo> HealthCareBuildings
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// Gets the sick people buildings.
+        /// </summary>
+        public Dictionary<ushort, TargetBuildingInfo> SickPeopleBuildings
         {
             get;
             private set;
@@ -121,9 +151,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         BuildingHelper.DebugListLog(this.DeadPeopleBuildings.Values);
                     }
 
-                    if (this.HearseBuildings != null)
+                    if (this.DeathCareBuildings != null)
                     {
-                        BuildingHelper.DebugListLog(this.HearseBuildings.Values);
+                        BuildingHelper.DebugListLog(this.DeathCareBuildings.Values);
                     }
                 }
 
@@ -137,6 +167,19 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     if (this.GarbageBuildings != null)
                     {
                         BuildingHelper.DebugListLog(this.GarbageBuildings.Values);
+                    }
+                }
+
+                if (Global.Settings.DispatchAmbulances)
+                {
+                    if (this.SickPeopleBuildings != null)
+                    {
+                        BuildingHelper.DebugListLog(this.SickPeopleBuildings.Values);
+                    }
+
+                    if (this.HealthCareBuildings != null)
+                    {
+                        BuildingHelper.DebugListLog(this.HealthCareBuildings.Values);
                     }
                 }
 
@@ -179,14 +222,19 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             try
             {
-                if (Global.Settings.DispatchHearses && this.HearseBuildings != null)
+                if (Global.Settings.DispatchHearses && this.DeathCareBuildings != null)
                 {
-                    BuildingHelper.DebugListLog(this.HearseBuildings.Values);
+                    BuildingHelper.DebugListLog(this.DeathCareBuildings.Values);
                 }
 
                 if (Global.Settings.DispatchGarbageTrucks && this.GarbageBuildings != null)
                 {
                     BuildingHelper.DebugListLog(this.GarbageBuildings.Values);
+                }
+
+                if (Global.Settings.DispatchAmbulances && this.HealthCareBuildings != null)
+                {
+                    BuildingHelper.DebugListLog(this.HealthCareBuildings.Values);
                 }
             }
             catch (Exception ex)
@@ -210,6 +258,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 if (Global.Settings.DispatchGarbageTrucks && this.DirtyBuildings != null)
                 {
                     BuildingHelper.DebugListLog(this.DirtyBuildings.Values);
+                }
+
+                if (Global.Settings.DispatchAmbulances && this.SickPeopleBuildings != null)
+                {
+                    BuildingHelper.DebugListLog(this.SickPeopleBuildings.Values);
                 }
             }
             catch (Exception ex)
@@ -235,6 +288,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             // Get and categorize buildings.
             this.HasDeadPeopleBuildingsToCheck = false;
             this.HasDirtyBuildingsToCheck = false;
+            this.HasSickPeopleBuildingsToCheck = false;
 
             // First update?
             if (this.bucketeer != null)
@@ -276,9 +330,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             {
                 if (Global.Settings.DispatchHearses)
                 {
-                    if (this.HearseBuildings != null)
+                    if (this.DeathCareBuildings != null)
                     {
-                        this.UpdateValues(this.HearseBuildings.Values);
+                        this.UpdateValues(this.DeathCareBuildings.Values);
                     }
 
                     if (this.DeadPeopleBuildings != null)
@@ -300,6 +354,19 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     }
                 }
 
+                if (Global.Settings.DispatchAmbulances)
+                {
+                    if (this.HealthCareBuildings != null)
+                    {
+                        this.UpdateValues(this.HealthCareBuildings.Values);
+                    }
+
+                    if (this.SickPeopleBuildings != null)
+                    {
+                        this.UpdateValues(this.SickPeopleBuildings.Values);
+                    }
+                }
+
                 Global.BuildingUpdateNeeded = false;
             }
         }
@@ -317,23 +384,23 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 // Check cemetaries and crematoriums.
                 if (building.Info.m_buildingAI is CemeteryAI)
                 {
-                    if (!this.HearseBuildings.ContainsKey(buildingId))
+                    if (!this.DeathCareBuildings.ContainsKey(buildingId))
                     {
                         ServiceBuildingInfo hearseBuilding = new ServiceBuildingInfo(buildingId, ref building, Dispatcher.DispatcherTypes.HearseDispatcher);
                         Log.Debug(this, "CategorizeBuilding", "Cemetary", buildingId, building.Info.name, hearseBuilding.BuildingName, hearseBuilding.Range, hearseBuilding.District);
 
-                        this.HearseBuildings[buildingId] = hearseBuilding;
+                        this.DeathCareBuildings[buildingId] = hearseBuilding;
                     }
                     else
                     {
-                        this.HearseBuildings[buildingId].Update(ref building);
+                        this.DeathCareBuildings[buildingId].Update(ref building);
                     }
                 }
-                else if (this.HearseBuildings.ContainsKey(buildingId))
+                else if (this.DeathCareBuildings.ContainsKey(buildingId))
                 {
                     Log.Debug(this, "CategorizeBuilding", "Not Cemetary", buildingId);
 
-                    this.HearseBuildings.Remove(buildingId);
+                    this.DeathCareBuildings.Remove(buildingId);
                 }
 
                 // Check dead people.
@@ -341,7 +408,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 {
                     if (!this.DeadPeopleBuildings.ContainsKey(buildingId))
                     {
-                        TargetBuildingInfo deadPeopleBuilding = new TargetBuildingInfo(buildingId, ref building, Notification.Problem.Death, TargetBuildingInfo.ServiceDemand.NeedsService);
+                        TargetBuildingInfo deadPeopleBuilding = new TargetBuildingInfo(buildingId, ref building, Dispatcher.DispatcherTypes.HearseDispatcher, TargetBuildingInfo.ServiceDemand.NeedsService);
                         if (Log.LogToFile)
                         {
                             Log.Debug(this, "CategorizeBuilding", "Dead People", buildingId, building.Info.name, deadPeopleBuilding.BuildingName, building.m_deathProblemTimer, deadPeopleBuilding.ProblemValue, deadPeopleBuilding.HasProblem, deadPeopleBuilding.District);
@@ -352,7 +419,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     }
                     else
                     {
-                        this.DeadPeopleBuildings[buildingId].Update(ref building, Notification.Problem.Death, TargetBuildingInfo.ServiceDemand.NeedsService);
+                        this.DeadPeopleBuildings[buildingId].Update(ref building, TargetBuildingInfo.ServiceDemand.NeedsService);
                         this.HasDeadPeopleBuildingsToCheck = this.HasDeadPeopleBuildingsToCheck || this.DeadPeopleBuildings[buildingId].CheckThis;
                     }
                 }
@@ -360,7 +427,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 {
                     if (this.DeadPeopleBuildings[buildingId].WantedService)
                     {
-                        this.DeadPeopleBuildings[buildingId].Update(ref building, Notification.Problem.Death, TargetBuildingInfo.ServiceDemand.None);
+                        this.DeadPeopleBuildings[buildingId].Update(ref building, TargetBuildingInfo.ServiceDemand.None);
                     }
                     else
                     {
@@ -417,7 +484,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 {
                     if (!this.DirtyBuildings.ContainsKey(buildingId))
                     {
-                        TargetBuildingInfo dirtyBuilding = new TargetBuildingInfo(buildingId, ref building, Notification.Problem.Garbage, demand);
+                        TargetBuildingInfo dirtyBuilding = new TargetBuildingInfo(buildingId, ref building, Dispatcher.DispatcherTypes.GarbageTruckDispatcher, demand);
                         if (Log.LogToFile)
                         {
                             Log.Debug(this, "CategorizeBuilding", "Dirty", demand, buildingId, building.Info.name, dirtyBuilding.BuildingName, building.m_garbageBuffer, dirtyBuilding.ProblemValue, dirtyBuilding.HasProblem, dirtyBuilding.District);
@@ -428,7 +495,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     }
                     else
                     {
-                        this.DirtyBuildings[buildingId].Update(ref building, Notification.Problem.Garbage, demand);
+                        this.DirtyBuildings[buildingId].Update(ref building, demand);
                         this.HasDirtyBuildingsToCheck = this.HasDirtyBuildingsToCheck || this.DirtyBuildings[buildingId].CheckThis;
                     }
                 }
@@ -436,7 +503,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 {
                     if ((building.m_garbageBuffer > 10 && (building.m_garbageBuffer >= Global.Settings.MinimumGarbageForDispatch / 10 || building.m_garbageBuffer >= Global.Settings.MinimumGarbageForPatrol / 2)) || this.DirtyBuildings[buildingId].WantedService)
                     {
-                        this.DirtyBuildings[buildingId].Update(ref building, Notification.Problem.Garbage, TargetBuildingInfo.ServiceDemand.None);
+                        this.DirtyBuildings[buildingId].Update(ref building, TargetBuildingInfo.ServiceDemand.None);
                     }
                     else
                     {
@@ -446,6 +513,69 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         }
 
                         this.DirtyBuildings.Remove(buildingId);
+                    }
+                }
+            }
+
+            // Checks for ambulance dispatcher.
+            if (Global.Settings.DispatchAmbulances)
+            {
+                // Check hospitals and clinics.
+                if (building.Info.m_buildingAI is HospitalAI)
+                {
+                    if (!this.HealthCareBuildings.ContainsKey(buildingId))
+                    {
+                        ServiceBuildingInfo ambulanceBuilding = new ServiceBuildingInfo(buildingId, ref building, Dispatcher.DispatcherTypes.AmbulanceDispatcher);
+                        Log.Debug(this, "CategorizeBuilding", "Medical", buildingId, building.Info.name, ambulanceBuilding.BuildingName, ambulanceBuilding.Range, ambulanceBuilding.District);
+
+                        this.HealthCareBuildings[buildingId] = ambulanceBuilding;
+                    }
+                    else
+                    {
+                        this.HealthCareBuildings[buildingId].Update(ref building);
+                    }
+                }
+                else if (this.HealthCareBuildings.ContainsKey(buildingId))
+                {
+                    Log.Debug(this, "CategorizeBuilding", "Not Medical", buildingId);
+
+                    this.HealthCareBuildings.Remove(buildingId);
+                }
+
+                // Check sick people.
+                if (building.m_healthProblemTimer > 0)
+                {
+                    if (!this.SickPeopleBuildings.ContainsKey(buildingId))
+                    {
+                        TargetBuildingInfo sickPeopleBuilding = new TargetBuildingInfo(buildingId, ref building, Dispatcher.DispatcherTypes.AmbulanceDispatcher, TargetBuildingInfo.ServiceDemand.NeedsService);
+                        if (Log.LogToFile)
+                        {
+                            Log.Debug(this, "CategorizeBuilding", "Sick People", buildingId, building.Info.name, sickPeopleBuilding.BuildingName, building.m_healthProblemTimer, sickPeopleBuilding.ProblemValue, sickPeopleBuilding.HasProblem, sickPeopleBuilding.District);
+                        }
+
+                        this.SickPeopleBuildings[buildingId] = sickPeopleBuilding;
+                        this.HasSickPeopleBuildingsToCheck = true;
+                    }
+                    else
+                    {
+                        this.SickPeopleBuildings[buildingId].Update(ref building, TargetBuildingInfo.ServiceDemand.NeedsService);
+                        this.HasSickPeopleBuildingsToCheck = this.HasSickPeopleBuildingsToCheck || this.SickPeopleBuildings[buildingId].CheckThis;
+                    }
+                }
+                else if (this.SickPeopleBuildings.ContainsKey(buildingId))
+                {
+                    if (this.SickPeopleBuildings[buildingId].WantedService)
+                    {
+                        this.SickPeopleBuildings[buildingId].Update(ref building, TargetBuildingInfo.ServiceDemand.None);
+                    }
+                    else
+                    {
+                        if (Log.LogToFile)
+                        {
+                            Log.Debug(this, "CategorizeBuilding", "No Sick People", buildingId);
+                        }
+
+                        this.SickPeopleBuildings.Remove(buildingId);
                     }
                 }
             }
@@ -493,9 +623,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 {
                     if (Global.Settings.DispatchHearses)
                     {
-                        if (this.HearseBuildings.ContainsKey(id))
+                        if (this.DeathCareBuildings.ContainsKey(id))
                         {
-                            this.HearseBuildings.Remove(id);
+                            this.DeathCareBuildings.Remove(id);
                             Log.Debug(this, "CategorizeBuildings", "Not Cemetary Building", id);
                         }
 
@@ -518,6 +648,21 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         {
                             this.DirtyBuildings.Remove(id);
                             Log.Debug(this, "CategorizeBuildings", "Not Dirty Building", id);
+                        }
+                    }
+
+                    if (Global.Settings.DispatchAmbulances)
+                    {
+                        if (this.HealthCareBuildings.ContainsKey(id))
+                        {
+                            this.HealthCareBuildings.Remove(id);
+                            Log.Debug(this, "CategorizeBuildings", "Not Medical Building", id);
+                        }
+
+                        if (this.SickPeopleBuildings.ContainsKey(id))
+                        {
+                            this.SickPeopleBuildings.Remove(id);
+                            Log.Debug(this, "CategorizeBuildings", "Not Sick People Building", id);
                         }
                     }
                 }
@@ -582,17 +727,17 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     this.DeadPeopleBuildings = new Dictionary<ushort, TargetBuildingInfo>();
                 }
 
-                if (constructing || this.HearseBuildings == null)
+                if (constructing || this.DeathCareBuildings == null)
                 {
                     info.Add("HearseBuildings", "new");
                     this.HasDeadPeopleBuildingsToCheck = false;
-                    this.HearseBuildings = new Dictionary<ushort, ServiceBuildingInfo>();
+                    this.DeathCareBuildings = new Dictionary<ushort, ServiceBuildingInfo>();
                 }
             }
             else
             {
                 this.DeadPeopleBuildings = null;
-                this.HearseBuildings = null;
+                this.DeathCareBuildings = null;
             }
 
             info.Add("DispatchGarbageTrucks", Global.Settings.DispatchGarbageTrucks);
@@ -616,6 +761,29 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             {
                 this.DirtyBuildings = null;
                 this.GarbageBuildings = null;
+            }
+
+            info.Add("DispatchAmbulances", Global.Settings.DispatchAmbulances);
+            if (Global.Settings.DispatchAmbulances)
+            {
+                if (constructing || this.SickPeopleBuildings == null)
+                {
+                    info.Add("SickPeopleBuildings", "new");
+                    this.HasSickPeopleBuildingsToCheck = false;
+                    this.SickPeopleBuildings = new Dictionary<ushort, TargetBuildingInfo>();
+                }
+
+                if (constructing || this.HealthCareBuildings == null)
+                {
+                    info.Add("AmbulanceBuildings", "new");
+                    this.HasSickPeopleBuildingsToCheck = false;
+                    this.HealthCareBuildings = new Dictionary<ushort, ServiceBuildingInfo>();
+                }
+            }
+            else
+            {
+                this.SickPeopleBuildings = null;
+                this.HealthCareBuildings = null;
             }
 
             info.Add("AutoBulldozeBuildings", Global.Settings.AutoBulldozeBuildings);

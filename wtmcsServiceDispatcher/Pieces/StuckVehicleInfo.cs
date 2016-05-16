@@ -109,8 +109,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             get
             {
                 return Global.Settings.RemoveStuckVehicles ||
-                       (Global.HearseDispatcher != null && this.dispatcherType == Dispatcher.DispatcherTypes.HearseDispatcher) ||
-                       (Global.GarbageTruckDispatcher != null && this.dispatcherType == Dispatcher.DispatcherTypes.GarbageTruckDispatcher);
+                       (Global.Settings.DispatchHearses && Global.HearseDispatcher != null && this.dispatcherType == Dispatcher.DispatcherTypes.HearseDispatcher) ||
+                       (Global.Settings.DispatchGarbageTrucks && Global.GarbageTruckDispatcher != null && this.dispatcherType == Dispatcher.DispatcherTypes.GarbageTruckDispatcher) ||
+                       (Global.Settings.DispatchAmbulances && Global.AmbulanceDispatcher != null && this.dispatcherType == Dispatcher.DispatcherTypes.AmbulanceDispatcher);
             }
         }
 
@@ -216,8 +217,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             // Only check vehicles we dispatch unless told to check other vehicles as well.
             if (!(Global.Settings.RemoveStuckVehicles ||
-                  (Global.HearseDispatcher != null && vehicle.Info.m_vehicleAI is HearseAI) ||
-                  (Global.GarbageTruckDispatcher != null && vehicle.Info.m_vehicleAI is GarbageTruckAI)))
+                  (Global.Settings.DispatchHearses && Global.HearseDispatcher != null && vehicle.Info.m_vehicleAI is HearseAI) ||
+                  (Global.Settings.DispatchGarbageTrucks && Global.GarbageTruckDispatcher != null && vehicle.Info.m_vehicleAI is GarbageTruckAI) ||
+                  (Global.Settings.DispatchAmbulances && Global.AmbulanceDispatcher != null && vehicle.Info.m_vehicleAI is AmbulanceAI)))
             {
                 return false;
             }
@@ -278,8 +280,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             }
 
             if (this.ConfusedDeAssignedForFrames > Global.DeAssignConfusedDelay &&
-                ((Global.HearseDispatcher != null && this.dispatcherType == Dispatcher.DispatcherTypes.HearseDispatcher) ||
-                 (Global.GarbageTruckDispatcher != null && this.dispatcherType == Dispatcher.DispatcherTypes.GarbageTruckDispatcher)))
+                ((Global.Settings.DispatchHearses && Global.HearseDispatcher != null && this.dispatcherType == Dispatcher.DispatcherTypes.HearseDispatcher) ||
+                 (Global.Settings.DispatchGarbageTrucks && Global.GarbageTruckDispatcher != null && this.dispatcherType == Dispatcher.DispatcherTypes.GarbageTruckDispatcher) ||
+                 (Global.Settings.DispatchAmbulances && Global.AmbulanceDispatcher != null && this.dispatcherType == Dispatcher.DispatcherTypes.HearseDispatcher)))
             {
                 try
                 {
@@ -507,8 +510,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             if (Global.Buildings != null)
             {
-                this.DeAssign(Global.Buildings.HearseBuildings, Global.Buildings.DeadPeopleBuildings);
+                this.DeAssign(Global.Buildings.DeathCareBuildings, Global.Buildings.DeadPeopleBuildings);
                 this.DeAssign(Global.Buildings.GarbageBuildings, Global.Buildings.DirtyBuildings);
+                this.DeAssign(Global.Buildings.HealthCareBuildings, Global.Buildings.SickPeopleBuildings);
             }
 
             if (this.lastDeAssignStamp != Global.CurrentFrame)

@@ -462,6 +462,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     this.VehiclesTotal = ((LandfillSiteAI)building.Info.m_buildingAI).m_garbageTruckCount;
                     building.Info.m_buildingAI.GetMaterialAmount(this.BuildingId, ref building, TransferManager.TransferReason.Garbage, out amount, out max);
                 }
+                else if (building.Info.m_buildingAI is HospitalAI)
+                {
+                    this.VehiclesTotal = ((HospitalAI)building.Info.m_buildingAI).m_ambulanceCount;
+                    building.Info.m_buildingAI.GetMaterialAmount(this.BuildingId, ref building, TransferManager.TransferReason.Sick, out amount, out max);
+                }
                 else
                 {
                     this.VehiclesTotal = 0;
@@ -569,6 +574,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 case Dispatcher.DispatcherTypes.GarbageTruckDispatcher:
                     this.dispatchByDistrict = Global.Settings.DispatchGarbageTrucksByDistrict;
                     this.dispatchByRange = Global.Settings.DispatchGarbageTrucksByRange;
+                    break;
+
+                case Dispatcher.DispatcherTypes.AmbulanceDispatcher:
+                    this.dispatchByDistrict = Global.Settings.DispatchAmbulancesByDistrict;
+                    this.dispatchByRange = Global.Settings.DispatchAmbulancesByRange;
                     break;
             }
         }

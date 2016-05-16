@@ -16,6 +16,16 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         private bool checkThis;
 
         /// <summary>
+        /// The citizens.
+        /// </summary>
+        private Dictionary<uint, TargetCitizenInfo> citizens = null;
+
+        /// <summary>
+        /// The dispatcher type.
+        /// </summary>
+        private Dispatcher.DispatcherTypes dispatcherType = Dispatcher.DispatcherTypes.None;
+
+        /// <summary>
         /// The last check stamp.
         /// </summary>
         private uint lastCheck = 0;
@@ -45,13 +55,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// </summary>
         /// <param name="buildingId">The building identifier.</param>
         /// <param name="building">The building.</param>
-        /// <param name="problemToCheck">The problem to check.</param>
+        /// <param name="dispatcherType">Type of the dispatcher.</param>
         /// <param name="demand">The demand.</param>
-        public TargetBuildingInfo(ushort buildingId, ref Building building, Notification.Problem problemToCheck, ServiceDemand demand)
+        public TargetBuildingInfo(ushort buildingId, ref Building building, Dispatcher.DispatcherTypes dispatcherType, ServiceDemand demand)
         {
             this.BuildingId = buildingId;
+            this.dispatcherType = dispatcherType;
 
-            this.Update(ref building, problemToCheck, demand);
+            this.Update(ref building, demand);
         }
 
         /// <summary>
@@ -364,62 +375,42 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// Updates the building.
         /// </summary>
         /// <param name="building">The building.</param>
-        /// <param name="problemToCheck">The problem to check.</param>
         /// <param name="demand">The demand.</param>
         /// <exception cref="System.Exception">Loop counter too high.</exception>
-        public void Update(ref Building building, Notification.Problem problemToCheck, ServiceDemand demand)
+        public void Update(ref Building building, ServiceDemand demand)
         {
             this.lastUpdate = Global.CurrentFrame;
 
-            switch (problemToCheck)
+            Notification.Problem problemToCheck;
+
+            switch (this.dispatcherType)
             {
-                case Notification.Problem.Death:
-                    CitizenManager citizenManager = Singleton<CitizenManager>.instance;
-
-                    int size = 0;
-                    int count = 0;
-                    uint unitId = building.m_citizenUnits;
-                    while (unitId != 0)
-                    {
-                        CitizenUnit unit = citizenManager.m_units.m_buffer[unitId];
-                        for (int i = 0; i < 5; i++)
-                        {
-                            uint citizenId = unit.GetCitizen(i);
-                            if (citizenId != 0)
-                            {
-                                Citizen citizen = citizenManager.m_citizens.m_buffer[citizenId];
-                                if (citizen.Dead && citizen.GetBuildingByLocation() == this.BuildingId)
-                                {
-                                    size++;
-                                }
-                            }
-                        }
-
-                        count++;
-                        if (count > (int)ushort.MaxValue * 10)
-                        {
-                            throw new Exception("Loop counter too high");
-                        }
-
-                        unitId = unit.m_nextUnit;
-                    }
-
+                case Dispatcher.DispatcherTypes.HearseDispatcher:
+                    this.UpdateCitizens(ref building);
                     this.ProblemValue = (ushort)building.m_deathProblemTimer << 8;
-                    this.ProblemSize = size;
+                    problemToCheck = Notification.Problem.Death;
                     break;
 
-                case Notification.Problem.Garbage:
+                case Dispatcher.DispatcherTypes.GarbageTruckDispatcher:
                     this.ProblemValue = building.m_garbageBuffer;
                     this.ProblemSize = building.m_garbageBuffer;
+                    problemToCheck = Notification.Problem.Garbage;
+                    break;
+
+                case Dispatcher.DispatcherTypes.AmbulanceDispatcher:
+                    this.UpdateCitizens(ref building);
+                    this.ProblemValue = (ushort)building.m_healthProblemTimer << 8;
+                    problemToCheck = BuildingHelper.HealthProblems;
                     break;
 
                 default:
                     this.ProblemValue = 0;
                     this.ProblemSize = 0;
+                    problemToCheck = Notification.Problem.None;
                     break;
             }
 
-            this.HasProblem = (this.ProblemSize > 0) && ((building.m_problems & problemToCheck) == problemToCheck || this.ProblemValue >= Dispatcher.ProblemLimit);
+            this.HasProblem = (this.ProblemSize > 0) && ((building.m_problems & problemToCheck) != Notification.Problem.None || this.ProblemValue >= Dispatcher.ProblemLimit);
             this.Position = building.m_position;
 
             this.UpdateValues(ref building, false);
@@ -466,6 +457,62 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Updates the citizens.
+        /// </summary>
+        /// <param name="building">The building.</param>
+        /// <exception cref="Exception">Loop counter too high.</exception>
+        private void UpdateCitizens(ref Building building)
+        {
+            CitizenManager citizenManager = Singleton<CitizenManager>.instance;
+
+            int count = 0;
+            int size = 0;
+            uint unitId = building.m_citizenUnits;
+
+            while (unitId != 0)
+            {
+                CitizenUnit unit = citizenManager.m_units.m_buffer[unitId];
+                for (int i = 0; i < 5; i++)
+                {
+                    uint citizenId = unit.GetCitizen(i);
+                    if (citizenId != 0)
+                    {
+                        Citizen citizen = citizenManager.m_citizens.m_buffer[citizenId];
+                        if (((this.dispatcherType == Dispatcher.DispatcherTypes.HearseDispatcher && citizen.Dead) ||
+                             (this.dispatcherType == Dispatcher.DispatcherTypes.AmbulanceDispatcher && citizen.Sick)) &&
+                            citizen.GetBuildingByLocation() == this.BuildingId)
+                        {
+                            size++;
+
+                            if (this.citizens != null)
+                            {
+                                TargetCitizenInfo citizenInfo;
+                                if (this.citizens.TryGetValue(citizenId, out citizenInfo))
+                                {
+                                    citizenInfo.Update(ref citizen, this.dispatcherType);
+                                }
+                                else
+                                {
+                                    this.citizens[citizenId] = new TargetCitizenInfo(citizenId, ref citizen, this.dispatcherType);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                count++;
+                if (count > (int)ushort.MaxValue * 10)
+                {
+                    throw new Exception("Loop counter too high");
+                }
+
+                unitId = unit.m_nextUnit;
+            }
+
+            this.ProblemSize = size;
+        }
+
+        /// <summary>
         /// Compares target buildings for priority sorting.
         /// </summary>
         public class PriorityComparer : IComparer<TargetBuildingInfo>, IHandlerPart
@@ -499,6 +546,75 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             /// </summary>
             public void ReInitialize()
             {
+            }
+        }
+
+        /// <summary>
+        /// Info about service target citizen.
+        /// </summary>
+        private class TargetCitizenInfo
+        {
+            /// <summary>
+            /// The citizen identifier.
+            /// </summary>
+            public readonly uint CitizenId;
+
+            /// <summary>
+            /// The last update stamp.
+            /// </summary>
+            private uint lastUpdateStamp = 0u;
+
+            /// <summary>
+            /// Initializes a new instance of the <see cref="TargetCitizenInfo"/> class.
+            /// </summary>
+            /// <param name="citizenId">The citizen identifier.</param>
+            /// <param name="citizen">The citizen.</param>
+            /// <param name="dispatcherType">Type of the dispatcher.</param>
+            public TargetCitizenInfo(uint citizenId, ref Citizen citizen, Dispatcher.DispatcherTypes dispatcherType)
+            {
+                this.CitizenId = citizenId;
+
+                this.Update(ref citizen, dispatcherType);
+            }
+
+            /// <summary>
+            /// Gets the size of the problem.
+            /// </summary>
+            /// <value>
+            /// The size of the problem.
+            /// </value>
+            public int ProblemSize
+            {
+                get; private set;
+            }
+
+            /// <summary>
+            /// Gets a value indicating whether this <see cref="TargetCitizenInfo"/> is updated.
+            /// </summary>
+            /// <value>
+            ///   <c>true</c> if updated; otherwise, <c>false</c>.
+            /// </value>
+            public bool Updated
+            {
+                get
+                {
+                    return this.lastUpdateStamp == Global.CurrentFrame;
+                }
+            }
+
+            /// <summary>
+            /// Updates the specified citizen.
+            /// </summary>
+            /// <param name="citizen">The citizen.</param>
+            /// <param name="dispatcherType">Type of the dispatcher.</param>
+            public void Update(ref Citizen citizen, Dispatcher.DispatcherTypes dispatcherType)
+            {
+                if (dispatcherType == Dispatcher.DispatcherTypes.AmbulanceDispatcher)
+                {
+                    this.ProblemSize = ((int)citizen.m_health) << 8;
+                }
+
+                this.lastUpdateStamp = Global.CurrentFrame;
             }
         }
     }

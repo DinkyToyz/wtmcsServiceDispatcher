@@ -8,6 +8,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
     internal static class Global
     {
         /// <summary>
+        /// The ambulance dispatcher.
+        /// </summary>
+        public static Dispatcher AmbulanceDispatcher = null;
+
+        /// <summary>
         /// Whether updates should be framed or complete.
         /// </summary>
         public static bool BucketedUpdates = true;
@@ -128,6 +133,20 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public static VehicleKeeper Vehicles = null;
 
         /// <summary>
+        /// Gets a value indicating whether to clean ambulance service offers.
+        /// </summary>
+        /// <value>
+        ///   <c>True</c> if ambulance service offers should be cleaned; otherwise, <c>false</c>.
+        /// </value>
+        public static bool CleanAmbulanceTransferOffers
+        {
+            get
+            {
+                return Global.Settings.DispatchAmbulances && Global.Settings.CreateSpareAmbulances != Settings.SpareVehiclesCreation.Never;
+            }
+        }
+
+        /// <summary>
         /// Gets a value indicating whether to clean garbage truck service offers.
         /// </summary>
         /// <value>
@@ -166,7 +185,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             get
             {
                 return (Global.Settings.DispatchHearses && Global.Settings.CreateSpareHearses != Settings.SpareVehiclesCreation.Never) ||
-                       (Global.Settings.DispatchGarbageTrucks && Global.Settings.CreateSpareGarbageTrucks != Settings.SpareVehiclesCreation.Never);
+                       (Global.Settings.DispatchGarbageTrucks && Global.Settings.CreateSpareGarbageTrucks != Settings.SpareVehiclesCreation.Never) ||
+                       (Global.Settings.DispatchAmbulances && Global.Settings.CreateSpareAmbulances != Settings.SpareVehiclesCreation.Never);
             }
         }
 
@@ -193,6 +213,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             Global.GarbageTruckDispatcher = null;
             Global.HearseDispatcher = null;
+            Global.AmbulanceDispatcher = null;
             Global.ServiceBuildingInfoPriorityComparer = null;
             Global.TargetBuildingInfoPriorityComparer = null;
             Global.Buildings = null;
@@ -253,6 +274,21 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Re-initializes the ambulance dispatcher.
+        /// </summary>
+        public static void ReInitializeAmbulanceDispatcher()
+        {
+            try
+            {
+                AmbulanceDispatcher.ReInitialize();
+            }
+            catch (Exception ex)
+            {
+                Log.Error(typeof(Global), "ReInitializeAmbulanceDispatcher", ex);
+            }
+        }
+
+        /// <summary>
         /// Re-initializes the garbage truck dispatcher.
         /// </summary>
         public static void ReInitializeGarbageTruckDispatcher()
@@ -275,7 +311,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             // Initialize dispatch objects.
             try
             {
-                if (Settings.DispatchHearses || Settings.DispatchGarbageTrucks)
+                if (Settings.DispatchHearses || Settings.DispatchGarbageTrucks || Settings.DispatchAmbulances)
                 {
                     // Initialize buildings.
                     if (Buildings == null)
@@ -330,10 +366,24 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                             GarbageTruckDispatcher.ReInitialize();
                         }
                     }
+
+                    // Initialize hearse objects.
+                    if (Settings.DispatchAmbulances)
+                    {
+                        if (AmbulanceDispatcher == null)
+                        {
+                            AmbulanceDispatcher = new Dispatcher(Dispatcher.DispatcherTypes.AmbulanceDispatcher);
+                        }
+                        else
+                        {
+                            AmbulanceDispatcher.ReInitialize();
+                        }
+                    }
                 }
 
                 // Initialize vehicle objects.
-                if (Settings.DispatchHearses || Settings.DispatchGarbageTrucks || Settings.RemoveHearsesFromGrid /* || Settings.RemoveGarbageTrucksFromGrid */)
+                if (Settings.DispatchHearses || Settings.DispatchGarbageTrucks || Settings.DispatchAmbulances ||
+                    Settings.RemoveHearsesFromGrid || Settings.RemoveAmbulancesFromGrid)
                 {
                     if (Vehicles == null)
                     {

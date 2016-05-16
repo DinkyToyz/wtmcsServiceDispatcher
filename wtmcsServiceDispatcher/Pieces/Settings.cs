@@ -27,6 +27,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public double AutoBulldozeBuildingsDelaySeconds = 5.0 * 60.0;
 
         /// <summary>
+        /// When to create spare ambulances.
+        /// </summary>
+        public SpareVehiclesCreation CreateSpareAmbulances = SpareVehiclesCreation.WhenBuildingIsCloser;
+
+        /// <summary>
         /// When to create spare garbage trucks.
         /// </summary>
         public SpareVehiclesCreation CreateSpareGarbageTrucks = SpareVehiclesCreation.WhenBuildingIsCloser;
@@ -37,9 +42,24 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public SpareVehiclesCreation CreateSpareHearses = SpareVehiclesCreation.WhenBuildingIsCloser;
 
         /// <summary>
+        /// Whether ambulances should be handled or not.
+        /// </summary>
+        public bool DispatchAmbulances = false;
+
+        /// <summary>
+        /// Whether ambulances dispatchers should care about districts or not.
+        /// </summary>
+        public bool DispatchAmbulancesByDistrict = false;
+
+        /// <summary>
+        /// Limit ambulance service building by range.
+        /// </summary>
+        public bool DispatchAmbulancesByRange = true;
+
+        /// <summary>
         /// Whether garbage trucks should be handled or not.
         /// </summary>
-        public bool DispatchGarbageTrucks = true;
+        public bool DispatchGarbageTrucks = false;
 
         /// <summary>
         /// Whether garbage truck dispatchers should care about districts or not.
@@ -54,7 +74,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// Whether hearses should be handled or not.
         /// </summary>
-        public bool DispatchHearses = true;
+        public bool DispatchHearses = false;
 
         /// <summary>
         /// Whether hearse dispatchers should care about districts or not.
@@ -105,6 +125,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// Whether code overrides are allowed or not.
         /// </summary>
         public Allowance ReflectionAllowance = Allowance.Default;
+
+        /// <summary>
+        /// Whether stopped ambulances should be removed from grid or not.
+        /// </summary>
+        public bool RemoveAmbulancesFromGrid = true;
 
         /// <summary>
         /// Whether stopped hearses should be removed from grid or not.
@@ -174,7 +199,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         };
 
         /// <summary>
-        /// The custom building checks.
+        /// The dead people building custom building checks.
         /// </summary>
         private BuildingCheckParameters[] deathChecksCustom = null;
 
@@ -184,7 +209,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         private BuildingCheckOrder deathChecksPreset = BuildingCheckOrder.InRange;
 
         /// <summary>
-        /// The custom building checks.
+        /// The dirty building custom building checks.
         /// </summary>
         private BuildingCheckParameters[] garbageChecksCustom = null;
 
@@ -197,6 +222,16 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// The settings version in the loaded file.
         /// </summary>
         private int? loadedVersion = null;
+
+        /// <summary>
+        /// The sick people building custom building checks.
+        /// </summary>
+        private BuildingCheckParameters[] sickChecksCustom = null;
+
+        /// <summary>
+        /// The sick people building checks presets.
+        /// </summary>
+        private BuildingCheckOrder sickChecksPreset = BuildingCheckOrder.InRange;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Settings"/> class.
@@ -226,6 +261,18 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     this.deathChecksCustom = GetBuildingChecksParameters(BuildingCheckOrder.InRange);
                 }
 
+                this.DispatchAmbulances = settings.DispatchAmbulances;
+                this.DispatchAmbulancesByDistrict = settings.DispatchAmbulancesByDistrict;
+                this.DispatchAmbulancesByRange = settings.DispatchAmbulancesByRange;
+                this.CreateSpareAmbulances = settings.CreateSpareAmbulances;
+                this.RemoveAmbulancesFromGrid = settings.RemoveAmbulancesFromGrid;
+                this.sickChecksPreset = settings.SickChecksPreset;
+                this.sickChecksCustom = settings.SickChecksCustom;
+                if (this.sickChecksPreset == BuildingCheckOrder.Custom && (this.sickChecksCustom == null || this.sickChecksCustom.Length == 0))
+                {
+                    this.sickChecksCustom = GetBuildingChecksParameters(BuildingCheckOrder.InRange);
+                }
+
                 this.DispatchGarbageTrucks = settings.DispatchGarbageTrucks;
                 this.DispatchGarbageTrucksByDistrict = settings.DispatchGarbageTrucksByDistrict;
                 this.DispatchGarbageTrucksByRange = settings.DispatchGarbageTrucksByRange;
@@ -246,6 +293,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 this.RemoveStuckVehicles = settings.RemoveStuckVehicles;
                 this.RemoveStuckVehiclesDelaySeconds = settings.RemoveStuckVehiclesDelaySeconds;
             }
+
+            this.DispatchAmbulances = false;
         }
 
         /// <summary>
@@ -463,7 +512,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             get
             {
-                return this.DispatchHearsesByDistrict || this.DispatchGarbageTrucksByDistrict;
+                return this.DispatchHearsesByDistrict || this.DispatchGarbageTrucksByDistrict || this.DispatchAmbulancesByDistrict;
             }
         }
 
@@ -477,7 +526,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             get
             {
-                return this.DispatchHearsesByRange || this.DispatchGarbageTrucksByRange;
+                return this.DispatchHearsesByRange || this.DispatchGarbageTrucksByRange || this.DispatchAmbulancesByRange;
             }
         }
 
@@ -549,6 +598,44 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             set
             {
                 this.RemoveStuckVehiclesDelaySeconds = (value < 0.0) ? 0.0 : value * 60.0;
+            }
+        }
+
+        /// <summary>
+        /// Gets the sick people building checks parameters.
+        /// </summary>
+        /// <value>
+        /// The building checks parameters.
+        /// </value>
+        public BuildingCheckParameters[] SickChecksParameters
+        {
+            get
+            {
+                return GetBuildingChecksParameters(this.sickChecksPreset, this.sickChecksCustom);
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the sick people building checks preset.
+        /// </summary>
+        /// <value>
+        /// The building checks preset.
+        /// </value>
+        public BuildingCheckOrder SickChecksPreset
+        {
+            get
+            {
+                return this.sickChecksPreset;
+            }
+
+            set
+            {
+                this.sickChecksPreset = value;
+
+                if (value == BuildingCheckOrder.Custom && (this.sickChecksCustom == null || this.sickChecksCustom.Length == 0))
+                {
+                    this.sickChecksCustom = GetBuildingChecksParameters(BuildingCheckOrder.InRange);
+                }
             }
         }
 
@@ -680,6 +767,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                                     cfg.DispatchHearsesByRange = cfg.DispatchByRange;
                                     cfg.DispatchGarbageTrucksByDistrict = cfg.DispatchByDistrict;
                                     cfg.DispatchGarbageTrucksByRange = cfg.DispatchByRange;
+                                    cfg.DispatchAmbulancesByDistrict = cfg.DispatchByDistrict;
+                                    cfg.DispatchAmbulancesByRange = cfg.DispatchByRange;
                                 }
 
                                 if (cfg.MinimumGarbageForDispatch >= 2000)
@@ -749,6 +838,18 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 Log.Debug(this, "LogSettings", "DeathChecksCustom", String.Join(", ", this.deathChecksCustom.Select(bc => bc.ToString()).ToArray()));
             }
 
+            Log.Debug(this, "LogSettings", "DispatchAmbulances", this.DispatchAmbulances);
+            Log.Debug(this, "LogSettings", "DispatchAmbulancesByDistrict", this.DispatchAmbulancesByDistrict);
+            Log.Debug(this, "LogSettings", "DispatchAmbulancesByRange", this.DispatchAmbulancesByRange);
+            Log.Debug(this, "LogSettings", "RemoveAmbulancesFromGrid", this.RemoveAmbulancesFromGrid);
+            Log.Debug(this, "LogSettings", "CreateSpareAmbulances", this.CreateSpareAmbulances);
+            Log.Debug(this, "LogSettings", "DeathChecks", (byte)this.sickChecksPreset, this.sickChecksPreset, GetBuildingCheckOrderName(this.sickChecksPreset));
+            Log.Debug(this, "LogSettings", "SickChecksParameters", String.Join(", ", this.SickChecksParameters.Select(bc => bc.ToString()).ToArray()));
+            if (this.deathChecksCustom != null)
+            {
+                Log.Debug(this, "LogSettings", "DeathChecksCustom", String.Join(", ", this.deathChecksCustom.Select(bc => bc.ToString()).ToArray()));
+            }
+
             Log.Debug(this, "LogSettings", "DispatchGarbageTrucks", this.DispatchGarbageTrucks);
             Log.Debug(this, "LogSettings", "DispatchGarbageTrucksByDistrict", this.DispatchGarbageTrucksByDistrict);
             Log.Debug(this, "LogSettings", "DispatchGarbageTrucksByRange", this.DispatchGarbageTrucksByRange);
@@ -810,8 +911,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 {
                     ServiceDispatcherSettings cfg = new ServiceDispatcherSettings();
 
-                    cfg.DispatchByDistrict = this.DispatchHearsesByDistrict && this.DispatchGarbageTrucksByDistrict;
-                    cfg.DispatchByRange = this.DispatchHearsesByRange || this.DispatchGarbageTrucksByRange;
+                    cfg.DispatchByDistrict = this.DispatchHearsesByDistrict && this.DispatchGarbageTrucksByDistrict && this.DispatchAmbulancesByDistrict;
+                    cfg.DispatchByRange = this.DispatchHearsesByRange || this.DispatchGarbageTrucksByRange || this.DispatchAmbulancesByRange;
                     cfg.RangeModifier = this.RangeModifier;
                     cfg.RangeLimit = this.RangeLimit;
                     cfg.RangeMaximum = this.RangeMaximum;
@@ -826,6 +927,15 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     cfg.DeathChecksPreset = this.deathChecksPreset;
                     cfg.DeathChecksCustom = this.deathChecksCustom;
                     cfg.DeathChecksCurrent = this.DeathChecksParameters;
+
+                    cfg.DispatchAmbulances = this.DispatchAmbulances;
+                    cfg.DispatchAmbulancesByDistrict = this.DispatchAmbulancesByDistrict;
+                    cfg.DispatchAmbulancesByRange = this.DispatchAmbulancesByRange;
+                    cfg.RemoveAmbulancesFromGrid = this.RemoveAmbulancesFromGrid;
+                    cfg.CreateSpareAmbulances = this.CreateSpareAmbulances;
+                    cfg.SickChecksPreset = this.sickChecksPreset;
+                    cfg.SickChecksCustom = this.sickChecksCustom;
+                    cfg.SickChecksCurrent = this.SickChecksParameters;
 
                     cfg.DispatchGarbageTrucks = this.DispatchGarbageTrucks;
                     cfg.DispatchGarbageTrucksByDistrict = this.DispatchGarbageTrucksByDistrict;
@@ -940,6 +1050,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             public BuildingChecksPresetInfo[] BuildingChecksPresets = null;
 
             /// <summary>
+            /// When to create spare ambulances.
+            /// </summary>
+            public SpareVehiclesCreation CreateSpareAmbulances = SpareVehiclesCreation.WhenBuildingIsCloser;
+
+            /// <summary>
             /// When to create spare garbage trucks.
             /// </summary>
             public SpareVehiclesCreation CreateSpareGarbageTrucks = SpareVehiclesCreation.WhenBuildingIsCloser;
@@ -963,6 +1078,21 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             /// The dead people building checks presets.
             /// </summary>
             public BuildingCheckOrder DeathChecksPreset = BuildingCheckOrder.InRange;
+
+            /// <summary>
+            /// Whether ambulances should be handled or not.
+            /// </summary>
+            public Boolean DispatchAmbulances = true;
+
+            /// <summary>
+            /// Whether ambulances dispatchers should care about districts or not.
+            /// </summary>
+            public bool DispatchAmbulancesByDistrict = false;
+
+            /// <summary>
+            /// Limit ambulances service buildings by range.
+            /// </summary>
+            public bool DispatchAmbulancesByRange = true;
 
             /// <summary>
             /// Whether the dispatch should be limited by district or not.
@@ -1060,6 +1190,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             public Allowance ReflectionAllowance = Allowance.Default;
 
             /// <summary>
+            /// Whether stopped ambulances should be removed from grid or not.
+            /// </summary>
+            public bool RemoveAmbulancesFromGrid = false;
+
+            /// <summary>
             /// Whether stopped garbage trucks should be removed from grid or not.
             /// </summary>
             public bool RemoveGarbageTrucksFromGrid = false;
@@ -1083,6 +1218,21 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             /// The save count.
             /// </summary>
             public uint SaveCount = 0;
+
+            /// <summary>
+            /// The current sick people building checks.
+            /// </summary>
+            public BuildingCheckParameters[] SickChecksCurrent = null;
+
+            /// <summary>
+            /// The custom ambulance building checks.
+            /// </summary>
+            public BuildingCheckParameters[] SickChecksCustom = null;
+
+            /// <summary>
+            /// The sick people building checks presets.
+            /// </summary>
+            public BuildingCheckOrder SickChecksPreset = BuildingCheckOrder.InRange;
 
             /// <summary>
             /// The settings version.

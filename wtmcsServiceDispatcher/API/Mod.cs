@@ -663,6 +663,184 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         }
                     });
 
+                if (Global.EnableExperiments)
+                {
+                    // Add ambulance group.
+                    UIHelperBase ambulanceGroup = helper.AddGroup("Ambulances");
+
+                    ambulanceGroup.AddCheckbox(
+                        "Dispatch ambulances",
+                        Global.Settings.DispatchAmbulances,
+                        value =>
+                        {
+                            try
+                            {
+                                if (Global.Settings.DispatchAmbulances != value)
+                                {
+                                    Global.Settings.DispatchAmbulances = value;
+                                    Global.Settings.Save();
+                                    Global.ReInitializeHandlers();
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                Log.Error(this, "OnSettingsUI", ex, "AmbulanceGroup", "DispatchAmbulances", value);
+                            }
+                        });
+
+                    ambulanceGroup.AddCheckbox(
+                        "Dispatch ambulances by district",
+                        Global.Settings.DispatchAmbulancesByDistrict,
+                        value =>
+                        {
+                            try
+                            {
+                                if (Global.Settings.DispatchAmbulancesByDistrict != value)
+                                {
+                                    Global.BuildingUpdateNeeded = true;
+                                    Global.Settings.DispatchAmbulancesByDistrict = value;
+                                    Global.Settings.Save();
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                Log.Error(this, "OnSettingsUI", ex, "AmbulanceGroup", "DispatchAmbulancesByDistrict", value);
+                            }
+                        });
+
+                    ambulanceGroup.AddCheckbox(
+                        "Dispatch ambulances by building range",
+                        Global.Settings.DispatchAmbulancesByRange,
+                        value =>
+                        {
+                            try
+                            {
+                                if (Global.Settings.DispatchAmbulancesByRange != value)
+                                {
+                                    Global.BuildingUpdateNeeded = true;
+                                    Global.Settings.DispatchAmbulancesByRange = value;
+                                    Global.Settings.Save();
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                Log.Error(this, "OnSettingsUI", ex, "AmbulanceGroup", "DispatchAmbulancesByRange", value);
+                            }
+                        });
+
+                    ambulanceGroup.AddCheckbox(
+                        "Pass through ambulances",
+                        Global.Settings.RemoveAmbulancesFromGrid,
+                        value =>
+                        {
+                            try
+                            {
+                                if (Global.Settings.RemoveAmbulancesFromGrid != value)
+                                {
+                                    Global.Settings.RemoveAmbulancesFromGrid = value;
+                                    Global.Settings.Save();
+                                    Global.ReInitializeHandlers();
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                Log.Error(this, "OnSettingsUI", ex, "AmbulanceGroup", "RemoveAmbulancesFromGrid", value);
+                            }
+                        });
+
+                    ambulanceGroup.AddDropdown(
+                        "Send out spare ambulances when",
+                        this.vehicleCreationOptions.OrderBy(vco => vco.Key).Select(vco => vco.Value).ToArray(),
+                        (int)Global.Settings.CreateSpareAmbulances,
+                        value =>
+                        {
+                            try
+                            {
+                                if (Log.LogALot || Library.IsDebugBuild)
+                                {
+                                    Log.Debug(this, "OnSettingsUI", "Set", "CreateSpareAmbulances", value);
+                                }
+
+                                foreach (Settings.SpareVehiclesCreation option in Enum.GetValues(typeof(Settings.SpareVehiclesCreation)))
+                                {
+                                    if ((byte)option == value)
+                                    {
+                                        if (Global.Settings.CreateSpareAmbulances != option)
+                                        {
+                                            if (Log.LogALot || Library.IsDebugBuild)
+                                            {
+                                                Log.Debug(this, "OnSettingsUI", "Set", "CreateSpareAmbulances", value, option);
+                                            }
+
+                                            Global.Settings.CreateSpareAmbulances = option;
+                                            if (Global.AmbulanceDispatcher != null)
+                                            {
+                                                Global.ReInitializeAmbulanceDispatcher();
+                                            }
+                                            Global.Settings.Save();
+                                        }
+
+                                        break;
+                                    }
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                Log.Error(this, "OnSettingsUI", ex, "AmbulanceGroup", "CreateSpareAmbulances", value);
+                            }
+                        });
+
+                    ambulanceGroup.AddDropdown(
+                        "Ambulance dispatch strategy",
+                        this.targetBuildingChecks.OrderBy(bco => bco.Key).Select(bco => bco.Value).ToArray(),
+                        (int)Global.Settings.SickChecksPreset,
+                        value =>
+                        {
+                            try
+                            {
+                                if (Log.LogALot || Library.IsDebugBuild)
+                                {
+                                    Log.Debug(this, "OnSettingsUI", "Set", "SickChecksPreset", value);
+                                }
+
+                                foreach (Settings.BuildingCheckOrder checks in Enum.GetValues(typeof(Settings.BuildingCheckOrder)))
+                                {
+                                    if ((byte)checks == value)
+                                    {
+                                        if (Global.Settings.SickChecksPreset != checks)
+                                        {
+                                            if (Log.LogALot || Library.IsDebugBuild)
+                                            {
+                                                Log.Debug(this, "OnSettingsUI", "Set", "SickChecksPreset", value, checks);
+                                            }
+
+                                            try
+                                            {
+                                                Global.Settings.SickChecksPreset = checks;
+                                            }
+                                            catch (Exception ex)
+                                            {
+                                                Log.Error(this, "OnSettingsUI", ex, "Set", "SickChecksPreset", checks);
+                                            }
+
+                                            if (Global.AmbulanceDispatcher != null)
+                                            {
+                                                Global.ReInitializeAmbulanceDispatcher();
+                                            }
+                                            Global.Settings.Save();
+                                        }
+
+                                        break;
+                                    }
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                Log.Error(this, "OnSettingsUI", ex, "AmbulanceGroup", "SickChecksPreset", value);
+                            }
+                        });
+                }
+
                 // Add bulldoze and recovery group.
                 UIHelperBase wreckingRecoveryGroup = helper.AddGroup("Wrecking & Recovery");
 

@@ -171,21 +171,27 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         (vehicles[id].m_flags & VehicleHelper.VehicleUnavailable) == Vehicle.Flags.None &&
                         vehicles[id].m_targetBuilding != vehicles[id].m_sourceBuilding && (buildings[vehicles[id].m_sourceBuilding].m_flags & Building.Flags.Downgrading) == Building.Flags.None)
                     {
-                        if (Global.HearseDispatcher != null && vehicles[id].m_transferType == Global.HearseDispatcher.TransferType)
+                        if (Global.Settings.DispatchHearses && Global.HearseDispatcher != null && vehicles[id].m_transferType == Global.HearseDispatcher.TransferType)
                         {
                             Global.HearseDispatcher.CheckVehicleTarget(id, ref vehicles[id]);
                         }
 
-                        if (Global.GarbageTruckDispatcher != null && vehicles[id].m_transferType == Global.GarbageTruckDispatcher.TransferType)
+                        if (Global.Settings.DispatchGarbageTrucks && Global.GarbageTruckDispatcher != null && vehicles[id].m_transferType == Global.GarbageTruckDispatcher.TransferType)
                         {
                             Global.GarbageTruckDispatcher.CheckVehicleTarget(id, ref vehicles[id]);
+                        }
+
+                        if (Global.Settings.DispatchAmbulances && Global.AmbulanceDispatcher != null && vehicles[id].m_transferType == Global.AmbulanceDispatcher.TransferType)
+                        {
+                            Global.AmbulanceDispatcher.CheckVehicleTarget(id, ref vehicles[id]);
                         }
                     }
 
                     // Handle grid removals.
                     if (this.removedFromGrid != null)
                     {
-                        if ((vehicles[id].m_flags & Vehicle.Flags.Stopped) == Vehicle.Flags.None && vehicles[id].Info.m_vehicleAI is HearseAI)
+                        if ((vehicles[id].m_flags & Vehicle.Flags.Stopped) == Vehicle.Flags.None &&
+                            (vehicles[id].Info.m_vehicleAI is HearseAI || vehicles[id].Info.m_vehicleAI is AmbulanceAI))
                         {
                             if (this.removedFromGrid.Contains(id))
                             {
@@ -197,15 +203,19 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                                 this.removedFromGrid.Remove(id);
                             }
                         }
-                        else if ((Global.Settings.RemoveHearsesFromGrid && vehicles[id].Info.m_vehicleAI is HearseAI) && !this.removedFromGrid.Contains(id))
+                        else if ((Global.Settings.RemoveHearsesFromGrid && vehicles[id].Info.m_vehicleAI is HearseAI) ||
+                                  (Global.Settings.RemoveAmbulancesFromGrid && vehicles[id].Info.m_vehicleAI is AmbulanceAI))
                         {
-                            if (Log.LogToFile)
+                            if (!this.removedFromGrid.Contains(id))
                             {
-                                Log.Debug(this, "HandleVehicles", "RemoveFromGrid", id, vehicles[id].m_targetBuilding, vehicles[id].Info.name, VehicleHelper.GetVehicleName(id), vehicles[id].m_flags);
-                            }
+                                if (Log.LogToFile)
+                                {
+                                    Log.Debug(this, "HandleVehicles", "RemoveFromGrid", id, vehicles[id].m_targetBuilding, vehicles[id].Info.name, VehicleHelper.GetVehicleName(id), vehicles[id].m_flags);
+                                }
 
-                            Singleton<VehicleManager>.instance.RemoveFromGrid(id, ref vehicles[id], false);
-                            this.removedFromGrid.Add(id);
+                                Singleton<VehicleManager>.instance.RemoveFromGrid(id, ref vehicles[id], false);
+                                this.removedFromGrid.Add(id);
+                            }
                         }
                     }
 

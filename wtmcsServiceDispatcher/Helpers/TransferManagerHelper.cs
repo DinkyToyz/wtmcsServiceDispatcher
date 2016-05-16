@@ -70,6 +70,17 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                         CleanTransferOffers(outgoingOffers, incomingOffers, outgoingCount, incomingCount, outgoingAmount, incomingAmount, TransferManager.TransferReason.Garbage);
                     }
+
+                    // Clean for hearses.
+                    if (Global.CleanAmbulanceTransferOffers)
+                    {
+                        if (Log.LogALot)
+                        {
+                            Log.DevDebug(typeof(TransferManagerHelper), "CleanTransferOffers", "TransferManager.TransferReason.Sick");
+                        }
+
+                        CleanTransferOffers(outgoingOffers, incomingOffers, outgoingCount, incomingCount, outgoingAmount, incomingAmount, TransferManager.TransferReason.Sick);
+                    }
                 }
                 catch (Exception ex)
                 {

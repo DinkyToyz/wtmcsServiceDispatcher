@@ -132,7 +132,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             /// <summary>
             /// Dispatches garbage trucks.
             /// </summary>
-            GarbageTruckDispatcher = 2
+            GarbageTruckDispatcher = 2,
+
+            /// <summary>
+            /// Dispatches ambulances.
+            /// </summary>
+            AmbulanceDispatcher = 3
         }
 
         /// <summary>
@@ -165,6 +170,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     case DispatcherTypes.GarbageTruckDispatcher:
                         return Global.Buildings.HasDirtyBuildingsToCheck;
 
+                    case DispatcherTypes.AmbulanceDispatcher:
+                        return Global.Buildings.HasSickPeopleBuildingsToCheck;
+
                     default:
                         return false;
                 }
@@ -185,6 +193,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             else if (vehicle.Info.m_vehicleAI is GarbageTruckAI)
             {
                 return Dispatcher.DispatcherTypes.GarbageTruckDispatcher;
+            }
+            else if (vehicle.Info.m_vehicleAI is AmbulanceAI)
+            {
+                return Dispatcher.DispatcherTypes.AmbulanceDispatcher;
             }
             else
             {
@@ -1022,7 +1034,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     if (constructing)
                     {
                         this.TransferType = (byte)TransferManager.TransferReason.Dead;
-                        this.serviceBuildings = Global.Buildings.HearseBuildings;
+                        this.serviceBuildings = Global.Buildings.DeathCareBuildings;
                         this.targetBuildings = Global.Buildings.DeadPeopleBuildings;
                     }
 
@@ -1051,6 +1063,20 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                     this.createSpareVehicles = Global.Settings.CreateSpareGarbageTrucks;
                     this.dispatchByDistrict = Global.Settings.DispatchGarbageTrucksByDistrict;
+
+                    break;
+
+                case DispatcherTypes.AmbulanceDispatcher:
+                    if (constructing)
+                    {
+                        this.TransferType = (byte)TransferManager.TransferReason.Sick;
+                        this.serviceBuildings = Global.Buildings.HealthCareBuildings;
+                        this.targetBuildings = Global.Buildings.SickPeopleBuildings;
+                    }
+
+                    this.buildingChecks = BuldingCheckParameters.GetBuldingCheckParameters(Global.Settings.SickChecksParameters);
+                    this.createSpareVehicles = Global.Settings.CreateSpareAmbulances;
+                    this.dispatchByDistrict = Global.Settings.DispatchAmbulancesByDistrict;
 
                     break;
 

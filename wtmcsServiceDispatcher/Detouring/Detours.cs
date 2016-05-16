@@ -36,7 +36,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             /// <summary>
             /// HearseAI.ShouldReturnToSource method.
             /// </summary>
-            HearseAI_ShouldReturnToSource = 3
+            HearseAI_ShouldReturnToSource = 3,
+
+            /// <summary>
+            /// AmbulanceAI.ShouldReturnToSource method.
+            /// </summary>
+            AmbulanceAI_ShouldReturnToSource = 4
         }
 
         /// <summary>
@@ -151,6 +156,15 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 Revert(Methods.GarbageTruckAI_TryCollectGarbage);
             }
 
+            if (Global.Settings.DispatchAmbulances && CanDetour(Methods.AmbulanceAI_ShouldReturnToSource))
+            {
+                Detour(Methods.AmbulanceAI_ShouldReturnToSource);
+            }
+            else
+            {
+                Revert(Methods.AmbulanceAI_ShouldReturnToSource);
+            }
+
             InitNeeded = false;
         }
 
@@ -220,6 +234,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     methodsDetours[Methods.HearseAI_ShouldReturnToSource] = new HearseAIShouldReturnToSourceDetour();
                     methodsDetours[Methods.GarbageTruckAI_TryCollectGarbage] = new GarbageTruckAITryCollectGarbageDetour();
                     methodsDetours[Methods.GarbageTruckAI_ShouldReturnToSource] = new GarbageTruckAIShouldReturnToSourceDetour();
+                    methodsDetours[Methods.AmbulanceAI_ShouldReturnToSource] = new AmbulanceAIShouldReturnToSourceDetour();
                 }
             }
             catch (Exception ex)

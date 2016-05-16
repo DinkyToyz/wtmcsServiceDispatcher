@@ -117,7 +117,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 Global.CurrentFrame = simulationFrame;
 
-                if (Global.Settings.DispatchGarbageTrucks || Global.Settings.DispatchHearses)
+                if (Global.Settings.DispatchGarbageTrucks || Global.Settings.DispatchHearses || Global.Settings.DispatchAmbulances)
                 {
                     // Do vehicle based stuff.
                     if (Global.Vehicles != null)
@@ -142,6 +142,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         if (Global.Settings.DispatchGarbageTrucks && Global.GarbageTruckDispatcher != null)
                         {
                             Global.GarbageTruckDispatcher.Dispatch();
+                        }
+
+                        // Dispatch ambulances.
+                        if (Global.Settings.DispatchAmbulances && Global.AmbulanceDispatcher != null)
+                        {
+                            Global.AmbulanceDispatcher.Dispatch();
                         }
                     }
 

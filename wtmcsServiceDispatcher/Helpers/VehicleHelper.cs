@@ -592,6 +592,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             {
                 info.Add("Capacity", ((GarbageTruckAI)vehicles[vehicleId].Info.m_vehicleAI).m_cargoCapacity);
             }
+            else if (vehicles[vehicleId].Info.m_vehicleAI is AmbulanceAI)
+            {
+                info.Add("Capacity", ((AmbulanceAI)vehicles[vehicleId].Info.m_vehicleAI).m_patientCapacity);
+            }
 
             string status = vehicles[vehicleId].Info.m_vehicleAI.GetLocalizedStatus(vehicleId, ref vehicles[vehicleId], out instanceId);
             if (!String.IsNullOrEmpty(status))
@@ -645,7 +649,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         private static void DebugListLog(Vehicle[] vehicles, Building[] buildings, ushort vehicleId)
         {
             if (vehicles[vehicleId].Info != null && (vehicles[vehicleId].m_flags & VehicleHelper.VehicleExists) != Vehicle.Flags.None &&
-                (vehicles[vehicleId].Info.m_vehicleAI is HearseAI || vehicles[vehicleId].Info.m_vehicleAI is GarbageTruckAI))
+                (vehicles[vehicleId].Info.m_vehicleAI is HearseAI || vehicles[vehicleId].Info.m_vehicleAI is GarbageTruckAI || vehicles[vehicleId].Info.m_vehicleAI is AmbulanceAI))
             {
                 Log.DevDebug(typeof(VehicleKeeper), "DebugListLog", DebugInfoMsg(vehicles, buildings, vehicleId).ToString());
             }

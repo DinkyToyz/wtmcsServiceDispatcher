@@ -16,6 +16,8 @@
 # Changes and experiments
 
 - citizens?
+- Inhibit StartTransfer?
+- if (Singleton<UnlockManager>.instance.Unlocked(ItemClass.Service.HealthCare))
 
 # Notes
 

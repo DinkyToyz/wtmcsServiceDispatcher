@@ -63,6 +63,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Detouring\AmbulanceAIShouldReturnToSourceDetour.cs" />
     <Compile Include="Detouring\ObjectMethods.cs" />
     <Compile Include="Detouring\SingleMethod.cs" />
     <Compile Include="Helpers\BuildingHelper.cs" />
