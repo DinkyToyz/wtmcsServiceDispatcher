@@ -29,28 +29,60 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <returns>The return object.</returns>
         public static object BaseInvoke(this object instance, string methodName, object[] parameters)
         {
+            Type baseType = instance.GetType().BaseType;
+
+            if (baseType == null)
+            {
+                throw new MethodAccessException("Base type not found");
+            }
+
+            MethodInfo methodInfo = baseType.GetMethod(methodName);
+            if (methodInfo == null)
+            {
+                throw new MethodAccessException("Base method not found");
+            }
+
+            return methodInfo.Invoke(instance, parameters);
+        }
+
+        /// <summary>
+        /// Casts object to type.
+        /// </summary>
+        /// <typeparam name="T">Type to cast to.</typeparam>
+        /// <param name="obj">The object.</param>
+        /// <returns>Cast object.</returns>
+        public static object CastTo<T>(this object obj)
+        {
             try
             {
-                Type baseType = instance.GetType().BaseType;
-
-                if (baseType == null)
-                {
-                    return null;
-                }
-
-                MethodInfo methodInfo = baseType.GetMethod(methodName);
-                if (methodInfo == null)
-                {
-                    return null;
-                }
-
-                return methodInfo.Invoke(instance, parameters);
+                return (T)obj;
             }
-            catch (Exception ex)
+            catch
             {
-                Log.Error(instance, "BaseInvoke", ex, methodName);
-                return null;
+                return obj;
             }
+        }
+
+        /// <summary>
+        /// Casts object to type.
+        /// </summary>
+        /// <param name="obj">The object.</param>
+        /// <param name="type">The type.</param>
+        /// <returns>Cast object.</returns>
+        public static object CastTo(this object obj, Type type)
+        {
+            MethodInfo castMethod = obj.GetType().GetMethod("CastTo").MakeGenericMethod(type);
+            return castMethod.Invoke(null, new object[] { obj });
+        }
+
+        /// <summary>
+        /// Casts object to base class.
+        /// </summary>
+        /// <param name="obj">The object.</param>
+        /// <returns>Cast object.</returns>
+        public static object CastToBase(this object obj)
+        {
+            return obj.CastTo(obj.GetType().BaseType);
         }
 
         /// <summary>

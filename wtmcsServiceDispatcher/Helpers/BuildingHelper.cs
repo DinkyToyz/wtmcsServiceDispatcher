@@ -235,6 +235,76 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Starts the transfer.
+        /// </summary>
+        /// <param name="buildingId">The building identifier.</param>
+        /// <param name="building">The building.</param>
+        /// <param name="material">The material.</param>
+        /// <param name="targetBuildingId">The target building identifier.</param>
+        /// <param name="targetCitizenId">The target citizen identifier.</param>
+        /// <param name="vehicleId">The vehicle identifier.</param>
+        /// <returns>Vehicle info for the created vehicle.</returns>
+        /// <exception cref="Exception">Loop counter too high.</exception>
+        public static VehicleInfo StartTransfer(ushort buildingId, ref Building building, TransferManager.TransferReason material, ushort targetBuildingId, uint targetCitizenId, out ushort vehicleId)
+        {
+            if (building.Info.m_buildingAI is HospitalAI && targetCitizenId == 0)
+            {
+                return VehicleHelper.CreateServiceVehicle(buildingId, material, targetBuildingId, out vehicleId);
+            }
+
+            Vehicle[] vehicles = Singleton<VehicleManager>.instance.m_vehicles.m_buffer;
+            Citizen[] citizens = Singleton<CitizenManager>.instance.m_citizens.m_buffer;
+
+            TransferManager.TransferOffer offer = new TransferManager.TransferOffer()
+            {
+                Building = targetBuildingId,
+                Citizen = targetCitizenId,
+            };
+
+            // Cast AI as games original AI so detoured methods are called, but not methods from not replaced classes.
+            if (!Global.Settings.AllowReflection())
+            {
+                building.Info.m_buildingAI.StartTransfer(buildingId, ref building, material, offer);
+            }
+            else if (building.Info.m_buildingAI is CemeteryAI)
+            {
+                ((CemeteryAI)building.Info.m_buildingAI.CastTo<CemeteryAI>()).StartTransfer(buildingId, ref building, material, offer);
+            }
+            else if (building.Info.m_buildingAI is LandfillSiteAI)
+            {
+                ((LandfillSiteAI)building.Info.m_buildingAI.CastTo<LandfillSiteAI>()).StartTransfer(buildingId, ref building, material, offer);
+            }
+            else if (building.Info.m_buildingAI is HospitalAI)
+            {
+                ((HospitalAI)building.Info.m_buildingAI.CastTo<HospitalAI>()).StartTransfer(buildingId, ref building, material, offer);
+            }
+            else
+            {
+                building.Info.m_buildingAI.StartTransfer(buildingId, ref building, material, offer);
+            }
+
+            int count = 0;
+            vehicleId = building.m_ownVehicles;
+            while (vehicleId != 0)
+            {
+                if (vehicles[vehicleId].m_targetBuilding == targetBuildingId && (targetCitizenId == 0 || citizens[targetCitizenId].m_vehicle == vehicleId))
+                {
+                    return vehicles[vehicleId].Info;
+                }
+
+                if (count >= ushort.MaxValue)
+                {
+                    throw new Exception("Loop counter too high");
+                }
+
+                count++;
+                vehicleId = vehicles[vehicleId].m_nextOwnVehicle;
+            }
+
+            return null;
+        }
+
+        /// <summary>
         /// Collects building info for debug use.
         /// </summary>
         /// <param name="buildings">The buildings.</param>

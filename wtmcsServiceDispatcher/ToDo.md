@@ -4,6 +4,8 @@
 
 # Additions and fixes
 
+- use buildings StartTransfer in order to allow ServiceVehicleSelector to work.
+- use vehicles StartTransfer in order to allow other mods to work?
 - ambulance services.
 - Remember problematic targets and delay next assigment to such target, so that it does not ceate a problem for the whole city.
 - fire fighting services?

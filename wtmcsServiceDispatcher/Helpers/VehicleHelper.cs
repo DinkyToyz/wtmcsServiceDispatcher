@@ -55,12 +55,29 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <exception cref="System.ArgumentException">Unhandled material.</exception>
         public static VehicleInfo CreateServiceVehicle(ServiceBuildingInfo serviceBuilding, TransferManager.TransferReason material, ushort targetBuildingId, out ushort vehicleId)
         {
+            return CreateServiceVehicle(serviceBuilding.BuildingId, material, targetBuildingId, out vehicleId);
+        }
+
+        /// <summary>
+        /// Creates the service vehicle.
+        /// </summary>
+        /// <param name="serviceBuildingId">The service building identifier.</param>
+        /// <param name="material">The material.</param>
+        /// <param name="targetBuildingId">The target building identifier.</param>
+        /// <param name="vehicleId">The vehicle identifier.</param>
+        /// <returns>
+        /// The vehicle information.
+        /// </returns>
+        /// <exception cref="ArgumentException">Unhandled material.</exception>
+        /// <exception cref="System.ArgumentException">Unhandled material.</exception>
+        public static VehicleInfo CreateServiceVehicle(ushort serviceBuildingId, TransferManager.TransferReason material, ushort targetBuildingId, out ushort vehicleId)
+        {
             vehicleId = 0;
 
             VehicleManager manager = Singleton<VehicleManager>.instance;
             ColossalFramework.Math.Randomizer randomizer = Singleton<SimulationManager>.instance.m_randomizer;
 
-            Building building = BuildingHelper.GetBuilding(serviceBuilding.BuildingId);
+            Building building = BuildingHelper.GetBuilding(serviceBuildingId);
 
             VehicleInfo info = manager.GetRandomVehicleInfo(ref randomizer, building.Info.m_class.m_service, building.Info.m_class.m_subService, building.Info.m_class.m_level);
             if (info == null)
@@ -104,7 +121,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 return null;
             }
 
-            info.m_vehicleAI.SetSource(vehicleId, ref manager.m_vehicles.m_buffer[vehicleId], serviceBuilding.BuildingId);
+            info.m_vehicleAI.SetSource(vehicleId, ref manager.m_vehicles.m_buffer[vehicleId], serviceBuildingId);
 
             if (targetBuildingId != 0 && !SetTarget(vehicleId, targetBuildingId))
             {
@@ -475,6 +492,58 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 Log.Error(typeof(VehicleHelper), "SetTarget", ex);
                 return false;
             }
+        }
+
+        /// <summary>
+        /// Starts the transfer.
+        /// </summary>
+        /// <param name="vehicleId">The vehicle identifier.</param>
+        /// <param name="vehicle">The vehicle.</param>
+        /// <param name="material">The material.</param>
+        /// <param name="targetBuildingId">The target building identifier.</param>
+        /// <param name="targetCitizenId">The target citizen identifier.</param>
+        /// <returns>True on success.</returns>
+        public static bool StartTransfer(ushort vehicleId, ref Vehicle vehicle, TransferManager.TransferReason material, ushort targetBuildingId, uint targetCitizenId)
+        {
+            if (vehicle.Info.m_vehicleAI is AmbulanceAI && targetCitizenId == 0)
+            {
+                return VehicleHelper.SetTarget(vehicleId, targetBuildingId);
+            }
+
+            TransferManager.TransferOffer offer = new TransferManager.TransferOffer()
+            {
+                Building = targetBuildingId,
+                Citizen = targetCitizenId,
+            };
+
+            vehicle.m_flags &= ~Vehicle.Flags.GoingBack;
+            vehicle.m_flags |= Vehicle.Flags.WaitingTarget;
+
+            // Cast AI as games original AI so detoured methods are called, but not methods from not replaced classes.
+            if (!Global.Settings.AllowReflection())
+            {
+                vehicle.Info.m_vehicleAI.StartTransfer(vehicleId, ref vehicle, material, offer);
+            }
+            if (vehicle.Info.m_vehicleAI is HearseAI)
+            {
+                ((HearseAI)vehicle.Info.m_vehicleAI.CastTo<HearseAI>()).StartTransfer(vehicleId, ref vehicle, material, offer);
+            }
+            else if (vehicle.Info.m_vehicleAI is GarbageTruckAI)
+            {
+                ((GarbageTruckAI)vehicle.Info.m_vehicleAI.CastTo<GarbageTruckAI>()).StartTransfer(vehicleId, ref vehicle, material, offer);
+            }
+            else if (vehicle.Info.m_vehicleAI is AmbulanceAI)
+            {
+                ((AmbulanceAI)vehicle.Info.m_vehicleAI.CastTo<AmbulanceAI>()).StartTransfer(vehicleId, ref vehicle, material, offer);
+            }
+            else
+            {
+                vehicle.Info.m_vehicleAI.StartTransfer(vehicleId, ref vehicle, material, offer);
+            }
+
+            Citizen[] citizens = Singleton<CitizenManager>.instance.m_citizens.m_buffer;
+
+            return vehicle.m_targetBuilding == targetBuildingId && (targetCitizenId == 0 || citizens[targetCitizenId].m_vehicle == vehicleId);
         }
 
         /// <summary>

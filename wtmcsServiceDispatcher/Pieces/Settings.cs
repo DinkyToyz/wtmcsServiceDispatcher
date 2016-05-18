@@ -811,7 +811,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <param name="minGameVersion">The minimum game version.</param>
         /// <param name="maxGameVersion">The maximum game version.</param>
         /// <returns>True if use of reflection is allowed.</returns>
-        public bool AllowReflection(uint minGameVersion = 0, uint maxGameVersion = 0)
+        public bool AllowReflection(uint minGameVersion = 0, uint maxGameVersion = uint.MaxValue)
         {
             return this.AllowanceCheck(this.ReflectionAllowance, minGameVersion, maxGameVersion);
         }
