@@ -27,6 +27,46 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public double AutoBulldozeBuildingsDelaySeconds = 5.0 * 60.0;
 
         /// <summary>
+        /// The automatic empty cemeteries.
+        /// </summary>
+        public bool AutoEmptyCemeteries = false;
+
+        /// <summary>
+        /// The automatic empty cemetery maximum concurrent.
+        /// </summary>
+        public uint AutoEmptyCemeteryMaxConcurrent = 2;
+
+        /// <summary>
+        /// The automatic empty cemetery start level.
+        /// </summary>
+        public float AutoEmptyCemeteryStartLevel = 0.95f;
+
+        /// <summary>
+        /// The automatic empty cemetery stop level.
+        /// </summary>
+        public float AutoEmptyCemeteryStopLevel = 0.05f;
+
+        /// <summary>
+        /// The automatic empty landfill maximum concurrent.
+        /// </summary>
+        public uint AutoEmptyLandfillMaxConcurrent = 2;
+
+        /// <summary>
+        /// The automatic empty landfills.
+        /// </summary>
+        public bool AutoEmptyLandfills = false;
+
+        /// <summary>
+        /// The automatic empty landfill start level.
+        /// </summary>
+        public float AutoEmptyLandfillStartLevel = 0.95f;
+
+        /// <summary>
+        /// The automatic empty landfill stop level.
+        /// </summary>
+        public float AutoEmptyLandfillStopLevel = 0.05f;
+
+        /// <summary>
         /// When to create spare ambulances.
         /// </summary>
         public SpareVehiclesCreation CreateSpareAmbulances = SpareVehiclesCreation.WhenBuildingIsCloser;

@@ -30,6 +30,36 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         private uint bucketMask = 255;
 
         /// <summary>
+        /// The cemeteries in need of emptying change.
+        /// </summary>
+        private List<ServiceBuildingInfo> cemeteriesInNeedOfEmptyingChange = null;
+
+        /// <summary>
+        /// The death-care-buildings-can-empty-other counter.
+        /// </summary>
+        private uint deathCareBuildingsCanEmptyOther = 0u;
+
+        /// <summary>
+        /// The death-care-buildings-emptying counter.
+        /// </summary>
+        private uint deathCareBuildingsEmptying = 0u;
+
+        /// <summary>
+        /// The garbage-buildings-can-empty-other counter.
+        /// </summary>
+        private uint garbageBuildingsCanEmptyOther = 0u;
+
+        /// <summary>
+        /// The garbage-buildings-emptying counter.
+        /// </summary>
+        private uint garbageBuildingsEmptying = 0u;
+
+        /// <summary>
+        /// The landfills in need of emptying change.
+        /// </summary>
+        private List<ServiceBuildingInfo> landfillsInNeedOfEmptyingChange = null;
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="BuildingKeeper"/> class.
         /// </summary>
         public BuildingKeeper()
@@ -379,21 +409,28 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         private void CategorizeBuilding(ushort buildingId, ref Building building)
         {
             // Checks for hearse dispatcher.
-            if (Global.Settings.DispatchHearses)
+            if (Global.Settings.DispatchHearses || Global.Settings.AutoEmptyCemeteries)
             {
                 // Check cemetaries and crematoriums.
                 if (building.Info.m_buildingAI is CemeteryAI)
                 {
-                    if (!this.DeathCareBuildings.ContainsKey(buildingId))
+                    ServiceBuildingInfo hearseBuilding;
+
+                    if (!this.DeathCareBuildings.TryGetValue(buildingId, out hearseBuilding))
                     {
-                        ServiceBuildingInfo hearseBuilding = new ServiceBuildingInfo(buildingId, ref building, Dispatcher.DispatcherTypes.HearseDispatcher);
+                        hearseBuilding = new ServiceBuildingInfo(buildingId, ref building, Dispatcher.DispatcherTypes.HearseDispatcher);
                         Log.Debug(this, "CategorizeBuilding", "Cemetary", buildingId, building.Info.name, hearseBuilding.BuildingName, hearseBuilding.Range, hearseBuilding.District);
 
                         this.DeathCareBuildings[buildingId] = hearseBuilding;
                     }
                     else
                     {
-                        this.DeathCareBuildings[buildingId].Update(ref building);
+                        hearseBuilding.Update(ref building);
+                    }
+
+                    if (Global.Settings.AutoEmptyCemeteries && (hearseBuilding.NeedsEmptying || hearseBuilding.EmptyingIsDone))
+                    {
+                        this.cemeteriesInNeedOfEmptyingChange.Add(hearseBuilding);
                     }
                 }
                 else if (this.DeathCareBuildings.ContainsKey(buildingId))
@@ -404,58 +441,69 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 }
 
                 // Check dead people.
-                if (building.m_deathProblemTimer > 0)
+                if (Global.Settings.DispatchHearses)
                 {
-                    if (!this.DeadPeopleBuildings.ContainsKey(buildingId))
+                    if (building.m_deathProblemTimer > 0)
                     {
-                        TargetBuildingInfo deadPeopleBuilding = new TargetBuildingInfo(buildingId, ref building, Dispatcher.DispatcherTypes.HearseDispatcher, TargetBuildingInfo.ServiceDemand.NeedsService);
-                        if (Log.LogToFile)
+                        if (!this.DeadPeopleBuildings.ContainsKey(buildingId))
                         {
-                            Log.Debug(this, "CategorizeBuilding", "Dead People", buildingId, building.Info.name, deadPeopleBuilding.BuildingName, building.m_deathProblemTimer, deadPeopleBuilding.ProblemValue, deadPeopleBuilding.HasProblem, deadPeopleBuilding.District);
-                        }
+                            TargetBuildingInfo deadPeopleBuilding = new TargetBuildingInfo(buildingId, ref building, Dispatcher.DispatcherTypes.HearseDispatcher, TargetBuildingInfo.ServiceDemand.NeedsService);
+                            if (Log.LogToFile)
+                            {
+                                Log.Debug(this, "CategorizeBuilding", "Dead People", buildingId, building.Info.name, deadPeopleBuilding.BuildingName, building.m_deathProblemTimer, deadPeopleBuilding.ProblemValue, deadPeopleBuilding.HasProblem, deadPeopleBuilding.District);
+                            }
 
-                        this.DeadPeopleBuildings[buildingId] = deadPeopleBuilding;
-                        this.HasDeadPeopleBuildingsToCheck = true;
-                    }
-                    else
-                    {
-                        this.DeadPeopleBuildings[buildingId].Update(ref building, TargetBuildingInfo.ServiceDemand.NeedsService);
-                        this.HasDeadPeopleBuildingsToCheck = this.HasDeadPeopleBuildingsToCheck || this.DeadPeopleBuildings[buildingId].CheckThis;
-                    }
-                }
-                else if (this.DeadPeopleBuildings.ContainsKey(buildingId))
-                {
-                    if (this.DeadPeopleBuildings[buildingId].WantedService)
-                    {
-                        this.DeadPeopleBuildings[buildingId].Update(ref building, TargetBuildingInfo.ServiceDemand.None);
-                    }
-                    else
-                    {
-                        if (Log.LogToFile)
+                            this.DeadPeopleBuildings[buildingId] = deadPeopleBuilding;
+                            this.HasDeadPeopleBuildingsToCheck = true;
+                        }
+                        else
                         {
-                            Log.Debug(this, "CategorizeBuilding", "No Dead People", buildingId);
+                            this.DeadPeopleBuildings[buildingId].Update(ref building, TargetBuildingInfo.ServiceDemand.NeedsService);
+                            this.HasDeadPeopleBuildingsToCheck = this.HasDeadPeopleBuildingsToCheck || this.DeadPeopleBuildings[buildingId].CheckThis;
                         }
+                    }
+                    else if (this.DeadPeopleBuildings.ContainsKey(buildingId))
+                    {
+                        if (this.DeadPeopleBuildings[buildingId].WantedService)
+                        {
+                            this.DeadPeopleBuildings[buildingId].Update(ref building, TargetBuildingInfo.ServiceDemand.None);
+                        }
+                        else
+                        {
+                            if (Log.LogToFile)
+                            {
+                                Log.Debug(this, "CategorizeBuilding", "No Dead People", buildingId);
+                            }
 
-                        this.DeadPeopleBuildings.Remove(buildingId);
+                            this.DeadPeopleBuildings.Remove(buildingId);
+                        }
                     }
                 }
             }
 
-            if (Global.Settings.DispatchGarbageTrucks)
+            // Checks for garbage truck dispatcher.
+            if (Global.Settings.DispatchGarbageTrucks || Global.Settings.AutoEmptyLandfills)
             {
                 // Check landfills and incinerators.
                 if (building.Info.m_buildingAI is LandfillSiteAI)
                 {
-                    if (!this.GarbageBuildings.ContainsKey(buildingId))
+                    ServiceBuildingInfo garbageBuilding;
+
+                    if (!this.GarbageBuildings.TryGetValue(buildingId, out garbageBuilding))
                     {
-                        ServiceBuildingInfo garbageBuilding = new ServiceBuildingInfo(buildingId, ref building, Dispatcher.DispatcherTypes.GarbageTruckDispatcher);
+                        garbageBuilding = new ServiceBuildingInfo(buildingId, ref building, Dispatcher.DispatcherTypes.GarbageTruckDispatcher);
                         Log.Debug(this, "CategorizeBuilding", "Landfill", buildingId, building.Info.name, garbageBuilding.BuildingName, garbageBuilding.Range, garbageBuilding.District);
 
                         this.GarbageBuildings[buildingId] = garbageBuilding;
                     }
                     else
                     {
-                        this.GarbageBuildings[buildingId].Update(ref building);
+                        garbageBuilding.Update(ref building);
+                    }
+
+                    if (Global.Settings.AutoEmptyLandfills && (garbageBuilding.NeedsEmptying || garbageBuilding.EmptyingIsDone))
+                    {
+                        this.landfillsInNeedOfEmptyingChange.Add(garbageBuilding);
                     }
                 }
                 else if (this.GarbageBuildings.ContainsKey(buildingId))
@@ -466,53 +514,56 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 }
 
                 // Check garbage.
-                TargetBuildingInfo.ServiceDemand demand;
-                if (building.m_garbageBuffer >= Global.Settings.MinimumGarbageForDispatch)
+                if (Global.Settings.DispatchGarbageTrucks)
                 {
-                    demand = TargetBuildingInfo.ServiceDemand.NeedsService;
-                }
-                else if (building.m_garbageBuffer >= Global.Settings.MinimumGarbageForPatrol)
-                {
-                    demand = TargetBuildingInfo.ServiceDemand.WantsService;
-                }
-                else
-                {
-                    demand = TargetBuildingInfo.ServiceDemand.None;
-                }
-
-                if (demand != TargetBuildingInfo.ServiceDemand.None && !(building.Info.m_buildingAI is LandfillSiteAI))
-                {
-                    if (!this.DirtyBuildings.ContainsKey(buildingId))
+                    TargetBuildingInfo.ServiceDemand demand;
+                    if (building.m_garbageBuffer >= Global.Settings.MinimumGarbageForDispatch)
                     {
-                        TargetBuildingInfo dirtyBuilding = new TargetBuildingInfo(buildingId, ref building, Dispatcher.DispatcherTypes.GarbageTruckDispatcher, demand);
-                        if (Log.LogToFile)
-                        {
-                            Log.Debug(this, "CategorizeBuilding", "Dirty", demand, buildingId, building.Info.name, dirtyBuilding.BuildingName, building.m_garbageBuffer, dirtyBuilding.ProblemValue, dirtyBuilding.HasProblem, dirtyBuilding.District);
-                        }
-
-                        this.DirtyBuildings[buildingId] = dirtyBuilding;
-                        this.HasDirtyBuildingsToCheck = true;
+                        demand = TargetBuildingInfo.ServiceDemand.NeedsService;
+                    }
+                    else if (building.m_garbageBuffer >= Global.Settings.MinimumGarbageForPatrol)
+                    {
+                        demand = TargetBuildingInfo.ServiceDemand.WantsService;
                     }
                     else
                     {
-                        this.DirtyBuildings[buildingId].Update(ref building, demand);
-                        this.HasDirtyBuildingsToCheck = this.HasDirtyBuildingsToCheck || this.DirtyBuildings[buildingId].CheckThis;
+                        demand = TargetBuildingInfo.ServiceDemand.None;
                     }
-                }
-                else if (this.DirtyBuildings.ContainsKey(buildingId))
-                {
-                    if ((building.m_garbageBuffer > 10 && (building.m_garbageBuffer >= Global.Settings.MinimumGarbageForDispatch / 10 || building.m_garbageBuffer >= Global.Settings.MinimumGarbageForPatrol / 2)) || this.DirtyBuildings[buildingId].WantedService)
-                    {
-                        this.DirtyBuildings[buildingId].Update(ref building, TargetBuildingInfo.ServiceDemand.None);
-                    }
-                    else
-                    {
-                        if (Log.LogToFile)
-                        {
-                            Log.Debug(this, "CategorizeBuilding", "Not Dirty", buildingId);
-                        }
 
-                        this.DirtyBuildings.Remove(buildingId);
+                    if (demand != TargetBuildingInfo.ServiceDemand.None && !(building.Info.m_buildingAI is LandfillSiteAI))
+                    {
+                        if (!this.DirtyBuildings.ContainsKey(buildingId))
+                        {
+                            TargetBuildingInfo dirtyBuilding = new TargetBuildingInfo(buildingId, ref building, Dispatcher.DispatcherTypes.GarbageTruckDispatcher, demand);
+                            if (Log.LogToFile)
+                            {
+                                Log.Debug(this, "CategorizeBuilding", "Dirty", demand, buildingId, building.Info.name, dirtyBuilding.BuildingName, building.m_garbageBuffer, dirtyBuilding.ProblemValue, dirtyBuilding.HasProblem, dirtyBuilding.District);
+                            }
+
+                            this.DirtyBuildings[buildingId] = dirtyBuilding;
+                            this.HasDirtyBuildingsToCheck = true;
+                        }
+                        else
+                        {
+                            this.DirtyBuildings[buildingId].Update(ref building, demand);
+                            this.HasDirtyBuildingsToCheck = this.HasDirtyBuildingsToCheck || this.DirtyBuildings[buildingId].CheckThis;
+                        }
+                    }
+                    else if (this.DirtyBuildings.ContainsKey(buildingId))
+                    {
+                        if ((building.m_garbageBuffer > 10 && (building.m_garbageBuffer >= Global.Settings.MinimumGarbageForDispatch / 10 || building.m_garbageBuffer >= Global.Settings.MinimumGarbageForPatrol / 2)) || this.DirtyBuildings[buildingId].WantedService)
+                        {
+                            this.DirtyBuildings[buildingId].Update(ref building, TargetBuildingInfo.ServiceDemand.None);
+                        }
+                        else
+                        {
+                            if (Log.LogToFile)
+                            {
+                                Log.Debug(this, "CategorizeBuilding", "Not Dirty", buildingId);
+                            }
+
+                            this.DirtyBuildings.Remove(buildingId);
+                        }
                     }
                 }
             }
@@ -600,6 +651,16 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             bool desolateBuilding;
             bool usableBuilding;
+
+            if (this.cemeteriesInNeedOfEmptyingChange != null)
+            {
+                this.cemeteriesInNeedOfEmptyingChange.Clear();
+            }
+
+            if (this.landfillsInNeedOfEmptyingChange != null)
+            {
+                this.landfillsInNeedOfEmptyingChange.Clear();
+            }
 
             for (ushort id = firstBuildingId; id < lastBuildingId; id++)
             {
@@ -706,6 +767,67 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     }
                 }
             }
+
+            if (Global.Settings.AutoEmptyCemeteries && this.cemeteriesInNeedOfEmptyingChange.Count > 0)
+            {
+                this.CountForEmptying(this.DeathCareBuildings, out this.deathCareBuildingsCanEmptyOther, out this.deathCareBuildingsEmptying);
+                this.ChangeAutoEmptying(this.cemeteriesInNeedOfEmptyingChange, ref this.deathCareBuildingsCanEmptyOther, ref this.deathCareBuildingsEmptying, Global.Settings.AutoEmptyCemeteryMaxConcurrent);
+            }
+
+            if (Global.Settings.AutoEmptyLandfills && this.landfillsInNeedOfEmptyingChange.Count > 0)
+            {
+                this.CountForEmptying(this.GarbageBuildings, out this.garbageBuildingsCanEmptyOther, out this.garbageBuildingsEmptying);
+                this.ChangeAutoEmptying(this.landfillsInNeedOfEmptyingChange, ref this.garbageBuildingsCanEmptyOther, ref this.garbageBuildingsEmptying, Global.Settings.AutoEmptyLandfillMaxConcurrent);
+            }
+        }
+
+        /// <summary>
+        /// Changes the automatic emptying.
+        /// </summary>
+        /// <param name="serviceBuildings">The service buildings.</param>
+        /// <param name="canEmptyOther">The can-empty-other counter.</param>
+        /// <param name="isEmptying">The is-emptying counter.</param>
+        /// <param name="maxConcurrent">The maximum concurrent.</param>
+        private void ChangeAutoEmptying(List<ServiceBuildingInfo> serviceBuildings, ref uint canEmptyOther, ref uint isEmptying, uint maxConcurrent)
+        {
+            foreach (ServiceBuildingInfo building in serviceBuildings)
+            {
+                if (building.EmptyingIsDone)
+                {
+                    building.AutoEmptyStop();
+                    isEmptying--;
+                }
+                else if (building.NeedsEmptying && canEmptyOther > isEmptying && isEmptying < maxConcurrent)
+                {
+                    building.AutoEmptyStart();
+                    isEmptying++;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Counts for emptying.
+        /// </summary>
+        /// <param name="serviceBuildings">The service buildings.</param>
+        /// <param name="canEmptyOther">The can-empty-other counter.</param>
+        /// <param name="isEmptying">The is-emptying counter.</param>
+        private void CountForEmptying(Dictionary<ushort, ServiceBuildingInfo> serviceBuildings, out uint canEmptyOther, out uint isEmptying)
+        {
+            isEmptying = 0;
+            canEmptyOther = 0;
+
+            foreach (ServiceBuildingInfo building in serviceBuildings.Values)
+            {
+                if (building.IsAutoEmptying)
+                {
+                    isEmptying++;
+                }
+
+                if (building.CanEmptyOther)
+                {
+                    canEmptyOther++;
+                }
+            }
         }
 
         /// <summary>
@@ -718,49 +840,75 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             info.Add("constructing", constructing);
 
             info.Add("DispatchHearses", Global.Settings.DispatchHearses);
-            if (Global.Settings.DispatchHearses)
-            {
-                if (constructing || this.DeadPeopleBuildings == null)
-                {
-                    info.Add("DeadPeopleBuildings", "new");
-                    this.HasDeadPeopleBuildingsToCheck = false;
-                    this.DeadPeopleBuildings = new Dictionary<ushort, TargetBuildingInfo>();
-                }
+            info.Add("AutoEmptyCemeteries", Global.Settings.AutoEmptyCemeteries);
 
-                if (constructing || this.DeathCareBuildings == null)
-                {
-                    info.Add("HearseBuildings", "new");
-                    this.HasDeadPeopleBuildingsToCheck = false;
-                    this.DeathCareBuildings = new Dictionary<ushort, ServiceBuildingInfo>();
-                }
-            }
-            else
+            if (!Global.Settings.DispatchHearses)
             {
                 this.DeadPeopleBuildings = null;
+            }
+            else if (constructing || this.DeadPeopleBuildings == null)
+            {
+                info.Add("DeadPeopleBuildings", "new");
+                this.HasDeadPeopleBuildingsToCheck = false;
+                this.DeadPeopleBuildings = new Dictionary<ushort, TargetBuildingInfo>();
+            }
+
+            if (!Global.Settings.AutoEmptyCemeteries)
+            {
+                this.cemeteriesInNeedOfEmptyingChange = null;
+            }
+            else if (constructing || this.cemeteriesInNeedOfEmptyingChange == null)
+            {
+                info.Add("CemeterisInNeedOfEmptying", "new");
+                this.cemeteriesInNeedOfEmptyingChange = new List<ServiceBuildingInfo>();
+            }
+
+            if (!Global.Settings.DispatchHearses && !Global.Settings.AutoEmptyCemeteries)
+            {
+                this.HasDeadPeopleBuildingsToCheck = false;
                 this.DeathCareBuildings = null;
+            }
+            else if (constructing || this.DeathCareBuildings == null)
+            {
+                info.Add("DeathCareBuildings", "new");
+                this.HasDeadPeopleBuildingsToCheck = false;
+                this.DeathCareBuildings = new Dictionary<ushort, ServiceBuildingInfo>();
             }
 
             info.Add("DispatchGarbageTrucks", Global.Settings.DispatchGarbageTrucks);
-            if (Global.Settings.DispatchGarbageTrucks)
-            {
-                if (constructing || this.DirtyBuildings == null)
-                {
-                    info.Add("DirtyBuildings", "new");
-                    this.HasDirtyBuildingsToCheck = false;
-                    this.DirtyBuildings = new Dictionary<ushort, TargetBuildingInfo>();
-                }
+            info.Add("AutoEmptyLandfills", Global.Settings.AutoEmptyLandfills);
 
-                if (constructing || this.GarbageBuildings == null)
-                {
-                    info.Add("GarbageBuildings", "new");
-                    this.HasDirtyBuildingsToCheck = false;
-                    this.GarbageBuildings = new Dictionary<ushort, ServiceBuildingInfo>();
-                }
+            if (!Global.Settings.DispatchGarbageTrucks)
+            {
+                this.HasDirtyBuildingsToCheck = false;
+                this.DirtyBuildings = null;
+            }
+            else if (constructing || this.DirtyBuildings == null)
+            {
+                info.Add("DirtyBuildings", "new");
+                this.HasDirtyBuildingsToCheck = false;
+                this.DirtyBuildings = new Dictionary<ushort, TargetBuildingInfo>();
+            }
+
+            if (!Global.Settings.AutoEmptyLandfills)
+            {
+                this.landfillsInNeedOfEmptyingChange = null;
             }
             else
             {
-                this.DirtyBuildings = null;
+                info.Add("LandfillsInNeedOfEmptying", "new");
+                this.landfillsInNeedOfEmptyingChange = new List<ServiceBuildingInfo>();
+            }
+
+            if (!Global.Settings.DispatchGarbageTrucks && !Global.Settings.AutoEmptyLandfills)
+            {
                 this.GarbageBuildings = null;
+            }
+            else if (constructing || this.GarbageBuildings == null)
+            {
+                info.Add("GarbageBuildings", "new");
+                this.HasDirtyBuildingsToCheck = false;
+                this.GarbageBuildings = new Dictionary<ushort, ServiceBuildingInfo>();
             }
 
             info.Add("DispatchAmbulances", Global.Settings.DispatchAmbulances);

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using ColossalFramework;
 using UnityEngine;
 
@@ -9,6 +10,21 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
     /// </summary>
     internal class ServiceBuildingInfo : IBuildingInfo
     {
+        /// <summary>
+        /// The automatic empty setting.
+        /// </summary>
+        private bool autoEmpty = false;
+
+        /// <summary>
+        /// The automatic empty start setting.
+        /// </summary>
+        private float autoEmptyStart = -1.0f;
+
+        /// <summary>
+        /// The automatic empty stop setting.
+        /// </summary>
+        private float autoEmptyStop = 111.0f;
+
         /// <summary>
         /// Dispatch services by district.
         /// </summary>
@@ -65,6 +81,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             this.Vehicles = new Dictionary<ushort, ServiceVehicleInfo>();
             this.VehiclesFree = 0;
             this.dispatcherType = dispatcherType;
+            this.IsAutoEmptying = false;
 
             this.Initialize();
 
@@ -154,6 +171,30 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Gets a value indicating whether this instance can be emptied.
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if this instance can be emptied; otherwise, <c>false</c>.
+        /// </value>
+        public bool CanBeEmptied
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// Gets a value indicating whether this instance can empty other.
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if this instance can empty other; otherwise, <c>false</c>.
+        /// </value>
+        public bool CanEmptyOther
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
         /// Gets or sets a value indicating whether the building can receive anything.
         /// </summary>
         /// <value>
@@ -183,7 +224,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <value>
         /// The capacity level.
         /// </value>
-        public CapacityLevels CapacityLevel
+        public float CapacityLevel
         {
             get;
             private set;
@@ -208,6 +249,18 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// The capacity overflow.
         /// </value>
         public int CapacityOverflow
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// Gets the capacity level.
+        /// </summary>
+        /// <value>
+        /// The capacity level.
+        /// </value>
+        public CapacityLevels CapacityStatus
         {
             get;
             private set;
@@ -246,6 +299,18 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Gets a value indicating whether [emptying is done].
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if [emptying is done]; otherwise, <c>false</c>.
+        /// </value>
+        public bool EmptyingIsDone
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
         /// Gets or sets the first link in the buildings list of own vehicles.
         /// </summary>
         public ushort FirstOwnVehicleId
@@ -273,6 +338,42 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         ///   <c>true</c> if [in range]; otherwise, <c>false</c>.
         /// </value>
         public bool InRange
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// Gets a value indicating whether this instance is automatic emptying.
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if this instance is automatic emptying; otherwise, <c>false</c>.
+        /// </value>
+        public bool IsAutoEmptying
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// Gets a value indicating whether this instance is emptying.
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if this instance is emptying; otherwise, <c>false</c>.
+        /// </value>
+        public bool IsEmptying
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// Gets a value indicating whether building needs emptying.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if building needs emptying; otherwise, <c>false</c>.
+        /// </value>
+        public bool NeedsEmptying
         {
             get;
             private set;
@@ -364,6 +465,59 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Starts the automatic emptying.
+        /// </summary>
+        /// <returns>True if started.</returns>
+        public bool AutoEmptyStart()
+        {
+            if (this.IsEmptying)
+            {
+                return this.IsAutoEmptying;
+            }
+
+            if (!this.NeedsEmptying)
+            {
+                return false;
+            }
+
+            try
+            {
+                this.SetEmptying(ref Singleton<BuildingManager>.instance.m_buildings.m_buffer[this.BuildingId], true);
+                this.IsAutoEmptying = true;
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Log.Error(this, "AutoEmptyStart", ex, this.BuildingId);
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Stops the automatic emptying.
+        /// </summary>
+        /// <returns>True if stop.</returns>
+        public bool AutoEmptyStop()
+        {
+            if (!this.IsEmptying || !this.IsAutoEmptying)
+            {
+                return false;
+            }
+
+            try
+            {
+                this.SetEmptying(ref Singleton<BuildingManager>.instance.m_buildings.m_buffer[this.BuildingId], false);
+                this.IsAutoEmptying = false;
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Log.Error(this, "AutoEmptyStop", ex, this.BuildingId);
+                return false;
+            }
+        }
+
+        /// <summary>
         /// Creates the vehicle.
         /// </summary>
         /// <param name="transferType">Type of the transfer.</param>
@@ -451,6 +605,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             {
                 int max;
                 int amount;
+
                 int productionRate = PlayerBuildingAI.GetProductionRate(100, Singleton<EconomyManager>.instance.GetBudget(building.Info.m_buildingAI.m_info.m_class));
                 if (building.Info.m_buildingAI is CemeteryAI)
                 {
@@ -473,9 +628,20 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     amount = 0;
                     max = 0;
                 }
+
                 this.VehiclesTotal = ((productionRate * this.VehiclesTotal) + 99) / 100;
                 this.CapacityMax = max;
                 this.CapacityFree = max - amount;
+
+                this.CapacityLevel = (float)amount / (float)max;
+                this.CanBeEmptied = building.Info.m_buildingAI.CanBeEmptied();
+                this.IsEmptying = (building.m_flags & Building.Flags.Downgrading) != Building.Flags.None;
+                this.IsAutoEmptying = this.IsAutoEmptying & this.IsEmptying;
+                this.NeedsEmptying = this.autoEmpty && !this.IsEmptying && this.CapacityLevel >= this.autoEmptyStart;
+                this.EmptyingIsDone = this.IsAutoEmptying && this.CapacityLevel <= this.autoEmptyStop;
+
+                this.CanEmptyOther = this.autoEmpty && !this.CanBeEmptied &&
+                                     (building.m_flags & Building.Flags.Active) != Building.Flags.None && building.m_productionRate > 0;
 
                 didUpdate = true;
                 this.lastCapacityUpdate = Global.CurrentFrame;
@@ -488,23 +654,23 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             if ((building.m_flags & Building.Flags.CapacityFull) == Building.Flags.CapacityFull)
             {
-                this.CapacityLevel = CapacityLevels.Full;
+                this.CapacityStatus = CapacityLevels.Full;
             }
             else if ((building.m_flags & Building.Flags.CapacityStep1) == Building.Flags.CapacityStep1)
             {
-                this.CapacityLevel = CapacityLevels.Low;
+                this.CapacityStatus = CapacityLevels.Low;
             }
             else if ((building.m_flags & Building.Flags.CapacityStep2) == Building.Flags.CapacityStep2)
             {
-                this.CapacityLevel = CapacityLevels.Medium;
+                this.CapacityStatus = CapacityLevels.Medium;
             }
             else if (this.CapacityFree == this.CapacityMax)
             {
-                this.CapacityLevel = CapacityLevels.Empty;
+                this.CapacityStatus = CapacityLevels.Empty;
             }
             else
             {
-                this.CapacityLevel = CapacityLevels.High;
+                this.CapacityStatus = CapacityLevels.High;
             }
 
             ////if (Log.LogALot && !this.CanReceive)
@@ -569,11 +735,17 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 case Dispatcher.DispatcherTypes.HearseDispatcher:
                     this.dispatchByDistrict = Global.Settings.DispatchHearsesByDistrict;
                     this.dispatchByRange = Global.Settings.DispatchHearsesByRange;
+                    this.autoEmpty = Global.Settings.AutoEmptyCemeteries;
+                    this.autoEmptyStart = Global.Settings.AutoEmptyCemeteryStartLevel;
+                    this.autoEmptyStop = Global.Settings.AutoEmptyCemeteryStopLevel;
                     break;
 
                 case Dispatcher.DispatcherTypes.GarbageTruckDispatcher:
                     this.dispatchByDistrict = Global.Settings.DispatchGarbageTrucksByDistrict;
                     this.dispatchByRange = Global.Settings.DispatchGarbageTrucksByRange;
+                    this.autoEmpty = Global.Settings.AutoEmptyLandfills;
+                    this.autoEmptyStart = Global.Settings.AutoEmptyLandfillStartLevel;
+                    this.autoEmptyStop = Global.Settings.AutoEmptyLandfillStopLevel;
                     break;
 
                 case Dispatcher.DispatcherTypes.AmbulanceDispatcher:
@@ -581,6 +753,16 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     this.dispatchByRange = Global.Settings.DispatchAmbulancesByRange;
                     break;
             }
+        }
+
+        /// <summary>
+        /// Sets the emptying.
+        /// </summary>
+        /// <param name="building">The building.</param>
+        /// <param name="emptying">If set to <c>true</c> empty building.</param>
+        private void SetEmptying(ref Building building, bool emptying)
+        {
+            building.Info.m_buildingAI.SetEmptying(this.BuildingId, ref building, emptying);
         }
 
         /// <summary>
@@ -631,7 +813,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     return 1;
                 }
 
-                c = x.CapacityLevel - y.CapacityLevel;
+                c = x.CapacityStatus - y.CapacityStatus;
                 if (c < 0)
                 {
                     return -1;
