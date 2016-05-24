@@ -414,7 +414,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             if (serviceBuilding != null)
             {
                 info.Add("CanReceive", serviceBuilding.CanReceive);
-                info.Add("CapacityLevel", serviceBuilding.CapacityStatus);
+                info.Add("CapacityLevel", serviceBuilding.CapacityLevel);
                 info.Add("CapactyFree", serviceBuilding.CapacityFree);
                 info.Add("CapactyMax", serviceBuilding.CapacityMax);
                 info.Add("CapactyOverflow", serviceBuilding.CapacityOverflow);
@@ -433,7 +433,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     string n = (i + 1).ToString();
 
                     info.Add("CanReceive" + n, serviceBuilding.CanReceive);
-                    info.Add("CapacityLevel" + n, serviceBuilding.CapacityStatus);
+                    info.Add("CapacityLevel" + n, serviceBuilding.CapacityLevel);
                     info.Add("CapactyFree" + n, serviceBuilding.CapacityFree);
                     info.Add("CapactyMax" + n, serviceBuilding.CapacityMax);
                     info.Add("CapactyOverflow" + n, serviceBuilding.CapacityOverflow);

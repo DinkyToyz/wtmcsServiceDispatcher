@@ -429,6 +429,78 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         }
                     });
 
+                if (Global.EnableExperiments || Global.Settings.AutoEmptyCemeteries)
+                {
+                    // Add cemetery group.
+                    UIHelperBase cemeteryGroup = helper.AddGroup("Cemeteries");
+
+                    cemeteryGroup.AddCheckbox(
+                        "Empty cemeteries automatically",
+                        Global.Settings.AutoEmptyCemeteries,
+                        value =>
+                        {
+                            try
+                            {
+                                if (Global.Settings.AutoEmptyCemeteries != value)
+                                {
+                                    Global.Settings.AutoEmptyCemeteries = value;
+                                    Global.Settings.Save();
+                                    Global.ReInitializeHandlers();
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                Log.Error(this, "OnSettingsUI", ex, "CemeteryGroup", "AutoEmptyCemeteries", value);
+                            }
+                        });
+
+                    cemeteryGroup.AddExtendedSlider(
+                        "Empty cemeteries at %",
+                        0,
+                        100,
+                        1,
+                        Global.Settings.AutoEmptyCemeteryStartLevelPercent,
+                        value =>
+                        {
+                            try
+                            {
+                                if (Global.Settings.AutoEmptyCemeteryStartLevelPercent != (uint)value)
+                                {
+                                    Global.BuildingUpdateNeeded = true;
+                                    Global.Settings.AutoEmptyCemeteryStartLevelPercent = (uint)value;
+                                    Global.Settings.Save();
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                Log.Error(this, "OnSettingsUI", ex, "CemeteryGroup", "AutoEmptyCemeteryStartLevel", value);
+                            }
+                        });
+
+                    cemeteryGroup.AddExtendedSlider(
+                        "Stop emptying at %",
+                        0,
+                        100,
+                        1,
+                        Global.Settings.AutoEmptyCemeteryStopLevelPercent,
+                        value =>
+                        {
+                            try
+                            {
+                                if (Global.Settings.AutoEmptyCemeteryStopLevelPercent != (uint)value)
+                                {
+                                    Global.BuildingUpdateNeeded = true;
+                                    Global.Settings.AutoEmptyCemeteryStopLevelPercent = (uint)value;
+                                    Global.Settings.Save();
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                Log.Error(this, "OnSettingsUI", ex, "CemeteryGroup", "AutoEmptyCemeteryStopLevel", value);
+                            }
+                        });
+                }
+
                 // Add garbage group.
                 UIHelperBase garbageGroup = helper.AddGroup("Garbage Trucks");
 
@@ -663,7 +735,79 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         }
                     });
 
-                if (Global.EnableExperiments)
+                if (Global.EnableExperiments || Global.Settings.AutoEmptyLandfills)
+                {
+                    // Add landfill group.
+                    UIHelperBase landfillGroup = helper.AddGroup("Landfills");
+
+                    landfillGroup.AddCheckbox(
+                        "Empty landfills automatically",
+                        Global.Settings.AutoEmptyLandfills,
+                        value =>
+                        {
+                            try
+                            {
+                                if (Global.Settings.AutoEmptyLandfills != value)
+                                {
+                                    Global.Settings.AutoEmptyLandfills = value;
+                                    Global.Settings.Save();
+                                    Global.ReInitializeHandlers();
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                Log.Error(this, "OnSettingsUI", ex, "LandfillGroup", "AutoEmptyLandfills", value);
+                            }
+                        });
+
+                    landfillGroup.AddExtendedSlider(
+                        "Empty landfills at %",
+                        0,
+                        100,
+                        1,
+                        Global.Settings.AutoEmptyLandfillStartLevelPercent,
+                        value =>
+                        {
+                            try
+                            {
+                                if (Global.Settings.AutoEmptyLandfillStartLevelPercent != (uint)value)
+                                {
+                                    Global.BuildingUpdateNeeded = true;
+                                    Global.Settings.AutoEmptyLandfillStartLevelPercent = (uint)value;
+                                    Global.Settings.Save();
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                Log.Error(this, "OnSettingsUI", ex, "LandfillGroup", "AutoEmptyLandfillStartLevel", value);
+                            }
+                        });
+
+                    landfillGroup.AddExtendedSlider(
+                        "Stop emptying at %",
+                        0,
+                        100,
+                        1,
+                        Global.Settings.AutoEmptyLandfillStopLevelPercent,
+                        value =>
+                        {
+                            try
+                            {
+                                if (Global.Settings.AutoEmptyLandfillStopLevelPercent != (uint)value)
+                                {
+                                    Global.BuildingUpdateNeeded = true;
+                                    Global.Settings.AutoEmptyLandfillStopLevelPercent = (uint)value;
+                                    Global.Settings.Save();
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                Log.Error(this, "OnSettingsUI", ex, "LandfillGroup", "AutoEmptyLandfillStopLevel", value);
+                            }
+                        });
+                }
+
+                if (Global.EnableExperiments || Global.Settings.DispatchAmbulances)
                 {
                     // Add ambulance group.
                     UIHelperBase ambulanceGroup = helper.AddGroup("Ambulances");

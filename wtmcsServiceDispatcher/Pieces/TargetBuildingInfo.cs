@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using ColossalFramework;
 using UnityEngine;
 
@@ -61,6 +62,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             this.BuildingId = buildingId;
             this.dispatcherType = dispatcherType;
+
+            if (this.dispatcherType == Dispatcher.DispatcherTypes.AmbulanceDispatcher)
+            {
+                this.citizens = new Dictionary<uint, TargetCitizenInfo>();
+            }
 
             this.Update(ref building, demand);
         }
@@ -183,6 +189,58 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Gets the citizen count.
+        /// </summary>
+        /// <value>
+        /// The citizen count.
+        /// </value>
+        public int CitizenCount
+        {
+            get
+            {
+                return this.ProblemSize;
+            }
+        }
+
+        /// <summary>
+        /// Gets the citizens.
+        /// </summary>
+        /// <value>
+        /// The citizens.
+        /// </value>
+        public IEnumerable<TargetCitizenInfo> Citizens
+        {
+            get
+            {
+                return (this.citizens == null) ? null : this.citizens.Values;
+            }
+        }
+
+        /// <summary>
+        /// Gets the assigned citizen count.
+        /// </summary>
+        /// <value>
+        /// The assigned citizen count.
+        /// </value>
+        public int CitizensAssigned
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// Gets the un-assigned citizen count.
+        /// </summary>
+        /// <value>
+        /// The un-assigned citizen count.
+        /// </value>
+        public int CitizensUnAssigned
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
         /// Gets the demand.
         /// </summary>
         /// <value>
@@ -292,6 +350,20 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             get;
             private set;
+        }
+
+        /// <summary>
+        /// Gets the next citizen.
+        /// </summary>
+        /// <value>
+        /// The next citizen.
+        /// </value>
+        public TargetCitizenInfo NextCitizen
+        {
+            get
+            {
+                return (this.citizens == null) ? null : this.citizens.Values.Where(c => c.VehicleId == 0).OrderBy(c => c.ProblemSize).Last();
+            }
         }
 
         /// <summary>
@@ -467,6 +539,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             int count = 0;
             int size = 0;
+            int assigned = 0;
+            int unassigned = 0;
             uint unitId = building.m_citizenUnits;
 
             while (unitId != 0)
@@ -490,10 +564,19 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                                 if (this.citizens.TryGetValue(citizenId, out citizenInfo))
                                 {
                                     citizenInfo.Update(ref citizen, this.dispatcherType);
+                                    if (citizenInfo.VehicleId == 0)
+                                    {
+                                        unassigned++;
+                                    }
+                                    else
+                                    {
+                                        assigned++;
+                                    }
                                 }
                                 else
                                 {
                                     this.citizens[citizenId] = new TargetCitizenInfo(citizenId, ref citizen, this.dispatcherType);
+                                    unassigned++;
                                 }
                             }
                         }
@@ -510,6 +593,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             }
 
             this.ProblemSize = size;
+            this.CitizensAssigned = assigned;
+            this.CitizensUnAssigned = unassigned;
         }
 
         /// <summary>
@@ -552,12 +637,17 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// Info about service target citizen.
         /// </summary>
-        private class TargetCitizenInfo
+        public class TargetCitizenInfo
         {
             /// <summary>
             /// The citizen identifier.
             /// </summary>
             public readonly uint CitizenId;
+
+            /// <summary>
+            /// The vehicle identifier.
+            /// </summary>
+            public ushort VehicleId;
 
             /// <summary>
             /// The last update stamp.
@@ -573,6 +663,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             public TargetCitizenInfo(uint citizenId, ref Citizen citizen, Dispatcher.DispatcherTypes dispatcherType)
             {
                 this.CitizenId = citizenId;
+                this.VehicleId = 0;
 
                 this.Update(ref citizen, dispatcherType);
             }
@@ -612,6 +703,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 if (dispatcherType == Dispatcher.DispatcherTypes.AmbulanceDispatcher)
                 {
                     this.ProblemSize = ((int)citizen.m_health) << 8;
+                }
+
+                if (citizen.m_vehicle != this.VehicleId)
+                {
+                    this.VehicleId = 0;
                 }
 
                 this.lastUpdateStamp = Global.CurrentFrame;

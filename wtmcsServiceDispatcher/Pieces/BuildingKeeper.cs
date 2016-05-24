@@ -771,13 +771,13 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             if (Global.Settings.AutoEmptyCemeteries && this.cemeteriesInNeedOfEmptyingChange.Count > 0)
             {
                 this.CountForEmptying(this.DeathCareBuildings, out this.deathCareBuildingsCanEmptyOther, out this.deathCareBuildingsEmptying);
-                this.ChangeAutoEmptying(this.cemeteriesInNeedOfEmptyingChange, ref this.deathCareBuildingsCanEmptyOther, ref this.deathCareBuildingsEmptying, Global.Settings.AutoEmptyCemeteryMaxConcurrent);
+                this.ChangeAutoEmptying(this.cemeteriesInNeedOfEmptyingChange, ref this.deathCareBuildingsCanEmptyOther, ref this.deathCareBuildingsEmptying);
             }
 
             if (Global.Settings.AutoEmptyLandfills && this.landfillsInNeedOfEmptyingChange.Count > 0)
             {
                 this.CountForEmptying(this.GarbageBuildings, out this.garbageBuildingsCanEmptyOther, out this.garbageBuildingsEmptying);
-                this.ChangeAutoEmptying(this.landfillsInNeedOfEmptyingChange, ref this.garbageBuildingsCanEmptyOther, ref this.garbageBuildingsEmptying, Global.Settings.AutoEmptyLandfillMaxConcurrent);
+                this.ChangeAutoEmptying(this.landfillsInNeedOfEmptyingChange, ref this.garbageBuildingsCanEmptyOther, ref this.garbageBuildingsEmptying);
             }
         }
 
@@ -787,8 +787,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <param name="serviceBuildings">The service buildings.</param>
         /// <param name="canEmptyOther">The can-empty-other counter.</param>
         /// <param name="isEmptying">The is-emptying counter.</param>
-        /// <param name="maxConcurrent">The maximum concurrent.</param>
-        private void ChangeAutoEmptying(List<ServiceBuildingInfo> serviceBuildings, ref uint canEmptyOther, ref uint isEmptying, uint maxConcurrent)
+        private void ChangeAutoEmptying(List<ServiceBuildingInfo> serviceBuildings, ref uint canEmptyOther, ref uint isEmptying)
         {
             foreach (ServiceBuildingInfo building in serviceBuildings)
             {
@@ -797,7 +796,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     building.AutoEmptyStop();
                     isEmptying--;
                 }
-                else if (building.NeedsEmptying && canEmptyOther > isEmptying && isEmptying < maxConcurrent)
+                else if (building.NeedsEmptying && canEmptyOther > isEmptying)
                 {
                     building.AutoEmptyStart();
                     isEmptying++;

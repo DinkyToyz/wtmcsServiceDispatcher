@@ -18,12 +18,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// The automatic empty start setting.
         /// </summary>
-        private float autoEmptyStart = -1.0f;
+        private uint autoEmptyStart = 0;
 
         /// <summary>
         /// The automatic empty stop setting.
         /// </summary>
-        private float autoEmptyStop = 111.0f;
+        private uint autoEmptyStop = 111;
 
         /// <summary>
         /// Dispatch services by district.
@@ -224,7 +224,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <value>
         /// The capacity level.
         /// </value>
-        public float CapacityLevel
+        public CapacityLevels CapacityLevel
         {
             get;
             private set;
@@ -260,7 +260,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <value>
         /// The capacity level.
         /// </value>
-        public CapacityLevels CapacityStatus
+        public uint CapacityPercent
         {
             get;
             private set;
@@ -472,16 +472,20 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             if (this.IsEmptying)
             {
+                Log.Debug(this, "AutoEmptyStart", "AlreadyEmptying", this.BuildingId, this.IsAutoEmptying, this.BuildingName, this.DistrictName);
                 return this.IsAutoEmptying;
             }
 
             if (!this.NeedsEmptying)
             {
+                Log.Debug(this, "AutoEmptyStart", "NoNeed", this.BuildingId, this.BuildingName, this.DistrictName);
                 return false;
             }
 
             try
             {
+                Log.Debug(this, "AutoEmptyStart", this.BuildingId, this.BuildingName, this.DistrictName);
+
                 this.SetEmptying(ref Singleton<BuildingManager>.instance.m_buildings.m_buffer[this.BuildingId], true);
                 this.IsAutoEmptying = true;
                 return true;
@@ -501,11 +505,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             if (!this.IsEmptying || !this.IsAutoEmptying)
             {
+                Log.Debug(this, "AutoEmptyStop", "NotEmptying", this.BuildingId, this.IsAutoEmptying, this.BuildingName, this.DistrictName);
                 return false;
             }
 
             try
             {
+                Log.Debug(this, "AutoEmptyStop", this.BuildingId, this.BuildingName, this.DistrictName);
+
                 this.SetEmptying(ref Singleton<BuildingManager>.instance.m_buildings.m_buffer[this.BuildingId], false);
                 this.IsAutoEmptying = false;
                 return true;
@@ -633,12 +640,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 this.CapacityMax = max;
                 this.CapacityFree = max - amount;
 
-                this.CapacityLevel = (float)amount / (float)max;
+                this.CapacityPercent = (uint)Math.Round(((float)amount / (float)max) * 100);
                 this.CanBeEmptied = building.Info.m_buildingAI.CanBeEmptied();
                 this.IsEmptying = (building.m_flags & Building.Flags.Downgrading) != Building.Flags.None;
                 this.IsAutoEmptying = this.IsAutoEmptying & this.IsEmptying;
-                this.NeedsEmptying = this.autoEmpty && !this.IsEmptying && this.CapacityLevel >= this.autoEmptyStart;
-                this.EmptyingIsDone = this.IsAutoEmptying && this.CapacityLevel <= this.autoEmptyStop;
+                this.NeedsEmptying = this.autoEmpty && !this.IsEmptying && this.CapacityPercent >= this.autoEmptyStart;
+                this.EmptyingIsDone = this.IsAutoEmptying && this.CapacityPercent <= this.autoEmptyStop;
 
                 this.CanEmptyOther = this.autoEmpty && !this.CanBeEmptied &&
                                      (building.m_flags & Building.Flags.Active) != Building.Flags.None && building.m_productionRate > 0;
@@ -647,30 +654,30 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 this.lastCapacityUpdate = Global.CurrentFrame;
             }
 
-            this.CanReceive = (building.m_flags & (Building.Flags.CapacityFull | Building.Flags.Downgrading | Building.Flags.Demolishing | Building.Flags.Deleted | Building.Flags.Hidden | Building.Flags.BurnedDown)) == Building.Flags.None &&
+            this.CanReceive = (building.m_flags & (Building.Flags.Downgrading | Building.Flags.Demolishing | Building.Flags.Deleted | Building.Flags.Hidden | Building.Flags.BurnedDown)) == Building.Flags.None &&
                               (building.m_flags & (Building.Flags.Created | Building.Flags.Completed)) == (Building.Flags.Created | Building.Flags.Completed) &&
                               (building.m_problems & (Notification.Problem.Emptying | Notification.Problem.LandfillFull | Notification.Problem.RoadNotConnected | Notification.Problem.TurnedOff | Notification.Problem.FatalProblem)) == Notification.Problem.None &&
                               this.CapacityFree > 0 && !building.Info.m_buildingAI.IsFull(this.BuildingId, ref building);
 
             if ((building.m_flags & Building.Flags.CapacityFull) == Building.Flags.CapacityFull)
             {
-                this.CapacityStatus = CapacityLevels.Full;
+                this.CapacityLevel = CapacityLevels.Full;
             }
             else if ((building.m_flags & Building.Flags.CapacityStep1) == Building.Flags.CapacityStep1)
             {
-                this.CapacityStatus = CapacityLevels.Low;
+                this.CapacityLevel = CapacityLevels.Low;
             }
             else if ((building.m_flags & Building.Flags.CapacityStep2) == Building.Flags.CapacityStep2)
             {
-                this.CapacityStatus = CapacityLevels.Medium;
+                this.CapacityLevel = CapacityLevels.Medium;
             }
             else if (this.CapacityFree == this.CapacityMax)
             {
-                this.CapacityStatus = CapacityLevels.Empty;
+                this.CapacityLevel = CapacityLevels.Empty;
             }
             else
             {
-                this.CapacityStatus = CapacityLevels.High;
+                this.CapacityLevel = CapacityLevels.High;
             }
 
             ////if (Log.LogALot && !this.CanReceive)
@@ -736,16 +743,16 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     this.dispatchByDistrict = Global.Settings.DispatchHearsesByDistrict;
                     this.dispatchByRange = Global.Settings.DispatchHearsesByRange;
                     this.autoEmpty = Global.Settings.AutoEmptyCemeteries;
-                    this.autoEmptyStart = Global.Settings.AutoEmptyCemeteryStartLevel;
-                    this.autoEmptyStop = Global.Settings.AutoEmptyCemeteryStopLevel;
+                    this.autoEmptyStart = Global.Settings.AutoEmptyCemeteryStartLevelPercent;
+                    this.autoEmptyStop = Global.Settings.AutoEmptyCemeteryStopLevelPercent;
                     break;
 
                 case Dispatcher.DispatcherTypes.GarbageTruckDispatcher:
                     this.dispatchByDistrict = Global.Settings.DispatchGarbageTrucksByDistrict;
                     this.dispatchByRange = Global.Settings.DispatchGarbageTrucksByRange;
                     this.autoEmpty = Global.Settings.AutoEmptyLandfills;
-                    this.autoEmptyStart = Global.Settings.AutoEmptyLandfillStartLevel;
-                    this.autoEmptyStop = Global.Settings.AutoEmptyLandfillStopLevel;
+                    this.autoEmptyStart = Global.Settings.AutoEmptyLandfillStartLevelPercent;
+                    this.autoEmptyStop = Global.Settings.AutoEmptyLandfillStopLevelPercent;
                     break;
 
                 case Dispatcher.DispatcherTypes.AmbulanceDispatcher:
@@ -813,7 +820,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     return 1;
                 }
 
-                c = x.CapacityStatus - y.CapacityStatus;
+                c = x.CapacityLevel - y.CapacityLevel;
                 if (c < 0)
                 {
                     return -1;
