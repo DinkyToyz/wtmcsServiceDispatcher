@@ -117,7 +117,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 Global.CurrentFrame = simulationFrame;
 
-                if (Global.Settings.DispatchGarbageTrucks || Global.Settings.DispatchHearses || Global.Settings.DispatchAmbulances)
+                if (Global.Settings.Garbage.DispatchVehicles || Global.Settings.DeathCare.DispatchVehicles || Global.Settings.HealthCare.DispatchVehicles)
                 {
                     // Do vehicle based stuff.
                     if (Global.Vehicles != null)
@@ -133,19 +133,19 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         Global.Buildings.Update();
 
                         // Dispatch hearses.
-                        if (Global.Settings.DispatchHearses && Global.HearseDispatcher != null)
+                        if (Global.Settings.DeathCare.DispatchVehicles && Global.HearseDispatcher != null)
                         {
                             Global.HearseDispatcher.Dispatch();
                         }
 
                         // Dispatch garbage trucks;
-                        if (Global.Settings.DispatchGarbageTrucks && Global.GarbageTruckDispatcher != null)
+                        if (Global.Settings.Garbage.DispatchVehicles && Global.GarbageTruckDispatcher != null)
                         {
                             Global.GarbageTruckDispatcher.Dispatch();
                         }
 
                         // Dispatch ambulances.
-                        if (Global.Settings.DispatchAmbulances && Global.AmbulanceDispatcher != null)
+                        if (Global.Settings.HealthCare.DispatchVehicles && Global.AmbulanceDispatcher != null)
                         {
                             Global.AmbulanceDispatcher.Dispatch();
                         }

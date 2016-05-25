@@ -109,9 +109,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             get
             {
                 return Global.Settings.RemoveStuckVehicles ||
-                       (Global.Settings.DispatchHearses && Global.HearseDispatcher != null && this.dispatcherType == Dispatcher.DispatcherTypes.HearseDispatcher) ||
-                       (Global.Settings.DispatchGarbageTrucks && Global.GarbageTruckDispatcher != null && this.dispatcherType == Dispatcher.DispatcherTypes.GarbageTruckDispatcher) ||
-                       (Global.Settings.DispatchAmbulances && Global.AmbulanceDispatcher != null && this.dispatcherType == Dispatcher.DispatcherTypes.AmbulanceDispatcher);
+                       (Global.Settings.DeathCare.DispatchVehicles && Global.HearseDispatcher != null && this.dispatcherType == Dispatcher.DispatcherTypes.HearseDispatcher) ||
+                       (Global.Settings.Garbage.DispatchVehicles && Global.GarbageTruckDispatcher != null && this.dispatcherType == Dispatcher.DispatcherTypes.GarbageTruckDispatcher) ||
+                       (Global.Settings.HealthCare.DispatchVehicles && Global.AmbulanceDispatcher != null && this.dispatcherType == Dispatcher.DispatcherTypes.AmbulanceDispatcher);
             }
         }
 
@@ -217,9 +217,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             // Only check vehicles we dispatch unless told to check other vehicles as well.
             if (!(Global.Settings.RemoveStuckVehicles ||
-                  (Global.Settings.DispatchHearses && Global.HearseDispatcher != null && vehicle.Info.m_vehicleAI is HearseAI) ||
-                  (Global.Settings.DispatchGarbageTrucks && Global.GarbageTruckDispatcher != null && vehicle.Info.m_vehicleAI is GarbageTruckAI) ||
-                  (Global.Settings.DispatchAmbulances && Global.AmbulanceDispatcher != null && vehicle.Info.m_vehicleAI is AmbulanceAI)))
+                  (Global.Settings.DeathCare.DispatchVehicles && Global.HearseDispatcher != null && vehicle.Info.m_vehicleAI is HearseAI) ||
+                  (Global.Settings.Garbage.DispatchVehicles && Global.GarbageTruckDispatcher != null && vehicle.Info.m_vehicleAI is GarbageTruckAI) ||
+                  (Global.Settings.HealthCare.DispatchVehicles && Global.AmbulanceDispatcher != null && vehicle.Info.m_vehicleAI is AmbulanceAI)))
             {
                 return false;
             }
@@ -280,9 +280,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             }
 
             if (this.ConfusedDeAssignedForFrames > Global.DeAssignConfusedDelay &&
-                ((Global.Settings.DispatchHearses && Global.HearseDispatcher != null && this.dispatcherType == Dispatcher.DispatcherTypes.HearseDispatcher) ||
-                 (Global.Settings.DispatchGarbageTrucks && Global.GarbageTruckDispatcher != null && this.dispatcherType == Dispatcher.DispatcherTypes.GarbageTruckDispatcher) ||
-                 (Global.Settings.DispatchAmbulances && Global.AmbulanceDispatcher != null && this.dispatcherType == Dispatcher.DispatcherTypes.HearseDispatcher)))
+                ((Global.Settings.DeathCare.DispatchVehicles && Global.HearseDispatcher != null && this.dispatcherType == Dispatcher.DispatcherTypes.HearseDispatcher) ||
+                 (Global.Settings.Garbage.DispatchVehicles && Global.GarbageTruckDispatcher != null && this.dispatcherType == Dispatcher.DispatcherTypes.GarbageTruckDispatcher) ||
+                 (Global.Settings.HealthCare.DispatchVehicles && Global.AmbulanceDispatcher != null && this.dispatcherType == Dispatcher.DispatcherTypes.HearseDispatcher)))
             {
                 try
                 {

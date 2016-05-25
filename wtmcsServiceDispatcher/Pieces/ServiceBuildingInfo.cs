@@ -11,31 +11,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
     internal class ServiceBuildingInfo : IBuildingInfo
     {
         /// <summary>
-        /// The automatic empty setting.
-        /// </summary>
-        private bool autoEmpty = false;
-
-        /// <summary>
-        /// The automatic empty start setting.
-        /// </summary>
-        private uint autoEmptyStart = 0;
-
-        /// <summary>
-        /// The automatic empty stop setting.
-        /// </summary>
-        private uint autoEmptyStop = 111;
-
-        /// <summary>
-        /// Dispatch services by district.
-        /// </summary>
-        private bool dispatchByDistrict = false;
-
-        /// <summary>
-        /// Dispatch services by range.
-        /// </summary>
-        private bool dispatchByRange = true;
-
-        /// <summary>
         /// The dispatcher type.
         /// </summary>
         private Dispatcher.DispatcherTypes dispatcherType = Dispatcher.DispatcherTypes.None;
@@ -59,6 +34,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// The original range.
         /// </summary>
         private float orgRange = 0;
+
+        /// <summary>
+        /// The service settings.
+        /// </summary>
+        private Settings.ServiceSettings serviceSettings = null;
 
         /// <summary>
         /// The vehicle in use count.
@@ -580,7 +560,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             this.Distance = (this.Position - building.Position).sqrMagnitude;
 
-            if (this.dispatchByDistrict)
+            if (this.serviceSettings.DispatchByDistrict)
             {
                 this.InDistrict = building.District == this.District;
             }
@@ -589,7 +569,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 this.InDistrict = false;
             }
 
-            this.InRange = ignoreRange || this.InDistrict || (this.dispatchByRange && this.Distance < this.Range) || (!this.dispatchByDistrict && !this.dispatchByRange);
+            this.InRange = ignoreRange || this.InDistrict || (this.serviceSettings.DispatchByRange && this.Distance < this.Range) || (!this.serviceSettings.DispatchByDistrict && !this.serviceSettings.DispatchByRange);
 
             this.CapacityOverflow = (this.CapacityFree >= building.ProblemSize) ? 0 : building.ProblemSize - this.CapacityFree;
         }
@@ -644,10 +624,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 this.CanBeEmptied = building.Info.m_buildingAI.CanBeEmptied();
                 this.IsEmptying = (building.m_flags & Building.Flags.Downgrading) != Building.Flags.None;
                 this.IsAutoEmptying = this.IsAutoEmptying & this.IsEmptying;
-                this.NeedsEmptying = this.autoEmpty && !this.IsEmptying && this.CapacityPercent >= this.autoEmptyStart;
-                this.EmptyingIsDone = this.IsAutoEmptying && this.CapacityPercent <= this.autoEmptyStop;
+                this.NeedsEmptying = this.serviceSettings.AutoEmpty && !this.IsEmptying && this.CapacityPercent >= this.serviceSettings.AutoEmptyStartLevelPercent;
+                this.EmptyingIsDone = this.IsAutoEmptying && this.CapacityPercent <= this.serviceSettings.AutoEmptyStopLevelPercent;
 
-                this.CanEmptyOther = this.autoEmpty && !this.CanBeEmptied &&
+                this.CanEmptyOther = this.serviceSettings.AutoEmpty && !this.CanBeEmptied &&
                                      (building.m_flags & Building.Flags.Active) != Building.Flags.None && building.m_productionRate > 0;
 
                 didUpdate = true;
@@ -698,7 +678,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             if (this.lastInfoUpdate == 0 || (ignoreInterval && this.lastInfoUpdate != Global.CurrentFrame) || Global.CurrentFrame - this.lastInfoUpdate > Global.ObjectUpdateInterval)
             {
-                if (this.dispatchByDistrict || Log.LogNames)
+                if (this.serviceSettings.DispatchByDistrict || Log.LogNames)
                 {
                     this.District = Singleton<DistrictManager>.instance.GetDistrict(this.Position);
                 }
@@ -707,7 +687,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     this.District = 0;
                 }
 
-                if (this.dispatchByRange)
+                if (this.serviceSettings.DispatchByRange)
                 {
                     this.orgRange = building.Info.m_buildingAI.GetCurrentRange(this.BuildingId, ref building);
                     this.Range = this.orgRange * this.orgRange * Global.Settings.RangeModifier;
@@ -740,24 +720,15 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             switch (this.dispatcherType)
             {
                 case Dispatcher.DispatcherTypes.HearseDispatcher:
-                    this.dispatchByDistrict = Global.Settings.DispatchHearsesByDistrict;
-                    this.dispatchByRange = Global.Settings.DispatchHearsesByRange;
-                    this.autoEmpty = Global.Settings.AutoEmptyCemeteries;
-                    this.autoEmptyStart = Global.Settings.AutoEmptyCemeteryStartLevelPercent;
-                    this.autoEmptyStop = Global.Settings.AutoEmptyCemeteryStopLevelPercent;
+                    this.serviceSettings = Global.Settings.DeathCare;
                     break;
 
                 case Dispatcher.DispatcherTypes.GarbageTruckDispatcher:
-                    this.dispatchByDistrict = Global.Settings.DispatchGarbageTrucksByDistrict;
-                    this.dispatchByRange = Global.Settings.DispatchGarbageTrucksByRange;
-                    this.autoEmpty = Global.Settings.AutoEmptyLandfills;
-                    this.autoEmptyStart = Global.Settings.AutoEmptyLandfillStartLevelPercent;
-                    this.autoEmptyStop = Global.Settings.AutoEmptyLandfillStopLevelPercent;
+                    this.serviceSettings = Global.Settings.Garbage;
                     break;
 
                 case Dispatcher.DispatcherTypes.AmbulanceDispatcher:
-                    this.dispatchByDistrict = Global.Settings.DispatchAmbulancesByDistrict;
-                    this.dispatchByRange = Global.Settings.DispatchAmbulancesByRange;
+                    this.serviceSettings = Global.Settings.HealthCare;
                     break;
             }
         }

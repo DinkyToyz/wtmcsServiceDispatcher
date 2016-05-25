@@ -24,6 +24,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public enum Methods
         {
             /// <summary>
+            /// No method.
+            /// </summary>
+            None = 0,
+
+            /// <summary>
             /// The GarbageTruckAI.TryCollectGarbage method.
             /// </summary>
             GarbageTruckAI_TryCollectGarbage = 1,
@@ -129,7 +134,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             Assure();
 
-            if (Global.Settings.DispatchHearses && CanDetour(Methods.HearseAI_ShouldReturnToSource))
+            if (Global.Settings.DeathCare.DispatchVehicles && CanDetour(Methods.HearseAI_ShouldReturnToSource))
             {
                 Detour(Methods.HearseAI_ShouldReturnToSource);
             }
@@ -138,7 +143,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 Revert(Methods.HearseAI_ShouldReturnToSource);
             }
 
-            if (Global.Settings.DispatchGarbageTrucks && CanDetour(Methods.GarbageTruckAI_ShouldReturnToSource))
+            if (Global.Settings.Garbage.DispatchVehicles && CanDetour(Methods.GarbageTruckAI_ShouldReturnToSource))
             {
                 Detour(Methods.GarbageTruckAI_ShouldReturnToSource);
             }
@@ -147,7 +152,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 Revert(Methods.GarbageTruckAI_ShouldReturnToSource);
             }
 
-            if (Global.Settings.DispatchGarbageTrucks && Global.Settings.LimitOpportunisticGarbageCollection && CanDetour(Methods.GarbageTruckAI_TryCollectGarbage))
+            if (Global.Settings.Garbage.DispatchVehicles && Global.Settings.Garbage.LimitOpportunisticCollection && CanDetour(Methods.GarbageTruckAI_TryCollectGarbage))
             {
                 Detour(Methods.GarbageTruckAI_TryCollectGarbage);
             }
@@ -156,7 +161,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 Revert(Methods.GarbageTruckAI_TryCollectGarbage);
             }
 
-            if (Global.Settings.DispatchAmbulances && CanDetour(Methods.AmbulanceAI_ShouldReturnToSource))
+            if (Global.Settings.HealthCare.DispatchVehicles && CanDetour(Methods.AmbulanceAI_ShouldReturnToSource))
             {
                 Detour(Methods.AmbulanceAI_ShouldReturnToSource);
             }

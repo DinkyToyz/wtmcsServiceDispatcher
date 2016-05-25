@@ -171,17 +171,17 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         (vehicles[id].m_flags & VehicleHelper.VehicleUnavailable) == Vehicle.Flags.None &&
                         vehicles[id].m_targetBuilding != vehicles[id].m_sourceBuilding && (buildings[vehicles[id].m_sourceBuilding].m_flags & Building.Flags.Downgrading) == Building.Flags.None)
                     {
-                        if (Global.Settings.DispatchHearses && Global.HearseDispatcher != null && vehicles[id].m_transferType == Global.HearseDispatcher.TransferType)
+                        if (Global.Settings.DeathCare.DispatchVehicles && Global.HearseDispatcher != null && vehicles[id].m_transferType == Global.HearseDispatcher.TransferType)
                         {
                             Global.HearseDispatcher.CheckVehicleTarget(id, ref vehicles[id]);
                         }
 
-                        if (Global.Settings.DispatchGarbageTrucks && Global.GarbageTruckDispatcher != null && vehicles[id].m_transferType == Global.GarbageTruckDispatcher.TransferType)
+                        if (Global.Settings.Garbage.DispatchVehicles && Global.GarbageTruckDispatcher != null && vehicles[id].m_transferType == Global.GarbageTruckDispatcher.TransferType)
                         {
                             Global.GarbageTruckDispatcher.CheckVehicleTarget(id, ref vehicles[id]);
                         }
 
-                        if (Global.Settings.DispatchAmbulances && Global.AmbulanceDispatcher != null && vehicles[id].m_transferType == Global.AmbulanceDispatcher.TransferType)
+                        if (Global.Settings.HealthCare.DispatchVehicles && Global.AmbulanceDispatcher != null && vehicles[id].m_transferType == Global.AmbulanceDispatcher.TransferType)
                         {
                             Global.AmbulanceDispatcher.CheckVehicleTarget(id, ref vehicles[id]);
                         }
@@ -203,8 +203,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                                 this.removedFromGrid.Remove(id);
                             }
                         }
-                        else if ((Global.Settings.RemoveHearsesFromGrid && vehicles[id].Info.m_vehicleAI is HearseAI) ||
-                                  (Global.Settings.RemoveAmbulancesFromGrid && vehicles[id].Info.m_vehicleAI is AmbulanceAI))
+                        else if ((Global.Settings.DeathCare.RemoveFromGrid && vehicles[id].Info.m_vehicleAI is HearseAI) ||
+                                  (Global.Settings.HealthCare.RemoveFromGrid && vehicles[id].Info.m_vehicleAI is AmbulanceAI))
                         {
                             if (!this.removedFromGrid.Contains(id))
                             {

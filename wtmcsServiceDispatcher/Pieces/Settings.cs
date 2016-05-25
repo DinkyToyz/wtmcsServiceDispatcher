@@ -9,8 +9,37 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
     /// <summary>
     /// Mod settings.
     /// </summary>
-    public class Settings
+    internal class Settings
     {
+        /// <summary>
+        /// The death-care settings.
+        /// </summary>
+        public readonly ServiceSettings DeathCare = new ServiceSettings("Hearses", "Cemeteries", "Dead People")
+        {
+            CanAutoEmpty = true,
+            CanRemoveFromGrid = true
+        };
+
+        /// <summary>
+        /// The garbage settings.
+        /// </summary>
+        public readonly ServiceSettings Garbage = new ServiceSettings("Garbage Trucks", "Landfills", "Garbage")
+        {
+            CanAutoEmpty = true,
+            CanLimitOpportunisticCollection = true,
+            OpportunisticCollectionLimitDetour = Detours.Methods.GarbageTruckAI_TryCollectGarbage,
+            UseMinimumAmountForDispatch = true,
+            UseMinimumAmountForPatrol = true
+        };
+
+        /// <summary>
+        /// The health-care settings.
+        /// </summary>
+        public readonly ServiceSettings HealthCare = new ServiceSettings("Ambulances", null, "Sick People")
+        {
+            CanRemoveFromGrid = true
+        };
+
         /// <summary>
         /// The settings version.
         /// </summary>
@@ -25,111 +54,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// The automatic bulldoze buildings delay.
         /// </summary>
         public double AutoBulldozeBuildingsDelaySeconds = 5.0 * 60.0;
-
-        /// <summary>
-        /// The automatic empty cemeteries.
-        /// </summary>
-        public bool AutoEmptyCemeteries = false;
-
-        /// <summary>
-        /// The automatic empty cemetery start level.
-        /// </summary>
-        public uint AutoEmptyCemeteryStartLevelPercent = 95;
-
-        /// <summary>
-        /// The automatic empty cemetery stop level.
-        /// </summary>
-        public uint AutoEmptyCemeteryStopLevelPercent = 5;
-
-        /// <summary>
-        /// The automatic empty landfills.
-        /// </summary>
-        public bool AutoEmptyLandfills = false;
-
-        /// <summary>
-        /// The automatic empty landfill start level.
-        /// </summary>
-        public uint AutoEmptyLandfillStartLevelPercent = 95;
-
-        /// <summary>
-        /// The automatic empty landfill stop level.
-        /// </summary>
-        public uint AutoEmptyLandfillStopLevelPercent = 5;
-
-        /// <summary>
-        /// When to create spare ambulances.
-        /// </summary>
-        public SpareVehiclesCreation CreateSpareAmbulances = SpareVehiclesCreation.WhenBuildingIsCloser;
-
-        /// <summary>
-        /// When to create spare garbage trucks.
-        /// </summary>
-        public SpareVehiclesCreation CreateSpareGarbageTrucks = SpareVehiclesCreation.WhenBuildingIsCloser;
-
-        /// <summary>
-        /// When to create spare hearses.
-        /// </summary>
-        public SpareVehiclesCreation CreateSpareHearses = SpareVehiclesCreation.WhenBuildingIsCloser;
-
-        /// <summary>
-        /// Whether ambulances should be handled or not.
-        /// </summary>
-        public bool DispatchAmbulances = false;
-
-        /// <summary>
-        /// Whether ambulances dispatchers should care about districts or not.
-        /// </summary>
-        public bool DispatchAmbulancesByDistrict = false;
-
-        /// <summary>
-        /// Limit ambulance service building by range.
-        /// </summary>
-        public bool DispatchAmbulancesByRange = true;
-
-        /// <summary>
-        /// Whether garbage trucks should be handled or not.
-        /// </summary>
-        public bool DispatchGarbageTrucks = false;
-
-        /// <summary>
-        /// Whether garbage truck dispatchers should care about districts or not.
-        /// </summary>
-        public bool DispatchGarbageTrucksByDistrict = false;
-
-        /// <summary>
-        /// Limit garbage service building range.
-        /// </summary>
-        public bool DispatchGarbageTrucksByRange = true;
-
-        /// <summary>
-        /// Whether hearses should be handled or not.
-        /// </summary>
-        public bool DispatchHearses = false;
-
-        /// <summary>
-        /// Whether hearse dispatchers should care about districts or not.
-        /// </summary>
-        public bool DispatchHearsesByDistrict = false;
-
-        /// <summary>
-        /// Limit hearse service building by range.
-        /// </summary>
-        public bool DispatchHearsesByRange = true;
-
-        /// <summary>
-        /// Limit opportunistic garbage collection.
-        /// </summary>
-        public bool LimitOpportunisticGarbageCollection = true;
-
-        /// <summary>
-        /// The minimum amount of garbage to dispatch a truck for.
-        /// </summary>
-        public ushort MinimumGarbageForDispatch = 1500;
-
-        /// <summary>
-        /// The minimum amount of garbage to direct a patrolling truck for.
-        /// </summary>
-        public ushort MinimumGarbageForPatrol = 200;
 
         /// <summary>
         /// Limit building ranges.
@@ -155,16 +79,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// Whether code overrides are allowed or not.
         /// </summary>
         public Allowance ReflectionAllowance = Allowance.Default;
-
-        /// <summary>
-        /// Whether stopped ambulances should be removed from grid or not.
-        /// </summary>
-        public bool RemoveAmbulancesFromGrid = true;
-
-        /// <summary>
-        /// Whether stopped hearses should be removed from grid or not.
-        /// </summary>
-        public bool RemoveHearsesFromGrid = true;
 
         /// <summary>
         /// Automatic removal of stuck vehicles.
@@ -229,39 +143,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         };
 
         /// <summary>
-        /// The dead people building custom building checks.
-        /// </summary>
-        private BuildingCheckParameters[] deathChecksCustom = null;
-
-        /// <summary>
-        /// The dead people building checks presets.
-        /// </summary>
-        private BuildingCheckOrder deathChecksPreset = BuildingCheckOrder.InRange;
-
-        /// <summary>
-        /// The dirty building custom building checks.
-        /// </summary>
-        private BuildingCheckParameters[] garbageChecksCustom = null;
-
-        /// <summary>
-        /// The dirty building checks presets.
-        /// </summary>
-        private BuildingCheckOrder garbageChecksPreset = BuildingCheckOrder.InRange;
-
-        /// <summary>
         /// The settings version in the loaded file.
         /// </summary>
         private int? loadedVersion = null;
-
-        /// <summary>
-        /// The sick people building custom building checks.
-        /// </summary>
-        private BuildingCheckParameters[] sickChecksCustom = null;
-
-        /// <summary>
-        /// The sick people building checks presets.
-        /// </summary>
-        private BuildingCheckOrder sickChecksPreset = BuildingCheckOrder.InRange;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Settings"/> class.
@@ -279,43 +163,31 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 this.RangeMinimum = settings.RangeMinimum;
                 this.ReflectionAllowance = settings.ReflectionAllowance;
 
-                this.DispatchHearses = settings.DispatchHearses;
-                this.DispatchHearsesByDistrict = settings.DispatchHearsesByDistrict;
-                this.DispatchHearsesByRange = settings.DispatchHearsesByRange;
-                this.CreateSpareHearses = settings.CreateSpareHearses;
-                this.RemoveHearsesFromGrid = settings.RemoveHearsesFromGrid;
-                this.deathChecksPreset = settings.DeathChecksPreset;
-                this.deathChecksCustom = settings.DeathChecksCustom;
-                if (this.deathChecksPreset == BuildingCheckOrder.Custom && (this.deathChecksCustom == null || this.deathChecksCustom.Length == 0))
-                {
-                    this.deathChecksCustom = GetBuildingChecksParameters(BuildingCheckOrder.InRange);
-                }
+                this.DeathCare.DispatchVehicles = settings.DispatchHearses;
+                this.DeathCare.DispatchByDistrict = settings.DispatchHearsesByDistrict;
+                this.DeathCare.DispatchByRange = settings.DispatchHearsesByRange;
+                this.DeathCare.CreateSpares = settings.CreateSpareHearses;
+                this.DeathCare.RemoveFromGrid = settings.RemoveHearsesFromGrid;
+                this.DeathCare.ChecksCustom = settings.DeathChecksCustom;
+                this.DeathCare.ChecksPreset = settings.DeathChecksPreset;
 
-                this.DispatchAmbulances = settings.DispatchAmbulances;
-                this.DispatchAmbulancesByDistrict = settings.DispatchAmbulancesByDistrict;
-                this.DispatchAmbulancesByRange = settings.DispatchAmbulancesByRange;
-                this.CreateSpareAmbulances = settings.CreateSpareAmbulances;
-                this.RemoveAmbulancesFromGrid = settings.RemoveAmbulancesFromGrid;
-                this.sickChecksPreset = settings.SickChecksPreset;
-                this.sickChecksCustom = settings.SickChecksCustom;
-                if (this.sickChecksPreset == BuildingCheckOrder.Custom && (this.sickChecksCustom == null || this.sickChecksCustom.Length == 0))
-                {
-                    this.sickChecksCustom = GetBuildingChecksParameters(BuildingCheckOrder.InRange);
-                }
+                this.HealthCare.DispatchVehicles = settings.DispatchAmbulances;
+                this.HealthCare.DispatchByDistrict = settings.DispatchAmbulancesByDistrict;
+                this.HealthCare.DispatchByRange = settings.DispatchAmbulancesByRange;
+                this.HealthCare.CreateSpares = settings.CreateSpareAmbulances;
+                this.HealthCare.RemoveFromGrid = settings.RemoveAmbulancesFromGrid;
+                this.HealthCare.ChecksCustom = settings.SickChecksCustom;
+                this.HealthCare.ChecksPreset = settings.SickChecksPreset;
 
-                this.DispatchGarbageTrucks = settings.DispatchGarbageTrucks;
-                this.DispatchGarbageTrucksByDistrict = settings.DispatchGarbageTrucksByDistrict;
-                this.DispatchGarbageTrucksByRange = settings.DispatchGarbageTrucksByRange;
-                this.LimitOpportunisticGarbageCollection = settings.LimitOpportunisticGarbageCollection;
-                this.CreateSpareGarbageTrucks = settings.CreateSpareGarbageTrucks;
-                this.MinimumGarbageForDispatch = settings.MinimumGarbageForDispatch;
-                this.MinimumGarbageForPatrol = settings.MinimumGarbageForPatrol;
-                this.garbageChecksPreset = settings.GarbageChecksPreset;
-                this.garbageChecksCustom = settings.GarbageChecksCustom;
-                if (this.garbageChecksPreset == BuildingCheckOrder.Custom && (this.garbageChecksCustom == null || this.garbageChecksCustom.Length == 0))
-                {
-                    this.garbageChecksCustom = GetBuildingChecksParameters(BuildingCheckOrder.InRange);
-                }
+                this.Garbage.DispatchVehicles = settings.DispatchGarbageTrucks;
+                this.Garbage.DispatchByDistrict = settings.DispatchGarbageTrucksByDistrict;
+                this.Garbage.DispatchByRange = settings.DispatchGarbageTrucksByRange;
+                this.Garbage.LimitOpportunisticCollection = settings.LimitOpportunisticGarbageCollection;
+                this.Garbage.CreateSpares = settings.CreateSpareGarbageTrucks;
+                this.Garbage.MinimumAmountForDispatch = settings.MinimumGarbageForDispatch;
+                this.Garbage.MinimumAmountForPatrol = settings.MinimumGarbageForPatrol;
+                this.Garbage.ChecksCustom = settings.GarbageChecksCustom;
+                this.Garbage.ChecksPreset = settings.GarbageChecksPreset;
 
                 this.AutoBulldozeBuildings = settings.AutoBulldozeBuildings;
                 this.AutoBulldozeBuildingsDelaySeconds = settings.AutoBulldozeBuildingsDelaySeconds;
@@ -324,7 +196,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 this.RemoveStuckVehiclesDelaySeconds = settings.RemoveStuckVehiclesDelaySeconds;
             }
 
-            this.DispatchAmbulances = false;
+            this.HealthCare.DispatchVehicles = false;
         }
 
         /// <summary>
@@ -495,44 +367,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
-        /// Gets the dead people building checks parameters.
-        /// </summary>
-        /// <value>
-        /// The building checks parameters.
-        /// </value>
-        public BuildingCheckParameters[] DeathChecksParameters
-        {
-            get
-            {
-                return GetBuildingChecksParameters(this.deathChecksPreset, this.deathChecksCustom);
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets the dead people building checks preset.
-        /// </summary>
-        /// <value>
-        /// The building checks preset.
-        /// </value>
-        public BuildingCheckOrder DeathChecksPreset
-        {
-            get
-            {
-                return this.deathChecksPreset;
-            }
-
-            set
-            {
-                this.deathChecksPreset = value;
-
-                if (value == BuildingCheckOrder.Custom && (this.deathChecksCustom == null || this.deathChecksCustom.Length == 0))
-                {
-                    this.deathChecksCustom = GetBuildingChecksParameters(BuildingCheckOrder.InRange);
-                }
-            }
-        }
-
-        /// <summary>
         /// Gets a value indicating whether any dispatchers cares about districts or not.
         /// </summary>
         /// <value>
@@ -542,7 +376,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             get
             {
-                return this.DispatchHearsesByDistrict || this.DispatchGarbageTrucksByDistrict || this.DispatchAmbulancesByDistrict;
+                return this.DeathCare.DispatchByDistrict || this.Garbage.DispatchByDistrict || this.HealthCare.DispatchByDistrict;
             }
         }
 
@@ -556,45 +390,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             get
             {
-                return this.DispatchHearsesByRange || this.DispatchGarbageTrucksByRange || this.DispatchAmbulancesByRange;
-            }
-        }
-
-        /// <summary>
-        /// Gets the garbage building checks parameters.
-        /// </summary>
-        /// <value>
-        /// The building checks parameters.
-        /// </value>
-        public BuildingCheckParameters[] GarbageChecksParameters
-        {
-            get
-            {
-                return GetBuildingChecksParameters(this.garbageChecksPreset, this.garbageChecksCustom);
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets the building checks preset.
-        /// </summary>
-        /// <value>
-        /// The building checks preset.
-        /// </value>
-        public BuildingCheckOrder GarbageChecksPreset
-        {
-            get
-            {
-                return this.garbageChecksPreset;
-            }
-
-            set
-            {
-                this.garbageChecksPreset = value;
-
-                if (value == BuildingCheckOrder.Custom && (this.garbageChecksCustom == null || this.garbageChecksCustom.Length == 0))
-                {
-                    this.garbageChecksCustom = GetBuildingChecksParameters(BuildingCheckOrder.InRange);
-                }
+                return this.DeathCare.DispatchByRange || this.Garbage.DispatchByRange || this.HealthCare.DispatchByRange;
             }
         }
 
@@ -628,44 +424,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             set
             {
                 this.RemoveStuckVehiclesDelaySeconds = (value < 0.0) ? 0.0 : value * 60.0;
-            }
-        }
-
-        /// <summary>
-        /// Gets the sick people building checks parameters.
-        /// </summary>
-        /// <value>
-        /// The building checks parameters.
-        /// </value>
-        public BuildingCheckParameters[] SickChecksParameters
-        {
-            get
-            {
-                return GetBuildingChecksParameters(this.sickChecksPreset, this.sickChecksCustom);
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets the sick people building checks preset.
-        /// </summary>
-        /// <value>
-        /// The building checks preset.
-        /// </value>
-        public BuildingCheckOrder SickChecksPreset
-        {
-            get
-            {
-                return this.sickChecksPreset;
-            }
-
-            set
-            {
-                this.sickChecksPreset = value;
-
-                if (value == BuildingCheckOrder.Custom && (this.sickChecksCustom == null || this.sickChecksCustom.Length == 0))
-                {
-                    this.sickChecksCustom = GetBuildingChecksParameters(BuildingCheckOrder.InRange);
-                }
             }
         }
 
@@ -856,42 +614,42 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             Log.Debug(this, "LogSettings", "RangeMinimum", this.RangeMinimum);
             Log.Debug(this, "LogSettings", "RangeMaximum", this.RangeMaximum);
 
-            Log.Debug(this, "LogSettings", "DispatchHearses", this.DispatchHearses);
-            Log.Debug(this, "LogSettings", "DispatchHearsesByDistrict", this.DispatchHearsesByDistrict);
-            Log.Debug(this, "LogSettings", "DispatchHearsesByRange", this.DispatchHearsesByRange);
-            Log.Debug(this, "LogSettings", "RemoveHearsesFromGrid", this.RemoveHearsesFromGrid);
-            Log.Debug(this, "LogSettings", "CreateSpareHearses", this.CreateSpareHearses);
-            Log.Debug(this, "LogSettings", "DeathChecks", (byte)this.deathChecksPreset, this.deathChecksPreset, GetBuildingCheckOrderName(this.deathChecksPreset));
-            Log.Debug(this, "LogSettings", "DeathChecksParameters", String.Join(", ", this.DeathChecksParameters.Select(bc => bc.ToString()).ToArray()));
-            if (this.deathChecksCustom != null)
+            Log.Debug(this, "LogSettings", "DispatchHearses", this.DeathCare.DispatchVehicles);
+            Log.Debug(this, "LogSettings", "DispatchHearsesByDistrict", this.DeathCare.DispatchByDistrict);
+            Log.Debug(this, "LogSettings", "DispatchHearsesByRange", this.DeathCare.DispatchByRange);
+            Log.Debug(this, "LogSettings", "RemoveHearsesFromGrid", this.DeathCare.RemoveFromGrid);
+            Log.Debug(this, "LogSettings", "CreateSpareHearses", this.DeathCare.CreateSpares);
+            Log.Debug(this, "LogSettings", "DeathChecks", (byte)this.DeathCare.ChecksPreset, this.DeathCare.ChecksPreset, GetBuildingCheckOrderName(this.DeathCare.ChecksPreset));
+            Log.Debug(this, "LogSettings", "DeathChecksParameters", String.Join(", ", this.DeathCare.ChecksParameters.Select(bc => bc.ToString()).ToArray()));
+            if (this.DeathCare.ChecksCustom != null)
             {
-                Log.Debug(this, "LogSettings", "DeathChecksCustom", String.Join(", ", this.deathChecksCustom.Select(bc => bc.ToString()).ToArray()));
+                Log.Debug(this, "LogSettings", "DeathChecksCustom", String.Join(", ", this.DeathCare.ChecksCustom.Select(bc => bc.ToString()).ToArray()));
             }
 
-            Log.Debug(this, "LogSettings", "DispatchAmbulances", this.DispatchAmbulances);
-            Log.Debug(this, "LogSettings", "DispatchAmbulancesByDistrict", this.DispatchAmbulancesByDistrict);
-            Log.Debug(this, "LogSettings", "DispatchAmbulancesByRange", this.DispatchAmbulancesByRange);
-            Log.Debug(this, "LogSettings", "RemoveAmbulancesFromGrid", this.RemoveAmbulancesFromGrid);
-            Log.Debug(this, "LogSettings", "CreateSpareAmbulances", this.CreateSpareAmbulances);
-            Log.Debug(this, "LogSettings", "DeathChecks", (byte)this.sickChecksPreset, this.sickChecksPreset, GetBuildingCheckOrderName(this.sickChecksPreset));
-            Log.Debug(this, "LogSettings", "SickChecksParameters", String.Join(", ", this.SickChecksParameters.Select(bc => bc.ToString()).ToArray()));
-            if (this.deathChecksCustom != null)
+            Log.Debug(this, "LogSettings", "DispatchAmbulances", this.HealthCare.DispatchVehicles);
+            Log.Debug(this, "LogSettings", "DispatchAmbulancesByDistrict", this.HealthCare.DispatchByDistrict);
+            Log.Debug(this, "LogSettings", "DispatchAmbulancesByRange", this.HealthCare.DispatchByRange);
+            Log.Debug(this, "LogSettings", "RemoveAmbulancesFromGrid", this.HealthCare.RemoveFromGrid);
+            Log.Debug(this, "LogSettings", "CreateSpareAmbulances", this.HealthCare.CreateSpares);
+            Log.Debug(this, "LogSettings", "SickChecks", (byte)this.HealthCare.ChecksPreset, this.HealthCare.ChecksPreset, GetBuildingCheckOrderName(this.HealthCare.ChecksPreset));
+            Log.Debug(this, "LogSettings", "SickChecksParameters", String.Join(", ", this.HealthCare.ChecksParameters.Select(bc => bc.ToString()).ToArray()));
+            if (this.HealthCare.ChecksCustom != null)
             {
-                Log.Debug(this, "LogSettings", "DeathChecksCustom", String.Join(", ", this.deathChecksCustom.Select(bc => bc.ToString()).ToArray()));
+                Log.Debug(this, "LogSettings", "SickChecksCustom", String.Join(", ", this.HealthCare.ChecksCustom.Select(bc => bc.ToString()).ToArray()));
             }
 
-            Log.Debug(this, "LogSettings", "DispatchGarbageTrucks", this.DispatchGarbageTrucks);
-            Log.Debug(this, "LogSettings", "DispatchGarbageTrucksByDistrict", this.DispatchGarbageTrucksByDistrict);
-            Log.Debug(this, "LogSettings", "DispatchGarbageTrucksByRange", this.DispatchGarbageTrucksByRange);
-            Log.Debug(this, "LogSettings", "LimitOportunisticGarbageCollection", this.LimitOpportunisticGarbageCollection);
-            Log.Debug(this, "LogSettings", "CreateSpareGarbageTrucks", this.CreateSpareGarbageTrucks);
-            Log.Debug(this, "LogSettings", "MinimumGarbageForDispatch", this.MinimumGarbageForDispatch);
-            Log.Debug(this, "LogSettings", "MinimumGarbageForPatrol", this.MinimumGarbageForPatrol);
-            Log.Debug(this, "LogSettings", "GarbageChecks", (byte)this.garbageChecksPreset, this.garbageChecksPreset, GetBuildingCheckOrderName(this.garbageChecksPreset));
-            Log.Debug(this, "LogSettings", "GarbageChecksParameters", String.Join(", ", this.GarbageChecksParameters.Select(bc => bc.ToString()).ToArray()));
-            if (this.garbageChecksCustom != null)
+            Log.Debug(this, "LogSettings", "DispatchGarbageTrucks", this.Garbage.DispatchVehicles);
+            Log.Debug(this, "LogSettings", "DispatchGarbageTrucksByDistrict", this.Garbage.DispatchByDistrict);
+            Log.Debug(this, "LogSettings", "DispatchGarbageTrucksByRange", this.Garbage.DispatchByRange);
+            Log.Debug(this, "LogSettings", "LimitOportunisticGarbageCollection", this.Garbage.LimitOpportunisticCollection);
+            Log.Debug(this, "LogSettings", "CreateSpareGarbageTrucks", this.Garbage.CreateSpares);
+            Log.Debug(this, "LogSettings", "MinimumGarbageForDispatch", this.Garbage.MinimumAmountForDispatch);
+            Log.Debug(this, "LogSettings", "MinimumGarbageForPatrol", this.Garbage.MinimumAmountForPatrol);
+            Log.Debug(this, "LogSettings", "GarbageChecks", (byte)this.Garbage.ChecksPreset, this.Garbage.ChecksPreset, GetBuildingCheckOrderName(this.Garbage.ChecksPreset));
+            Log.Debug(this, "LogSettings", "GarbageChecksParameters", String.Join(", ", this.Garbage.ChecksParameters.Select(bc => bc.ToString()).ToArray()));
+            if (this.Garbage.ChecksCustom != null)
             {
-                Log.Debug(this, "LogSettings", "GarbageChecksCustom", String.Join(", ", this.garbageChecksCustom.Select(bc => bc.ToString()).ToArray()));
+                Log.Debug(this, "LogSettings", "GarbageChecksCustom", String.Join(", ", this.Garbage.ChecksCustom.Select(bc => bc.ToString()).ToArray()));
             }
 
             Log.Debug(this, "LogSettings", this.Version, this.LoadedVersion, this.SaveCount);
@@ -941,42 +699,42 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 {
                     ServiceDispatcherSettings cfg = new ServiceDispatcherSettings();
 
-                    cfg.DispatchByDistrict = this.DispatchHearsesByDistrict && this.DispatchGarbageTrucksByDistrict && this.DispatchAmbulancesByDistrict;
-                    cfg.DispatchByRange = this.DispatchHearsesByRange || this.DispatchGarbageTrucksByRange || this.DispatchAmbulancesByRange;
+                    cfg.DispatchByDistrict = this.DeathCare.DispatchByDistrict && this.Garbage.DispatchByDistrict && this.HealthCare.DispatchByDistrict;
+                    cfg.DispatchByRange = this.DeathCare.DispatchByRange || this.Garbage.DispatchByRange || this.HealthCare.DispatchByRange;
                     cfg.RangeModifier = this.RangeModifier;
                     cfg.RangeLimit = this.RangeLimit;
                     cfg.RangeMaximum = this.RangeMaximum;
                     cfg.RangeMinimum = this.RangeMinimum;
                     cfg.ReflectionAllowance = this.ReflectionAllowance;
 
-                    cfg.DispatchHearses = this.DispatchHearses;
-                    cfg.DispatchHearsesByDistrict = this.DispatchHearsesByDistrict;
-                    cfg.DispatchHearsesByRange = this.DispatchHearsesByRange;
-                    cfg.RemoveHearsesFromGrid = this.RemoveHearsesFromGrid;
-                    cfg.CreateSpareHearses = this.CreateSpareHearses;
-                    cfg.DeathChecksPreset = this.deathChecksPreset;
-                    cfg.DeathChecksCustom = this.deathChecksCustom;
-                    cfg.DeathChecksCurrent = this.DeathChecksParameters;
+                    cfg.DispatchHearses = this.DeathCare.DispatchVehicles;
+                    cfg.DispatchHearsesByDistrict = this.DeathCare.DispatchByDistrict;
+                    cfg.DispatchHearsesByRange = this.DeathCare.DispatchByRange;
+                    cfg.RemoveHearsesFromGrid = this.DeathCare.RemoveFromGrid;
+                    cfg.CreateSpareHearses = this.DeathCare.CreateSpares;
+                    cfg.DeathChecksPreset = this.DeathCare.ChecksPreset;
+                    cfg.DeathChecksCustom = this.DeathCare.ChecksCustom;
+                    cfg.DeathChecksCurrent = this.DeathCare.ChecksParameters;
 
-                    cfg.DispatchAmbulances = this.DispatchAmbulances;
-                    cfg.DispatchAmbulancesByDistrict = this.DispatchAmbulancesByDistrict;
-                    cfg.DispatchAmbulancesByRange = this.DispatchAmbulancesByRange;
-                    cfg.RemoveAmbulancesFromGrid = this.RemoveAmbulancesFromGrid;
-                    cfg.CreateSpareAmbulances = this.CreateSpareAmbulances;
-                    cfg.SickChecksPreset = this.sickChecksPreset;
-                    cfg.SickChecksCustom = this.sickChecksCustom;
-                    cfg.SickChecksCurrent = this.SickChecksParameters;
+                    cfg.DispatchAmbulances = this.HealthCare.DispatchVehicles;
+                    cfg.DispatchAmbulancesByDistrict = this.HealthCare.DispatchByDistrict;
+                    cfg.DispatchAmbulancesByRange = this.HealthCare.DispatchByRange;
+                    cfg.RemoveAmbulancesFromGrid = this.HealthCare.RemoveFromGrid;
+                    cfg.CreateSpareAmbulances = this.HealthCare.CreateSpares;
+                    cfg.SickChecksPreset = this.HealthCare.ChecksPreset;
+                    cfg.SickChecksCustom = this.HealthCare.ChecksCustom;
+                    cfg.SickChecksCurrent = this.HealthCare.ChecksParameters;
 
-                    cfg.DispatchGarbageTrucks = this.DispatchGarbageTrucks;
-                    cfg.DispatchGarbageTrucksByDistrict = this.DispatchGarbageTrucksByDistrict;
-                    cfg.DispatchGarbageTrucksByRange = this.DispatchGarbageTrucksByRange;
-                    cfg.LimitOpportunisticGarbageCollection = this.LimitOpportunisticGarbageCollection;
-                    cfg.CreateSpareGarbageTrucks = this.CreateSpareGarbageTrucks;
-                    cfg.MinimumGarbageForDispatch = this.MinimumGarbageForDispatch;
-                    cfg.MinimumGarbageForPatrol = this.MinimumGarbageForPatrol;
-                    cfg.GarbageChecksPreset = this.garbageChecksPreset;
-                    cfg.GarbageChecksCustom = this.garbageChecksCustom;
-                    cfg.GarbageChecksCurrent = this.GarbageChecksParameters;
+                    cfg.DispatchGarbageTrucks = this.Garbage.DispatchVehicles;
+                    cfg.DispatchGarbageTrucksByDistrict = this.Garbage.DispatchByDistrict;
+                    cfg.DispatchGarbageTrucksByRange = this.Garbage.DispatchByRange;
+                    cfg.LimitOpportunisticGarbageCollection = this.Garbage.LimitOpportunisticCollection;
+                    cfg.CreateSpareGarbageTrucks = this.Garbage.CreateSpares;
+                    cfg.MinimumGarbageForDispatch = this.Garbage.MinimumAmountForDispatch;
+                    cfg.MinimumGarbageForPatrol = this.Garbage.MinimumAmountForPatrol;
+                    cfg.GarbageChecksPreset = this.Garbage.ChecksPreset;
+                    cfg.GarbageChecksCustom = this.Garbage.ChecksCustom;
+                    cfg.GarbageChecksCurrent = this.Garbage.ChecksParameters;
 
                     cfg.AutoBulldozeBuildings = this.AutoBulldozeBuildings;
                     cfg.AutoBulldozeBuildingsDelaySeconds = this.AutoBulldozeBuildingsDelaySeconds;
@@ -1313,6 +1071,413 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     this.Name = GetBuildingCheckOrderName(buildingCheckOrder);
                     this.Description = GetBuildingCheckOrderDescription(buildingCheckOrder);
                     this.BuildingChecks = GetBuildingChecksParameters(this.Identifier);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Settings for normal services.
+        /// </summary>
+        public class ServiceSettings
+        {
+            /// <summary>
+            /// The plural name for service buildings that can be emptied.
+            /// </summary>
+            public readonly string EmptiableServiceBuildingNamePlural;
+
+            /// <summary>
+            /// The material name.
+            /// </summary>
+            public readonly string MaterialName;
+
+            /// <summary>
+            /// The plural vehicle name.
+            /// </summary>
+            public readonly string VehicleNamePlural;
+
+            /// <summary>
+            /// The singular vehicle name.
+            /// </summary>
+            public readonly string VehicleNameSingular;
+
+            /// <summary>
+            /// The automatic emptying start level.
+            /// </summary>
+            public uint AutoEmptyStartLevelPercent = 95u;
+
+            /// <summary>
+            /// The automatic empty cemetery stop level.
+            /// </summary>
+            public uint AutoEmptyStopLevelPercent = 5u;
+
+            /// <summary>
+            /// The custom checks parameters.
+            /// </summary>
+            public BuildingCheckParameters[] ChecksCustom = null;
+
+            /// <summary>
+            /// The create spares option.
+            /// </summary>
+            public SpareVehiclesCreation CreateSpares = SpareVehiclesCreation.WhenBuildingIsCloser;
+
+            /// <summary>
+            /// The dispatch by district toggle.
+            /// </summary>
+            public bool DispatchByDistrict = false;
+
+            /// <summary>
+            /// The dispatch by range toggle.
+            /// </summary>
+            public bool DispatchByRange = true;
+
+            /// <summary>
+            /// The dispatch toggle.
+            /// </summary>
+            public bool DispatchVehicles = false;
+
+            /// <summary>
+            /// The minimum amount for dispatch.
+            /// </summary>
+            public ushort MinimumAmountForDispatch = 1500;
+
+            /// <summary>
+            /// The minimum amount for patrol.
+            /// </summary>
+            public ushort MinimumAmountForPatrol = 200;
+
+            /// <summary>
+            /// The automatic empty settings value.
+            /// </summary>
+            private bool autoEmptyValue = false;
+
+            /// <summary>
+            /// The automatic empty possible value.
+            /// </summary>
+            private bool? canAutoEmptyValue = null;
+
+            /// <summary>
+            /// The opportunistic collection limit possible value.
+            /// </summary>
+            private bool? canLimitOpportunisticCollectionValue = false;
+
+            /// <summary>
+            /// The remove from grid possible value.
+            /// </summary>
+            private bool? canRemoveFromGridValue = null;
+
+            /// <summary>
+            /// The checks preset settings value.
+            /// </summary>
+            private BuildingCheckOrder checksPresetValue = BuildingCheckOrder.InRange;
+
+            /// <summary>
+            /// The opportunistic collection limit settings value.
+            /// </summary>
+            private bool limitOpportunisticCollectionValue = true;
+
+            /// <summary>
+            /// The opportunistic collection limit detour value.
+            /// </summary>
+            private Detours.Methods opportunisticCollectionLimitDetour = Detours.Methods.None;
+
+            /// <summary>
+            /// The remove from grid settings value.
+            /// </summary>
+            private bool removeFromGrid = true;
+
+            /// <summary>
+            /// The minimum amount for dispatch usability value.
+            /// </summary>
+            private bool? useMinimumAmountForDispatch = false;
+
+            /// <summary>
+            /// The minimum amount for patrol usability value.
+            /// </summary>
+            private bool? useMinimumAmountForPatrol = false;
+
+            /// <summary>
+            /// Initializes a new instance of the <see cref="ServiceSettings"/> class.
+            /// </summary>
+            /// <param name="vehicleNamePlural">The plural vehicle name.</param>
+            /// <param name="emptiableServiceBuildingNamePlural">The plural name for service buildings than can be emptied.</param>
+            /// <param name="materialName">Name of the material.</param>
+            public ServiceSettings(string vehicleNamePlural, string emptiableServiceBuildingNamePlural, string materialName)
+            {
+                this.VehicleNamePlural = vehicleNamePlural;
+                this.VehicleNameSingular = String.IsNullOrEmpty(vehicleNamePlural) ? null : vehicleNamePlural.Substring(vehicleNamePlural.Length - 1);
+                this.MaterialName = materialName;
+                this.EmptiableServiceBuildingNamePlural = emptiableServiceBuildingNamePlural;
+            }
+
+            /// <summary>
+            /// Gets or sets a value indicating whether automatic emptying should be done.
+            /// </summary>
+            /// <value>
+            ///   <c>true</c> if automatic emptying is on; otherwise, <c>false</c>.
+            /// </value>
+            public bool AutoEmpty
+            {
+                get
+                {
+                    return this.autoEmptyValue && this.CanAutoEmpty;
+                }
+
+                set
+                {
+                    this.autoEmptyValue = value;
+                }
+            }
+
+            /// <summary>
+            /// Gets or sets a value indicating whether this service can do automatic emptying.
+            /// </summary>
+            /// <value>
+            /// <c>true</c> if this service can automatic emptying; otherwise, <c>false</c>.
+            /// </value>
+            /// <exception cref="System.InvalidOperationException">Write-once property modification.</exception>
+            public bool CanAutoEmpty
+            {
+                get
+                {
+                    return this.canAutoEmptyValue != null && this.canAutoEmptyValue.HasValue && this.canAutoEmptyValue.Value;
+                }
+
+                set
+                {
+                    if (this.canAutoEmptyValue == null || !this.canAutoEmptyValue.HasValue)
+                    {
+                        this.canAutoEmptyValue = value;
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException("Write-once property modification");
+                    }
+                }
+            }
+
+            /// <summary>
+            /// Gets or sets a value indicating whether this service can limit opportunistic collection.
+            /// </summary>
+            /// <value>
+            /// <c>true</c> if this service can limit opportunistic collection; otherwise, <c>false</c>.
+            /// </value>
+            /// <exception cref="System.InvalidOperationException">Write-once property modification.</exception>
+            public bool CanLimitOpportunisticCollection
+            {
+                get
+                {
+                    return this.canLimitOpportunisticCollectionValue != null && this.canLimitOpportunisticCollectionValue.HasValue && this.canLimitOpportunisticCollectionValue.Value;
+                }
+
+                set
+                {
+                    if (this.canLimitOpportunisticCollectionValue == null || !this.canLimitOpportunisticCollectionValue.HasValue)
+                    {
+                        this.canLimitOpportunisticCollectionValue = value;
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException("Write-once property modification");
+                    }
+                }
+            }
+
+            /// <summary>
+            /// Gets or sets a value indicating whether these vehicles can be removed from grid.
+            /// </summary>
+            /// <value>
+            /// <c>true</c> if these vehicles can be removed from grid; otherwise, <c>false</c>.
+            /// </value>
+            /// <exception cref="System.InvalidOperationException">Write-once property modification.</exception>
+            public bool CanRemoveFromGrid
+            {
+                get
+                {
+                    return this.canRemoveFromGridValue != null && this.canRemoveFromGridValue.HasValue && this.canRemoveFromGridValue.Value;
+                }
+
+                set
+                {
+                    if (this.canRemoveFromGridValue == null || !this.canRemoveFromGridValue.HasValue)
+                    {
+                        this.canRemoveFromGridValue = value;
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException("Write-once property modification");
+                    }
+                }
+            }
+
+            /// <summary>
+            /// Gets the building checks parameters.
+            /// </summary>
+            /// <value>
+            /// The checks parameters.
+            /// </value>
+            public BuildingCheckParameters[] ChecksParameters
+            {
+                get
+                {
+                    return GetBuildingChecksParameters(this.checksPresetValue, this.ChecksCustom);
+                }
+            }
+
+            /// <summary>
+            /// Gets or sets the building checks preset.
+            /// </summary>
+            /// <value>
+            /// The checks preset.
+            /// </value>
+            public BuildingCheckOrder ChecksPreset
+            {
+                get
+                {
+                    return this.checksPresetValue;
+                }
+
+                set
+                {
+                    this.checksPresetValue = value;
+
+                    if (value == BuildingCheckOrder.Custom && (this.ChecksCustom == null || this.ChecksCustom.Length == 0))
+                    {
+                        this.ChecksCustom = GetBuildingChecksParameters(BuildingCheckOrder.InRange);
+                    }
+                }
+            }
+
+            /// <summary>
+            /// Gets or sets a value indicating whether to limit opportunistic collection.
+            /// </summary>
+            /// <value>
+            /// <c>true</c> if limiting opportunistic collection; otherwise, <c>false</c>.
+            /// </value>
+            public bool LimitOpportunisticCollection
+            {
+                get
+                {
+                    return this.limitOpportunisticCollectionValue && this.CanLimitOpportunisticCollection;
+                }
+
+                set
+                {
+                    this.limitOpportunisticCollectionValue = value;
+                }
+            }
+
+            /// <summary>
+            /// Gets or sets the opportunistic collection limit detour method.
+            /// </summary>
+            /// <value>
+            /// The opportunistic collection limit detour method.
+            /// </value>
+            /// <exception cref="System.InvalidOperationException">Write-once property modification.</exception>
+            public Detours.Methods OpportunisticCollectionLimitDetour
+            {
+                get
+                {
+                    return this.opportunisticCollectionLimitDetour;
+                }
+
+                set
+                {
+                    if (this.opportunisticCollectionLimitDetour == Detours.Methods.None)
+                    {
+                        this.opportunisticCollectionLimitDetour = value;
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException("Write-once property modification");
+                    }
+                }
+            }
+
+            /// <summary>
+            /// Gets a value indicating whether this service patrols.
+            /// </summary>
+            /// <value>
+            ///   <c>true</c> if service patrols; otherwise, <c>false</c>.
+            /// </value>
+            public bool Patrol
+            {
+                get
+                {
+                    return this.UseMinimumAmountForPatrol && this.MinimumAmountForPatrol > 0 &&
+                           (!this.UseMinimumAmountForDispatch || this.MinimumAmountForPatrol < this.MinimumAmountForDispatch);
+                }
+            }
+
+            /// <summary>
+            /// Gets or sets a value indicating whether these vehicles should be removed from grid.
+            /// </summary>
+            /// <value>
+            ///   <c>true</c> if vehicles should be removed from grid; otherwise, <c>false</c>.
+            /// </value>
+            public bool RemoveFromGrid
+            {
+                get
+                {
+                    return this.removeFromGrid && this.CanRemoveFromGrid;
+                }
+
+                set
+                {
+                    this.canRemoveFromGridValue = value;
+                }
+            }
+
+            /// <summary>
+            /// Gets or sets a value indicating whether to use minimum amount for dispatch.
+            /// </summary>
+            /// <value>
+            /// <c>true</c> if minimum amount for dispatch is used; otherwise, <c>false</c>.
+            /// </value>
+            /// <exception cref="System.InvalidOperationException">Write-once property modification.</exception>
+            public bool UseMinimumAmountForDispatch
+            {
+                get
+                {
+                    return this.useMinimumAmountForDispatch != null && this.useMinimumAmountForDispatch.HasValue && this.useMinimumAmountForDispatch.Value;
+                }
+
+                set
+                {
+                    if (this.useMinimumAmountForDispatch == null || !this.useMinimumAmountForDispatch.HasValue)
+                    {
+                        this.useMinimumAmountForDispatch = value;
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException("Write-once property modification");
+                    }
+                }
+            }
+
+            /// <summary>
+            /// Gets or sets a value indicating whether to use minimum amount for patrol.
+            /// </summary>
+            /// <value>
+            /// <c>true</c> if minimum amount for patrol is used; otherwise, <c>false</c>.
+            /// </value>
+            /// <exception cref="System.InvalidOperationException">Write-once property modification.</exception>
+            public bool UseMinimumAmountForPatrol
+            {
+                get
+                {
+                    return this.useMinimumAmountForPatrol != null && this.useMinimumAmountForPatrol.HasValue && this.useMinimumAmountForPatrol.Value;
+                }
+
+                set
+                {
+                    if (this.useMinimumAmountForPatrol == null || !this.useMinimumAmountForPatrol.HasValue)
+                    {
+                        this.useMinimumAmountForPatrol = value;
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException("Write-once property modification");
+                    }
                 }
             }
         }

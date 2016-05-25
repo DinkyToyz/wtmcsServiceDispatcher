@@ -108,60 +108,146 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 // Load settings.
                 Global.InitializeSettings();
 
-                if (this.targetBuildingChecks == null)
-                {
-                    this.targetBuildingChecks = new Dictionary<byte, string>();
-                    foreach (Settings.BuildingCheckOrder checks in Enum.GetValues(typeof(Settings.BuildingCheckOrder)))
-                    {
-                        if (Log.LogALot || Library.IsDebugBuild)
-                        {
-                            Log.Debug(this, "OnSettingsUI", "Init", "BuildingCheckOrder", (byte)checks, checks, Settings.GetBuildingCheckOrderName(checks));
-                        }
-
-                        string name = Settings.GetBuildingCheckOrderName(checks);
-                        if (String.IsNullOrEmpty(name))
-                        {
-                            name = checks.ToString();
-                        }
-
-                        this.targetBuildingChecks.Add((byte)checks, name);
-                    }
-                }
-
-                if (this.vehicleCreationOptions == null)
-                {
-                    this.vehicleCreationOptions = new Dictionary<byte, string>();
-                    foreach (Settings.SpareVehiclesCreation option in Enum.GetValues(typeof(Settings.SpareVehiclesCreation)))
-                    {
-                        string name = Settings.GetSpareVehiclesCreationName(option);
-                        if (String.IsNullOrEmpty(name))
-                        {
-                            name = option.ToString();
-                        }
-
-                        this.vehicleCreationOptions.Add((byte)option, name);
-                    }
-                }
-
-                if (this.allowances == null)
-                {
-                    this.allowances = new Dictionary<byte, string>();
-                    foreach (Settings.Allowance allowance in Enum.GetValues(typeof(Settings.Allowance)))
-                    {
-                        string name = Settings.GetAllowanceName(allowance);
-                        if (String.IsNullOrEmpty(name))
-                        {
-                            name = allowance.ToString();
-                        }
-
-                        this.allowances.Add((byte)allowance, name);
-                    }
-                }
+                this.InitializeOptions();
 
                 // Add general dispatch group.
-                UIHelperBase dispatchGroup = helper.AddGroup("Central Services Dispatch");
+                UIHelperBase dispatchGroup = this.CreateDispatchGroup(helper);
 
-                dispatchGroup.AddCheckbox(
+                // Add hearse group.
+                UIHelperBase hearseGroup = this.CreateServiceGroup(helper, Global.Settings.DeathCare, Global.HearseDispatcher);
+
+                // Add cemetery group.
+                if (Global.EnableExperiments || Global.Settings.DeathCare.AutoEmpty)
+                {
+                    UIHelperBase cemeteryGroup = this.CreateEmptiableServiceBuildingGroup(helper, Global.Settings.DeathCare);
+                }
+
+                // Add garbage group.
+                UIHelperBase garbageGroup = this.CreateServiceGroup(helper, Global.Settings.Garbage, Global.GarbageTruckDispatcher);
+
+                // Add landfill group.
+                if (Global.EnableExperiments || Global.Settings.Garbage.AutoEmpty)
+                {
+                    UIHelperBase landfillGroup = this.CreateEmptiableServiceBuildingGroup(helper, Global.Settings.Garbage);
+                }
+
+                // Add ambulance group.
+                if (Global.EnableExperiments || Global.Settings.HealthCare.DispatchVehicles)
+                {
+                    UIHelperBase ambulanceGroup = this.CreateServiceGroup(helper, Global.Settings.HealthCare, Global.AmbulanceDispatcher);
+                }
+
+                // Add bulldoze and recovery group.
+                UIHelperBase wreckingRecoveryGroup = this.CreateWreckingRecoveryGroup(helper);
+
+                // Add logging group.
+                UIHelperBase logGroup = this.CreateLogGroup(helper);
+
+                // Add Advanced group.
+                UIHelperBase advancedGroup = this.CreateAdvancedGroup(helper);
+
+                Log.FlushBuffer();
+            }
+            catch (System.Exception ex)
+            {
+                Log.Error(this, "OnSettingsUI", ex);
+            }
+        }
+
+        /// <summary>
+        /// Creates the advanced group.
+        /// </summary>
+        /// <param name="helper">The helper.</param>
+        /// <returns>The group.</returns>
+        private UIHelperBase CreateAdvancedGroup(UIHelperBase helper)
+        {
+            try
+            {
+                UIHelperBase group = helper.AddGroup("Advanced");
+
+                group.AddDropdown(
+                    "Allow Code Overrides",
+                    this.allowances.OrderBy(a => a.Key).Select(allowances => allowances.Value).ToArray(),
+                    (int)Global.Settings.ReflectionAllowance,
+                    value =>
+                    {
+                        try
+                        {
+                            foreach (Settings.Allowance allowance in Enum.GetValues(typeof(Settings.Allowance)))
+                            {
+                                if ((byte)allowance == value)
+                                {
+                                    if (allowance != Global.Settings.ReflectionAllowance)
+                                    {
+                                        if (Log.LogALot || Library.IsDebugBuild)
+                                        {
+                                            Log.Debug(this, "CreateAdvancedGroup", "Set", "ReflectionAllowance", value);
+                                        }
+
+                                        Global.Settings.ReflectionAllowance = allowance;
+                                        Global.ReInitializeHandlers();
+                                        Global.Settings.Save();
+                                    }
+
+                                    break;
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.Error(this, "CreateAdvancedGroup", ex, "ReflectionAllowance", value);
+                        }
+                    });
+
+                try
+                {
+                    group.AddInformationalText("Config Path:", FileSystem.FilePath);
+
+                    Assembly modAss = this.GetType().Assembly;
+                    if (modAss != null)
+                    {
+                        group.AddInformationalText("Mod Version:", modAss.GetName().Version.ToString());
+                    }
+                }
+                catch
+                {
+                }
+
+                group.AddButton(
+                    "Dump buildings",
+                    () =>
+                    {
+                        BuildingHelper.DumpBuildings();
+                    });
+
+                group.AddButton(
+                    "Dump vehicles",
+                    () =>
+                    {
+                        VehicleHelper.DumpVehicles();
+                    });
+
+                return group;
+            }
+            catch (Exception ex)
+            {
+                Log.Error(this, "CreateAdvancedGroup", ex);
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Creates the dispatch group.
+        /// </summary>
+        /// <param name="helper">The helper.</param>
+        /// <returns>The group.</returns>
+        private UIHelperBase CreateDispatchGroup(UIHelperBase helper)
+        {
+            try
+            {
+                UIHelperBase group = helper.AddGroup("Central Services Dispatch");
+
+                group.AddCheckbox(
                     "Limit building ranges",
                     Global.Settings.RangeLimit,
                     value =>
@@ -177,11 +263,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         }
                         catch (Exception ex)
                         {
-                            Log.Error(this, "OnSettingsUI", ex, "DispatchGroup", "RangeLimit", value);
+                            Log.Error(this, "CreateDispatchGroup", ex, "RangeLimit", value);
                         }
                     });
 
-                dispatchGroup.AddExtendedSlider(
+                group.AddExtendedSlider(
                     "Range modifier",
                     0.1f,
                     10.0f,
@@ -202,11 +288,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         }
                         catch (Exception ex)
                         {
-                            Log.Error(this, "OnSettingsUI", ex, "DispatchGroup", "RangeModifier", value);
+                            Log.Error(this, "CreateDispatchGroup", ex, "RangeModifier", value);
                         }
                     });
 
-                dispatchGroup.AddExtendedSlider(
+                group.AddExtendedSlider(
                     "Range minimum",
                     0f,
                     100000000f,
@@ -226,11 +312,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         }
                         catch (Exception ex)
                         {
-                            Log.Error(this, "OnSettingsUI", ex, "DispatchGroup", "RangeMinimum", value);
+                            Log.Error(this, "CreateDispatchGroup", ex, "RangeMinimum", value);
                         }
                     });
 
-                dispatchGroup.AddExtendedSlider(
+                group.AddExtendedSlider(
                     "Range maximum",
                     0f,
                     100000000f,
@@ -250,345 +336,351 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         }
                         catch (Exception ex)
                         {
-                            Log.Error(this, "OnSettingsUI", ex, "DispatchGroup", "RangeMaximum", value);
+                            Log.Error(this, "CreateDispatchGroup", ex, "RangeMaximum", value);
                         }
                     });
 
-                // Add hearse group.
-                UIHelperBase hearseGroup = helper.AddGroup("Hearses");
+                return group;
+            }
+            catch (Exception ex)
+            {
+                Log.Error(this, "CreateDispatchGroup", ex);
+                return null;
+            }
+        }
 
-                hearseGroup.AddCheckbox(
-                    "Dispatch hearses",
-                    Global.Settings.DispatchHearses,
+        /// <summary>
+        /// Creates the group for service building that can be emptied.
+        /// </summary>
+        /// <param name="helper">The helper.</param>
+        /// <param name="settings">The settings.</param>
+        /// <returns>The group.</returns>
+        private UIHelperBase CreateEmptiableServiceBuildingGroup(UIHelperBase helper, Settings.ServiceSettings settings)
+        {
+            try
+            {
+                UIHelperBase group = helper.AddGroup(settings.EmptiableServiceBuildingNamePlural);
+
+                group.AddCheckbox(
+                    "Empty " + settings.EmptiableServiceBuildingNamePlural.ToLower() + " automatically",
+                    settings.AutoEmpty,
                     value =>
                     {
                         try
                         {
-                            if (Global.Settings.DispatchHearses != value)
+                            if (settings.AutoEmpty != value)
                             {
-                                Global.Settings.DispatchHearses = value;
+                                settings.AutoEmpty = value;
                                 Global.Settings.Save();
                                 Global.ReInitializeHandlers();
                             }
                         }
                         catch (Exception ex)
                         {
-                            Log.Error(this, "OnSettingsUI", ex, "HearseGroup", "DispatchHearses", value);
+                            Log.Error(this, "CreateEmptiableServiceBuildingGroup", ex, settings.EmptiableServiceBuildingNamePlural, "AutoEmpty", value);
                         }
                     });
 
-                hearseGroup.AddCheckbox(
-                    "Dispatch hearses by district",
-                    Global.Settings.DispatchHearsesByDistrict,
+                group.AddExtendedSlider(
+                    "Start emptying at %",
+                    0,
+                    100,
+                    1,
+                    settings.AutoEmptyStartLevelPercent,
                     value =>
                     {
                         try
                         {
-                            if (Global.Settings.DispatchHearsesByDistrict != value)
+                            if (settings.AutoEmptyStartLevelPercent != (uint)value)
                             {
+                                settings.AutoEmptyStartLevelPercent = (uint)value;
                                 Global.BuildingUpdateNeeded = true;
-                                Global.Settings.DispatchHearsesByDistrict = value;
                                 Global.Settings.Save();
                             }
                         }
                         catch (Exception ex)
                         {
-                            Log.Error(this, "OnSettingsUI", ex, "HearseGroup", "DispatchHearsesByDistrict", value);
+                            Log.Error(this, "CreateEmptiableServiceBuildingGroup", ex, settings.EmptiableServiceBuildingNamePlural, "AutoEmptyStartLevelPercent", value);
                         }
                     });
 
-                hearseGroup.AddCheckbox(
-                    "Dispatch hearses by building range",
-                    Global.Settings.DispatchHearsesByRange,
+                group.AddExtendedSlider(
+                    "Stop emptying at %",
+                    0,
+                    100,
+                    1,
+                    settings.AutoEmptyStopLevelPercent,
                     value =>
                     {
                         try
                         {
-                            if (Global.Settings.DispatchHearsesByRange != value)
+                            if (settings.AutoEmptyStopLevelPercent != (uint)value)
                             {
+                                settings.AutoEmptyStopLevelPercent = (uint)value;
                                 Global.BuildingUpdateNeeded = true;
-                                Global.Settings.DispatchHearsesByRange = value;
                                 Global.Settings.Save();
                             }
                         }
                         catch (Exception ex)
                         {
-                            Log.Error(this, "OnSettingsUI", ex, "HearseGroup", "DispatchHearsesByRange", value);
+                            Log.Error(this, "CreateEmptiableServiceBuildingGroup", ex, settings.EmptiableServiceBuildingNamePlural, "AutoEmptyStopLevelPercent", value);
                         }
                     });
 
-                hearseGroup.AddCheckbox(
-                    "Pass through hearses",
-                    Global.Settings.RemoveHearsesFromGrid,
+                return group;
+            }
+            catch (Exception ex)
+            {
+                Log.Error(this, "CreateEmptiableServiceBuildingGroup", ex, settings.EmptiableServiceBuildingNamePlural);
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Creates the log group.
+        /// </summary>
+        /// <param name="helper">The helper.</param>
+        /// <returns>The group.</returns>
+        private UIHelperBase CreateLogGroup(UIHelperBase helper)
+        {
+            try
+            {
+                UIHelperBase group = helper.AddGroup("Logging (not saved in settings)");
+
+                UIComponent debugLog = null;
+                UIComponent devLog = null;
+                UIComponent objectLog = null;
+                UIComponent namesLog = null;
+                UIComponent fileLog = null;
+
+                debugLog = group.AddCheckbox(
+                    "Debug log",
+                    Log.LogDebug,
                     value =>
                     {
                         try
                         {
-                            if (Global.Settings.RemoveHearsesFromGrid != value)
+                            if (!this.updatingLogControls)
                             {
-                                Global.Settings.RemoveHearsesFromGrid = value;
+                                Log.LogDebug = value;
+                                UpdateLogControls(debugLog, devLog, objectLog, namesLog, fileLog);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.Error(this, "CreateLogGroup", ex, "LogDebug", value);
+                        }
+                    }) as UIComponent;
+
+                devLog = group.AddCheckbox(
+                    "Developer log",
+                    Log.LogALot,
+                    value =>
+                    {
+                        try
+                        {
+                            if (!this.updatingLogControls)
+                            {
+                                Log.LogALot = value;
+                                UpdateLogControls(debugLog, devLog, objectLog, namesLog, fileLog);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.Error(this, "CreateLogGroup", ex, "LogALot", value);
+                        }
+                    }) as UIComponent;
+
+                objectLog = group.AddCheckbox(
+                    "Object list log",
+                    Log.LogDebugLists,
+                    value =>
+                    {
+                        try
+                        {
+                            if (!this.updatingLogControls)
+                            {
+                                Log.LogDebugLists = value;
+                                UpdateLogControls(debugLog, devLog, objectLog, namesLog, fileLog);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.Error(this, "CreateLogGroup", ex, "LogDebugLists", value);
+                        }
+                    }) as UIComponent;
+
+                namesLog = group.AddCheckbox(
+                    "Log names",
+                    Log.LogNames,
+                    value =>
+                    {
+                        try
+                        {
+                            if (!this.updatingLogControls)
+                            {
+                                Log.LogNames = value;
+                                UpdateLogControls(debugLog, devLog, objectLog, namesLog, fileLog);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.Error(this, "CreateLogGroup", ex, "LogNames", value);
+                        }
+                    }) as UIComponent;
+
+                fileLog = group.AddCheckbox(
+                    "Log to file",
+                    Log.LogToFile,
+                    value =>
+                    {
+                        try
+                        {
+                            if (!this.updatingLogControls)
+                            {
+                                Log.LogToFile = value;
+                                UpdateLogControls(debugLog, devLog, objectLog, namesLog, fileLog);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.Error(this, "CreateLogGroup", ex, "LogToFile", value);
+                        }
+                    }) as UIComponent;
+
+                return group;
+            }
+            catch (Exception ex)
+            {
+                Log.Error(this, "CreateLogGroup", ex);
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Creates the service group.
+        /// </summary>
+        /// <param name="helper">The helper.</param>
+        /// <param name="settings">The settings.</param>
+        /// <param name="dispatcher">The dispatcher.</param>
+        /// <returns>The group.</returns>
+        private UIHelperBase CreateServiceGroup(UIHelperBase helper, Settings.ServiceSettings settings, Dispatcher dispatcher)
+        {
+            try
+            {
+                // Add cemetery group.
+                UIHelperBase group = helper.AddGroup(settings.EmptiableServiceBuildingNamePlural);
+
+                group.AddCheckbox(
+                    "Dispatch " + settings.VehicleNamePlural.ToLower(),
+                    settings.DispatchVehicles,
+                    value =>
+                    {
+                        try
+                        {
+                            if (settings.DispatchVehicles != value)
+                            {
+                                settings.DispatchVehicles = value;
                                 Global.Settings.Save();
                                 Global.ReInitializeHandlers();
                             }
                         }
                         catch (Exception ex)
                         {
-                            Log.Error(this, "OnSettingsUI", ex, "HearseGroup", "RemoveHearsesFromGrid", value);
+                            Log.Error(this, "CreateServiceGroup", ex, settings.VehicleNamePlural, "DispatchVehicles", value);
                         }
                     });
 
-                hearseGroup.AddDropdown(
-                    "Send out spare hearses when",
-                    this.vehicleCreationOptions.OrderBy(vco => vco.Key).Select(vco => vco.Value).ToArray(),
-                    (int)Global.Settings.CreateSpareHearses,
+                group.AddCheckbox(
+                    "Dispatch by district",
+                    settings.DispatchByDistrict,
                     value =>
                     {
                         try
                         {
-                            if (Log.LogALot || Library.IsDebugBuild)
+                            if (settings.DispatchByDistrict != value)
                             {
-                                Log.Debug(this, "OnSettingsUI", "Set", "CreateSpareHearses", value);
-                            }
-
-                            foreach (Settings.SpareVehiclesCreation option in Enum.GetValues(typeof(Settings.SpareVehiclesCreation)))
-                            {
-                                if ((byte)option == value)
-                                {
-                                    if (Global.Settings.CreateSpareHearses != option)
-                                    {
-                                        if (Log.LogALot || Library.IsDebugBuild)
-                                        {
-                                            Log.Debug(this, "OnSettingsUI", "Set", "CreateSpareHearses", value, option);
-                                        }
-
-                                        Global.Settings.CreateSpareHearses = option;
-                                        if (Global.HearseDispatcher != null)
-                                        {
-                                            Global.ReInitializeHearseDispatcher();
-                                        }
-                                        Global.Settings.Save();
-                                    }
-
-                                    break;
-                                }
+                                settings.DispatchByDistrict = value;
+                                Global.BuildingUpdateNeeded = true;
+                                Global.Settings.Save();
                             }
                         }
                         catch (Exception ex)
                         {
-                            Log.Error(this, "OnSettingsUI", ex, "HearseGroup", "CreateSpareHearses", value);
+                            Log.Error(this, "CreateServiceGroup", ex, settings.VehicleNamePlural, "DispatchByDistrict", value);
                         }
                     });
 
-                hearseGroup.AddDropdown(
-                    "Hearse dispatch strategy",
-                    this.targetBuildingChecks.OrderBy(bco => bco.Key).Select(bco => bco.Value).ToArray(),
-                    (int)Global.Settings.DeathChecksPreset,
+                group.AddCheckbox(
+                    "Dispatch by building range",
+                    settings.DispatchByRange,
                     value =>
                     {
                         try
                         {
-                            if (Log.LogALot || Library.IsDebugBuild)
+                            if (settings.DispatchByRange != value)
                             {
-                                Log.Debug(this, "OnSettingsUI", "Set", "DeathChecksPreset", value);
-                            }
-
-                            foreach (Settings.BuildingCheckOrder checks in Enum.GetValues(typeof(Settings.BuildingCheckOrder)))
-                            {
-                                if ((byte)checks == value)
-                                {
-                                    if (Global.Settings.DeathChecksPreset != checks)
-                                    {
-                                        if (Log.LogALot || Library.IsDebugBuild)
-                                        {
-                                            Log.Debug(this, "OnSettingsUI", "Set", "DeathChecksPreset", value, checks);
-                                        }
-
-                                        try
-                                        {
-                                            Global.Settings.DeathChecksPreset = checks;
-                                        }
-                                        catch (Exception ex)
-                                        {
-                                            Log.Error(this, "OnSettingsUI", ex, "Set", "DeathChecksPreset", checks);
-                                        }
-
-                                        if (Global.HearseDispatcher != null)
-                                        {
-                                            Global.ReInitializeHearseDispatcher();
-                                        }
-                                        Global.Settings.Save();
-                                    }
-
-                                    break;
-                                }
+                                settings.DispatchByRange = value;
+                                Global.BuildingUpdateNeeded = true;
+                                Global.Settings.Save();
                             }
                         }
                         catch (Exception ex)
                         {
-                            Log.Error(this, "OnSettingsUI", ex, "HearseGroup", "DeathChecksPreset", value);
+                            Log.Error(this, "CreateServiceGroup", ex, settings.VehicleNamePlural, "DispatchByRange", value);
                         }
                     });
 
-                if (Global.EnableExperiments || Global.Settings.AutoEmptyCemeteries)
+                if (settings.CanRemoveFromGrid)
                 {
-                    // Add cemetery group.
-                    UIHelperBase cemeteryGroup = helper.AddGroup("Cemeteries");
-
-                    cemeteryGroup.AddCheckbox(
-                        "Empty cemeteries automatically",
-                        Global.Settings.AutoEmptyCemeteries,
+                    group.AddCheckbox(
+                        "Pass through " + settings.VehicleNamePlural.ToLower(),
+                        settings.RemoveFromGrid,
                         value =>
                         {
                             try
                             {
-                                if (Global.Settings.AutoEmptyCemeteries != value)
+                                if (settings.RemoveFromGrid != value)
                                 {
-                                    Global.Settings.AutoEmptyCemeteries = value;
+                                    settings.RemoveFromGrid = value;
                                     Global.Settings.Save();
                                     Global.ReInitializeHandlers();
                                 }
                             }
                             catch (Exception ex)
                             {
-                                Log.Error(this, "OnSettingsUI", ex, "CemeteryGroup", "AutoEmptyCemeteries", value);
-                            }
-                        });
-
-                    cemeteryGroup.AddExtendedSlider(
-                        "Empty cemeteries at %",
-                        0,
-                        100,
-                        1,
-                        Global.Settings.AutoEmptyCemeteryStartLevelPercent,
-                        value =>
-                        {
-                            try
-                            {
-                                if (Global.Settings.AutoEmptyCemeteryStartLevelPercent != (uint)value)
-                                {
-                                    Global.BuildingUpdateNeeded = true;
-                                    Global.Settings.AutoEmptyCemeteryStartLevelPercent = (uint)value;
-                                    Global.Settings.Save();
-                                }
-                            }
-                            catch (Exception ex)
-                            {
-                                Log.Error(this, "OnSettingsUI", ex, "CemeteryGroup", "AutoEmptyCemeteryStartLevel", value);
-                            }
-                        });
-
-                    cemeteryGroup.AddExtendedSlider(
-                        "Stop emptying at %",
-                        0,
-                        100,
-                        1,
-                        Global.Settings.AutoEmptyCemeteryStopLevelPercent,
-                        value =>
-                        {
-                            try
-                            {
-                                if (Global.Settings.AutoEmptyCemeteryStopLevelPercent != (uint)value)
-                                {
-                                    Global.BuildingUpdateNeeded = true;
-                                    Global.Settings.AutoEmptyCemeteryStopLevelPercent = (uint)value;
-                                    Global.Settings.Save();
-                                }
-                            }
-                            catch (Exception ex)
-                            {
-                                Log.Error(this, "OnSettingsUI", ex, "CemeteryGroup", "AutoEmptyCemeteryStopLevel", value);
+                                Log.Error(this, "CreateServiceGroup", ex, settings.VehicleNamePlural, "RemoveFromGrid", value);
                             }
                         });
                 }
 
-                // Add garbage group.
-                UIHelperBase garbageGroup = helper.AddGroup("Garbage Trucks");
-
-                garbageGroup.AddCheckbox(
-                    "Dispatch garbage trucks",
-                    Global.Settings.DispatchGarbageTrucks,
-                    value =>
-                    {
-                        try
-                        {
-                            if (Global.Settings.DispatchGarbageTrucks != value)
-                            {
-                                Global.Settings.DispatchGarbageTrucks = value;
-                                Global.Settings.Save();
-                                Global.ReInitializeHandlers();
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            Log.Error(this, "OnSettingsUI", ex, "GarbageGroup", "DispatchGarbageTrucks", value);
-                        }
-                    });
-
-                garbageGroup.AddCheckbox(
-                    "Dispatch garbage trucks by district",
-                    Global.Settings.DispatchGarbageTrucksByDistrict,
-                    value =>
-                    {
-                        try
-                        {
-                            if (Global.Settings.DispatchGarbageTrucksByDistrict != value)
-                            {
-                                Global.BuildingUpdateNeeded = true;
-                                Global.Settings.DispatchGarbageTrucksByDistrict = value;
-                                Global.Settings.Save();
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            Log.Error(this, "OnSettingsUI", ex, "GarbageGroup", "DispatchGarbageTrucksByDistrict", value);
-                        }
-                    });
-
-                garbageGroup.AddCheckbox(
-                    "Dispatch garbage trucks by building range",
-                    Global.Settings.DispatchGarbageTrucksByRange,
-                    value =>
-                    {
-                        try
-                        {
-                            if (Global.Settings.DispatchGarbageTrucksByRange != value)
-                            {
-                                Global.BuildingUpdateNeeded = true;
-                                Global.Settings.DispatchGarbageTrucksByRange = value;
-                                Global.Settings.Save();
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            Log.Error(this, "OnSettingsUI", ex, "GarbageGroup", "DispatchGarbageTrucksByRange", value);
-                        }
-                    });
-
-                if (Detours.CanDetour(Detours.Methods.GarbageTruckAI_TryCollectGarbage))
+                if (settings.CanLimitOpportunisticCollection &&
+                    (settings.OpportunisticCollectionLimitDetour == Detours.Methods.None || Detours.CanDetour(settings.OpportunisticCollectionLimitDetour)))
                 {
-                    garbageGroup.AddCheckbox(
+                    group.AddCheckbox(
                         "Prioritize assigned buildings",
-                        Global.Settings.LimitOpportunisticGarbageCollection,
+                        settings.LimitOpportunisticCollection,
                         value =>
                         {
                             try
                             {
-                                if (Global.Settings.LimitOpportunisticGarbageCollection != value)
+                                if (settings.LimitOpportunisticCollection != value)
                                 {
+                                    settings.LimitOpportunisticCollection = value;
                                     Detours.InitNeeded = true;
-                                    Global.Settings.LimitOpportunisticGarbageCollection = value;
                                     Global.Settings.Save();
                                 }
                             }
                             catch (Exception ex)
                             {
                                 Log.Error(this, "OnSettingsUI", ex, "GarbageGroup", "LimitOpportunisticGarbageCollection", value);
+                                Log.Error(this, "CreateServiceGroup", ex, settings.VehicleNamePlural, "LimitOpportunisticCollection");
                             }
                         });
                 }
                 else
                 {
-                    UIComponent limitOpportunisticGarbageCollectionCheckBox = garbageGroup.AddCheckbox(
+                    UIComponent limitOpportunisticGarbageCollectionCheckBox = group.AddCheckbox(
                         "Prioritize assigned buildings",
                         false,
                         value =>
@@ -597,400 +689,192 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     limitOpportunisticGarbageCollectionCheckBox.Disable();
                 }
 
-                garbageGroup.AddDropdown(
-                    "Send out spare garbage trucks when",
+                group.AddDropdown(
+                    "Send out spare " + settings.VehicleNamePlural.ToLower() + " when",
                     this.vehicleCreationOptions.OrderBy(vco => vco.Key).Select(vco => vco.Value).ToArray(),
-                    (int)Global.Settings.CreateSpareGarbageTrucks,
+                    (int)settings.CreateSpares,
                     value =>
                     {
                         try
                         {
                             if (Log.LogALot || Library.IsDebugBuild)
                             {
-                                Log.Debug(this, "OnSettingsUI", "Set", "CreateSpareGarbageTrucks", value);
+                                Log.Debug(this, "CreateServiceGroup", "Set", settings.VehicleNamePlural, "CreateSpares", value);
                             }
 
                             foreach (Settings.SpareVehiclesCreation option in Enum.GetValues(typeof(Settings.SpareVehiclesCreation)))
                             {
                                 if ((byte)option == value)
                                 {
-                                    if (Global.Settings.CreateSpareGarbageTrucks != option)
+                                    if (settings.CreateSpares != option)
                                     {
                                         if (Log.LogALot || Library.IsDebugBuild)
                                         {
-                                            Log.Debug(this, "OnSettingsUI", "Set", "CreateSpareGarbageTrucks", value, option);
+                                            Log.Debug(this, "CreateServiceGroup", "Set", settings.VehicleNamePlural, "CreateSpares", value, option);
                                         }
 
-                                        Global.Settings.CreateSpareGarbageTrucks = option;
-                                        if (Global.GarbageTruckDispatcher != null)
+                                        settings.CreateSpares = option;
+
+                                        if (dispatcher != null)
                                         {
-                                            Global.ReInitializeGarbageTruckDispatcher();
+                                            try
+                                            {
+                                                dispatcher.ReInitialize();
+                                            }
+                                            catch (Exception ex)
+                                            {
+                                                Log.Error(this, "CreateServiceGroup", ex, settings.VehicleNamePlural, "CreateSpares", "ReInitializeDispatcher");
+                                            }
                                         }
+
                                         Global.Settings.Save();
                                     }
+
                                     break;
                                 }
                             }
                         }
                         catch (Exception ex)
                         {
-                            Log.Error(this, "OnSettingsUI", ex, "GarbageGroup", "CreateSpareGarbageTrucks", value);
+                            Log.Error(this, "CreateServiceGroup", ex, settings.VehicleNamePlural, "CreateSpares", value);
                         }
                     });
 
-                garbageGroup.AddDropdown(
-                    "Garbage truck dispatch strategy",
+                group.AddDropdown(
+                    settings.VehicleNameSingular + " dispatch strategy",
                     this.targetBuildingChecks.OrderBy(bco => bco.Key).Select(bco => bco.Value).ToArray(),
-                    (int)Global.Settings.GarbageChecksPreset,
+                    (int)settings.ChecksPreset,
                     value =>
                     {
                         try
                         {
                             if (Log.LogALot || Library.IsDebugBuild)
                             {
-                                Log.Debug(this, "OnSettingsUI", "Set", "GarbageChecksPreset", value);
+                                Log.Debug(this, "CreateServiceGroup", "Set", settings.VehicleNamePlural, "ChecksPreset", value);
                             }
 
                             foreach (Settings.BuildingCheckOrder checks in Enum.GetValues(typeof(Settings.BuildingCheckOrder)))
                             {
                                 if ((byte)checks == value)
                                 {
-                                    if (Global.Settings.GarbageChecksPreset != checks)
+                                    if (settings.ChecksPreset != checks)
                                     {
                                         if (Log.LogALot || Library.IsDebugBuild)
                                         {
-                                            Log.Debug(this, "OnSettingsUI", "Set", "GarbageChecksPreset", value, checks);
+                                            Log.Debug(this, "CreateServiceGroup", "Set", settings.VehicleNamePlural, "ChecksPreset", value, checks);
                                         }
 
                                         try
                                         {
-                                            Global.Settings.GarbageChecksPreset = checks;
+                                            settings.ChecksPreset = checks;
                                         }
                                         catch (Exception ex)
                                         {
-                                            Log.Error(this, "OnSettingsUI", ex, "Set", "GarbageChecksPreset", checks);
+                                            Log.Error(this, "OnSettingsUI", ex, "Set", "DeathChecksPreset", checks);
                                         }
 
-                                        if (Global.GarbageTruckDispatcher != null)
+                                        if (dispatcher != null)
                                         {
-                                            Global.ReInitializeGarbageTruckDispatcher();
+                                            try
+                                            {
+                                                dispatcher.ReInitialize();
+                                            }
+                                            catch (Exception ex)
+                                            {
+                                                Log.Error(this, "CreateServiceGroup", ex, settings.VehicleNamePlural, "ChecksPreset", "ReInitializeDispatcher");
+                                            }
                                         }
+
                                         Global.Settings.Save();
                                     }
+
                                     break;
                                 }
                             }
                         }
                         catch (Exception ex)
                         {
-                            Log.Error(this, "OnSettingsUI", ex, "GarbageGroup", "GarbageChecksPreset", value);
+                            Log.Error(this, "CreateServiceGroup", ex, settings.VehicleNamePlural, "ChecksPreset", value);
                         }
                     });
 
-                garbageGroup.AddExtendedSlider(
-                    "Garbage patrol limit",
-                    1.0f,
-                    5000.0f,
-                    1.0f,
-                    Global.Settings.MinimumGarbageForPatrol,
-                    false,
-                    value =>
-                    {
-                        try
-                        {
-                            if (Global.Settings.MinimumGarbageForPatrol != (ushort)value)
-                            {
-                                Global.BuildingUpdateNeeded = true;
-                                Global.Settings.MinimumGarbageForPatrol = (ushort)value;
-                                Global.Settings.Save();
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            Log.Error(this, "OnSettingsUI", ex, "GarbageGroup", "MinimumGarbageForPatrol", value);
-                        }
-                    });
-
-                garbageGroup.AddExtendedSlider(
-                    "Garbage dispatch limit",
-                    1.0f,
-                    5000.0f,
-                    1.0f,
-                    Global.Settings.MinimumGarbageForDispatch,
-                    false,
-                    value =>
-                    {
-                        try
-                        {
-                            if (Global.Settings.MinimumGarbageForDispatch != (ushort)value)
-                            {
-                                Global.BuildingUpdateNeeded = true;
-                                Global.Settings.MinimumGarbageForDispatch = (ushort)value;
-                                Global.Settings.Save();
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            Log.Error(this, "OnSettingsUI", ex, "GarbageGroup", "MinimumGarbageForDispatch", value);
-                        }
-                    });
-
-                if (Global.EnableExperiments || Global.Settings.AutoEmptyLandfills)
+                if (settings.UseMinimumAmountForPatrol)
                 {
-                    // Add landfill group.
-                    UIHelperBase landfillGroup = helper.AddGroup("Landfills");
-
-                    landfillGroup.AddCheckbox(
-                        "Empty landfills automatically",
-                        Global.Settings.AutoEmptyLandfills,
+                    group.AddExtendedSlider(
+                        settings.MaterialName + " patrol limit",
+                        1.0f,
+                        5000.0f,
+                        1.0f,
+                        settings.MinimumAmountForPatrol,
+                        false,
                         value =>
                         {
                             try
                             {
-                                if (Global.Settings.AutoEmptyLandfills != value)
+                                if (settings.MinimumAmountForPatrol != (ushort)value)
                                 {
-                                    Global.Settings.AutoEmptyLandfills = value;
-                                    Global.Settings.Save();
-                                    Global.ReInitializeHandlers();
-                                }
-                            }
-                            catch (Exception ex)
-                            {
-                                Log.Error(this, "OnSettingsUI", ex, "LandfillGroup", "AutoEmptyLandfills", value);
-                            }
-                        });
-
-                    landfillGroup.AddExtendedSlider(
-                        "Empty landfills at %",
-                        0,
-                        100,
-                        1,
-                        Global.Settings.AutoEmptyLandfillStartLevelPercent,
-                        value =>
-                        {
-                            try
-                            {
-                                if (Global.Settings.AutoEmptyLandfillStartLevelPercent != (uint)value)
-                                {
+                                    settings.MinimumAmountForPatrol = (ushort)value;
                                     Global.BuildingUpdateNeeded = true;
-                                    Global.Settings.AutoEmptyLandfillStartLevelPercent = (uint)value;
                                     Global.Settings.Save();
                                 }
                             }
                             catch (Exception ex)
                             {
-                                Log.Error(this, "OnSettingsUI", ex, "LandfillGroup", "AutoEmptyLandfillStartLevel", value);
-                            }
-                        });
-
-                    landfillGroup.AddExtendedSlider(
-                        "Stop emptying at %",
-                        0,
-                        100,
-                        1,
-                        Global.Settings.AutoEmptyLandfillStopLevelPercent,
-                        value =>
-                        {
-                            try
-                            {
-                                if (Global.Settings.AutoEmptyLandfillStopLevelPercent != (uint)value)
-                                {
-                                    Global.BuildingUpdateNeeded = true;
-                                    Global.Settings.AutoEmptyLandfillStopLevelPercent = (uint)value;
-                                    Global.Settings.Save();
-                                }
-                            }
-                            catch (Exception ex)
-                            {
-                                Log.Error(this, "OnSettingsUI", ex, "LandfillGroup", "AutoEmptyLandfillStopLevel", value);
+                                Log.Error(this, "CreateServiceGroup", ex, settings.VehicleNamePlural, "MinimumAmountForPatrol", value);
                             }
                         });
                 }
 
-                if (Global.EnableExperiments || Global.Settings.DispatchAmbulances)
+                if (settings.UseMinimumAmountForDispatch)
                 {
-                    // Add ambulance group.
-                    UIHelperBase ambulanceGroup = helper.AddGroup("Ambulances");
-
-                    ambulanceGroup.AddCheckbox(
-                        "Dispatch ambulances",
-                        Global.Settings.DispatchAmbulances,
+                    group.AddExtendedSlider(
+                        settings.MaterialName + " dispatch limit",
+                        1.0f,
+                        5000.0f,
+                        1.0f,
+                        settings.MinimumAmountForDispatch,
+                        false,
                         value =>
                         {
                             try
                             {
-                                if (Global.Settings.DispatchAmbulances != value)
+                                if (settings.MinimumAmountForDispatch != (ushort)value)
                                 {
-                                    Global.Settings.DispatchAmbulances = value;
-                                    Global.Settings.Save();
-                                    Global.ReInitializeHandlers();
-                                }
-                            }
-                            catch (Exception ex)
-                            {
-                                Log.Error(this, "OnSettingsUI", ex, "AmbulanceGroup", "DispatchAmbulances", value);
-                            }
-                        });
-
-                    ambulanceGroup.AddCheckbox(
-                        "Dispatch ambulances by district",
-                        Global.Settings.DispatchAmbulancesByDistrict,
-                        value =>
-                        {
-                            try
-                            {
-                                if (Global.Settings.DispatchAmbulancesByDistrict != value)
-                                {
+                                    settings.MinimumAmountForDispatch = (ushort)value;
                                     Global.BuildingUpdateNeeded = true;
-                                    Global.Settings.DispatchAmbulancesByDistrict = value;
                                     Global.Settings.Save();
                                 }
                             }
                             catch (Exception ex)
                             {
-                                Log.Error(this, "OnSettingsUI", ex, "AmbulanceGroup", "DispatchAmbulancesByDistrict", value);
-                            }
-                        });
-
-                    ambulanceGroup.AddCheckbox(
-                        "Dispatch ambulances by building range",
-                        Global.Settings.DispatchAmbulancesByRange,
-                        value =>
-                        {
-                            try
-                            {
-                                if (Global.Settings.DispatchAmbulancesByRange != value)
-                                {
-                                    Global.BuildingUpdateNeeded = true;
-                                    Global.Settings.DispatchAmbulancesByRange = value;
-                                    Global.Settings.Save();
-                                }
-                            }
-                            catch (Exception ex)
-                            {
-                                Log.Error(this, "OnSettingsUI", ex, "AmbulanceGroup", "DispatchAmbulancesByRange", value);
-                            }
-                        });
-
-                    ambulanceGroup.AddCheckbox(
-                        "Pass through ambulances",
-                        Global.Settings.RemoveAmbulancesFromGrid,
-                        value =>
-                        {
-                            try
-                            {
-                                if (Global.Settings.RemoveAmbulancesFromGrid != value)
-                                {
-                                    Global.Settings.RemoveAmbulancesFromGrid = value;
-                                    Global.Settings.Save();
-                                    Global.ReInitializeHandlers();
-                                }
-                            }
-                            catch (Exception ex)
-                            {
-                                Log.Error(this, "OnSettingsUI", ex, "AmbulanceGroup", "RemoveAmbulancesFromGrid", value);
-                            }
-                        });
-
-                    ambulanceGroup.AddDropdown(
-                        "Send out spare ambulances when",
-                        this.vehicleCreationOptions.OrderBy(vco => vco.Key).Select(vco => vco.Value).ToArray(),
-                        (int)Global.Settings.CreateSpareAmbulances,
-                        value =>
-                        {
-                            try
-                            {
-                                if (Log.LogALot || Library.IsDebugBuild)
-                                {
-                                    Log.Debug(this, "OnSettingsUI", "Set", "CreateSpareAmbulances", value);
-                                }
-
-                                foreach (Settings.SpareVehiclesCreation option in Enum.GetValues(typeof(Settings.SpareVehiclesCreation)))
-                                {
-                                    if ((byte)option == value)
-                                    {
-                                        if (Global.Settings.CreateSpareAmbulances != option)
-                                        {
-                                            if (Log.LogALot || Library.IsDebugBuild)
-                                            {
-                                                Log.Debug(this, "OnSettingsUI", "Set", "CreateSpareAmbulances", value, option);
-                                            }
-
-                                            Global.Settings.CreateSpareAmbulances = option;
-                                            if (Global.AmbulanceDispatcher != null)
-                                            {
-                                                Global.ReInitializeAmbulanceDispatcher();
-                                            }
-                                            Global.Settings.Save();
-                                        }
-
-                                        break;
-                                    }
-                                }
-                            }
-                            catch (Exception ex)
-                            {
-                                Log.Error(this, "OnSettingsUI", ex, "AmbulanceGroup", "CreateSpareAmbulances", value);
-                            }
-                        });
-
-                    ambulanceGroup.AddDropdown(
-                        "Ambulance dispatch strategy",
-                        this.targetBuildingChecks.OrderBy(bco => bco.Key).Select(bco => bco.Value).ToArray(),
-                        (int)Global.Settings.SickChecksPreset,
-                        value =>
-                        {
-                            try
-                            {
-                                if (Log.LogALot || Library.IsDebugBuild)
-                                {
-                                    Log.Debug(this, "OnSettingsUI", "Set", "SickChecksPreset", value);
-                                }
-
-                                foreach (Settings.BuildingCheckOrder checks in Enum.GetValues(typeof(Settings.BuildingCheckOrder)))
-                                {
-                                    if ((byte)checks == value)
-                                    {
-                                        if (Global.Settings.SickChecksPreset != checks)
-                                        {
-                                            if (Log.LogALot || Library.IsDebugBuild)
-                                            {
-                                                Log.Debug(this, "OnSettingsUI", "Set", "SickChecksPreset", value, checks);
-                                            }
-
-                                            try
-                                            {
-                                                Global.Settings.SickChecksPreset = checks;
-                                            }
-                                            catch (Exception ex)
-                                            {
-                                                Log.Error(this, "OnSettingsUI", ex, "Set", "SickChecksPreset", checks);
-                                            }
-
-                                            if (Global.AmbulanceDispatcher != null)
-                                            {
-                                                Global.ReInitializeAmbulanceDispatcher();
-                                            }
-                                            Global.Settings.Save();
-                                        }
-
-                                        break;
-                                    }
-                                }
-                            }
-                            catch (Exception ex)
-                            {
-                                Log.Error(this, "OnSettingsUI", ex, "AmbulanceGroup", "SickChecksPreset", value);
+                                Log.Error(this, "CreateServiceGroup", ex, settings.VehicleNamePlural, "MinimumAmountForDispatch", value);
                             }
                         });
                 }
 
-                // Add bulldoze and recovery group.
-                UIHelperBase wreckingRecoveryGroup = helper.AddGroup("Wrecking & Recovery");
+                return group;
+            }
+            catch (Exception ex)
+            {
+                Log.Error(this, "CreateServiceGroup", ex, settings.EmptiableServiceBuildingNamePlural);
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Creates the wrecking and recovery group.
+        /// </summary>
+        /// <param name="helper">The helper.</param>
+        /// <returns>The group.</returns>
+        private UIHelperBase CreateWreckingRecoveryGroup(UIHelperBase helper)
+        {
+            try
+            {
+                UIHelperBase group = helper.AddGroup("Wrecking & Recovery");
 
                 if (BulldozeHelper.CanBulldoze)
                 {
-                    wreckingRecoveryGroup.AddCheckbox(
+                    group.AddCheckbox(
                         "Dispatch bulldozers",
                         Global.Settings.AutoBulldozeBuildings,
                         value =>
@@ -1006,13 +890,13 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                             }
                             catch (Exception ex)
                             {
-                                Log.Error(this, "OnSettingsUI", ex, "WreckingRecoveryGroup", "AutoBulldozeBuildings", value);
+                                Log.Error(this, "CreateWreckingRecoveryGroup", ex, "AutoBulldozeBuildings", value);
                             }
                         });
                 }
                 else
                 {
-                    UIComponent dispatchWreckingCrewsCheckBox = wreckingRecoveryGroup.AddCheckbox(
+                    UIComponent dispatchWreckingCrewsCheckBox = group.AddCheckbox(
                         "Dispatch bulldozers",
                         false,
                         value =>
@@ -1020,7 +904,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         }) as UIComponent;
                 }
 
-                wreckingRecoveryGroup.AddExtendedSlider(
+                group.AddExtendedSlider(
                     "Bulldozer delay",
                     0.0f,
                     60.0f * 24.0f,
@@ -1040,13 +924,13 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         }
                         catch (Exception ex)
                         {
-                            Log.Error(this, "OnSettingsUI", ex, "WreckingRecoveryGroup", "AutoBulldozeBuildingsDelayMinutes", value);
+                            Log.Error(this, "CreateWreckingRecoveryGroup", ex, "AutoBulldozeBuildingsDelayMinutes", value);
                         }
                     });
 
-                wreckingRecoveryGroup.AddInformationalText("Experimental Recovery Services:", "The recovery services are experimental, and might create more problems than they solve.");
+                group.AddInformationalText("Experimental Recovery Services:", "The recovery services are experimental, and might create more problems than they solve.");
 
-                wreckingRecoveryGroup.AddCheckbox(
+                group.AddCheckbox(
                     "Dispatch recovery services",
                     Global.Settings.RemoveStuckVehicles,
                     value =>
@@ -1062,11 +946,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         }
                         catch (Exception ex)
                         {
-                            Log.Error(this, "OnSettingsUI", ex, "WreckingRecoveryGroup", "RemoveStuckVehicles", value);
+                            Log.Error(this, "CreateWreckingRecoveryGroup", ex, "RemoveStuckVehicles", value);
                         }
                     });
 
-                wreckingRecoveryGroup.AddExtendedSlider(
+                group.AddExtendedSlider(
                     "Recovery delay",
                     0.0f,
                     60.0f * 24.0f,
@@ -1085,184 +969,72 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         }
                         catch (Exception ex)
                         {
-                            Log.Error(this, "OnSettingsUI", ex, "WreckingRecoveryGroup", "RemoveStuckVehiclesDelayMinutes", value);
+                            Log.Error(this, "CreateWreckingRecoveryGroup", ex, "RemoveStuckVehiclesDelayMinutes", value);
                         }
                     });
 
-                // Add logging group.
-                UIHelperBase logGroup = helper.AddGroup("Logging (not saved in settings)");
-
-                UIComponent debugLog = null;
-                UIComponent devLog = null;
-                UIComponent objectLog = null;
-                UIComponent namesLog = null;
-                UIComponent fileLog = null;
-
-                debugLog = logGroup.AddCheckbox(
-                    "Debug log",
-                    Log.LogDebug,
-                    value =>
-                    {
-                        try
-                        {
-                            if (!this.updatingLogControls)
-                            {
-                                Log.LogDebug = value;
-                                UpdateLogControls(debugLog, devLog, objectLog, namesLog, fileLog);
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            Log.Error(this, "OnSettingsUI", ex, "LogGroup", "LogDebug", value);
-                        }
-                    }) as UIComponent;
-
-                devLog = logGroup.AddCheckbox(
-                    "Developer log",
-                    Log.LogALot,
-                    value =>
-                    {
-                        try
-                        {
-                            if (!this.updatingLogControls)
-                            {
-                                Log.LogALot = value;
-                                UpdateLogControls(debugLog, devLog, objectLog, namesLog, fileLog);
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            Log.Error(this, "OnSettingsUI", ex, "LogGroup", "LogALot", value);
-                        }
-                    }) as UIComponent;
-
-                objectLog = logGroup.AddCheckbox(
-                    "Object list log",
-                    Log.LogDebugLists,
-                    value =>
-                    {
-                        try
-                        {
-                            if (!this.updatingLogControls)
-                            {
-                                Log.LogDebugLists = value;
-                                UpdateLogControls(debugLog, devLog, objectLog, namesLog, fileLog);
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            Log.Error(this, "OnSettingsUI", ex, "LogGroup", "LogDebugLists", value);
-                        }
-                    }) as UIComponent;
-
-                namesLog = logGroup.AddCheckbox(
-                    "Log names",
-                    Log.LogNames,
-                    value =>
-                    {
-                        try
-                        {
-                            if (!this.updatingLogControls)
-                            {
-                                Log.LogNames = value;
-                                UpdateLogControls(debugLog, devLog, objectLog, namesLog, fileLog);
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            Log.Error(this, "OnSettingsUI", ex, "LogGroup", "LogNames", value);
-                        }
-                    }) as UIComponent;
-
-                fileLog = logGroup.AddCheckbox(
-                    "Log to file",
-                    Log.LogToFile,
-                    value =>
-                    {
-                        try
-                        {
-                            if (!this.updatingLogControls)
-                            {
-                                Log.LogToFile = value;
-                                UpdateLogControls(debugLog, devLog, objectLog, namesLog, fileLog);
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            Log.Error(this, "OnSettingsUI", ex, "LogGroup", "LogToFile", value);
-                        }
-                    }) as UIComponent;
-
-                // Add Advanced group.
-                UIHelperBase advancedGroup = helper.AddGroup("Advanced");
-
-                advancedGroup.AddDropdown(
-                    "Allow Code Overrides",
-                    this.allowances.OrderBy(a => a.Key).Select(allowances => allowances.Value).ToArray(),
-                    (int)Global.Settings.ReflectionAllowance,
-                    value =>
-                    {
-                        try
-                        {
-                            foreach (Settings.Allowance allowance in Enum.GetValues(typeof(Settings.Allowance)))
-                            {
-                                if ((byte)allowance == value)
-                                {
-                                    if (allowance != Global.Settings.ReflectionAllowance)
-                                    {
-                                        if (Log.LogALot || Library.IsDebugBuild)
-                                        {
-                                            Log.Debug(this, "OnSettingsUI", "Set", "ReflectionAllowance", value);
-                                        }
-
-                                        Global.Settings.ReflectionAllowance = allowance;
-                                        Global.ReInitializeHandlers();
-                                        Global.Settings.Save();
-                                    }
-
-                                    break;
-                                }
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            Log.Error(this, "OnSettingsUI", ex, "AdvancedGroup", "ReflectionAllowance", value);
-                        }
-                    });
-
-                try
-                {
-                    advancedGroup.AddInformationalText("Config Path:", FileSystem.FilePath);
-
-                    Assembly modAss = this.GetType().Assembly;
-                    if (modAss != null)
-                    {
-                        advancedGroup.AddInformationalText("Mod Version:", modAss.GetName().Version.ToString());
-                    }
-                }
-                catch
-                {
-                }
-
-                advancedGroup.AddButton(
-                    "Dump buildings",
-                    () =>
-                    {
-                        BuildingHelper.DumpBuildings();
-                    });
-
-                advancedGroup.AddButton(
-                    "Dump vehicles",
-                    () =>
-                    {
-                        VehicleHelper.DumpVehicles();
-                    });
-
-                Log.FlushBuffer();
+                return group;
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
-                Log.Error(this, "OnSettingsUI", ex);
+                Log.Error(this, "CreateWreckingRecoveryGroup", ex);
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Initializes the options.
+        /// </summary>
+        private void InitializeOptions()
+        {
+            if (this.targetBuildingChecks == null)
+            {
+                this.targetBuildingChecks = new Dictionary<byte, string>();
+                foreach (Settings.BuildingCheckOrder checks in Enum.GetValues(typeof(Settings.BuildingCheckOrder)))
+                {
+                    if (Log.LogALot || Library.IsDebugBuild)
+                    {
+                        Log.Debug(this, "OnSettingsUI", "Init", "BuildingCheckOrder", (byte)checks, checks, Settings.GetBuildingCheckOrderName(checks));
+                    }
+
+                    string name = Settings.GetBuildingCheckOrderName(checks);
+                    if (String.IsNullOrEmpty(name))
+                    {
+                        name = checks.ToString();
+                    }
+
+                    this.targetBuildingChecks.Add((byte)checks, name);
+                }
+            }
+
+            if (this.vehicleCreationOptions == null)
+            {
+                this.vehicleCreationOptions = new Dictionary<byte, string>();
+                foreach (Settings.SpareVehiclesCreation option in Enum.GetValues(typeof(Settings.SpareVehiclesCreation)))
+                {
+                    string name = Settings.GetSpareVehiclesCreationName(option);
+                    if (String.IsNullOrEmpty(name))
+                    {
+                        name = option.ToString();
+                    }
+
+                    this.vehicleCreationOptions.Add((byte)option, name);
+                }
+            }
+
+            if (this.allowances == null)
+            {
+                this.allowances = new Dictionary<byte, string>();
+                foreach (Settings.Allowance allowance in Enum.GetValues(typeof(Settings.Allowance)))
+                {
+                    string name = Settings.GetAllowanceName(allowance);
+                    if (String.IsNullOrEmpty(name))
+                    {
+                        name = allowance.ToString();
+                    }
+
+                    this.allowances.Add((byte)allowance, name);
+                }
             }
         }
 

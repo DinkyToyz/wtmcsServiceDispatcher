@@ -142,7 +142,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             get
             {
-                return Global.Settings.DispatchAmbulances && Global.Settings.CreateSpareAmbulances != Settings.SpareVehiclesCreation.Never;
+                return Global.Settings.HealthCare.DispatchVehicles && Global.Settings.HealthCare.CreateSpares != Settings.SpareVehiclesCreation.Never;
             }
         }
 
@@ -156,7 +156,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             get
             {
-                return Global.Settings.DispatchGarbageTrucks && Global.Settings.CreateSpareGarbageTrucks != Settings.SpareVehiclesCreation.Never;
+                return Global.Settings.Garbage.DispatchVehicles && Global.Settings.Garbage.CreateSpares != Settings.SpareVehiclesCreation.Never;
             }
         }
 
@@ -170,7 +170,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             get
             {
-                return Global.Settings.DispatchHearses && Global.Settings.CreateSpareHearses != Settings.SpareVehiclesCreation.Never;
+                return Global.Settings.DeathCare.DispatchVehicles && Global.Settings.DeathCare.CreateSpares != Settings.SpareVehiclesCreation.Never;
             }
         }
 
@@ -184,9 +184,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             get
             {
-                return (Global.Settings.DispatchHearses && Global.Settings.CreateSpareHearses != Settings.SpareVehiclesCreation.Never) ||
-                       (Global.Settings.DispatchGarbageTrucks && Global.Settings.CreateSpareGarbageTrucks != Settings.SpareVehiclesCreation.Never) ||
-                       (Global.Settings.DispatchAmbulances && Global.Settings.CreateSpareAmbulances != Settings.SpareVehiclesCreation.Never);
+                return (Global.Settings.DeathCare.DispatchVehicles && Global.Settings.DeathCare.CreateSpares != Settings.SpareVehiclesCreation.Never) ||
+                       (Global.Settings.Garbage.DispatchVehicles && Global.Settings.Garbage.CreateSpares != Settings.SpareVehiclesCreation.Never) ||
+                       (Global.Settings.HealthCare.DispatchVehicles && Global.Settings.HealthCare.CreateSpares != Settings.SpareVehiclesCreation.Never);
             }
         }
 
@@ -311,7 +311,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             // Initialize dispatch objects.
             try
             {
-                if (Settings.DispatchHearses || Settings.DispatchGarbageTrucks || Settings.DispatchAmbulances)
+                if (Settings.DeathCare.DispatchVehicles || Settings.Garbage.DispatchVehicles || Settings.HealthCare.DispatchVehicles)
                 {
                     // Initialize buildings.
                     if (Buildings == null)
@@ -342,7 +342,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     }
 
                     // Initialize hearse objects.
-                    if (Settings.DispatchHearses)
+                    if (Settings.DeathCare.DispatchVehicles)
                     {
                         if (HearseDispatcher == null)
                         {
@@ -355,7 +355,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     }
 
                     // Initialize garbage truck objects.
-                    if (Settings.DispatchGarbageTrucks)
+                    if (Settings.Garbage.DispatchVehicles)
                     {
                         if (GarbageTruckDispatcher == null)
                         {
@@ -368,7 +368,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     }
 
                     // Initialize hearse objects.
-                    if (Settings.DispatchAmbulances)
+                    if (Settings.HealthCare.DispatchVehicles)
                     {
                         if (AmbulanceDispatcher == null)
                         {
@@ -382,8 +382,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 }
 
                 // Initialize vehicle objects.
-                if (Settings.DispatchHearses || Settings.DispatchGarbageTrucks || Settings.DispatchAmbulances ||
-                    Settings.RemoveHearsesFromGrid || Settings.RemoveAmbulancesFromGrid)
+                if (Settings.DeathCare.DispatchVehicles || Settings.Garbage.DispatchVehicles || Settings.HealthCare.DispatchVehicles ||
+                    Settings.DeathCare.RemoveFromGrid || Settings.HealthCare.RemoveFromGrid)
                 {
                     if (Vehicles == null)
                     {

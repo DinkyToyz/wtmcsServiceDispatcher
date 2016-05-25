@@ -554,11 +554,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             }
 
             List<string> needs = new List<string>();
-            if (buildings[buildingId].m_garbageBuffer >= Global.Settings.MinimumGarbageForDispatch)
+            if (buildings[buildingId].m_garbageBuffer >= Global.Settings.Garbage.MinimumAmountForDispatch)
             {
                 needs.Add("Filthy");
             }
-            if (buildings[buildingId].m_garbageBuffer >= Global.Settings.MinimumGarbageForPatrol)
+            if (buildings[buildingId].m_garbageBuffer >= Global.Settings.Garbage.MinimumAmountForPatrol)
             {
                 needs.Add("Dirty");
             }
