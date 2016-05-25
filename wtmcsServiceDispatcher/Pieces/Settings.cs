@@ -14,8 +14,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// The death-care settings.
         /// </summary>
-        public readonly ServiceSettings DeathCare = new ServiceSettings("Hearses", "Cemeteries", "Dead People")
+        public readonly ServiceSettings DeathCare = new ServiceSettings()
         {
+            VehicleNamePlural = "Hearses",
+            EmptiableServiceBuildingNamePlural = "Cemeteries",
+            MaterialName = "Dead People",
             CanAutoEmpty = true,
             CanRemoveFromGrid = true
         };
@@ -23,8 +26,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// The garbage settings.
         /// </summary>
-        public readonly ServiceSettings Garbage = new ServiceSettings("Garbage Trucks", "Landfills", "Garbage")
+        public readonly ServiceSettings Garbage = new ServiceSettings()
         {
+            VehicleNamePlural = "Garbage Trucks",
+            EmptiableServiceBuildingNamePlural = "Landfills",
+            MaterialName = "Garbage",
             CanAutoEmpty = true,
             CanLimitOpportunisticCollection = true,
             OpportunisticCollectionLimitDetour = Detours.Methods.GarbageTruckAI_TryCollectGarbage,
@@ -35,8 +41,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// The health-care settings.
         /// </summary>
-        public readonly ServiceSettings HealthCare = new ServiceSettings("Ambulances", null, "Sick People")
+        public readonly ServiceSettings HealthCare = new ServiceSettings()
         {
+            VehicleNamePlural = "Ambulances",
+            MaterialName = "Sick People",
             CanRemoveFromGrid = true
         };
 
@@ -1081,26 +1089,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public class ServiceSettings
         {
             /// <summary>
-            /// The plural name for service buildings that can be emptied.
-            /// </summary>
-            public readonly string EmptiableServiceBuildingNamePlural;
-
-            /// <summary>
-            /// The material name.
-            /// </summary>
-            public readonly string MaterialName;
-
-            /// <summary>
-            /// The plural vehicle name.
-            /// </summary>
-            public readonly string VehicleNamePlural;
-
-            /// <summary>
-            /// The singular vehicle name.
-            /// </summary>
-            public readonly string VehicleNameSingular;
-
-            /// <summary>
             /// The automatic emptying start level.
             /// </summary>
             public uint AutoEmptyStartLevelPercent = 95u;
@@ -1171,9 +1159,19 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             private BuildingCheckOrder checksPresetValue = BuildingCheckOrder.InRange;
 
             /// <summary>
+            /// The plural name for service buildings that can be emptied value.
+            /// </summary>
+            private string emptiableServiceBuildingNamePluralValue = null;
+
+            /// <summary>
             /// The opportunistic collection limit settings value.
             /// </summary>
             private bool limitOpportunisticCollectionValue = true;
+
+            /// <summary>
+            /// The material name value.
+            /// </summary>
+            private string materialNameValue = null;
 
             /// <summary>
             /// The opportunistic collection limit detour value.
@@ -1196,17 +1194,20 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             private bool? useMinimumAmountForPatrol = false;
 
             /// <summary>
-            /// Initializes a new instance of the <see cref="ServiceSettings"/> class.
+            /// The plural vehicle name value.
             /// </summary>
-            /// <param name="vehicleNamePlural">The plural vehicle name.</param>
-            /// <param name="emptiableServiceBuildingNamePlural">The plural name for service buildings than can be emptied.</param>
-            /// <param name="materialName">Name of the material.</param>
-            public ServiceSettings(string vehicleNamePlural, string emptiableServiceBuildingNamePlural, string materialName)
+            private string vehicleNamePluralValue = null;
+
+            /// <summary>
+            /// The singular vehicle name value.
+            /// </summary>
+            private string vehicleNameSingularValue;
+
+            /// <summary>
+            /// Initializes a new instance of the <see cref="ServiceSettings" /> class.
+            /// </summary>
+            public ServiceSettings()
             {
-                this.VehicleNamePlural = vehicleNamePlural;
-                this.VehicleNameSingular = String.IsNullOrEmpty(vehicleNamePlural) ? null : vehicleNamePlural.Substring(vehicleNamePlural.Length - 1);
-                this.MaterialName = materialName;
-                this.EmptiableServiceBuildingNamePlural = emptiableServiceBuildingNamePlural;
             }
 
             /// <summary>
@@ -1348,6 +1349,33 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             }
 
             /// <summary>
+            /// Gets or sets the plural name for service buildings that can be emptied.
+            /// </summary>
+            /// <value>
+            /// The plural name for service buildings that can be emptied.
+            /// </value>
+            /// <exception cref="System.InvalidOperationException">Write-once property modification.</exception>
+            public string EmptiableServiceBuildingNamePlural
+            {
+                get
+                {
+                    return this.emptiableServiceBuildingNamePluralValue;
+                }
+
+                set
+                {
+                    if (this.emptiableServiceBuildingNamePluralValue == null)
+                    {
+                        this.emptiableServiceBuildingNamePluralValue = value;
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException("Write-once property modification");
+                    }
+                }
+            }
+
+            /// <summary>
             /// Gets or sets a value indicating whether to limit opportunistic collection.
             /// </summary>
             /// <value>
@@ -1363,6 +1391,33 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 set
                 {
                     this.limitOpportunisticCollectionValue = value;
+                }
+            }
+
+            /// <summary>
+            /// Gets or sets the material name.
+            /// </summary>
+            /// <value>
+            /// The name of the material.
+            /// </value>
+            /// <exception cref="System.InvalidOperationException">Write-once property modification.</exception>
+            public string MaterialName
+            {
+                get
+                {
+                    return this.materialNameValue;
+                }
+
+                set
+                {
+                    if (this.materialNameValue == null)
+                    {
+                        this.materialNameValue = value;
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException("Write-once property modification");
+                    }
                 }
             }
 
@@ -1473,6 +1528,82 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     if (this.useMinimumAmountForPatrol == null || !this.useMinimumAmountForPatrol.HasValue)
                     {
                         this.useMinimumAmountForPatrol = value;
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException("Write-once property modification");
+                    }
+                }
+            }
+
+            /// <summary>
+            /// Gets or sets the plural vehicle name.
+            /// </summary>
+            /// <value>
+            /// The plural vehicle name.
+            /// </value>
+            /// <exception cref="System.InvalidOperationException">Write-once property modification.</exception>
+            public string VehicleNamePlural
+            {
+                get
+                {
+                    if (this.vehicleNamePluralValue != null)
+                    {
+                        return this.vehicleNamePluralValue;
+                    }
+                    else if (this.VehicleNameSingular != null)
+                    {
+                        return this.VehicleNameSingular + "s";
+                    }
+                    else
+                    {
+                        return null;
+                    }
+                }
+
+                set
+                {
+                    if (this.vehicleNamePluralValue == null)
+                    {
+                        this.vehicleNamePluralValue = value;
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException("Write-once property modification");
+                    }
+                }
+            }
+
+            /// <summary>
+            /// Gets or sets the singular vehicle name.
+            /// </summary>
+            /// <value>
+            /// The singular vehicle name.
+            /// </value>
+            /// <exception cref="System.InvalidOperationException">Write-once property modification.</exception>
+            public string VehicleNameSingular
+            {
+                get
+                {
+                    if (this.vehicleNameSingularValue != null)
+                    {
+                        return this.vehicleNameSingularValue;
+                    }
+                    else if (this.vehicleNamePluralValue != null && this.vehicleNamePluralValue.Length > 1)
+                    {
+                        return this.vehicleNamePluralValue.Substring(0, this.vehicleNamePluralValue.Length - 1);
+                    }
+                    else
+                    {
+                        return null;
+                    }
+                }
+
+                set
+                {
+                    if (this.vehicleNameSingularValue == null)
+                    {
+                        this.vehicleNameSingularValue = value;
                     }
                     else
                     {
