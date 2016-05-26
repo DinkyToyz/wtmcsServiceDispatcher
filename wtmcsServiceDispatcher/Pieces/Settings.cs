@@ -175,6 +175,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 this.DeathCare.RemoveFromGrid = settings.RemoveHearsesFromGrid;
                 this.DeathCare.ChecksCustom = settings.DeathChecksCustom;
                 this.DeathCare.ChecksPreset = settings.DeathChecksPreset;
+                this.DeathCare.AutoEmpty = settings.AutoEmptyCemeteries;
+                this.DeathCare.AutoEmptyStartLevelPercent = settings.AutoEmptyCemeteryStartLevelPercent;
+                this.DeathCare.AutoEmptyStopLevelPercent = settings.AutoEmptyCemeteryStopLevelPercent;
 
                 this.HealthCare.DispatchVehicles = settings.DispatchAmbulances;
                 this.HealthCare.DispatchByDistrict = settings.DispatchAmbulancesByDistrict;
@@ -193,12 +196,21 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 this.Garbage.MinimumAmountForPatrol = settings.MinimumGarbageForPatrol;
                 this.Garbage.ChecksCustom = settings.GarbageChecksCustom;
                 this.Garbage.ChecksPreset = settings.GarbageChecksPreset;
+                this.Garbage.AutoEmpty = settings.AutoEmptyLandfills;
+                this.Garbage.AutoEmptyStartLevelPercent = settings.AutoEmptyLandfillStartLevelPercent;
+                this.Garbage.AutoEmptyStopLevelPercent = settings.AutoEmptyLandfillStopLevelPercent;
 
                 this.WreckingCrews.DispatchVehicles = settings.AutoBulldozeBuildings;
                 this.WreckingCrews.DelaySeconds = settings.AutoBulldozeBuildingsDelaySeconds;
 
                 this.RecoveryCrews.DispatchVehicles = settings.RemoveStuckVehicles;
                 this.RecoveryCrews.DelaySeconds = settings.RemoveStuckVehiclesDelaySeconds;
+            }
+
+            if (!Global.EnableExperiments)
+            {
+                this.DeathCare.AutoEmpty = false;
+                this.Garbage.AutoEmpty = false;
             }
 
             this.HealthCare.DispatchVehicles = false;
@@ -593,6 +605,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 Log.Debug(this, "LogSettings", "DeathChecksCustom", String.Join(", ", this.DeathCare.ChecksCustom.Select(bc => bc.ToString()).ToArray()));
             }
 
+            Log.Debug(this, "LogSettings", "AutoEmptyCemeteries", this.DeathCare.AutoEmpty);
+            Log.Debug(this, "LogSettings", "AutoEmptyCemeteryStartLevelPercent", this.DeathCare.AutoEmptyStartLevelPercent);
+            Log.Debug(this, "LogSettings", "AutoEmptyCemeteryStopLevelPercent", this.DeathCare.AutoEmptyStopLevelPercent);
+
             Log.Debug(this, "LogSettings", "DispatchAmbulances", this.HealthCare.DispatchVehicles);
             Log.Debug(this, "LogSettings", "DispatchAmbulancesByDistrict", this.HealthCare.DispatchByDistrict);
             Log.Debug(this, "LogSettings", "DispatchAmbulancesByRange", this.HealthCare.DispatchByRange);
@@ -618,6 +634,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             {
                 Log.Debug(this, "LogSettings", "GarbageChecksCustom", String.Join(", ", this.Garbage.ChecksCustom.Select(bc => bc.ToString()).ToArray()));
             }
+
+            Log.Debug(this, "LogSettings", "AutoEmptyLandfills", this.Garbage.AutoEmpty);
+            Log.Debug(this, "LogSettings", "AutoEmptyLandfillStartLevelPercent", this.Garbage.AutoEmptyStartLevelPercent);
+            Log.Debug(this, "LogSettings", "AutoEmptyLandfillStopLevelPercent", this.Garbage.AutoEmptyStopLevelPercent);
 
             Log.Debug(this, "LogSettings", this.Version, this.LoadedVersion, this.SaveCount);
         }
@@ -682,6 +702,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     cfg.DeathChecksPreset = this.DeathCare.ChecksPreset;
                     cfg.DeathChecksCustom = this.DeathCare.ChecksCustom;
                     cfg.DeathChecksCurrent = this.DeathCare.ChecksParameters;
+                    cfg.AutoEmptyCemeteries = this.DeathCare.AutoEmpty;
+                    cfg.AutoEmptyCemeteryStartLevelPercent = this.DeathCare.AutoEmptyStartLevelPercent;
+                    cfg.AutoEmptyCemeteryStopLevelPercent = this.DeathCare.AutoEmptyStopLevelPercent;
 
                     cfg.DispatchAmbulances = this.HealthCare.DispatchVehicles;
                     cfg.DispatchAmbulancesByDistrict = this.HealthCare.DispatchByDistrict;
@@ -702,6 +725,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     cfg.GarbageChecksPreset = this.Garbage.ChecksPreset;
                     cfg.GarbageChecksCustom = this.Garbage.ChecksCustom;
                     cfg.GarbageChecksCurrent = this.Garbage.ChecksParameters;
+                    cfg.AutoEmptyLandfills = this.Garbage.AutoEmpty;
+                    cfg.AutoEmptyLandfillStartLevelPercent = this.Garbage.AutoEmptyStartLevelPercent;
+                    cfg.AutoEmptyLandfillStopLevelPercent = this.Garbage.AutoEmptyStopLevelPercent;
 
                     cfg.AutoBulldozeBuildings = this.WreckingCrews.DispatchVehicles;
                     cfg.AutoBulldozeBuildingsDelaySeconds = this.WreckingCrews.DelaySeconds;
@@ -824,6 +850,36 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             /// The automatic bulldoze buildings delay.
             /// </summary>
             public double AutoBulldozeBuildingsDelaySeconds = 5.0 * 60.0;
+
+            /// <summary>
+            /// Automatic cemetery emptying.
+            /// </summary>
+            public bool AutoEmptyCemeteries = false;
+
+            /// <summary>
+            /// The automatic empty cemetery start level percent.
+            /// </summary>
+            public uint AutoEmptyCemeteryStartLevelPercent = 95u;
+
+            /// <summary>
+            /// The automatic empty cemetery stop level percent.
+            /// </summary>
+            public uint AutoEmptyCemeteryStopLevelPercent = 5u;
+
+            /// <summary>
+            /// Automatic landfill emptying.
+            /// </summary>
+            public bool AutoEmptyLandfills = false;
+
+            /// <summary>
+            /// The automatic empty landfill start level percent.
+            /// </summary>
+            public uint AutoEmptyLandfillStartLevelPercent = 95u;
+
+            /// <summary>
+            /// The automatic empty landfill stop level percent.
+            /// </summary>
+            public uint AutoEmptyLandfillStopLevelPercent = 5u;
 
             /// <summary>
             /// The possible building checks.
