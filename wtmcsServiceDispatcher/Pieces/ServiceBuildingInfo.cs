@@ -38,7 +38,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// The service settings.
         /// </summary>
-        private Settings.ServiceSettings serviceSettings = null;
+        private Settings.StandardServiceSettings serviceSettings = null;
 
         /// <summary>
         /// The vehicle in use count.

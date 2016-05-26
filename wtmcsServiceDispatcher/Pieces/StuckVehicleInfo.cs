@@ -108,7 +108,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             get
             {
-                return Global.Settings.RemoveStuckVehicles ||
+                return Global.Settings.RecoveryCrews.DispatchVehicles ||
                        (Global.Settings.DeathCare.DispatchVehicles && Global.HearseDispatcher != null && this.dispatcherType == Dispatcher.DispatcherTypes.HearseDispatcher) ||
                        (Global.Settings.Garbage.DispatchVehicles && Global.GarbageTruckDispatcher != null && this.dispatcherType == Dispatcher.DispatcherTypes.GarbageTruckDispatcher) ||
                        (Global.Settings.HealthCare.DispatchVehicles && Global.AmbulanceDispatcher != null && this.dispatcherType == Dispatcher.DispatcherTypes.AmbulanceDispatcher);
@@ -216,7 +216,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             }
 
             // Only check vehicles we dispatch unless told to check other vehicles as well.
-            if (!(Global.Settings.RemoveStuckVehicles ||
+            if (!(Global.Settings.RecoveryCrews.DispatchVehicles ||
                   (Global.Settings.DeathCare.DispatchVehicles && Global.HearseDispatcher != null && vehicle.Info.m_vehicleAI is HearseAI) ||
                   (Global.Settings.Garbage.DispatchVehicles && Global.GarbageTruckDispatcher != null && vehicle.Info.m_vehicleAI is GarbageTruckAI) ||
                   (Global.Settings.HealthCare.DispatchVehicles && Global.AmbulanceDispatcher != null && vehicle.Info.m_vehicleAI is AmbulanceAI)))
@@ -369,7 +369,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 {
                     if (Log.LogALot)
                     {
-                        Log.DevDebug(this, "Update", "NewConfused", this.vehicleId, this.ConfusedForSeconds, this.ConfusedForFrames, Global.Settings.RemoveStuckVehiclesDelaySeconds, Global.DeAssignConfusedDelay, vehicle.m_targetBuilding, vehicle.m_flags, VehicleHelper.GetVehicleName(this.vehicleId));
+                        Log.DevDebug(this, "Update", "NewConfused", this.vehicleId, this.ConfusedForSeconds, this.ConfusedForFrames, Global.Settings.RecoveryCrews.DelaySeconds, Global.DeAssignConfusedDelay, vehicle.m_targetBuilding, vehicle.m_flags, VehicleHelper.GetVehicleName(this.vehicleId));
                     }
 
                     this.confusedSinceTime = Global.SimulationTime;
@@ -403,7 +403,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 {
                     delta = this.CheckFlaggedForSeconds;
 
-                    if (delta > Global.Settings.RemoveStuckVehiclesDelaySeconds)
+                    if (delta > Global.Settings.RecoveryCrews.DelaySeconds)
                     {
                         Log.Info(this, "IsStuck", this.checkFlags, this.vehicleId, delta, VehicleHelper.GetVehicleName(this.vehicleId));
 
@@ -416,7 +416,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 {
                     delta = this.ConfusedForSeconds;
 
-                    if (delta > Global.Settings.RemoveStuckVehiclesDelaySeconds)
+                    if (delta > Global.Settings.RecoveryCrews.DelaySeconds)
                     {
                         Log.Info(this, "IsStuck", "Confused", this.vehicleId, delta, VehicleHelper.GetVehicleName(this.vehicleId));
 

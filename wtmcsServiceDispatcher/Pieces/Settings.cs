@@ -14,7 +14,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// The death-care settings.
         /// </summary>
-        public readonly ServiceSettings DeathCare = new ServiceSettings()
+        public readonly StandardServiceSettings DeathCare = new StandardServiceSettings()
         {
             VehicleNamePlural = "Hearses",
             EmptiableServiceBuildingNamePlural = "Cemeteries",
@@ -26,7 +26,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// The garbage settings.
         /// </summary>
-        public readonly ServiceSettings Garbage = new ServiceSettings()
+        public readonly StandardServiceSettings Garbage = new StandardServiceSettings()
         {
             VehicleNamePlural = "Garbage Trucks",
             EmptiableServiceBuildingNamePlural = "Landfills",
@@ -41,11 +41,20 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// The health-care settings.
         /// </summary>
-        public readonly ServiceSettings HealthCare = new ServiceSettings()
+        public readonly StandardServiceSettings HealthCare = new StandardServiceSettings()
         {
             VehicleNamePlural = "Ambulances",
             MaterialName = "Sick People",
             CanRemoveFromGrid = true
+        };
+
+        /// <summary>
+        /// The recovery crews settings.
+        /// </summary>
+        public readonly HiddenServiceSettings RecoveryCrews = new HiddenServiceSettings()
+        {
+            VehicleNamePlural = "Recovery Services",
+            VehicleNameSingular = "Recovery"
         };
 
         /// <summary>
@@ -54,14 +63,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public readonly int Version = 3;
 
         /// <summary>
-        /// Automatic bulldoze of abandoned buildings.
+        /// The wrecking crews settings.
         /// </summary>
-        public bool AutoBulldozeBuildings = false;
-
-        /// <summary>
-        /// The automatic bulldoze buildings delay.
-        /// </summary>
-        public double AutoBulldozeBuildingsDelaySeconds = 5.0 * 60.0;
+        public readonly HiddenServiceSettings WreckingCrews = new HiddenServiceSettings()
+        {
+            VehicleNamePlural = "Bulldozers"
+        };
 
         /// <summary>
         /// Limit building ranges.
@@ -87,16 +94,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// Whether code overrides are allowed or not.
         /// </summary>
         public Allowance ReflectionAllowance = Allowance.Default;
-
-        /// <summary>
-        /// Automatic removal of stuck vehicles.
-        /// </summary>
-        public bool RemoveStuckVehicles = false;
-
-        /// <summary>
-        /// The automatic vehicle removal delay.
-        /// </summary>
-        public double RemoveStuckVehiclesDelaySeconds = 5 * 60.0;
 
         /// <summary>
         /// The save count.
@@ -197,11 +194,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 this.Garbage.ChecksCustom = settings.GarbageChecksCustom;
                 this.Garbage.ChecksPreset = settings.GarbageChecksPreset;
 
-                this.AutoBulldozeBuildings = settings.AutoBulldozeBuildings;
-                this.AutoBulldozeBuildingsDelaySeconds = settings.AutoBulldozeBuildingsDelaySeconds;
+                this.WreckingCrews.DispatchVehicles = settings.AutoBulldozeBuildings;
+                this.WreckingCrews.DelaySeconds = settings.AutoBulldozeBuildingsDelaySeconds;
 
-                this.RemoveStuckVehicles = settings.RemoveStuckVehicles;
-                this.RemoveStuckVehiclesDelaySeconds = settings.RemoveStuckVehiclesDelaySeconds;
+                this.RecoveryCrews.DispatchVehicles = settings.RemoveStuckVehicles;
+                this.RecoveryCrews.DelaySeconds = settings.RemoveStuckVehiclesDelaySeconds;
             }
 
             this.HealthCare.DispatchVehicles = false;
@@ -356,25 +353,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
-        /// Gets or sets the automatic bulldoze buildings delay in minutes.
-        /// </summary>
-        /// <value>
-        /// The automatic bulldoze buildings delay in minutes.
-        /// </value>
-        public double AutoBulldozeBuildingsDelayMinutes
-        {
-            get
-            {
-                return this.AutoBulldozeBuildingsDelaySeconds / 60.0;
-            }
-
-            set
-            {
-                this.AutoBulldozeBuildingsDelaySeconds = (value < 0.0) ? 0.0 : value * 60.0;
-            }
-        }
-
-        /// <summary>
         /// Gets a value indicating whether any dispatchers cares about districts or not.
         /// </summary>
         /// <value>
@@ -413,25 +391,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             get
             {
                 return (this.loadedVersion == null || !this.loadedVersion.HasValue) ? 0 : this.loadedVersion.Value;
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets the automatic vehicle recovery delay in minutes.
-        /// </summary>
-        /// <value>
-        /// The automatic vehicle recovery delay in minutes.
-        /// </value>
-        public double RemoveStuckVehiclesDelayMinutes
-        {
-            get
-            {
-                return this.RemoveStuckVehiclesDelaySeconds / 60.0;
-            }
-
-            set
-            {
-                this.RemoveStuckVehiclesDelaySeconds = (value < 0.0) ? 0.0 : value * 60.0;
             }
         }
 
@@ -744,11 +703,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     cfg.GarbageChecksCustom = this.Garbage.ChecksCustom;
                     cfg.GarbageChecksCurrent = this.Garbage.ChecksParameters;
 
-                    cfg.AutoBulldozeBuildings = this.AutoBulldozeBuildings;
-                    cfg.AutoBulldozeBuildingsDelaySeconds = this.AutoBulldozeBuildingsDelaySeconds;
+                    cfg.AutoBulldozeBuildings = this.WreckingCrews.DispatchVehicles;
+                    cfg.AutoBulldozeBuildingsDelaySeconds = this.WreckingCrews.DelaySeconds;
 
-                    cfg.RemoveStuckVehicles = this.RemoveStuckVehicles;
-                    cfg.RemoveStuckVehiclesDelaySeconds = this.RemoveStuckVehiclesDelaySeconds;
+                    cfg.RemoveStuckVehicles = this.RecoveryCrews.DispatchVehicles;
+                    cfg.RemoveStuckVehiclesDelaySeconds = this.RecoveryCrews.DelaySeconds;
 
                     cfg.BuildingChecksPresets = (Enum.GetValues(typeof(BuildingCheckOrder)) as BuildingCheckOrder[]).Where(bco => bco != BuildingCheckOrder.Custom).Select(bco => new ServiceDispatcherSettings.BuildingChecksPresetInfo(bco)).ToArray();
                     cfg.BuildingChecksPossible = (Enum.GetValues(typeof(BuildingCheckParameters)) as BuildingCheckParameters[]).Where(bcp => bcp != BuildingCheckParameters.Custom).ToArray();
@@ -816,6 +775,37 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             else
             {
                 return "Yes (enabled)";
+            }
+        }
+
+        /// <summary>
+        /// Settings for hidden services.
+        /// </summary>
+        /// <seealso cref="WhatThe.Mods.CitiesSkylines.ServiceDispatcher.Settings.ServiceSettingsBase" />
+        public class HiddenServiceSettings : ServiceSettingsBase
+        {
+            /// <summary>
+            /// The automatic delay in seconds.
+            /// </summary>
+            public double DelaySeconds = 5.0 * 60.0;
+
+            /// <summary>
+            /// Gets or sets the automatic delay in minutes.
+            /// </summary>
+            /// <value>
+            /// The automatic delay in minutes.
+            /// </value>
+            public double DelayMinutes
+            {
+                get
+                {
+                    return this.DelaySeconds / 60.0;
+                }
+
+                set
+                {
+                    this.DelaySeconds = (value < 0.0) ? 0.0 : value * 60.0;
+                }
             }
         }
 
@@ -1084,9 +1074,106 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Abstract base class for service settings.
+        /// </summary>
+        public abstract class ServiceSettingsBase
+        {
+            /// <summary>
+            /// The dispatch toggle.
+            /// </summary>
+            public bool DispatchVehicles = false;
+
+            /// <summary>
+            /// The plural vehicle name value.
+            /// </summary>
+            private string vehicleNamePluralValue = null;
+
+            /// <summary>
+            /// The singular vehicle name value.
+            /// </summary>
+            private string vehicleNameSingularValue;
+
+            /// <summary>
+            /// Gets or sets the plural vehicle name.
+            /// </summary>
+            /// <value>
+            /// The plural vehicle name.
+            /// </value>
+            /// <exception cref="System.InvalidOperationException">Write-once property modification.</exception>
+            public string VehicleNamePlural
+            {
+                get
+                {
+                    if (this.vehicleNamePluralValue != null)
+                    {
+                        return this.vehicleNamePluralValue;
+                    }
+                    else if (this.VehicleNameSingular != null)
+                    {
+                        return this.VehicleNameSingular + "s";
+                    }
+                    else
+                    {
+                        return null;
+                    }
+                }
+
+                set
+                {
+                    if (this.vehicleNamePluralValue == null)
+                    {
+                        this.vehicleNamePluralValue = value;
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException("Write-once property modification");
+                    }
+                }
+            }
+
+            /// <summary>
+            /// Gets or sets the singular vehicle name.
+            /// </summary>
+            /// <value>
+            /// The singular vehicle name.
+            /// </value>
+            /// <exception cref="System.InvalidOperationException">Write-once property modification.</exception>
+            public string VehicleNameSingular
+            {
+                get
+                {
+                    if (this.vehicleNameSingularValue != null)
+                    {
+                        return this.vehicleNameSingularValue;
+                    }
+                    else if (this.vehicleNamePluralValue != null && this.vehicleNamePluralValue.Length > 1)
+                    {
+                        return this.vehicleNamePluralValue.Substring(0, this.vehicleNamePluralValue.Length - 1);
+                    }
+                    else
+                    {
+                        return null;
+                    }
+                }
+
+                set
+                {
+                    if (this.vehicleNameSingularValue == null)
+                    {
+                        this.vehicleNameSingularValue = value;
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException("Write-once property modification");
+                    }
+                }
+            }
+        }
+
+        /// <summary>
         /// Settings for normal services.
         /// </summary>
-        public class ServiceSettings
+        public class StandardServiceSettings : ServiceSettingsBase
         {
             /// <summary>
             /// The automatic emptying start level.
@@ -1117,11 +1204,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             /// The dispatch by range toggle.
             /// </summary>
             public bool DispatchByRange = true;
-
-            /// <summary>
-            /// The dispatch toggle.
-            /// </summary>
-            public bool DispatchVehicles = false;
 
             /// <summary>
             /// The minimum amount for dispatch.
@@ -1192,23 +1274,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             /// The minimum amount for patrol usability value.
             /// </summary>
             private bool? useMinimumAmountForPatrol = false;
-
-            /// <summary>
-            /// The plural vehicle name value.
-            /// </summary>
-            private string vehicleNamePluralValue = null;
-
-            /// <summary>
-            /// The singular vehicle name value.
-            /// </summary>
-            private string vehicleNameSingularValue;
-
-            /// <summary>
-            /// Initializes a new instance of the <see cref="ServiceSettings" /> class.
-            /// </summary>
-            public ServiceSettings()
-            {
-            }
 
             /// <summary>
             /// Gets or sets a value indicating whether automatic emptying should be done.
@@ -1320,7 +1385,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             {
                 get
                 {
-                    return GetBuildingChecksParameters(this.checksPresetValue, this.ChecksCustom);
+                    return Settings.GetBuildingChecksParameters(this.checksPresetValue, this.ChecksCustom);
                 }
             }
 
@@ -1343,7 +1408,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                     if (value == BuildingCheckOrder.Custom && (this.ChecksCustom == null || this.ChecksCustom.Length == 0))
                     {
-                        this.ChecksCustom = GetBuildingChecksParameters(BuildingCheckOrder.InRange);
+                        this.ChecksCustom = Settings.GetBuildingChecksParameters(BuildingCheckOrder.InRange);
                     }
                 }
             }
@@ -1528,82 +1593,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     if (this.useMinimumAmountForPatrol == null || !this.useMinimumAmountForPatrol.HasValue)
                     {
                         this.useMinimumAmountForPatrol = value;
-                    }
-                    else
-                    {
-                        throw new InvalidOperationException("Write-once property modification");
-                    }
-                }
-            }
-
-            /// <summary>
-            /// Gets or sets the plural vehicle name.
-            /// </summary>
-            /// <value>
-            /// The plural vehicle name.
-            /// </value>
-            /// <exception cref="System.InvalidOperationException">Write-once property modification.</exception>
-            public string VehicleNamePlural
-            {
-                get
-                {
-                    if (this.vehicleNamePluralValue != null)
-                    {
-                        return this.vehicleNamePluralValue;
-                    }
-                    else if (this.VehicleNameSingular != null)
-                    {
-                        return this.VehicleNameSingular + "s";
-                    }
-                    else
-                    {
-                        return null;
-                    }
-                }
-
-                set
-                {
-                    if (this.vehicleNamePluralValue == null)
-                    {
-                        this.vehicleNamePluralValue = value;
-                    }
-                    else
-                    {
-                        throw new InvalidOperationException("Write-once property modification");
-                    }
-                }
-            }
-
-            /// <summary>
-            /// Gets or sets the singular vehicle name.
-            /// </summary>
-            /// <value>
-            /// The singular vehicle name.
-            /// </value>
-            /// <exception cref="System.InvalidOperationException">Write-once property modification.</exception>
-            public string VehicleNameSingular
-            {
-                get
-                {
-                    if (this.vehicleNameSingularValue != null)
-                    {
-                        return this.vehicleNameSingularValue;
-                    }
-                    else if (this.vehicleNamePluralValue != null && this.vehicleNamePluralValue.Length > 1)
-                    {
-                        return this.vehicleNamePluralValue.Substring(0, this.vehicleNamePluralValue.Length - 1);
-                    }
-                    else
-                    {
-                        return null;
-                    }
-                }
-
-                set
-                {
-                    if (this.vehicleNameSingularValue == null)
-                    {
-                        this.vehicleNameSingularValue = value;
                     }
                     else
                     {

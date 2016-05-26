@@ -222,7 +222,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             try
             {
-                if (Global.Settings.AutoBulldozeBuildings && this.DesolateBuildings != null)
+                if (Global.Settings.WreckingCrews.DispatchVehicles && this.DesolateBuildings != null)
                 {
                     BuildingHelper.DebugListLog(this.DesolateBuildings, "DesolateBuildings");
                 }
@@ -724,7 +724,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                             Log.Debug(this, "CategorizeBuildings", "Desolate Building", id);
                         }
 
-                        if (delta >= Global.Settings.AutoBulldozeBuildingsDelaySeconds)
+                        if (delta >= Global.Settings.WreckingCrews.DelaySeconds)
                         {
                             Log.Debug(this, "CategorizeBuildings", "Buldoze Building", id);
                             BulldozeHelper.BulldozeBuilding(id);
@@ -904,10 +904,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 this.HealthCareBuildings = null;
             }
 
-            info.Add("AutoBulldozeBuildings", Global.Settings.AutoBulldozeBuildings);
+            info.Add("AutoBulldozeBuildings", Global.Settings.WreckingCrews.DispatchVehicles);
             info.Add("CanBulldoze", BulldozeHelper.CanBulldoze);
 
-            if (Global.Settings.AutoBulldozeBuildings && BulldozeHelper.CanBulldoze)
+            if (Global.Settings.WreckingCrews.DispatchVehicles && BulldozeHelper.CanBulldoze)
             {
                 if (this.DesolateBuildings == null)
                 {

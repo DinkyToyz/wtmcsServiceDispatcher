@@ -114,27 +114,27 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 UIHelperBase dispatchGroup = this.CreateDispatchGroup(helper);
 
                 // Add hearse group.
-                UIHelperBase hearseGroup = this.CreateServiceGroup(helper, Global.Settings.DeathCare, Global.HearseDispatcher);
+                UIHelperBase hearseGroup = this.CreateServiceGroup(helper, Global.Settings.DeathCare, Global.HearseDispatcher, true);
 
                 // Add cemetery group.
                 if (Global.EnableExperiments || Global.Settings.DeathCare.AutoEmpty)
                 {
-                    UIHelperBase cemeteryGroup = this.CreateEmptiableServiceBuildingGroup(helper, Global.Settings.DeathCare);
+                    UIHelperBase cemeteryGroup = this.CreateEmptiableServiceBuildingGroup(helper, Global.Settings.DeathCare, true);
                 }
 
                 // Add garbage group.
-                UIHelperBase garbageGroup = this.CreateServiceGroup(helper, Global.Settings.Garbage, Global.GarbageTruckDispatcher);
+                UIHelperBase garbageGroup = this.CreateServiceGroup(helper, Global.Settings.Garbage, Global.GarbageTruckDispatcher, true);
 
                 // Add landfill group.
                 if (Global.EnableExperiments || Global.Settings.Garbage.AutoEmpty)
                 {
-                    UIHelperBase landfillGroup = this.CreateEmptiableServiceBuildingGroup(helper, Global.Settings.Garbage);
+                    UIHelperBase landfillGroup = this.CreateEmptiableServiceBuildingGroup(helper, Global.Settings.Garbage, true);
                 }
 
                 // Add ambulance group.
                 if (Global.EnableExperiments || Global.Settings.HealthCare.DispatchVehicles)
                 {
-                    UIHelperBase ambulanceGroup = this.CreateServiceGroup(helper, Global.Settings.HealthCare, Global.AmbulanceDispatcher);
+                    UIHelperBase ambulanceGroup = this.CreateServiceGroup(helper, Global.Settings.HealthCare, Global.AmbulanceDispatcher, true);
                 }
 
                 // Add bulldoze and recovery group.
@@ -152,6 +152,72 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             {
                 Log.Error(this, "OnSettingsUI", ex);
             }
+        }
+
+        /// <summary>
+        /// Adds the hidden service controls.
+        /// </summary>
+        /// <param name="group">The group.</param>
+        /// <param name="settings">The settings.</param>
+        /// <param name="canService">If set to <c>true</c> this service can be enabled.</param>
+        private void AddHiddenServiceControls(UIHelperBase group, Settings.HiddenServiceSettings settings, bool canService)
+        {
+            if (canService)
+            {
+                group.AddCheckbox(
+                    "Dispatch " + settings.VehicleNamePlural.ToLower(),
+                    settings.DispatchVehicles,
+                    value =>
+                    {
+                        try
+                        {
+                            if (settings.DispatchVehicles != value)
+                            {
+                                settings.DispatchVehicles = value;
+                                Global.Settings.Save();
+                                Global.ReInitializeHandlers();
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.Error(this, "CreateWreckingRecoveryGroup", ex, settings.VehicleNamePlural, "DispatchVehicles", value);
+                        }
+                    });
+            }
+            else
+            {
+                UIComponent checkBox = group.AddCheckbox(
+                    "Dispatch " + settings.VehicleNamePlural.ToLower(),
+                    false,
+                    value =>
+                    {
+                    }) as UIComponent;
+                checkBox.Disable();
+            }
+
+            group.AddExtendedSlider(
+                settings.VehicleNameSingular + " delay",
+                0.0f,
+                60.0f * 24.0f,
+                0.01f,
+                (float)settings.DelayMinutes,
+                true,
+                value =>
+                {
+                    try
+                    {
+                        if (settings.DelayMinutes != (double)value)
+                        {
+                            settings.DelayMinutes = (double)value;
+                            Global.BuildingUpdateNeeded = true;
+                            Global.Settings.Save();
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error(this, "CreateWreckingRecoveryGroup", ex, settings.VehicleNamePlural, "DelayMinutes", value);
+                    }
+                });
         }
 
         /// <summary>
@@ -354,32 +420,48 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// </summary>
         /// <param name="helper">The helper.</param>
         /// <param name="settings">The settings.</param>
-        /// <returns>The group.</returns>
-        private UIHelperBase CreateEmptiableServiceBuildingGroup(UIHelperBase helper, Settings.ServiceSettings settings)
+        /// <param name="canService">If set to <c>true</c> this service can be enabled.</param>
+        /// <returns>
+        /// The group.
+        /// </returns>
+        private UIHelperBase CreateEmptiableServiceBuildingGroup(UIHelperBase helper, Settings.StandardServiceSettings settings, bool canService)
         {
             try
             {
                 UIHelperBase group = helper.AddGroup(settings.EmptiableServiceBuildingNamePlural);
 
-                group.AddCheckbox(
-                    "Empty " + settings.EmptiableServiceBuildingNamePlural.ToLower() + " automatically",
-                    settings.AutoEmpty,
-                    value =>
-                    {
-                        try
+                if (canService)
+                {
+                    group.AddCheckbox(
+                        "Empty " + settings.EmptiableServiceBuildingNamePlural.ToLower() + " automatically",
+                        settings.AutoEmpty,
+                        value =>
                         {
-                            if (settings.AutoEmpty != value)
+                            try
                             {
-                                settings.AutoEmpty = value;
-                                Global.Settings.Save();
-                                Global.ReInitializeHandlers();
+                                if (settings.AutoEmpty != value)
+                                {
+                                    settings.AutoEmpty = value;
+                                    Global.Settings.Save();
+                                    Global.ReInitializeHandlers();
+                                }
                             }
-                        }
-                        catch (Exception ex)
+                            catch (Exception ex)
+                            {
+                                Log.Error(this, "CreateEmptiableServiceBuildingGroup", ex, settings.EmptiableServiceBuildingNamePlural, "AutoEmpty", value);
+                            }
+                        });
+                }
+                else
+                {
+                    UIComponent checkBox = group.AddCheckbox(
+                        "Empty " + settings.EmptiableServiceBuildingNamePlural.ToLower() + " automatically",
+                        false,
+                        value =>
                         {
-                            Log.Error(this, "CreateEmptiableServiceBuildingGroup", ex, settings.EmptiableServiceBuildingNamePlural, "AutoEmpty", value);
-                        }
-                    });
+                        }) as UIComponent;
+                    checkBox.Disable();
+                }
 
                 group.AddExtendedSlider(
                     "Start emptying at %",
@@ -563,33 +645,48 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <param name="helper">The helper.</param>
         /// <param name="settings">The settings.</param>
         /// <param name="dispatcher">The dispatcher.</param>
-        /// <returns>The group.</returns>
-        private UIHelperBase CreateServiceGroup(UIHelperBase helper, Settings.ServiceSettings settings, Dispatcher dispatcher)
+        /// <param name="canService">If set to <c>true</c> this service can be enabled.</param>
+        /// <returns>
+        /// The group.
+        /// </returns>
+        private UIHelperBase CreateServiceGroup(UIHelperBase helper, Settings.StandardServiceSettings settings, Dispatcher dispatcher, bool canService)
         {
             try
             {
                 // Add cemetery group.
                 UIHelperBase group = helper.AddGroup(settings.EmptiableServiceBuildingNamePlural);
 
-                group.AddCheckbox(
-                    "Dispatch " + settings.VehicleNamePlural.ToLower(),
-                    settings.DispatchVehicles,
-                    value =>
-                    {
-                        try
+                if (canService)
+                {
+                    group.AddCheckbox(
+                        "Dispatch " + settings.VehicleNamePlural.ToLower(),
+                        settings.DispatchVehicles,
+                        value =>
                         {
-                            if (settings.DispatchVehicles != value)
+                            try
                             {
-                                settings.DispatchVehicles = value;
-                                Global.Settings.Save();
-                                Global.ReInitializeHandlers();
+                                if (settings.DispatchVehicles != value)
+                                {
+                                    settings.DispatchVehicles = value;
+                                    Global.Settings.Save();
+                                    Global.ReInitializeHandlers();
+                                }
                             }
-                        }
-                        catch (Exception ex)
+                            catch (Exception ex)
+                            {
+                                Log.Error(this, "CreateServiceGroup", ex, settings.VehicleNamePlural, "DispatchVehicles", value);
+                            }
+                        });
+                }
+                else
+                {
+                    UIComponent checkBox = group.AddCheckbox(
+                        "Dispatch " + settings.VehicleNamePlural.ToLower(),
+                        false,
+                        value =>
                         {
-                            Log.Error(this, "CreateServiceGroup", ex, settings.VehicleNamePlural, "DispatchVehicles", value);
-                        }
-                    });
+                        }) as UIComponent;
+                }
 
                 group.AddCheckbox(
                     "Dispatch by district",
@@ -872,106 +969,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             {
                 UIHelperBase group = helper.AddGroup("Wrecking & Recovery");
 
-                if (BulldozeHelper.CanBulldoze)
-                {
-                    group.AddCheckbox(
-                        "Dispatch bulldozers",
-                        Global.Settings.AutoBulldozeBuildings,
-                        value =>
-                        {
-                            try
-                            {
-                                if (Global.Settings.AutoBulldozeBuildings != value)
-                                {
-                                    Global.Settings.AutoBulldozeBuildings = value;
-                                    Global.Settings.Save();
-                                    Global.ReInitializeHandlers();
-                                }
-                            }
-                            catch (Exception ex)
-                            {
-                                Log.Error(this, "CreateWreckingRecoveryGroup", ex, "AutoBulldozeBuildings", value);
-                            }
-                        });
-                }
-                else
-                {
-                    UIComponent dispatchWreckingCrewsCheckBox = group.AddCheckbox(
-                        "Dispatch bulldozers",
-                        false,
-                        value =>
-                        {
-                        }) as UIComponent;
-                }
-
-                group.AddExtendedSlider(
-                    "Bulldozer delay",
-                    0.0f,
-                    60.0f * 24.0f,
-                    0.01f,
-                    (float)Global.Settings.AutoBulldozeBuildingsDelayMinutes,
-                    true,
-                    value =>
-                    {
-                        try
-                        {
-                            if (Global.Settings.AutoBulldozeBuildingsDelayMinutes != (double)value)
-                            {
-                                Global.BuildingUpdateNeeded = true;
-                                Global.Settings.AutoBulldozeBuildingsDelayMinutes = (double)value;
-                                Global.Settings.Save();
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            Log.Error(this, "CreateWreckingRecoveryGroup", ex, "AutoBulldozeBuildingsDelayMinutes", value);
-                        }
-                    });
+                this.AddHiddenServiceControls(group, Global.Settings.WreckingCrews, BulldozeHelper.CanBulldoze);
 
                 group.AddInformationalText("Experimental Recovery Services:", "The recovery services are experimental, and might create more problems than they solve.");
 
-                group.AddCheckbox(
-                    "Dispatch recovery services",
-                    Global.Settings.RemoveStuckVehicles,
-                    value =>
-                    {
-                        try
-                        {
-                            if (Global.Settings.RemoveStuckVehicles != value)
-                            {
-                                Global.Settings.RemoveStuckVehicles = value;
-                                Global.Settings.Save();
-                                Global.ReInitializeHandlers();
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            Log.Error(this, "CreateWreckingRecoveryGroup", ex, "RemoveStuckVehicles", value);
-                        }
-                    });
-
-                group.AddExtendedSlider(
-                    "Recovery delay",
-                    0.0f,
-                    60.0f * 24.0f,
-                    0.01f,
-                    (float)Global.Settings.RemoveStuckVehiclesDelayMinutes,
-                    true,
-                    value =>
-                    {
-                        try
-                        {
-                            if (Global.Settings.RemoveStuckVehiclesDelayMinutes != (double)value)
-                            {
-                                Global.Settings.RemoveStuckVehiclesDelayMinutes = (double)value;
-                                Global.Settings.Save();
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            Log.Error(this, "CreateWreckingRecoveryGroup", ex, "RemoveStuckVehiclesDelayMinutes", value);
-                        }
-                    });
+                this.AddHiddenServiceControls(group, Global.Settings.RecoveryCrews, true);
 
                 return group;
             }
