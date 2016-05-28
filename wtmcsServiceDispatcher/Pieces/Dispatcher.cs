@@ -478,7 +478,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 ////    }
                 ////}
 
-                foreach (ServiceBuildingInfo serviceBuilding in this.serviceBuildings.Values.Where(sb => sb.CanReceive && (sb.VehiclesFree > 0 || (allowCreateSpares && this.serviceSettings.CreateSpares != Settings.SpareVehiclesCreation.Never && sb.VehiclesSpare > 0)) && sb.InRange).OrderBy(sb => sb, Global.ServiceBuildingInfoPriorityComparer))
+                foreach (ServiceBuildingInfo serviceBuilding in this.serviceBuildings.Values.Where(sb => sb.CanReceive && (sb.VehiclesFree > 0 || (allowCreateSpares && this.serviceSettings.CreateSpares != ServiceDispatcherSettings.SpareVehiclesCreation.Never && sb.VehiclesSpare > 0)) && sb.InRange).OrderBy(sb => sb, Global.ServiceBuildingInfoPriorityComparer))
                 {
                     // Found vehicle that has enough free capacity.
                     foundVehicleId = 0;
@@ -493,7 +493,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     foundVehicleLastResortCheck = foundVehicleLastResortId == 0;
 
                     // If prefer to send new vehicle when building is closer.
-                    if (allowCreateSpares && this.serviceSettings.CreateSpares == Settings.SpareVehiclesCreation.WhenBuildingIsCloser && serviceBuilding.VehiclesSpare > 0)
+                    if (allowCreateSpares && this.serviceSettings.CreateSpares == ServiceDispatcherSettings.SpareVehiclesCreation.WhenBuildingIsCloser && serviceBuilding.VehiclesSpare > 0)
                     {
                         foundVehicleDistance = serviceBuilding.Distance;
                     }
@@ -586,7 +586,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     }
 
                     // No free vehicle found, but building has spare vehicles so we send one of those.
-                    if (foundVehicleId == 0 && allowCreateSpares && !lostVehicles.Contains(0) && this.serviceSettings.CreateSpares != Settings.SpareVehiclesCreation.Never && serviceBuilding.VehiclesSpare > 0)
+                    if (foundVehicleId == 0 && allowCreateSpares && !lostVehicles.Contains(0) && this.serviceSettings.CreateSpares != ServiceDispatcherSettings.SpareVehiclesCreation.Never && serviceBuilding.VehiclesSpare > 0)
                     {
                         Log.Debug(this, "AssignVehicle", "CreateSpare", targetBuilding.BuildingId, serviceBuilding.BuildingId, serviceBuilding.VehiclesSpare);
 
@@ -831,7 +831,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     continue;
                 }
 
-                if (allowCreateSpares && this.serviceSettings.CreateSpares != Settings.SpareVehiclesCreation.Never && serviceBuilding.CanReceive && serviceBuilding.CapacityFree > 0)
+                if (allowCreateSpares && this.serviceSettings.CreateSpares != ServiceDispatcherSettings.SpareVehiclesCreation.Never && serviceBuilding.CanReceive && serviceBuilding.CapacityFree > 0)
                 {
                     this.freeVehicles += serviceBuilding.VehiclesSpare;
                 }
@@ -1087,7 +1087,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             /// <param name="allowCreateSpares">If set to <c>true</c> allow creation of spare vehicles.</param>
             public BuldingCheckParameters(bool onlyProblematic, bool includeUneedy, bool ignoreRange, byte minProblemValue, bool allowCreateSpares)
             {
-                this.Setting = Settings.BuildingCheckParameters.Custom;
+                this.Setting = ServiceDispatcherSettings.BuildingCheckParameters.Custom;
                 this.OnlyProblematic = onlyProblematic;
                 this.IncludeUneedy = includeUneedy;
                 this.IgnoreRange = ignoreRange;
@@ -1099,7 +1099,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             /// Initializes a new instance of the <see cref="BuldingCheckParameters"/> class.
             /// </summary>
             /// <param name="buildingCheckParameters">The building check parameters.</param>
-            public BuldingCheckParameters(Settings.BuildingCheckParameters buildingCheckParameters)
+            public BuldingCheckParameters(ServiceDispatcherSettings.BuildingCheckParameters buildingCheckParameters)
             {
                 this.Setting = buildingCheckParameters;
 
@@ -1108,49 +1108,49 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 switch (buildingCheckParameters)
                 {
-                    case Settings.BuildingCheckParameters.Any:
+                    case ServiceDispatcherSettings.BuildingCheckParameters.Any:
                         this.OnlyProblematic = false;
                         this.IgnoreRange = true;
                         this.MinProblemValue = 0;
                         break;
 
-                    case Settings.BuildingCheckParameters.InRange:
+                    case ServiceDispatcherSettings.BuildingCheckParameters.InRange:
                         this.OnlyProblematic = false;
                         this.IgnoreRange = false;
                         this.MinProblemValue = 0;
                         break;
 
-                    case Settings.BuildingCheckParameters.ProblematicInRange:
+                    case ServiceDispatcherSettings.BuildingCheckParameters.ProblematicInRange:
                         this.OnlyProblematic = true;
                         this.IgnoreRange = false;
                         this.MinProblemValue = 0;
                         break;
 
-                    case Settings.BuildingCheckParameters.ProblematicIgnoreRange:
+                    case ServiceDispatcherSettings.BuildingCheckParameters.ProblematicIgnoreRange:
                         this.OnlyProblematic = true;
                         this.IgnoreRange = true;
                         this.MinProblemValue = 0;
                         break;
 
-                    case Settings.BuildingCheckParameters.VeryProblematicInRange:
+                    case ServiceDispatcherSettings.BuildingCheckParameters.VeryProblematicInRange:
                         this.OnlyProblematic = true;
                         this.IgnoreRange = false;
                         this.MinProblemValue = ProblemLimitMajor;
                         break;
 
-                    case Settings.BuildingCheckParameters.VeryProblematicIgnoreRange:
+                    case ServiceDispatcherSettings.BuildingCheckParameters.VeryProblematicIgnoreRange:
                         this.OnlyProblematic = true;
                         this.IgnoreRange = true;
                         this.MinProblemValue = ProblemLimitMajor;
                         break;
 
-                    case Settings.BuildingCheckParameters.ForgottenInRange:
+                    case ServiceDispatcherSettings.BuildingCheckParameters.ForgottenInRange:
                         this.OnlyProblematic = true;
                         this.IgnoreRange = false;
                         this.MinProblemValue = ProblemLimitForgotten;
                         break;
 
-                    case Settings.BuildingCheckParameters.ForgottenIgnoreRange:
+                    case ServiceDispatcherSettings.BuildingCheckParameters.ForgottenIgnoreRange:
                         this.OnlyProblematic = true;
                         this.IgnoreRange = true;
                         this.MinProblemValue = ProblemLimitForgotten;
@@ -1230,7 +1230,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             /// <value>
             /// The setting.
             /// </value>
-            public Settings.BuildingCheckParameters Setting
+            public ServiceDispatcherSettings.BuildingCheckParameters Setting
             {
                 get;
                 private set;
@@ -1243,7 +1243,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             /// <returns>
             /// The dispatcher building check parameters.
             /// </returns>
-            public static BuldingCheckParameters[] GetBuldingCheckParameters(Settings.BuildingCheckParameters[] buildingCheckParameters)
+            public static BuldingCheckParameters[] GetBuldingCheckParameters(ServiceDispatcherSettings.BuildingCheckParameters[] buildingCheckParameters)
             {
                 return buildingCheckParameters.Select(bcp => new BuldingCheckParameters(bcp)).ToArray();
             }
@@ -1255,7 +1255,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             /// <returns>
             /// The dispatcher building check parameters.
             /// </returns>
-            public static BuldingCheckParameters[] GetBuldingCheckParametersWithPatrol(Settings.BuildingCheckParameters[] buildingCheckParameters)
+            public static BuldingCheckParameters[] GetBuldingCheckParametersWithPatrol(ServiceDispatcherSettings.BuildingCheckParameters[] buildingCheckParameters)
             {
                 List<BuldingCheckParameters> parameters = buildingCheckParameters.Select(bcp => new BuldingCheckParameters(bcp)).ToList();
                 parameters.Add(new BuldingCheckParameters(false, true, false, 0, false));

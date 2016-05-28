@@ -93,7 +93,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// Whether code overrides are allowed or not.
         /// </summary>
-        public Allowance ReflectionAllowance = Allowance.Default;
+        public ServiceDispatcherSettings.Allowance ReflectionAllowance = ServiceDispatcherSettings.Allowance.Default;
 
         /// <summary>
         /// The save count.
@@ -103,48 +103,48 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// The descriptions for the building checks orders.
         /// </summary>
-        private static Dictionary<BuildingCheckOrder, string> buildingCheckOrderDescriptions = new Dictionary<BuildingCheckOrder, string>()
+        private static Dictionary<ServiceDispatcherSettings.BuildingCheckOrder, string> buildingCheckOrderDescriptions = new Dictionary<ServiceDispatcherSettings.BuildingCheckOrder, string>()
         {
-            { BuildingCheckOrder.FirstFirst, "All buldings regardless of range." },
-            { BuildingCheckOrder.ForgottenFirst, "Forgotten buildings in range, followed by forgotten buildings out of range, buildings in range and finally problematic buildings in or out of range." },
-            { BuildingCheckOrder.InRange, "Buildings in range followed by forgotten buildings out of range." },
-            { BuildingCheckOrder.InRangeFirst, "Buildings in range followed by problematic buildings in or out of range." },
-            { BuildingCheckOrder.ProblematicFirst, "Problematic buildings in range followed by problematic buildings out of range and finally buildings in range." },
-            { BuildingCheckOrder.VeryProblematicFirst, "Very problematic buildings in range followed by very problematic buildings out of range, buildings in range and finally problematic buildings in or out of range." }
+            { ServiceDispatcherSettings.BuildingCheckOrder.FirstFirst, "All buldings regardless of range." },
+            { ServiceDispatcherSettings.BuildingCheckOrder.ForgottenFirst, "Forgotten buildings in range, followed by forgotten buildings out of range, buildings in range and finally problematic buildings in or out of range." },
+            { ServiceDispatcherSettings.BuildingCheckOrder.InRange, "Buildings in range followed by forgotten buildings out of range." },
+            { ServiceDispatcherSettings.BuildingCheckOrder.InRangeFirst, "Buildings in range followed by problematic buildings in or out of range." },
+            { ServiceDispatcherSettings.BuildingCheckOrder.ProblematicFirst, "Problematic buildings in range followed by problematic buildings out of range and finally buildings in range." },
+            { ServiceDispatcherSettings.BuildingCheckOrder.VeryProblematicFirst, "Very problematic buildings in range followed by very problematic buildings out of range, buildings in range and finally problematic buildings in or out of range." }
         };
 
         /// <summary>
         /// The display names for the building checks orders.
         /// </summary>
-        private static Dictionary<BuildingCheckOrder, string> buildingCheckOrderNames = new Dictionary<BuildingCheckOrder, string>()
+        private static Dictionary<ServiceDispatcherSettings.BuildingCheckOrder, string> buildingCheckOrderNames = new Dictionary<ServiceDispatcherSettings.BuildingCheckOrder, string>()
         {
-            { BuildingCheckOrder.Custom, "Custom" },
-            { BuildingCheckOrder.FirstFirst, "First first" },
-            { BuildingCheckOrder.ForgottenFirst, "Forgotten first" },
-            { BuildingCheckOrder.InRange, "In range" },
-            { BuildingCheckOrder.InRangeFirst, "In range first" },
-            { BuildingCheckOrder.ProblematicFirst, "Problematic first" },
-            { BuildingCheckOrder.VeryProblematicFirst, "Very problematic first" }
+            { ServiceDispatcherSettings.BuildingCheckOrder.Custom, "Custom" },
+            { ServiceDispatcherSettings.BuildingCheckOrder.FirstFirst, "First first" },
+            { ServiceDispatcherSettings.BuildingCheckOrder.ForgottenFirst, "Forgotten first" },
+            { ServiceDispatcherSettings.BuildingCheckOrder.InRange, "In range" },
+            { ServiceDispatcherSettings.BuildingCheckOrder.InRangeFirst, "In range first" },
+            { ServiceDispatcherSettings.BuildingCheckOrder.ProblematicFirst, "Problematic first" },
+            { ServiceDispatcherSettings.BuildingCheckOrder.VeryProblematicFirst, "Very problematic first" }
         };
 
         /// <summary>
         /// The descriptions for the vehicle creation options.
         /// </summary>
-        private static Dictionary<SpareVehiclesCreation, string> spareVehiclesCreationDescriptions = new Dictionary<SpareVehiclesCreation, string>()
+        private static Dictionary<ServiceDispatcherSettings.SpareVehiclesCreation, string> spareVehiclesCreationDescriptions = new Dictionary<ServiceDispatcherSettings.SpareVehiclesCreation, string>()
         {
-            { SpareVehiclesCreation.Never, "Let the game's AI decide when to send out vehicles." },
-            { SpareVehiclesCreation.WhenNoFree, "Send out spare vehicles when service building has no free vehicles." },
-            { SpareVehiclesCreation.WhenBuildingIsCloser, "Send out spare vehicles when service building is closer than all free vehicles." }
+            { ServiceDispatcherSettings.SpareVehiclesCreation.Never, "Let the game's AI decide when to send out vehicles." },
+            { ServiceDispatcherSettings.SpareVehiclesCreation.WhenNoFree, "Send out spare vehicles when service building has no free vehicles." },
+            { ServiceDispatcherSettings.SpareVehiclesCreation.WhenBuildingIsCloser, "Send out spare vehicles when service building is closer than all free vehicles." }
         };
 
         /// <summary>
         /// The display names for the vehicle creation options.
         /// </summary>
-        private static Dictionary<SpareVehiclesCreation, string> spareVehiclesCreationNames = new Dictionary<SpareVehiclesCreation, string>()
+        private static Dictionary<ServiceDispatcherSettings.SpareVehiclesCreation, string> spareVehiclesCreationNames = new Dictionary<ServiceDispatcherSettings.SpareVehiclesCreation, string>()
         {
-            { SpareVehiclesCreation.Never, "Game decides" },
-            { SpareVehiclesCreation.WhenNoFree, "None are free" },
-            { SpareVehiclesCreation.WhenBuildingIsCloser, "Building is closer" }
+            { ServiceDispatcherSettings.SpareVehiclesCreation.Never, "Game decides" },
+            { ServiceDispatcherSettings.SpareVehiclesCreation.WhenNoFree, "None are free" },
+            { ServiceDispatcherSettings.SpareVehiclesCreation.WhenBuildingIsCloser, "Building is closer" }
         };
 
         /// <summary>
@@ -217,140 +217,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
-        /// Whether something is allowed or not.
-        /// </summary>
-        public enum Allowance
-        {
-            /// <summary>
-            /// The default rules applies.
-            /// </summary>
-            Default = 0,
-
-            /// <summary>
-            /// Never allowed.
-            /// </summary>
-            Never = 1,
-
-            /// <summary>
-            /// Always allowed.
-            /// </summary>
-            Always = 2
-        }
-
-        /// <summary>
-        /// Order of building checks.
-        /// </summary>
-        public enum BuildingCheckOrder
-        {
-            /// <summary>
-            /// Custom order.
-            /// </summary>
-            Custom = 0,
-
-            /// <summary>
-            /// 1, in range; 2, forgotten.
-            /// </summary>
-            InRange = 1,
-
-            /// <summary>
-            /// Straight order.
-            /// </summary>
-            FirstFirst = 2,
-
-            /// <summary>
-            /// 1, in range; 2, problematic out of range.
-            /// </summary>
-            InRangeFirst = 3,
-
-            /// <summary>
-            /// 1, problematic in range; 2, problematic; 3, in range.
-            /// </summary>
-            ProblematicFirst = 4,
-
-            /// <summary>
-            /// 1, very problematic in range; 2, very problematic; 3, in range; 4, problematic out of range.
-            /// </summary>
-            VeryProblematicFirst = 5,
-
-            /// <summary>
-            /// 1, forgotten in range; 2, forgotten out of range; 3, in range; 4, problematic out of range.
-            /// </summary>
-            ForgottenFirst = 6
-        }
-
-        /// <summary>
-        /// Building check parameters.
-        /// </summary>
-        public enum BuildingCheckParameters
-        {
-            /// <summary>
-            /// Custom parameters.
-            /// </summary>
-            Custom = 0,
-
-            /// <summary>
-            /// Any buildings.
-            /// </summary>
-            Any = 1,
-
-            /// <summary>
-            /// Buildings in range.
-            /// </summary>
-            InRange = 2,
-
-            /// <summary>
-            /// Problematic buildings in range.
-            /// </summary>
-            ProblematicInRange = 3,
-
-            /// <summary>
-            /// Problematic buildings in or out of range.
-            /// </summary>
-            ProblematicIgnoreRange = 4,
-
-            /// <summary>
-            /// Problematic buildings in range.
-            /// </summary>
-            VeryProblematicInRange = 5,
-
-            /// <summary>
-            /// Problematic buildings in or out of range.
-            /// </summary>
-            VeryProblematicIgnoreRange = 6,
-
-            /// <summary>
-            /// Forgotten buildings in range.
-            /// </summary>
-            ForgottenInRange = 7,
-
-            /// <summary>
-            /// Forgotten buildings in or out of range.
-            /// </summary>
-            ForgottenIgnoreRange = 8
-        }
-
-        /// <summary>
-        /// Options for when to create spare vehicles.
-        /// </summary>
-        public enum SpareVehiclesCreation
-        {
-            /// <summary>
-            /// Never create spare vehicles.
-            /// </summary>
-            Never = 1,
-
-            /// <summary>
-            /// Create spare vehicles when service building has no free vehicles.
-            /// </summary>
-            WhenNoFree = 2,
-
-            /// <summary>
-            /// Create spare vehicles when service building is closer to target than all free vehicles.
-            /// </summary>
-            WhenBuildingIsCloser = 3
-        }
-
-        /// <summary>
         /// Gets the complete path.
         /// </summary>
         /// <value>
@@ -411,7 +277,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// </summary>
         /// <param name="allowance">The allowance.</param>
         /// <returns>The name of the allowance.</returns>
-        public static string GetAllowanceName(Allowance allowance)
+        public static string GetAllowanceName(ServiceDispatcherSettings.Allowance allowance)
         {
             return allowance.ToString();
         }
@@ -421,7 +287,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// </summary>
         /// <param name="checkOrder">The check order.</param>
         /// <returns>The display name.</returns>
-        public static string GetBuildingCheckOrderDescription(BuildingCheckOrder checkOrder)
+        public static string GetBuildingCheckOrderDescription(ServiceDispatcherSettings.BuildingCheckOrder checkOrder)
         {
             return buildingCheckOrderDescriptions.ContainsKey(checkOrder) ? buildingCheckOrderDescriptions[checkOrder] : null;
         }
@@ -431,7 +297,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// </summary>
         /// <param name="checkOrder">The check order.</param>
         /// <returns>The display name.</returns>
-        public static string GetBuildingCheckOrderName(BuildingCheckOrder checkOrder)
+        public static string GetBuildingCheckOrderName(ServiceDispatcherSettings.BuildingCheckOrder checkOrder)
         {
             return buildingCheckOrderNames.ContainsKey(checkOrder) ? buildingCheckOrderNames[checkOrder] : null;
         }
@@ -444,33 +310,33 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <returns>
         /// The building checks parameters.
         /// </returns>
-        public static BuildingCheckParameters[] GetBuildingChecksParameters(BuildingCheckOrder buildingChecks, BuildingCheckParameters[] customBuildingCheckParameters = null)
+        public static ServiceDispatcherSettings.BuildingCheckParameters[] GetBuildingChecksParameters(ServiceDispatcherSettings.BuildingCheckOrder buildingChecks, ServiceDispatcherSettings.BuildingCheckParameters[] customBuildingCheckParameters = null)
         {
             switch (buildingChecks)
             {
-                case BuildingCheckOrder.FirstFirst:
-                    return new BuildingCheckParameters[] { BuildingCheckParameters.Any };
+                case ServiceDispatcherSettings.BuildingCheckOrder.FirstFirst:
+                    return new ServiceDispatcherSettings.BuildingCheckParameters[] { ServiceDispatcherSettings.BuildingCheckParameters.Any };
 
-                case BuildingCheckOrder.InRangeFirst:
-                    return new BuildingCheckParameters[] { BuildingCheckParameters.InRange, BuildingCheckParameters.ProblematicIgnoreRange };
+                case ServiceDispatcherSettings.BuildingCheckOrder.InRangeFirst:
+                    return new ServiceDispatcherSettings.BuildingCheckParameters[] { ServiceDispatcherSettings.BuildingCheckParameters.InRange, ServiceDispatcherSettings.BuildingCheckParameters.ProblematicIgnoreRange };
 
-                case BuildingCheckOrder.ProblematicFirst:
-                    return new BuildingCheckParameters[] { BuildingCheckParameters.ProblematicInRange, BuildingCheckParameters.ProblematicIgnoreRange, BuildingCheckParameters.InRange };
+                case ServiceDispatcherSettings.BuildingCheckOrder.ProblematicFirst:
+                    return new ServiceDispatcherSettings.BuildingCheckParameters[] { ServiceDispatcherSettings.BuildingCheckParameters.ProblematicInRange, ServiceDispatcherSettings.BuildingCheckParameters.ProblematicIgnoreRange, ServiceDispatcherSettings.BuildingCheckParameters.InRange };
 
-                case BuildingCheckOrder.VeryProblematicFirst:
-                    return new BuildingCheckParameters[] { BuildingCheckParameters.VeryProblematicInRange, BuildingCheckParameters.VeryProblematicIgnoreRange, BuildingCheckParameters.InRange, BuildingCheckParameters.ProblematicIgnoreRange };
+                case ServiceDispatcherSettings.BuildingCheckOrder.VeryProblematicFirst:
+                    return new ServiceDispatcherSettings.BuildingCheckParameters[] { ServiceDispatcherSettings.BuildingCheckParameters.VeryProblematicInRange, ServiceDispatcherSettings.BuildingCheckParameters.VeryProblematicIgnoreRange, ServiceDispatcherSettings.BuildingCheckParameters.InRange, ServiceDispatcherSettings.BuildingCheckParameters.ProblematicIgnoreRange };
 
-                case BuildingCheckOrder.ForgottenFirst:
-                    return new BuildingCheckParameters[] { BuildingCheckParameters.ForgottenInRange, BuildingCheckParameters.ForgottenIgnoreRange, BuildingCheckParameters.InRange, BuildingCheckParameters.ProblematicIgnoreRange };
+                case ServiceDispatcherSettings.BuildingCheckOrder.ForgottenFirst:
+                    return new ServiceDispatcherSettings.BuildingCheckParameters[] { ServiceDispatcherSettings.BuildingCheckParameters.ForgottenInRange, ServiceDispatcherSettings.BuildingCheckParameters.ForgottenIgnoreRange, ServiceDispatcherSettings.BuildingCheckParameters.InRange, ServiceDispatcherSettings.BuildingCheckParameters.ProblematicIgnoreRange };
 
-                case BuildingCheckOrder.InRange:
-                    return new BuildingCheckParameters[] { BuildingCheckParameters.InRange, BuildingCheckParameters.ForgottenIgnoreRange };
+                case ServiceDispatcherSettings.BuildingCheckOrder.InRange:
+                    return new ServiceDispatcherSettings.BuildingCheckParameters[] { ServiceDispatcherSettings.BuildingCheckParameters.InRange, ServiceDispatcherSettings.BuildingCheckParameters.ForgottenIgnoreRange };
 
-                case Settings.BuildingCheckOrder.Custom:
-                    return (customBuildingCheckParameters != null) ? customBuildingCheckParameters : GetBuildingChecksParameters(BuildingCheckOrder.InRange);
+                case ServiceDispatcherSettings.BuildingCheckOrder.Custom:
+                    return (customBuildingCheckParameters != null) ? customBuildingCheckParameters : GetBuildingChecksParameters(ServiceDispatcherSettings.BuildingCheckOrder.InRange);
 
                 default:
-                    return GetBuildingChecksParameters(BuildingCheckOrder.FirstFirst);
+                    return GetBuildingChecksParameters(ServiceDispatcherSettings.BuildingCheckOrder.FirstFirst);
             }
         }
 
@@ -481,7 +347,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <returns>
         /// The display name.
         /// </returns>
-        public static string GetSpareVehiclesCreationDescription(SpareVehiclesCreation option)
+        public static string GetSpareVehiclesCreationDescription(ServiceDispatcherSettings.SpareVehiclesCreation option)
         {
             return spareVehiclesCreationDescriptions.ContainsKey(option) ? spareVehiclesCreationDescriptions[option] : null;
         }
@@ -493,7 +359,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <returns>
         /// The display name.
         /// </returns>
-        public static string GetSpareVehiclesCreationName(SpareVehiclesCreation option)
+        public static string GetSpareVehiclesCreationName(ServiceDispatcherSettings.SpareVehiclesCreation option)
         {
             return spareVehiclesCreationNames.ContainsKey(option) ? spareVehiclesCreationNames[option] : null;
         }
@@ -735,8 +601,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     cfg.RemoveStuckVehicles = this.RecoveryCrews.DispatchVehicles;
                     cfg.RemoveStuckVehiclesDelaySeconds = this.RecoveryCrews.DelaySeconds;
 
-                    cfg.BuildingChecksPresets = (Enum.GetValues(typeof(BuildingCheckOrder)) as BuildingCheckOrder[]).Where(bco => bco != BuildingCheckOrder.Custom).Select(bco => new ServiceDispatcherSettings.BuildingChecksPresetInfo(bco)).ToArray();
-                    cfg.BuildingChecksPossible = (Enum.GetValues(typeof(BuildingCheckParameters)) as BuildingCheckParameters[]).Where(bcp => bcp != BuildingCheckParameters.Custom).ToArray();
+                    cfg.BuildingChecksPresets = (Enum.GetValues(typeof(ServiceDispatcherSettings.BuildingCheckOrder)) as ServiceDispatcherSettings.BuildingCheckOrder[]).Where(bco => bco != ServiceDispatcherSettings.BuildingCheckOrder.Custom).Select(bco => new ServiceDispatcherSettings.BuildingChecksPresetInfo(bco)).ToArray();
+                    cfg.BuildingChecksPossible = (Enum.GetValues(typeof(ServiceDispatcherSettings.BuildingCheckParameters)) as ServiceDispatcherSettings.BuildingCheckParameters[]).Where(bcp => bcp != ServiceDispatcherSettings.BuildingCheckParameters.Custom).ToArray();
 
                     cfg.Version = this.Version;
                     cfg.SaveCount = this.SaveCount;
@@ -762,11 +628,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <param name="minGameVersion">The minimum game version.</param>
         /// <param name="maxGameVersion">The maximum game version.</param>
         /// <returns>True if allowed.</returns>
-        private bool AllowanceCheck(Allowance allowance, uint minGameVersion = 0, uint maxGameVersion = uint.MaxValue)
+        private bool AllowanceCheck(ServiceDispatcherSettings.Allowance allowance, uint minGameVersion = 0, uint maxGameVersion = uint.MaxValue)
         {
-            return allowance != Allowance.Never &&
+            return allowance != ServiceDispatcherSettings.Allowance.Never &&
                    BuildConfig.APPLICATION_VERSION >= minGameVersion &&
-                   (allowance == Allowance.Always || BuildConfig.APPLICATION_VERSION < maxGameVersion);
+                   (allowance == ServiceDispatcherSettings.Allowance.Always || BuildConfig.APPLICATION_VERSION < maxGameVersion);
         }
 
         /// <summary>
@@ -776,9 +642,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <param name="minGameVersion">The minimum game version.</param>
         /// <param name="maxGameVersion">The maximum game version.</param>
         /// <returns>The allowance description.</returns>
-        private string AllowanceText(Allowance allowance, uint minGameVersion = 0, uint maxGameVersion = uint.MaxValue)
+        private string AllowanceText(ServiceDispatcherSettings.Allowance allowance, uint minGameVersion = 0, uint maxGameVersion = uint.MaxValue)
         {
-            if (allowance == Allowance.Never)
+            if (allowance == ServiceDispatcherSettings.Allowance.Never)
             {
                 return "No (disabled)";
             }
@@ -786,7 +652,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             {
                 return "No (game version too low)";
             }
-            else if (allowance == Allowance.Always)
+            else if (allowance == ServiceDispatcherSettings.Allowance.Always)
             {
                 return "Yes (overridden)";
             }
@@ -831,300 +697,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 set
                 {
                     this.DelaySeconds = (value < 0.0) ? 0.0 : value * 60.0;
-                }
-            }
-        }
-
-        /// <summary>
-        /// Serializable settings class.
-        /// </summary>
-        [Serializable]
-        public class ServiceDispatcherSettings
-        {
-            /// <summary>
-            /// Automatic bulldoze of abandoned buildings.
-            /// </summary>
-            public bool AutoBulldozeBuildings = false;
-
-            /// <summary>
-            /// The automatic bulldoze buildings delay.
-            /// </summary>
-            public double AutoBulldozeBuildingsDelaySeconds = 5.0 * 60.0;
-
-            /// <summary>
-            /// Automatic cemetery emptying.
-            /// </summary>
-            public bool AutoEmptyCemeteries = false;
-
-            /// <summary>
-            /// The automatic empty cemetery start level percent.
-            /// </summary>
-            public uint AutoEmptyCemeteryStartLevelPercent = 95u;
-
-            /// <summary>
-            /// The automatic empty cemetery stop level percent.
-            /// </summary>
-            public uint AutoEmptyCemeteryStopLevelPercent = 5u;
-
-            /// <summary>
-            /// Automatic landfill emptying.
-            /// </summary>
-            public bool AutoEmptyLandfills = false;
-
-            /// <summary>
-            /// The automatic empty landfill start level percent.
-            /// </summary>
-            public uint AutoEmptyLandfillStartLevelPercent = 95u;
-
-            /// <summary>
-            /// The automatic empty landfill stop level percent.
-            /// </summary>
-            public uint AutoEmptyLandfillStopLevelPercent = 5u;
-
-            /// <summary>
-            /// The possible building checks.
-            /// </summary>
-            public BuildingCheckParameters[] BuildingChecksPossible = null;
-
-            /// <summary>
-            /// The possible building checks presets.
-            /// </summary>
-            public BuildingChecksPresetInfo[] BuildingChecksPresets = null;
-
-            /// <summary>
-            /// When to create spare ambulances.
-            /// </summary>
-            public SpareVehiclesCreation CreateSpareAmbulances = SpareVehiclesCreation.WhenBuildingIsCloser;
-
-            /// <summary>
-            /// When to create spare garbage trucks.
-            /// </summary>
-            public SpareVehiclesCreation CreateSpareGarbageTrucks = SpareVehiclesCreation.WhenBuildingIsCloser;
-
-            /// <summary>
-            /// When to create spare hearses.
-            /// </summary>
-            public SpareVehiclesCreation CreateSpareHearses = SpareVehiclesCreation.WhenBuildingIsCloser;
-
-            /// <summary>
-            /// The current dead people building checks.
-            /// </summary>
-            public BuildingCheckParameters[] DeathChecksCurrent = null;
-
-            /// <summary>
-            /// The custom hearse building checks.
-            /// </summary>
-            public BuildingCheckParameters[] DeathChecksCustom = null;
-
-            /// <summary>
-            /// The dead people building checks presets.
-            /// </summary>
-            public BuildingCheckOrder DeathChecksPreset = BuildingCheckOrder.InRange;
-
-            /// <summary>
-            /// Whether ambulances should be handled or not.
-            /// </summary>
-            public Boolean DispatchAmbulances = true;
-
-            /// <summary>
-            /// Whether ambulances dispatchers should care about districts or not.
-            /// </summary>
-            public bool DispatchAmbulancesByDistrict = false;
-
-            /// <summary>
-            /// Limit ambulances service buildings by range.
-            /// </summary>
-            public bool DispatchAmbulancesByRange = true;
-
-            /// <summary>
-            /// Whether the dispatch should be limited by district or not.
-            /// </summary>
-            public Boolean DispatchByDistrict = false;
-
-            /// <summary>
-            /// Limit service building range for target buildings without problems.
-            /// </summary>
-            public bool DispatchByRange = false;
-
-            /// <summary>
-            /// Whether garbage trucks should be handled or not.
-            /// </summary>
-            public Boolean DispatchGarbageTrucks = true;
-
-            /// <summary>
-            /// Whether garbage truck dispatchers should care about districts or not.
-            /// </summary>
-            public bool DispatchGarbageTrucksByDistrict = false;
-
-            /// <summary>
-            /// Limit garbage service buildings by range.
-            /// </summary>
-            public bool DispatchGarbageTrucksByRange = true;
-
-            /// <summary>
-            /// Whether hearses should be handled or not.
-            /// </summary>
-            public Boolean DispatchHearses = true;
-
-            /// <summary>
-            /// Whether hearse dispatchers should care about districts or not.
-            /// </summary>
-            public bool DispatchHearsesByDistrict = false;
-
-            /// <summary>
-            /// Limit hearse service buildings by range.
-            /// </summary>
-            public bool DispatchHearsesByRange = true;
-
-            /// <summary>
-            /// The current garbage building checks.
-            /// </summary>
-            public BuildingCheckParameters[] GarbageChecksCurrent = null;
-
-            /// <summary>
-            /// The custom garbage building checks.
-            /// </summary>
-            public BuildingCheckParameters[] GarbageChecksCustom = null;
-
-            /// <summary>
-            /// The dirty building checks presets.
-            /// </summary>
-            public BuildingCheckOrder GarbageChecksPreset = BuildingCheckOrder.InRange;
-
-            /// <summary>
-            /// Limit opportunistic garbage collection.
-            /// </summary>
-            public bool LimitOpportunisticGarbageCollection = true;
-
-            /// <summary>
-            /// The minimum amount of garbage to dispatch a truck for.
-            /// </summary>
-            public ushort MinimumGarbageForDispatch = 1500;
-
-            /// <summary>
-            /// The minimum amount of garbage to direct a patrolling truck for.
-            /// </summary>
-            public ushort MinimumGarbageForPatrol = 200;
-
-            /// <summary>
-            /// Limit building ranges.
-            /// </summary>
-            public bool RangeLimit = true;
-
-            /// <summary>
-            /// The maximum range (when limiting building ranges).
-            /// </summary>
-            public float RangeMaximum = 10000000;
-
-            /// <summary>
-            /// The minimum range (when limiting building ranges).
-            /// </summary>
-            public float RangeMinimum = 10000;
-
-            /// <summary>
-            /// The range modifier.
-            /// </summary>
-            public float RangeModifier = 1.0f;
-
-            /// <summary>
-            /// Whether code overrides are allowed or not.
-            /// </summary>
-            public Allowance ReflectionAllowance = Allowance.Default;
-
-            /// <summary>
-            /// Whether stopped ambulances should be removed from grid or not.
-            /// </summary>
-            public bool RemoveAmbulancesFromGrid = false;
-
-            /// <summary>
-            /// Whether stopped garbage trucks should be removed from grid or not.
-            /// </summary>
-            public bool RemoveGarbageTrucksFromGrid = false;
-
-            /// <summary>
-            /// Whether stopped hearses should be removed from grid or not.
-            /// </summary>
-            public bool RemoveHearsesFromGrid = false;
-
-            /// <summary>
-            /// Automatic removal of stuck vehicles.
-            /// </summary>
-            public bool RemoveStuckVehicles = false;
-
-            /// <summary>
-            /// The automatic vehicle removal delay.
-            /// </summary>
-            public double RemoveStuckVehiclesDelaySeconds = 5.0 * 60.0;
-
-            /// <summary>
-            /// The save count.
-            /// </summary>
-            public uint SaveCount = 0;
-
-            /// <summary>
-            /// The current sick people building checks.
-            /// </summary>
-            public BuildingCheckParameters[] SickChecksCurrent = null;
-
-            /// <summary>
-            /// The custom ambulance building checks.
-            /// </summary>
-            public BuildingCheckParameters[] SickChecksCustom = null;
-
-            /// <summary>
-            /// The sick people building checks presets.
-            /// </summary>
-            public BuildingCheckOrder SickChecksPreset = BuildingCheckOrder.InRange;
-
-            /// <summary>
-            /// The settings version.
-            /// </summary>
-            public int Version = 0;
-
-            /// <summary>
-            /// Building checks preset information.
-            /// </summary>
-            public class BuildingChecksPresetInfo
-            {
-                /// <summary>
-                /// The building checks.
-                /// </summary>
-                public BuildingCheckParameters[] BuildingChecks = null;
-
-                /// <summary>
-                /// The description.
-                /// </summary>
-                public string Description;
-
-                /// <summary>
-                /// The identifier.
-                /// </summary>
-                public BuildingCheckOrder Identifier;
-
-                /// <summary>
-                /// The name.
-                /// </summary>
-                public string Name;
-
-                /// <summary>
-                /// Initializes a new instance of the <see cref="BuildingChecksPresetInfo"/> class.
-                /// </summary>
-                public BuildingChecksPresetInfo()
-                {
-                    this.Identifier = BuildingCheckOrder.Custom;
-                    this.BuildingChecks = new BuildingCheckParameters[] { BuildingCheckParameters.Any };
-                }
-
-                /// <summary>
-                /// Initializes a new instance of the <see cref="BuildingChecksPresetInfo" /> class.
-                /// </summary>
-                /// <param name="buildingCheckOrder">The building check order preset.</param>
-                public BuildingChecksPresetInfo(BuildingCheckOrder buildingCheckOrder)
-                {
-                    this.Identifier = buildingCheckOrder;
-                    this.Name = GetBuildingCheckOrderName(buildingCheckOrder);
-                    this.Description = GetBuildingCheckOrderDescription(buildingCheckOrder);
-                    this.BuildingChecks = GetBuildingChecksParameters(this.Identifier);
                 }
             }
         }
@@ -1244,12 +816,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             /// <summary>
             /// The custom checks parameters.
             /// </summary>
-            public BuildingCheckParameters[] ChecksCustom = null;
+            public ServiceDispatcherSettings.BuildingCheckParameters[] ChecksCustom = null;
 
             /// <summary>
             /// The create spares option.
             /// </summary>
-            public SpareVehiclesCreation CreateSpares = SpareVehiclesCreation.WhenBuildingIsCloser;
+            public ServiceDispatcherSettings.SpareVehiclesCreation CreateSpares = ServiceDispatcherSettings.SpareVehiclesCreation.WhenBuildingIsCloser;
 
             /// <summary>
             /// The dispatch by district toggle.
@@ -1284,7 +856,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             /// <summary>
             /// The opportunistic collection limit possible value.
             /// </summary>
-            private bool? canLimitOpportunisticCollectionValue = false;
+            private bool? canLimitOpportunisticCollectionValue = null;
 
             /// <summary>
             /// The remove from grid possible value.
@@ -1294,7 +866,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             /// <summary>
             /// The checks preset settings value.
             /// </summary>
-            private BuildingCheckOrder checksPresetValue = BuildingCheckOrder.InRange;
+            private ServiceDispatcherSettings.BuildingCheckOrder checksPresetValue = ServiceDispatcherSettings.BuildingCheckOrder.InRange;
 
             /// <summary>
             /// The plural name for service buildings that can be emptied value.
@@ -1324,12 +896,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             /// <summary>
             /// The minimum amount for dispatch usability value.
             /// </summary>
-            private bool? useMinimumAmountForDispatch = false;
+            private bool? useMinimumAmountForDispatch = null;
 
             /// <summary>
             /// The minimum amount for patrol usability value.
             /// </summary>
-            private bool? useMinimumAmountForPatrol = false;
+            private bool? useMinimumAmountForPatrol = null;
 
             /// <summary>
             /// Gets or sets a value indicating whether automatic emptying should be done.
@@ -1437,7 +1009,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             /// <value>
             /// The checks parameters.
             /// </value>
-            public BuildingCheckParameters[] ChecksParameters
+            public ServiceDispatcherSettings.BuildingCheckParameters[] ChecksParameters
             {
                 get
                 {
@@ -1451,7 +1023,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             /// <value>
             /// The checks preset.
             /// </value>
-            public BuildingCheckOrder ChecksPreset
+            public ServiceDispatcherSettings.BuildingCheckOrder ChecksPreset
             {
                 get
                 {
@@ -1462,9 +1034,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 {
                     this.checksPresetValue = value;
 
-                    if (value == BuildingCheckOrder.Custom && (this.ChecksCustom == null || this.ChecksCustom.Length == 0))
+                    if (value == ServiceDispatcherSettings.BuildingCheckOrder.Custom && (this.ChecksCustom == null || this.ChecksCustom.Length == 0))
                     {
-                        this.ChecksCustom = Settings.GetBuildingChecksParameters(BuildingCheckOrder.InRange);
+                        this.ChecksCustom = Settings.GetBuildingChecksParameters(ServiceDispatcherSettings.BuildingCheckOrder.InRange);
                     }
                 }
             }

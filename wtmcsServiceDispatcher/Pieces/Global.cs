@@ -142,7 +142,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             get
             {
-                return Global.Settings.HealthCare.DispatchVehicles && Global.Settings.HealthCare.CreateSpares != Settings.SpareVehiclesCreation.Never;
+                return Global.Settings.HealthCare.DispatchVehicles && Global.Settings.HealthCare.CreateSpares != ServiceDispatcherSettings.SpareVehiclesCreation.Never;
             }
         }
 
@@ -156,7 +156,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             get
             {
-                return Global.Settings.Garbage.DispatchVehicles && Global.Settings.Garbage.CreateSpares != Settings.SpareVehiclesCreation.Never;
+                return Global.Settings.Garbage.DispatchVehicles && Global.Settings.Garbage.CreateSpares != ServiceDispatcherSettings.SpareVehiclesCreation.Never;
             }
         }
 
@@ -170,7 +170,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             get
             {
-                return Global.Settings.DeathCare.DispatchVehicles && Global.Settings.DeathCare.CreateSpares != Settings.SpareVehiclesCreation.Never;
+                return Global.Settings.DeathCare.DispatchVehicles && Global.Settings.DeathCare.CreateSpares != ServiceDispatcherSettings.SpareVehiclesCreation.Never;
             }
         }
 
@@ -184,9 +184,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             get
             {
-                return (Global.Settings.DeathCare.DispatchVehicles && Global.Settings.DeathCare.CreateSpares != Settings.SpareVehiclesCreation.Never) ||
-                       (Global.Settings.Garbage.DispatchVehicles && Global.Settings.Garbage.CreateSpares != Settings.SpareVehiclesCreation.Never) ||
-                       (Global.Settings.HealthCare.DispatchVehicles && Global.Settings.HealthCare.CreateSpares != Settings.SpareVehiclesCreation.Never);
+                return (Global.Settings.DeathCare.DispatchVehicles && Global.Settings.DeathCare.CreateSpares != ServiceDispatcherSettings.SpareVehiclesCreation.Never) ||
+                       (Global.Settings.Garbage.DispatchVehicles && Global.Settings.Garbage.CreateSpares != ServiceDispatcherSettings.SpareVehiclesCreation.Never) ||
+                       (Global.Settings.HealthCare.DispatchVehicles && Global.Settings.HealthCare.CreateSpares != ServiceDispatcherSettings.SpareVehiclesCreation.Never);
             }
         }
 

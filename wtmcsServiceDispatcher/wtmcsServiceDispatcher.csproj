@@ -77,6 +77,7 @@
     <Compile Include="Detouring\GarbageTruckAIShouldReturnToSourceDetour.cs" />
     <Compile Include="Pieces\IHandlerPart.cs" />
     <Compile Include="Pieces\Dispatcher.cs" />
+    <Compile Include="Pieces\ServiceDispatcherSettings.cs" />
     <Compile Include="Pieces\StuckVehicleInfo.cs" />
     <Compile Include="UI\ExtendedSlider.cs" />
     <Compile Include="Util\Extensions.cs" />

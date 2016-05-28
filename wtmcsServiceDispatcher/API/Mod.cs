@@ -239,7 +239,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     {
                         try
                         {
-                            foreach (Settings.Allowance allowance in Enum.GetValues(typeof(Settings.Allowance)))
+                            foreach (ServiceDispatcherSettings.Allowance allowance in Enum.GetValues(typeof(ServiceDispatcherSettings.Allowance)))
                             {
                                 if ((byte)allowance == value)
                                 {
@@ -653,8 +653,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             try
             {
-                // Add cemetery group.
-                UIHelperBase group = helper.AddGroup(settings.EmptiableServiceBuildingNamePlural);
+                UIHelperBase group = helper.AddGroup(settings.VehicleNamePlural);
 
                 if (canService)
                 {
@@ -751,39 +750,41 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         });
                 }
 
-                if (settings.CanLimitOpportunisticCollection &&
-                    (settings.OpportunisticCollectionLimitDetour == Detours.Methods.None || Detours.CanDetour(settings.OpportunisticCollectionLimitDetour)))
+                if (settings.CanLimitOpportunisticCollection)
                 {
-                    group.AddCheckbox(
-                        "Prioritize assigned buildings",
-                        settings.LimitOpportunisticCollection,
-                        value =>
-                        {
-                            try
+                    if (settings.OpportunisticCollectionLimitDetour == Detours.Methods.None || Detours.CanDetour(settings.OpportunisticCollectionLimitDetour))
+                    {
+                        group.AddCheckbox(
+                            "Prioritize assigned buildings",
+                            settings.LimitOpportunisticCollection,
+                            value =>
                             {
-                                if (settings.LimitOpportunisticCollection != value)
+                                try
                                 {
-                                    settings.LimitOpportunisticCollection = value;
-                                    Detours.InitNeeded = true;
-                                    Global.Settings.Save();
+                                    if (settings.LimitOpportunisticCollection != value)
+                                    {
+                                        settings.LimitOpportunisticCollection = value;
+                                        Detours.InitNeeded = true;
+                                        Global.Settings.Save();
+                                    }
                                 }
-                            }
-                            catch (Exception ex)
+                                catch (Exception ex)
+                                {
+                                    Log.Error(this, "OnSettingsUI", ex, "GarbageGroup", "LimitOpportunisticGarbageCollection", value);
+                                    Log.Error(this, "CreateServiceGroup", ex, settings.VehicleNamePlural, "LimitOpportunisticCollection");
+                                }
+                            });
+                    }
+                    else
+                    {
+                        UIComponent limitOpportunisticGarbageCollectionCheckBox = group.AddCheckbox(
+                            "Prioritize assigned buildings",
+                            false,
+                            value =>
                             {
-                                Log.Error(this, "OnSettingsUI", ex, "GarbageGroup", "LimitOpportunisticGarbageCollection", value);
-                                Log.Error(this, "CreateServiceGroup", ex, settings.VehicleNamePlural, "LimitOpportunisticCollection");
-                            }
-                        });
-                }
-                else
-                {
-                    UIComponent limitOpportunisticGarbageCollectionCheckBox = group.AddCheckbox(
-                        "Prioritize assigned buildings",
-                        false,
-                        value =>
-                        {
-                        }) as UIComponent;
-                    limitOpportunisticGarbageCollectionCheckBox.Disable();
+                            }) as UIComponent;
+                        limitOpportunisticGarbageCollectionCheckBox.Disable();
+                    }
                 }
 
                 group.AddDropdown(
@@ -799,7 +800,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                                 Log.Debug(this, "CreateServiceGroup", "Set", settings.VehicleNamePlural, "CreateSpares", value);
                             }
 
-                            foreach (Settings.SpareVehiclesCreation option in Enum.GetValues(typeof(Settings.SpareVehiclesCreation)))
+                            foreach (ServiceDispatcherSettings.SpareVehiclesCreation option in Enum.GetValues(typeof(ServiceDispatcherSettings.SpareVehiclesCreation)))
                             {
                                 if ((byte)option == value)
                                 {
@@ -850,7 +851,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                                 Log.Debug(this, "CreateServiceGroup", "Set", settings.VehicleNamePlural, "ChecksPreset", value);
                             }
 
-                            foreach (Settings.BuildingCheckOrder checks in Enum.GetValues(typeof(Settings.BuildingCheckOrder)))
+                            foreach (ServiceDispatcherSettings.BuildingCheckOrder checks in Enum.GetValues(typeof(ServiceDispatcherSettings.BuildingCheckOrder)))
                             {
                                 if ((byte)checks == value)
                                 {
@@ -992,7 +993,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             if (this.targetBuildingChecks == null)
             {
                 this.targetBuildingChecks = new Dictionary<byte, string>();
-                foreach (Settings.BuildingCheckOrder checks in Enum.GetValues(typeof(Settings.BuildingCheckOrder)))
+                foreach (ServiceDispatcherSettings.BuildingCheckOrder checks in Enum.GetValues(typeof(ServiceDispatcherSettings.BuildingCheckOrder)))
                 {
                     if (Log.LogALot || Library.IsDebugBuild)
                     {
@@ -1012,7 +1013,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             if (this.vehicleCreationOptions == null)
             {
                 this.vehicleCreationOptions = new Dictionary<byte, string>();
-                foreach (Settings.SpareVehiclesCreation option in Enum.GetValues(typeof(Settings.SpareVehiclesCreation)))
+                foreach (ServiceDispatcherSettings.SpareVehiclesCreation option in Enum.GetValues(typeof(ServiceDispatcherSettings.SpareVehiclesCreation)))
                 {
                     string name = Settings.GetSpareVehiclesCreationName(option);
                     if (String.IsNullOrEmpty(name))
@@ -1027,7 +1028,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             if (this.allowances == null)
             {
                 this.allowances = new Dictionary<byte, string>();
-                foreach (Settings.Allowance allowance in Enum.GetValues(typeof(Settings.Allowance)))
+                foreach (ServiceDispatcherSettings.Allowance allowance in Enum.GetValues(typeof(ServiceDispatcherSettings.Allowance)))
                 {
                     string name = Settings.GetAllowanceName(allowance);
                     if (String.IsNullOrEmpty(name))
