@@ -71,6 +71,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         };
 
         /// <summary>
+        /// The SetTarget call compatibility mode.
+        /// </summary>
+        public ServiceDispatcherSettings.ModCompatibilityMode AssignmentCompatibilityMode = ServiceDispatcherSettings.ModCompatibilityMode.UseOriginalClassMethods;
+
+        /// <summary>
         /// Limit building ranges.
         /// </summary>
         public bool RangeLimit = false;
@@ -128,6 +133,26 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         };
 
         /// <summary>
+        /// The mod compatibility mode descriptions.
+        /// </summary>
+        private static Dictionary<ServiceDispatcherSettings.ModCompatibilityMode, string> modCompatibilityModeDescriptions = new Dictionary<ServiceDispatcherSettings.ModCompatibilityMode, string>()
+        {
+            { ServiceDispatcherSettings.ModCompatibilityMode.UseCustomCode, "Uses custom assigment code. Bypasses original and modded code." },
+            { ServiceDispatcherSettings.ModCompatibilityMode.UseOriginalClassMethods, "Calls the games original AI, including methods detoured by other mods" },
+            { ServiceDispatcherSettings.ModCompatibilityMode.UseInstanciatedClassMethods, "Use current AI, including AI completely overriden by other mod. " }
+        };
+
+        /// <summary>
+        /// The mod compatibility mode names.
+        /// </summary>
+        private static Dictionary<ServiceDispatcherSettings.ModCompatibilityMode, string> modCompatibilityModeNames = new Dictionary<ServiceDispatcherSettings.ModCompatibilityMode, string>()
+        {
+            { ServiceDispatcherSettings.ModCompatibilityMode.UseCustomCode, "Bypass AI" },
+            { ServiceDispatcherSettings.ModCompatibilityMode.UseOriginalClassMethods, "Use original AI" },
+            { ServiceDispatcherSettings.ModCompatibilityMode.UseInstanciatedClassMethods, "Use current AI" }
+        };
+
+        /// <summary>
         /// The descriptions for the vehicle creation options.
         /// </summary>
         private static Dictionary<ServiceDispatcherSettings.SpareVehiclesCreation, string> spareVehiclesCreationDescriptions = new Dictionary<ServiceDispatcherSettings.SpareVehiclesCreation, string>()
@@ -167,6 +192,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 this.RangeMaximum = settings.RangeMaximum;
                 this.RangeMinimum = settings.RangeMinimum;
                 this.ReflectionAllowance = settings.ReflectionAllowance;
+                this.AssignmentCompatibilityMode = settings.AssignmentCompatibilityMode;
 
                 this.DeathCare.DispatchVehicles = settings.DispatchHearses;
                 this.DeathCare.DispatchByDistrict = settings.DispatchHearsesByDistrict;
@@ -289,7 +315,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <returns>The display name.</returns>
         public static string GetBuildingCheckOrderDescription(ServiceDispatcherSettings.BuildingCheckOrder checkOrder)
         {
-            return buildingCheckOrderDescriptions.ContainsKey(checkOrder) ? buildingCheckOrderDescriptions[checkOrder] : null;
+            string description;
+            return buildingCheckOrderDescriptions.TryGetValue(checkOrder, out description) ? description : null;
         }
 
         /// <summary>
@@ -299,7 +326,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <returns>The display name.</returns>
         public static string GetBuildingCheckOrderName(ServiceDispatcherSettings.BuildingCheckOrder checkOrder)
         {
-            return buildingCheckOrderNames.ContainsKey(checkOrder) ? buildingCheckOrderNames[checkOrder] : null;
+            string name;
+            return buildingCheckOrderNames.TryGetValue(checkOrder, out name) ? name : checkOrder.ToString();
         }
 
         /// <summary>
@@ -341,6 +369,17 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Gets the name of the mod compatibility mode.
+        /// </summary>
+        /// <param name="modCompatibilityMode">The mod compatibility mode.</param>
+        /// <returns>The name of the mod compatibility mode.</returns>
+        public static string GetModCompatibilityModeName(ServiceDispatcherSettings.ModCompatibilityMode modCompatibilityMode)
+        {
+            string name;
+            return modCompatibilityModeNames.TryGetValue(modCompatibilityMode, out name) ? name : modCompatibilityMode.ToString();
+        }
+
+        /// <summary>
         /// Gets the display name of the vehicle creation option.
         /// </summary>
         /// <param name="option">The option.</param>
@@ -349,7 +388,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// </returns>
         public static string GetSpareVehiclesCreationDescription(ServiceDispatcherSettings.SpareVehiclesCreation option)
         {
-            return spareVehiclesCreationDescriptions.ContainsKey(option) ? spareVehiclesCreationDescriptions[option] : null;
+            string description;
+            return spareVehiclesCreationDescriptions.TryGetValue(option, out description) ? description : null;
         }
 
         /// <summary>
@@ -361,7 +401,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// </returns>
         public static string GetSpareVehiclesCreationName(ServiceDispatcherSettings.SpareVehiclesCreation option)
         {
-            return spareVehiclesCreationNames.ContainsKey(option) ? spareVehiclesCreationNames[option] : null;
+            string name;
+            return spareVehiclesCreationNames.TryGetValue(option, out name) ? name : option.ToString();
         }
 
         /// <summary>
@@ -458,6 +499,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             Log.Debug(this, "LogSettings", "RangeModifier", this.RangeModifier);
             Log.Debug(this, "LogSettings", "RangeMinimum", this.RangeMinimum);
             Log.Debug(this, "LogSettings", "RangeMaximum", this.RangeMaximum);
+
+            Log.Debug(this, "LogSettings", "ReflectionAllowance", this.ReflectionAllowance);
+            Log.Debug(this, "LogSettings", "SetTargetCallCompatibilityMode", this.AssignmentCompatibilityMode);
 
             Log.Debug(this, "LogSettings", "DispatchHearses", this.DeathCare.DispatchVehicles);
             Log.Debug(this, "LogSettings", "DispatchHearsesByDistrict", this.DeathCare.DispatchByDistrict);
@@ -559,6 +603,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     cfg.RangeMaximum = this.RangeMaximum;
                     cfg.RangeMinimum = this.RangeMinimum;
                     cfg.ReflectionAllowance = this.ReflectionAllowance;
+                    cfg.AssignmentCompatibilityMode = this.AssignmentCompatibilityMode;
 
                     cfg.DispatchHearses = this.DeathCare.DispatchVehicles;
                     cfg.DispatchHearsesByDistrict = this.DeathCare.DispatchByDistrict;

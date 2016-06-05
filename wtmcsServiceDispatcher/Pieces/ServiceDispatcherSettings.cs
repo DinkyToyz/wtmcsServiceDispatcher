@@ -9,6 +9,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
     public class ServiceDispatcherSettings
     {
         /// <summary>
+        /// The SetTarget call compatibility mode.
+        /// </summary>
+        public ServiceDispatcherSettings.ModCompatibilityMode AssignmentCompatibilityMode = ServiceDispatcherSettings.ModCompatibilityMode.UseOriginalClassMethods;
+
+        /// <summary>
         /// Automatic bulldoze of abandoned buildings.
         /// </summary>
         public bool AutoBulldozeBuildings = false;
@@ -359,6 +364,27 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             /// Forgotten buildings in or out of range.
             /// </summary>
             ForgottenIgnoreRange = 8
+        }
+
+        /// <summary>
+        /// Setting for mod compatibility for object method calls.
+        /// </summary>
+        public enum ModCompatibilityMode
+        {
+            /// <summary>
+            /// Use CSD custom code instead of object methods.
+            /// </summary>
+            UseCustomCode = 0,
+
+            /// <summary>
+            /// Cast object as original class before calling method.
+            /// </summary>
+            UseOriginalClassMethods = 1,
+
+            /// <summary>
+            /// Call method on instantiated object in the normal way.
+            /// </summary>
+            UseInstanciatedClassMethods = 2
         }
 
         /// <summary>

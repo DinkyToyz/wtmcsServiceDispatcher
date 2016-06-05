@@ -672,7 +672,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     {
                         Vehicle[] vehicles = Singleton<VehicleManager>.instance.m_vehicles.m_buffer;
 
-                        if (!foundVehicleBuilding.Vehicles[foundVehicleId].SetTarget(targetBuilding.BuildingId, ref vehicles[foundVehicleId]))
+                        if (!foundVehicleBuilding.Vehicles[foundVehicleId].SetTarget(targetBuilding.BuildingId, ref vehicles[foundVehicleId], (TransferManager.TransferReason)this.TransferType))
                         {
                             // The vehicle failed to find a path to the target.
                             Log.Debug("AssignVehicle", "SetTarget", "Failed", targetBuilding.BuildingId, foundVehicleBuilding.BuildingId, foundVehicleBuilding.VehiclesSpare, foundVehicleId, foundVehicleDistance, vehicles[foundVehicleId].m_flags);

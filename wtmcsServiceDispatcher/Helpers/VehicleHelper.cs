@@ -28,6 +28,69 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public const Vehicle.Flags VehicleUnavailable = Vehicle.Flags.WaitingPath | Vehicle.Flags.WaitingSpace | Vehicle.Flags.WaitingLoading | Vehicle.Flags.Deleted;
 
         /// <summary>
+        /// Assigns target to vehicle.
+        /// </summary>
+        /// <param name="vehicleId">The vehicle identifier.</param>
+        /// <param name="vehicle">The vehicle.</param>
+        /// <param name="material">The material.</param>
+        /// <param name="targetBuildingId">The target building identifier.</param>
+        /// <param name="targetCitizenId">The target citizen identifier.</param>
+        /// <returns>
+        /// True on success.
+        /// </returns>
+        /// <exception cref="System.InvalidOperationException">
+        /// Ambulances must use citizen assignment
+        /// or
+        /// Material must be specified.
+        /// </exception>
+        /// <exception cref="System.NotImplementedException">Ambulance dispatching not fully implemented yet.</exception>
+        public static bool AssignTarget(ushort vehicleId, ref Vehicle vehicle, TransferManager.TransferReason? material, ushort targetBuildingId, uint targetCitizenId)
+        {
+            return VehicleHelper.SetTarget(vehicleId, ref vehicle, targetBuildingId, targetCitizenId);
+
+            if (targetBuildingId == 0 && targetCitizenId == 0)
+            {
+                return VehicleHelper.SetTarget(vehicleId, ref vehicle, targetBuildingId, targetCitizenId);
+            }
+
+            if (vehicle.Info.m_vehicleAI is AmbulanceAI && targetCitizenId == 0)
+            {
+                throw new InvalidOperationException("Ambulances must use citizen assignment");
+            }
+
+            if (Global.Settings.AssignmentCompatibilityMode == ServiceDispatcherSettings.ModCompatibilityMode.UseCustomCode || !Global.EnableExperiments)
+            {
+                if (vehicle.Info.m_vehicleAI is AmbulanceAI)
+                {
+                    throw new NotImplementedException("Ambulance dispatching not fully implemented yet");
+                }
+
+                return VehicleHelper.SetTarget(vehicleId, ref vehicle, targetBuildingId, targetCitizenId);
+            }
+
+            if (material == null || !material.HasValue)
+            {
+                if (vehicle.Info.m_vehicleAI is HearseAI)
+                {
+                    material = TransferManager.TransferReason.Dead;
+                }
+                else if (vehicle.Info.m_vehicleAI is GarbageTruckAI)
+                {
+                    material = TransferManager.TransferReason.Garbage;
+                }
+                else if (vehicle.Info.m_vehicleAI is AmbulanceAI)
+                {
+                    material = TransferManager.TransferReason.Sick;
+                }
+                else
+                {
+                    throw new InvalidOperationException("Material must be specified");
+                }
+            }
+            return VehicleHelper.StartTransfer(vehicleId, ref vehicle, material.Value, targetBuildingId, targetCitizenId);
+        }
+
+        /// <summary>
         /// Creates the service vehicle.
         /// </summary>
         /// <param name="serviceBuilding">The service building.</param>
@@ -123,7 +186,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             info.m_vehicleAI.SetSource(vehicleId, ref manager.m_vehicles.m_buffer[vehicleId], serviceBuildingId);
 
-            if (targetBuildingId != 0 && !SetTarget(vehicleId, targetBuildingId))
+            if (targetBuildingId != 0 && !AssignTarget(vehicleId, ref manager.m_vehicles.m_buffer[vehicleId], material, targetBuildingId, 0))
             {
                 Log.Debug(typeof(VehicleKeeper), "CreateVehicle", "SetTarget", "target not set");
                 return null;
@@ -450,103 +513,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
-        /// Sets the vehicles' target.
-        /// </summary>
-        /// <param name="vehicleId">The vehicle identifier.</param>
-        /// <param name="targetBuildingId">The target building identifier.</param>
-        /// <returns>True if target set and path to target found.</returns>
-        public static bool SetTarget(ushort vehicleId, ushort targetBuildingId)
-        {
-            return SetTarget(vehicleId, ref Singleton<VehicleManager>.instance.m_vehicles.m_buffer[vehicleId], targetBuildingId);
-        }
-
-        /// <summary>
-        /// Sets the vehicles' target.
-        /// </summary>
-        /// <param name="vehicleId">The vehicle identifier.</param>
-        /// <param name="vehicle">The vehicle.</param>
-        /// <param name="targetBuildingId">The target building identifier.</param>
-        /// <returns>
-        /// True if target set and path to target found.
-        /// </returns>
-        public static bool SetTarget(ushort vehicleId, ref Vehicle vehicle, ushort targetBuildingId)
-        {
-            try
-            {
-                if (Log.LogALot && Log.LogToFile)
-                {
-                    Log.DevDebug(typeof(VehicleHelper), "SetTarget", vehicleId, targetBuildingId, vehicle.m_targetBuilding, vehicle.m_flags);
-                }
-
-                if (targetBuildingId != 0)
-                {
-                    vehicle.m_flags &= ~Vehicle.Flags.GoingBack;
-                }
-
-                vehicle.Info.m_vehicleAI.SetTarget(vehicleId, ref vehicle, targetBuildingId);
-
-                return (vehicle.m_flags & VehicleHelper.VehicleExists) != Vehicle.Flags.None;
-            }
-            catch (Exception ex)
-            {
-                Log.Error(typeof(VehicleHelper), "SetTarget", ex);
-                return false;
-            }
-        }
-
-        /// <summary>
-        /// Starts the transfer.
-        /// </summary>
-        /// <param name="vehicleId">The vehicle identifier.</param>
-        /// <param name="vehicle">The vehicle.</param>
-        /// <param name="material">The material.</param>
-        /// <param name="targetBuildingId">The target building identifier.</param>
-        /// <param name="targetCitizenId">The target citizen identifier.</param>
-        /// <returns>True on success.</returns>
-        public static bool StartTransfer(ushort vehicleId, ref Vehicle vehicle, TransferManager.TransferReason material, ushort targetBuildingId, uint targetCitizenId)
-        {
-            if (vehicle.Info.m_vehicleAI is AmbulanceAI && targetCitizenId == 0)
-            {
-                return VehicleHelper.SetTarget(vehicleId, targetBuildingId);
-            }
-
-            TransferManager.TransferOffer offer = new TransferManager.TransferOffer()
-            {
-                Building = targetBuildingId,
-                Citizen = targetCitizenId,
-            };
-
-            vehicle.m_flags &= ~Vehicle.Flags.GoingBack;
-            vehicle.m_flags |= Vehicle.Flags.WaitingTarget;
-
-            // Cast AI as games original AI so detoured methods are called, but not methods from not replaced classes.
-            if (!Global.Settings.AllowReflection())
-            {
-                vehicle.Info.m_vehicleAI.StartTransfer(vehicleId, ref vehicle, material, offer);
-            }
-            if (vehicle.Info.m_vehicleAI is HearseAI)
-            {
-                ((HearseAI)vehicle.Info.m_vehicleAI.CastTo<HearseAI>()).StartTransfer(vehicleId, ref vehicle, material, offer);
-            }
-            else if (vehicle.Info.m_vehicleAI is GarbageTruckAI)
-            {
-                ((GarbageTruckAI)vehicle.Info.m_vehicleAI.CastTo<GarbageTruckAI>()).StartTransfer(vehicleId, ref vehicle, material, offer);
-            }
-            else if (vehicle.Info.m_vehicleAI is AmbulanceAI)
-            {
-                ((AmbulanceAI)vehicle.Info.m_vehicleAI.CastTo<AmbulanceAI>()).StartTransfer(vehicleId, ref vehicle, material, offer);
-            }
-            else
-            {
-                vehicle.Info.m_vehicleAI.StartTransfer(vehicleId, ref vehicle, material, offer);
-            }
-
-            Citizen[] citizens = Singleton<CitizenManager>.instance.m_citizens.m_buffer;
-
-            return vehicle.m_targetBuilding == targetBuildingId && (targetCitizenId == 0 || citizens[targetCitizenId].m_vehicle == vehicleId);
-        }
-
-        /// <summary>
         /// Collects vehicle debug information.
         /// </summary>
         /// <param name="vehicles">The vehicles.</param>
@@ -722,6 +688,110 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             {
                 Log.DevDebug(typeof(VehicleKeeper), "DebugListLog", DebugInfoMsg(vehicles, buildings, vehicleId).ToString());
             }
+        }
+
+        /// <summary>
+        /// Sets the vehicles' target.
+        /// </summary>
+        /// <param name="vehicleId">The vehicle identifier.</param>
+        /// <param name="vehicle">The vehicle.</param>
+        /// <param name="targetBuildingId">The target building identifier.</param>
+        /// <param name="targetCitizenId">The target citizen identifier.</param>
+        /// <returns>
+        /// True if target set and path to target found.
+        /// </returns>
+        private static bool SetTarget(ushort vehicleId, ref Vehicle vehicle, ushort targetBuildingId, uint targetCitizenId = 0)
+        {
+            try
+            {
+                if (Log.LogALot && Log.LogToFile)
+                {
+                    Log.DevDebug(typeof(VehicleHelper), "SetTarget", vehicleId, targetBuildingId, targetCitizenId, vehicle.m_targetBuilding, vehicle.m_flags);
+                }
+
+                if (targetCitizenId != 0)
+                {
+                    ushort targetCitizenBuildingId = Singleton<CitizenManager>.instance.m_citizens.m_buffer[targetCitizenId].GetBuildingByLocation();
+
+                    if (targetBuildingId == 0)
+                    {
+                        targetBuildingId = targetCitizenBuildingId;
+                    }
+                    else if (targetCitizenBuildingId != targetBuildingId)
+                    {
+                        Log.Warning(typeof(VehicleHelper), "SetTarget", "Target citizen location not same as target building", targetBuildingId, targetCitizenBuildingId);
+                        return false;
+                    }
+                }
+
+                if (targetBuildingId != 0)
+                {
+                    vehicle.m_flags &= ~Vehicle.Flags.GoingBack;
+                }
+
+                vehicle.Info.m_vehicleAI.SetTarget(vehicleId, ref vehicle, targetBuildingId);
+                if (targetCitizenId == 0)
+                {
+                    return (vehicle.m_flags & VehicleHelper.VehicleExists) != Vehicle.Flags.None;
+                }
+                else
+                {
+                    Citizen[] citizens = Singleton<CitizenManager>.instance.m_citizens.m_buffer;
+                    citizens[targetCitizenId].SetVehicle(targetCitizenId, vehicleId, 0);
+
+                    return (vehicle.m_flags & VehicleHelper.VehicleExists) == Vehicle.Flags.None && citizens[targetCitizenId].m_vehicle == vehicleId;
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error(typeof(VehicleHelper), "SetTarget", ex);
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Starts the transfer.
+        /// </summary>
+        /// <param name="vehicleId">The vehicle identifier.</param>
+        /// <param name="vehicle">The vehicle.</param>
+        /// <param name="material">The material.</param>
+        /// <param name="targetBuildingId">The target building identifier.</param>
+        /// <param name="targetCitizenId">The target citizen identifier.</param>
+        /// <returns>True on success.</returns>
+        private static bool StartTransfer(ushort vehicleId, ref Vehicle vehicle, TransferManager.TransferReason material, ushort targetBuildingId, uint targetCitizenId)
+        {
+            TransferManager.TransferOffer offer = new TransferManager.TransferOffer()
+            {
+                Building = targetBuildingId,
+                Citizen = targetCitizenId,
+            };
+
+            vehicle.m_flags &= ~Vehicle.Flags.GoingBack;
+            vehicle.m_flags |= Vehicle.Flags.WaitingTarget;
+
+            // Cast AI as games original AI so detoured methods are called, but not methods from not replaced classes.
+            if (Global.Settings.AssignmentCompatibilityMode != ServiceDispatcherSettings.ModCompatibilityMode.UseInstanciatedClassMethods || !Global.Settings.AllowReflection())
+            {
+                vehicle.Info.m_vehicleAI.StartTransfer(vehicleId, ref vehicle, material, offer);
+            }
+            else if (vehicle.Info.m_vehicleAI is HearseAI)
+            {
+                ((HearseAI)vehicle.Info.m_vehicleAI.CastTo<HearseAI>()).StartTransfer(vehicleId, ref vehicle, material, offer);
+            }
+            else if (vehicle.Info.m_vehicleAI is GarbageTruckAI)
+            {
+                ((GarbageTruckAI)vehicle.Info.m_vehicleAI.CastTo<GarbageTruckAI>()).StartTransfer(vehicleId, ref vehicle, material, offer);
+            }
+            else if (vehicle.Info.m_vehicleAI is AmbulanceAI)
+            {
+                ((AmbulanceAI)vehicle.Info.m_vehicleAI.CastTo<AmbulanceAI>()).StartTransfer(vehicleId, ref vehicle, material, offer);
+            }
+            else
+            {
+                vehicle.Info.m_vehicleAI.StartTransfer(vehicleId, ref vehicle, material, offer);
+            }
+
+            return vehicle.m_targetBuilding == targetBuildingId && (targetCitizenId == 0 || Singleton<CitizenManager>.instance.m_citizens.m_buffer[targetCitizenId].m_vehicle == vehicleId);
         }
     }
 }

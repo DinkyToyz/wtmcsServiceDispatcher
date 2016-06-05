@@ -266,8 +266,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// </summary>
         /// <param name="targetBuildingId">The target building identifier.</param>
         /// <param name="vehicle">The vehicle.</param>
-        /// <returns>True if target set vehicle found path the target.</returns>
-        public bool SetTarget(ushort targetBuildingId, ref Vehicle vehicle)
+        /// <param name="material">The material.</param>
+        /// <returns>
+        /// True if target set vehicle found path the target.
+        /// </returns>
+        public bool SetTarget(ushort targetBuildingId, ref Vehicle vehicle, TransferManager.TransferReason? material)
         {
             if (targetBuildingId == 0)
             {
@@ -284,7 +287,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 Log.DevDebug(this, "SetTarget", this.VehicleId, targetBuildingId, this.Target, vehicle.m_targetBuilding, vehicle.m_flags);
             }
 
-            if (VehicleHelper.SetTarget(this.VehicleId, ref vehicle, targetBuildingId))
+            if (VehicleHelper.AssignTarget(this.VehicleId, ref vehicle, material, targetBuildingId, 0))
             {
                 this.LastAssigned = Global.CurrentFrame;
                 this.FreeToCollect = false;

@@ -18,6 +18,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         private Dictionary<byte, string> allowances = null;
 
         /// <summary>
+        /// The allowances.
+        /// </summary>
+        private Dictionary<byte, string> modCompatibilityModes = null;
+
+        /// <summary>
         /// The target building check strings for dropdown.
         /// </summary>
         private Dictionary<byte, string> targetBuildingChecks = null;
@@ -230,6 +235,42 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             try
             {
                 UIHelperBase group = helper.AddGroup("Advanced");
+
+                if (Global.EnableExperiments)
+                {
+                    group.AddDropdown(
+                        "Assigment compatibility mode",
+                        this.modCompatibilityModes.OrderBy(a => a.Key).Select(compatibilityMode => compatibilityMode.Value).ToArray(),
+                        (int)Global.Settings.AssignmentCompatibilityMode,
+                        value =>
+                        {
+                            try
+                            {
+                                foreach (ServiceDispatcherSettings.ModCompatibilityMode compatibilityMode in Enum.GetValues(typeof(ServiceDispatcherSettings.ModCompatibilityMode)))
+                                {
+                                    if ((byte)compatibilityMode == value)
+                                    {
+                                        if (compatibilityMode != Global.Settings.AssignmentCompatibilityMode)
+                                        {
+                                            if (Log.LogALot || Library.IsDebugBuild)
+                                            {
+                                                Log.Debug(this, "CreateAdvancedGroup", "Set", "AssigmentCompatibilityMode", value);
+                                            }
+
+                                            Global.Settings.AssignmentCompatibilityMode = compatibilityMode;
+                                            Global.Settings.Save();
+                                        }
+
+                                        break;
+                                    }
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                Log.Error(this, "CreateAdvancedGroup", ex, "AssigmentCompatibilityMode", value);
+                            }
+                        });
+                }
 
                 group.AddDropdown(
                     "Allow Code Overrides",
@@ -1000,13 +1041,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         Log.Debug(this, "OnSettingsUI", "Init", "BuildingCheckOrder", (byte)checks, checks, Settings.GetBuildingCheckOrderName(checks));
                     }
 
-                    string name = Settings.GetBuildingCheckOrderName(checks);
-                    if (String.IsNullOrEmpty(name))
-                    {
-                        name = checks.ToString();
-                    }
-
-                    this.targetBuildingChecks.Add((byte)checks, name);
+                    this.targetBuildingChecks.Add((byte)checks, Settings.GetBuildingCheckOrderName(checks));
                 }
             }
 
@@ -1015,13 +1050,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 this.vehicleCreationOptions = new Dictionary<byte, string>();
                 foreach (ServiceDispatcherSettings.SpareVehiclesCreation option in Enum.GetValues(typeof(ServiceDispatcherSettings.SpareVehiclesCreation)))
                 {
-                    string name = Settings.GetSpareVehiclesCreationName(option);
-                    if (String.IsNullOrEmpty(name))
-                    {
-                        name = option.ToString();
-                    }
-
-                    this.vehicleCreationOptions.Add((byte)option, name);
+                    this.vehicleCreationOptions.Add((byte)option, Settings.GetSpareVehiclesCreationName(option));
                 }
             }
 
@@ -1030,13 +1059,16 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 this.allowances = new Dictionary<byte, string>();
                 foreach (ServiceDispatcherSettings.Allowance allowance in Enum.GetValues(typeof(ServiceDispatcherSettings.Allowance)))
                 {
-                    string name = Settings.GetAllowanceName(allowance);
-                    if (String.IsNullOrEmpty(name))
-                    {
-                        name = allowance.ToString();
-                    }
+                    this.allowances.Add((byte)allowance, Settings.GetAllowanceName(allowance));
+                }
+            }
 
-                    this.allowances.Add((byte)allowance, name);
+            if (this.modCompatibilityModes == null)
+            {
+                this.modCompatibilityModes = new Dictionary<byte, string>();
+                foreach (ServiceDispatcherSettings.ModCompatibilityMode compatibilityMode in Enum.GetValues(typeof(ServiceDispatcherSettings.ModCompatibilityMode)))
+                {
+                    this.modCompatibilityModes.Add((byte)compatibilityMode, Settings.GetModCompatibilityModeName(compatibilityMode));
                 }
             }
         }
