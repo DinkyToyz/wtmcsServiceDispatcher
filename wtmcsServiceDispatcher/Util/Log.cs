@@ -589,7 +589,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// Opens the log file.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>The open log file writer.</returns>
         private static StreamWriter OpenLogFile()
         {
             string filePathName = FileSystem.FilePathName(".log");
