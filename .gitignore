@@ -16,6 +16,9 @@ bld/
 [Bb]in/
 [Oo]bj/
 
+# Visual Studio 2015 cache/options directory
+.vs/
+
 # Roslyn cache directories
 *.ide/
 
@@ -187,3 +190,9 @@ FakesAssemblies/
 GeneratedArtifacts/
 _Pvt_Extensions/
 ModelManifest.xml
+
+# Paket dependency manager
+.paket/paket.exe
+
+# FAKE - F# Make
+.fake/
