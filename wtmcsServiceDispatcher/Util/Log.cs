@@ -303,7 +303,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 {
                     try
                     {
-                        using (StreamWriter logFile = new StreamWriter(FileSystem.FilePathName(".log"), logFileCreated))
+                        using (StreamWriter logFile = OpenLogFile())
                         {
                             if (Log.logALot)
                                 lineBuffer.Add((DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") + " Flush\n").ConformNewlines());
@@ -556,7 +556,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         }
                         else
                         {
-                            using (StreamWriter logFile = new StreamWriter(FileSystem.FilePathName(".log"), logFileCreated))
+                            using (StreamWriter logFile = OpenLogFile())
                             {
                                 logFile.Write(msg.ConformNewlines());
                                 logFile.Close();
@@ -584,6 +584,22 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public static void Warning(object sourceObject, string sourceBlock, params object[] messages)
         {
             Output(Level.Warning, sourceObject, sourceBlock, null, messages);
+        }
+
+        /// <summary>
+        /// Opens the log file.
+        /// </summary>
+        /// <returns></returns>
+        private static StreamWriter OpenLogFile()
+        {
+            string filePathName = FileSystem.FilePathName(".log");
+            string filePath = Path.GetDirectoryName(filePathName);
+            if (!Directory.Exists(filePath))
+            {
+                Directory.CreateDirectory(filePath);
+            }
+
+            return new StreamWriter(filePathName, logFileCreated);
         }
 
         /// <summary>
