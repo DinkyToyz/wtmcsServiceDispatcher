@@ -86,7 +86,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
-        /// Copied from original game code at game version 1.2.2 f3.
+        /// Copied from original game code at game version 1.5.0-f4.
         /// </summary>
         /// <param name="garbageTruckAI">The garbage truck AI.</param>
         /// <param name="vehicleID">The vehicle identifier.</param>
@@ -119,7 +119,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 return false;
             }
 
-            if (vehicle.m_targetBuilding == 0 && (vehicle.m_flags & Vehicle.Flags.TransferToTarget) == Vehicle.Flags.None && (vehicle.m_flags & Vehicle.Flags.TransferToSource) == Vehicle.Flags.None)
+            if (vehicle.m_targetBuilding == 0 && (vehicle.m_flags & Vehicle.Flags.TransferToTarget) == ~Vehicle.Flags.All && (vehicle.m_flags & Vehicle.Flags.TransferToSource) == ~Vehicle.Flags.All)
             {
                 BuildingManager instance = Singleton<BuildingManager>.instance;
                 if (instance.m_buildings.m_buffer[vehicle.m_sourceBuilding].m_fireIntensity == 0)

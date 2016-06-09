@@ -106,25 +106,25 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <returns>True if ambulance is confused.</returns>
         private static bool AmbulanceConfused(ref Vehicle data)
         {
-            // From AmbulanceAI.GetLocalizedStatus from original game code at version 1.4.0-f3.
-            if ((data.m_flags & Vehicle.Flags.GoingBack) != Vehicle.Flags.None)
+            // From AmbulanceAI.GetLocalizedStatus from original game code at version 1.5.0-f4.
+            if ((data.m_flags & Vehicle.Flags.GoingBack) != ~Vehicle.Flags.All)
             {
                 ////if ((int)data.m_transferSize == 0)
                 ////{
-                ////target = InstanceID.Empty;
-                ////return Locale.Get("VEHICLE_STATUS_AMBULANCE_RETURN_EMPTY");
+                ////    target = InstanceID.Empty;
+                ////    return Locale.Get("VEHICLE_STATUS_AMBULANCE_RETURN_EMPTY");
                 ////}
                 ////target = InstanceID.Empty;
                 ////return Locale.Get("VEHICLE_STATUS_AMBULANCE_RETURN_FULL");
                 return false;
             }
-            if ((data.m_flags & Vehicle.Flags.WaitingTarget) != Vehicle.Flags.None)
+            if ((data.m_flags & Vehicle.Flags.WaitingTarget) != ~Vehicle.Flags.All)
             {
                 ////target = InstanceID.Empty;
                 ////return Locale.Get("VEHICLE_STATUS_AMBULANCE_WAIT");
                 return false;
             }
-            if ((data.m_flags & Vehicle.Flags.Emergency2) != Vehicle.Flags.None && (int)data.m_targetBuilding != 0)
+            if ((data.m_flags & Vehicle.Flags.Emergency2) != ~Vehicle.Flags.All && (int)data.m_targetBuilding != 0)
             {
                 ////target = InstanceID.Empty;
                 ////target.Building = data.m_targetBuilding;
@@ -143,14 +143,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <returns>True if bus is confused.</returns>
         private static bool BusConfused(ref Vehicle data)
         {
-            // From BusAI.GetLocalizedStatus from original game code at version 1.4.1-f2.
-            if ((data.m_flags & Vehicle.Flags.Stopped) != Vehicle.Flags.None)
+            // From BusAI.GetLocalizedStatus from original game code at version 1.5.0-f4.
+            if ((data.m_flags & Vehicle.Flags.Stopped) != ~Vehicle.Flags.All)
             {
                 ////target = InstanceID.Empty;
                 ////return Locale.Get("VEHICLE_STATUS_BUS_STOPPED");
                 return false;
             }
-            if ((data.m_flags & Vehicle.Flags.GoingBack) != Vehicle.Flags.None)
+            if ((data.m_flags & Vehicle.Flags.GoingBack) != ~Vehicle.Flags.All)
             {
                 ////target = InstanceID.Empty;
                 ////return Locale.Get("VEHICLE_STATUS_BUS_RETURN");
@@ -174,14 +174,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <returns>True if cargo ship is confused.</returns>
         private static bool CargoShipConfused(ref Vehicle data)
         {
-            // From CargoShipAI.GetLocalizedStatus from original game code at version 1.4.1-f2.
-            if ((data.m_flags & Vehicle.Flags.WaitingCargo) != Vehicle.Flags.None)
+            // From CargoShipAI.GetLocalizedStatus from original game code at version 1.5.0-f4.
+            if ((data.m_flags & Vehicle.Flags.WaitingCargo) != ~Vehicle.Flags.All)
             {
                 ////target = InstanceID.Empty;
                 ////return Locale.Get("VEHICLE_STATUS_CARGOSHIP_LOADING");
                 return false;
             }
-            if ((data.m_flags & Vehicle.Flags.GoingBack) != Vehicle.Flags.None)
+            if ((data.m_flags & Vehicle.Flags.GoingBack) != ~Vehicle.Flags.All)
             {
                 ////target = InstanceID.Empty;
                 ////return Locale.Get("VEHICLE_STATUS_CARGOTRUCK_RETURN");
@@ -206,14 +206,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <returns>True if cargo train is confused.</returns>
         private static bool CargoTrainConfused(ref Vehicle data)
         {
-            // From CargoTrainAI.GetLocalizedStatus from original game code at version 1.4.1-f2.
-            if ((data.m_flags & Vehicle.Flags.WaitingCargo) != Vehicle.Flags.None)
+            // From CargoTrainAI.GetLocalizedStatus from original game code at version 1.5.0-f4.
+            if ((data.m_flags & Vehicle.Flags.WaitingCargo) != ~Vehicle.Flags.All)
             {
                 ////target = InstanceID.Empty;
                 ////return Locale.Get("VEHICLE_STATUS_CARGOTRAIN_LOADING");
                 return false;
             }
-            if ((data.m_flags & Vehicle.Flags.GoingBack) != Vehicle.Flags.None)
+            if ((data.m_flags & Vehicle.Flags.GoingBack) != ~Vehicle.Flags.All)
             {
                 ////target = InstanceID.Empty;
                 ////return Locale.Get("VEHICLE_STATUS_CARGOTRUCK_RETURN");
@@ -238,17 +238,17 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <returns>True if cargo truck is confused.</returns>
         private static bool CargoTruckConfused(ref Vehicle data)
         {
-            // From CargoTruckAI.GetLocalizedStatus from original game code at version 1.4.1-f2.
-            if ((data.m_flags & Vehicle.Flags.TransferToTarget) != Vehicle.Flags.None)
+            // From CargoTruckAI.GetLocalizedStatus from original game code at version 1.5.0-f4.
+            if ((data.m_flags & Vehicle.Flags.TransferToTarget) != ~Vehicle.Flags.All)
             {
                 ushort num = data.m_targetBuilding;
-                if ((data.m_flags & Vehicle.Flags.GoingBack) != Vehicle.Flags.None)
+                if ((data.m_flags & Vehicle.Flags.GoingBack) != ~Vehicle.Flags.All)
                 {
                     ////target = InstanceID.Empty;
                     ////return Locale.Get("VEHICLE_STATUS_CARGOTRUCK_RETURN");
                     return false;
                 }
-                if ((data.m_flags & Vehicle.Flags.WaitingTarget) != Vehicle.Flags.None)
+                if ((data.m_flags & Vehicle.Flags.WaitingTarget) != ~Vehicle.Flags.All)
                 {
                     ////target = InstanceID.Empty;
                     ////return Locale.Get("VEHICLE_STATUS_CARGOTRUCK_UNLOAD");
@@ -258,12 +258,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 {
                     ////Building.Flags flags = Singleton<BuildingManager>.instance.m_buildings.m_buffer[(int)num].m_flags;
                     ////TransferManager.TransferReason transferReason = (TransferManager.TransferReason)data.m_transferType;
-                    ////if ((data.m_flags & Vehicle.Flags.Exporting) != Vehicle.Flags.None || (flags & Building.Flags.IncomingOutgoing) != Building.Flags.None)
+                    ////if ((data.m_flags & Vehicle.Flags.Exporting) != ~Vehicle.Flags.All || (flags & Building.Flags.IncomingOutgoing) != Building.Flags.None)
                     ////{
                     ////    target = InstanceID.Empty;
                     ////    return Locale.Get("VEHICLE_STATUS_CARGOTRUCK_EXPORT", transferReason.ToString());
                     ////}
-                    ////if ((data.m_flags & Vehicle.Flags.Importing) != Vehicle.Flags.None)
+                    ////if ((data.m_flags & Vehicle.Flags.Importing) != ~Vehicle.Flags.All)
                     ////{
                     ////    target = InstanceID.Empty;
                     ////    target.Building = num;
@@ -287,30 +287,30 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <returns>True if passenger car is confused.</returns>
         private static bool FireTruckConfused(ref Vehicle data)
         {
-            // From FireTruckAI.GetLocalizedStatus from original game code at version 1.4.1-f2.
-            if ((data.m_flags & Vehicle.Flags.GoingBack) != Vehicle.Flags.None)
+            // From FireTruckAI.GetLocalizedStatus from original game code at version 1.5.0-f4.
+            if ((data.m_flags & Vehicle.Flags.GoingBack) != ~Vehicle.Flags.All)
             {
                 ////target = InstanceID.Empty;
                 ////return Locale.Get("VEHICLE_STATUS_FIRETRUCK_RETURN");
                 return false;
             }
-            if ((data.m_flags & Vehicle.Flags.WaitingTarget) != Vehicle.Flags.None)
+            if ((data.m_flags & Vehicle.Flags.WaitingTarget) != ~Vehicle.Flags.All)
             {
                 ////target = InstanceID.Empty;
                 ////return Locale.Get("VEHICLE_STATUS_FIRETRUCK_WAIT");
                 return false;
             }
-            if ((data.m_flags & Vehicle.Flags.Emergency2) != Vehicle.Flags.None)
+            if ((data.m_flags & Vehicle.Flags.Emergency2) != ~Vehicle.Flags.All)
             {
                 if ((int)data.m_targetBuilding != 0)
                 {
                     ////target = InstanceID.Empty;
                     ////target.Building = data.m_targetBuilding;
                     ////return Locale.Get("VEHICLE_STATUS_FIRETRUCK_EMERGENCY");
-                    return false;
                 }
+                return false;
             }
-            else if ((data.m_flags & Vehicle.Flags.Emergency1) != Vehicle.Flags.None && (int)data.m_targetBuilding != 0)
+            else if ((data.m_flags & Vehicle.Flags.Emergency1) != ~Vehicle.Flags.All && (int)data.m_targetBuilding != 0)
             {
                 ////target = InstanceID.Empty;
                 ////return Locale.Get("VEHICLE_STATUS_FIRETRUCK_EXTINGUISH");
@@ -328,32 +328,32 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <returns>True if garbage truck is confused.</returns>
         private static bool GarbageTruckConfused(ref Vehicle data)
         {
-            // From GarbageTruckAI.GetLocalizedStatus from original game code at version 1.4.0-f3.
-            if ((data.m_flags & Vehicle.Flags.TransferToSource) != Vehicle.Flags.None)
+            // From GarbageTruckAI.GetLocalizedStatus from original game code at version 1.5.0-f4.
+            if ((data.m_flags & Vehicle.Flags.TransferToSource) != ~Vehicle.Flags.All)
             {
-                ////if ((data.m_flags & Vehicle.Flags.GoingBack) != Vehicle.Flags.None)
+                ////if ((data.m_flags & Vehicle.Flags.GoingBack) != ~Vehicle.Flags.All)
                 ////{
-                ////target = InstanceID.Empty;
-                ////return Locale.Get("VEHICLE_STATUS_GARBAGE_RETURN");
+                ////    target = InstanceID.Empty;
+                ////    return Locale.Get("VEHICLE_STATUS_GARBAGE_RETURN");
                 ////}
-                ////if ((data.m_flags & Vehicle.Flags.WaitingTarget) != Vehicle.Flags.None)
+                ////if ((data.m_flags & Vehicle.Flags.WaitingTarget) != ~Vehicle.Flags.All)
                 ////{
-                ////target = InstanceID.Empty;
-                ////return Locale.Get("VEHICLE_STATUS_GARBAGE_WAIT");
+                ////    target = InstanceID.Empty;
+                ////    return Locale.Get("VEHICLE_STATUS_GARBAGE_WAIT");
                 ////}
                 ////target = InstanceID.Empty;
                 ////return Locale.Get("VEHICLE_STATUS_GARBAGE_COLLECT");
                 return false;
             }
-            if ((data.m_flags & Vehicle.Flags.TransferToTarget) != Vehicle.Flags.None)
+            if ((data.m_flags & Vehicle.Flags.TransferToTarget) != ~Vehicle.Flags.All)
             {
-                if ((data.m_flags & Vehicle.Flags.GoingBack) != Vehicle.Flags.None)
+                if ((data.m_flags & Vehicle.Flags.GoingBack) != ~Vehicle.Flags.All)
                 {
                     ////target = InstanceID.Empty;
                     ////return Locale.Get("VEHICLE_STATUS_GARBAGE_RETURN");
                     return false;
                 }
-                if ((data.m_flags & Vehicle.Flags.WaitingTarget) != Vehicle.Flags.None)
+                if ((data.m_flags & Vehicle.Flags.WaitingTarget) != ~Vehicle.Flags.All)
                 {
                     ////target = InstanceID.Empty;
                     ////return Locale.Get("VEHICLE_STATUS_GARBAGE_UNLOAD");
@@ -379,16 +379,16 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <returns>True if hearse is confused.</returns>
         private static bool HearseConfused(ref Vehicle data)
         {
-            // From HearseAI.GetLocalizedStatus from original game code at version 1.4.0-f3.
-            if ((data.m_flags & Vehicle.Flags.TransferToSource) != Vehicle.Flags.None)
+            // From HearseAI.GetLocalizedStatus from original game code at version 1.5.0-f4.
+            if ((data.m_flags & Vehicle.Flags.TransferToSource) != ~Vehicle.Flags.All)
             {
-                if ((data.m_flags & (Vehicle.Flags.Stopped | Vehicle.Flags.WaitingTarget)) != Vehicle.Flags.None)
+                if ((data.m_flags & (Vehicle.Flags.Stopped | Vehicle.Flags.WaitingTarget)) != ~Vehicle.Flags.All)
                 {
                     ////target = InstanceID.Empty;
                     ////return Locale.Get("VEHICLE_STATUS_HEARSE_WAIT");
                     return false;
                 }
-                if ((data.m_flags & Vehicle.Flags.GoingBack) != Vehicle.Flags.None)
+                if ((data.m_flags & Vehicle.Flags.GoingBack) != ~Vehicle.Flags.All)
                 {
                     ////target = InstanceID.Empty;
                     ////return Locale.Get("VEHICLE_STATUS_HEARSE_RETURN");
@@ -402,15 +402,15 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     return false;
                 }
             }
-            else if ((data.m_flags & Vehicle.Flags.TransferToTarget) != Vehicle.Flags.None)
+            else if ((data.m_flags & Vehicle.Flags.TransferToTarget) != ~Vehicle.Flags.All)
             {
-                if ((data.m_flags & Vehicle.Flags.GoingBack) != Vehicle.Flags.None)
+                if ((data.m_flags & Vehicle.Flags.GoingBack) != ~Vehicle.Flags.All)
                 {
                     ////target = InstanceID.Empty;
                     ////return Locale.Get("VEHICLE_STATUS_HEARSE_RETURN");
                     return false;
                 }
-                if ((data.m_flags & Vehicle.Flags.WaitingTarget) != Vehicle.Flags.None)
+                if ((data.m_flags & Vehicle.Flags.WaitingTarget) != ~Vehicle.Flags.All)
                 {
                     ////target = InstanceID.Empty;
                     ////return Locale.Get("VEHICLE_STATUS_HEARSE_UNLOAD");
@@ -436,14 +436,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <returns>True if metro is confused.</returns>
         private static bool MetroTrainConfused(ref Vehicle data)
         {
-            // From MetroTrainAI.GetLocalizedStatus from original game code at version 1.4.1-f2.
-            if ((data.m_flags & Vehicle.Flags.Stopped) != Vehicle.Flags.None)
+            // From MetroTrainAI.GetLocalizedStatus from original game code at version 1.5.0-f4.
+            if ((data.m_flags & Vehicle.Flags.Stopped) != ~Vehicle.Flags.All)
             {
                 ////target = InstanceID.Empty;
                 ////return Locale.Get("VEHICLE_STATUS_METRO_STOPPED");
                 return false;
             }
-            if ((data.m_flags & Vehicle.Flags.GoingBack) != Vehicle.Flags.None)
+            if ((data.m_flags & Vehicle.Flags.GoingBack) != ~Vehicle.Flags.All)
             {
                 ////target = InstanceID.Empty;
                 ////return Locale.Get("VEHICLE_STATUS_METRO_RETURN");
@@ -469,13 +469,13 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// </returns>
         private static bool PassengerCarConfused(ref Vehicle data)
         {
-            // From PassengerCarAI.GetLocalizedStatus from original game code at version 1.4.1-f2.
+            // From PassengerCarAI.GetLocalizedStatus from original game code at version 1.5.0-f4.
             CitizenManager instance = Singleton<CitizenManager>.instance;
-            ushort driverInstance = PassengerCarDriverInstance(ref data);
+            ushort driverInstance = ConfusionHelper.PassengerCarDriverInstance(ref data);
             ushort num1 = (ushort)0;
             if ((int)driverInstance != 0)
             {
-                if ((data.m_flags & Vehicle.Flags.Parking) != Vehicle.Flags.None)
+                if ((data.m_flags & Vehicle.Flags.Parking) != ~Vehicle.Flags.All)
                 {
                     uint num2 = instance.m_instances.m_buffer[(int)driverInstance].m_citizen;
                     if ((int)num2 != 0 && (int)instance.m_citizens.m_buffer[num2].m_parkedVehicle != 0)
@@ -491,8 +491,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             {
                 ////if ((Singleton<BuildingManager>.instance.m_buildings.m_buffer[(int)num1].m_flags & Building.Flags.IncomingOutgoing) != Building.Flags.None)
                 ////{
-                ////target = InstanceID.Empty;
-                ////return Locale.Get("VEHICLE_STATUS_LEAVING");
+                ////    target = InstanceID.Empty;
+                ////    return Locale.Get("VEHICLE_STATUS_LEAVING");
                 ////}
                 ////target = InstanceID.Empty;
                 ////target.Building = num1;
@@ -545,32 +545,32 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <returns>True if plane is confused.</returns>
         private static bool PassengerPlaneConfused(ref Vehicle data)
         {
-            // From PassengerPlaneAI.GetLocalizedStatus from original game code at version 1.4.1-f2.
-            if ((data.m_flags & Vehicle.Flags.Stopped) != Vehicle.Flags.None)
+            // From PassengerPlaneAI.GetLocalizedStatus from original game code at version 1.5.0-f4.
+            if ((data.m_flags & Vehicle.Flags.Stopped) != ~Vehicle.Flags.All)
             {
                 ////target = InstanceID.Empty;
                 ////return Locale.Get("VEHICLE_STATUS_AIRPLANE_BOARDING");
                 return false;
             }
-            if ((data.m_flags & Vehicle.Flags.Landing) != Vehicle.Flags.None)
+            if ((data.m_flags & Vehicle.Flags.Landing) != ~Vehicle.Flags.All)
             {
                 ////target = InstanceID.Empty;
                 ////return Locale.Get("VEHICLE_STATUS_AIRPLANE_LANDING");
                 return false;
             }
-            if ((data.m_flags & Vehicle.Flags.TakingOff) != Vehicle.Flags.None)
+            if ((data.m_flags & Vehicle.Flags.TakingOff) != ~Vehicle.Flags.All)
             {
                 ////target = InstanceID.Empty;
                 ////return Locale.Get("VEHICLE_STATUS_AIRPLANE_TAKING_OFF");
                 return false;
             }
-            if ((data.m_flags & Vehicle.Flags.Flying) == Vehicle.Flags.None)
+            if ((data.m_flags & Vehicle.Flags.Flying) == ~Vehicle.Flags.All)
             {
                 ////target = InstanceID.Empty;
                 ////return Locale.Get("VEHICLE_STATUS_AIRPLANE_TAXIING");
                 return false;
             }
-            if ((data.m_flags & Vehicle.Flags.GoingBack) != Vehicle.Flags.None)
+            if ((data.m_flags & Vehicle.Flags.GoingBack) != ~Vehicle.Flags.All)
             {
                 ////target = InstanceID.Empty;
                 ////return Locale.Get("VEHICLE_STATUS_CARGOTRUCK_RETURN");
@@ -578,14 +578,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             }
             if ((int)data.m_targetBuilding != 0)
             {
-                if ((data.m_flags & Vehicle.Flags.DummyTraffic) != Vehicle.Flags.None)
+                if ((data.m_flags & Vehicle.Flags.DummyTraffic) != ~Vehicle.Flags.All)
                 {
                     ////target = InstanceID.Empty;
                     ////target.Building = data.m_targetBuilding;
                     ////return Locale.Get("VEHICLE_STATUS_AIRPLANE_FLYING");
                     return false;
                 }
-                ushort buildingID = Singleton<BuildingManager>.instance.FindBuilding(Singleton<NetManager>.instance.m_nodes.m_buffer[(int)data.m_targetBuilding].m_position, 128f, data.Info.m_vehicleAI.m_info.m_class.m_service, data.Info.m_vehicleAI.m_info.m_class.m_subService, Building.Flags.None, Building.Flags.None);
+                ushort buildingID = Singleton<BuildingManager>.instance.FindBuilding(Singleton<NetManager>.instance.m_nodes.m_buffer[(int)data.m_targetBuilding].m_position, 128f, data.Info.m_class.m_service, data.Info.m_class.m_subService, Building.Flags.None, Building.Flags.None);
                 if ((int)buildingID != 0)
                 {
                     ////ushort parentBuilding = Building.FindParentBuilding(buildingID);
@@ -609,14 +609,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <returns>True if passenger ship is confused.</returns>
         private static bool PassengerShipConfused(ref Vehicle data)
         {
-            // From PassengerShipAI.GetLocalizedStatus from original game code at version 1.4.1-f2.
-            if ((data.m_flags & Vehicle.Flags.Stopped) != Vehicle.Flags.None)
+            // From PassengerShipAI.GetLocalizedStatus from original game code at version 1.5.0-f4.
+            if ((data.m_flags & Vehicle.Flags.Stopped) != ~Vehicle.Flags.All)
             {
                 ////target = InstanceID.Empty;
                 ////return Locale.Get("VEHICLE_STATUS_PASSENGERSHIP_STOPPED");
                 return false;
             }
-            if ((data.m_flags & Vehicle.Flags.GoingBack) != Vehicle.Flags.None)
+            if ((data.m_flags & Vehicle.Flags.GoingBack) != ~Vehicle.Flags.All)
             {
                 ////target = InstanceID.Empty;
                 ////return Locale.Get("VEHICLE_STATUS_CARGOTRUCK_RETURN");
@@ -624,17 +624,17 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             }
             if ((int)data.m_targetBuilding != 0)
             {
-                if ((data.m_flags & Vehicle.Flags.DummyTraffic) != Vehicle.Flags.None)
+                if ((data.m_flags & Vehicle.Flags.DummyTraffic) != ~Vehicle.Flags.All)
                 {
                     ////target = InstanceID.Empty;
                     ////target.Building = data.m_targetBuilding;
                     ////return Locale.Get("VEHICLE_STATUS_PASSENGERSHIP_TRANSPORT");
                     return false;
                 }
-                ushort buildingID = Singleton<BuildingManager>.instance.FindBuilding(Singleton<NetManager>.instance.m_nodes.m_buffer[(int)data.m_targetBuilding].m_position, 128f, data.Info.m_vehicleAI.m_info.m_class.m_service, data.Info.m_vehicleAI.m_info.m_class.m_subService, Building.Flags.None, Building.Flags.None);
+                ushort buildingID = Singleton<BuildingManager>.instance.FindBuilding(Singleton<NetManager>.instance.m_nodes.m_buffer[(int)data.m_targetBuilding].m_position, 128f, data.Info.m_class.m_service, data.Info.m_class.m_subService, Building.Flags.None, Building.Flags.None);
                 if ((int)buildingID != 0)
                 {
-                    ushort parentBuilding = Building.FindParentBuilding(buildingID);
+                    ////ushort parentBuilding = Building.FindParentBuilding(buildingID);
                     ////if ((int)parentBuilding != 0)
                     ////    buildingID = parentBuilding;
                     ////target = InstanceID.Empty;
@@ -655,14 +655,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <returns>True if passenger train is confused.</returns>
         private static bool PassengerTrainConfused(ref Vehicle data)
         {
-            // From PassengerTrainAI.GetLocalizedStatus from original game code at version 1.4.1-f2.
-            if ((data.m_flags & Vehicle.Flags.Stopped) != Vehicle.Flags.None)
+            // From PassengerTrainAI.GetLocalizedStatus from original game code at version 1.5.0-f4.
+            if ((data.m_flags & Vehicle.Flags.Stopped) != ~Vehicle.Flags.All)
             {
                 ////target = InstanceID.Empty;
                 ////return Locale.Get("VEHICLE_STATUS_PASSENGERTRAIN_STOPPED");
                 return false;
             }
-            if ((data.m_flags & Vehicle.Flags.GoingBack) != Vehicle.Flags.None)
+            if ((data.m_flags & Vehicle.Flags.GoingBack) != ~Vehicle.Flags.All)
             {
                 ////target = InstanceID.Empty;
                 ////return Locale.Get("VEHICLE_STATUS_PASSENGERTRAIN_RETURN");
@@ -676,14 +676,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             }
             if ((int)data.m_targetBuilding != 0)
             {
-                if ((data.m_flags & Vehicle.Flags.DummyTraffic) != Vehicle.Flags.None)
+                if ((data.m_flags & Vehicle.Flags.DummyTraffic) != ~Vehicle.Flags.All)
                 {
                     ////target = InstanceID.Empty;
                     ////target.Building = data.m_targetBuilding;
                     ////return Locale.Get("VEHICLE_STATUS_PASSENGERTRAIN_TRANSPORT");
                     return false;
                 }
-                ushort buildingID = Singleton<BuildingManager>.instance.FindBuilding(Singleton<NetManager>.instance.m_nodes.m_buffer[(int)data.m_targetBuilding].m_position, 128f, data.Info.m_vehicleAI.m_info.m_class.m_service, data.Info.m_vehicleAI.m_info.m_class.m_subService, Building.Flags.None, Building.Flags.None);
+                ushort buildingID = Singleton<BuildingManager>.instance.FindBuilding(Singleton<NetManager>.instance.m_nodes.m_buffer[(int)data.m_targetBuilding].m_position, 128f, data.Info.m_class.m_service, data.Info.m_class.m_subService, Building.Flags.None, Building.Flags.None);
                 if ((int)buildingID != 0)
                 {
                     ////ushort parentBuilding = Building.FindParentBuilding(buildingID);
@@ -707,16 +707,16 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <returns>True if police car is confused.</returns>
         private static bool PoliceCarConfused(ref Vehicle data)
         {
-            // From PoliceCarAI.GetLocalizedStatus from original game code at version 1.4.1-f2.
-            if (data.Info.m_vehicleAI.m_info.m_class.m_level >= ItemClass.Level.Level4)
+            // From PoliceCarAI.GetLocalizedStatus from original game code at version 1.5.0-f4.
+            if (data.Info.m_class.m_level >= ItemClass.Level.Level4)
             {
-                if ((data.m_flags & Vehicle.Flags.GoingBack) != Vehicle.Flags.None)
+                if ((data.m_flags & Vehicle.Flags.GoingBack) != ~Vehicle.Flags.All)
                 {
                     ////target = InstanceID.Empty;
                     ////return Locale.Get("VEHICLE_STATUS_PRISON_RETURN");
                     return false;
                 }
-                if ((data.m_flags & (Vehicle.Flags.Stopped | Vehicle.Flags.WaitingTarget)) != Vehicle.Flags.None)
+                if ((data.m_flags & (Vehicle.Flags.Stopped | Vehicle.Flags.WaitingTarget)) != ~Vehicle.Flags.All)
                 {
                     ////target = InstanceID.Empty;
                     ////return Locale.Get("VEHICLE_STATUS_PRISON_WAIT");
@@ -733,21 +733,21 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 ////return Locale.Get("VEHICLE_STATUS_CONFUSED");
                 return true;
             }
-            if ((data.m_flags & Vehicle.Flags.GoingBack) != Vehicle.Flags.None)
+            if ((data.m_flags & Vehicle.Flags.GoingBack) != ~Vehicle.Flags.All)
             {
                 ////target = InstanceID.Empty;
                 ////return Locale.Get("VEHICLE_STATUS_POLICE_RETURN");
                 return false;
             }
-            if ((data.m_flags & Vehicle.Flags.Stopped) != Vehicle.Flags.None)
+            if ((data.m_flags & Vehicle.Flags.Stopped) != ~Vehicle.Flags.All)
             {
                 ////target = InstanceID.Empty;
                 ////return Locale.Get("VEHICLE_STATUS_POLICE_STOPPED");
                 return false;
             }
-            if ((data.m_flags & Vehicle.Flags.WaitingTarget) != Vehicle.Flags.None)
+            if ((data.m_flags & Vehicle.Flags.WaitingTarget) != ~Vehicle.Flags.All)
             {
-                ////if ((data.m_flags & Vehicle.Flags.Leaving) != Vehicle.Flags.None)
+                ////if ((data.m_flags & Vehicle.Flags.Leaving) != ~Vehicle.Flags.All)
                 ////{
                 ////    target = InstanceID.Empty;
                 ////    return Locale.Get("VEHICLE_STATUS_POLICE_STOP_WAIT");
@@ -756,14 +756,15 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 ////return Locale.Get("VEHICLE_STATUS_POLICE_PATROL_WAIT");
                 return false;
             }
-            if ((data.m_flags & Vehicle.Flags.Emergency2) != Vehicle.Flags.None)
+            if ((data.m_flags & Vehicle.Flags.Emergency2) != ~Vehicle.Flags.All)
             {
-                ////if ((int)data.m_targetBuilding != 0)
-                ////{
-                ////    target = InstanceID.Empty;
-                ////    target.Building = data.m_targetBuilding;
-                ////    return Locale.Get("VEHICLE_STATUS_POLICE_EMERGENCY");
-                ////}
+                if ((int)data.m_targetBuilding != 0)
+                {
+                    ////target = InstanceID.Empty;
+                    ////target.Building = data.m_targetBuilding;
+                    ////return Locale.Get("VEHICLE_STATUS_POLICE_EMERGENCY");
+                    return false;
+                }
                 ////target = InstanceID.Empty;
                 ////return Locale.Get("VEHICLE_STATUS_CONFUSED");
                 return true;
@@ -999,34 +1000,32 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <returns>True if snow truck is confused.</returns>
         private static bool SnowTruckConfused(ref Vehicle data)
         {
-            // From SnowTruckAI.GetLocalizedStatus from original game code at version 1.4.1-f2.
-            if ((data.m_flags & Vehicle.Flags.TransferToSource) != Vehicle.Flags.None)
+            // From SnowTruckAI.GetLocalizedStatus from original game code at version 1.5.0-f4.
+            if ((data.m_flags & Vehicle.Flags.TransferToSource) != ~Vehicle.Flags.All)
             {
-                ////if ((data.m_flags & Vehicle.Flags.GoingBack) != Vehicle.Flags.None)
+                ////if ((data.m_flags & Vehicle.Flags.GoingBack) != ~Vehicle.Flags.All)
                 ////{
                 ////    target = InstanceID.Empty;
                 ////    return Locale.Get("VEHICLE_STATUS_SNOW_RETURN");
-                ////    return false;
                 ////}
-                ////if ((data.m_flags & Vehicle.Flags.WaitingTarget) != Vehicle.Flags.None)
+                ////if ((data.m_flags & Vehicle.Flags.WaitingTarget) != ~Vehicle.Flags.All)
                 ////{
                 ////    target = InstanceID.Empty;
                 ////    return Locale.Get("VEHICLE_STATUS_SNOW_WAIT");
-                ////    return false;
                 ////}
                 ////target = InstanceID.Empty;
                 ////return Locale.Get("VEHICLE_STATUS_SNOW_COLLECT");
                 return false;
             }
-            if ((data.m_flags & Vehicle.Flags.TransferToTarget) != Vehicle.Flags.None)
+            if ((data.m_flags & Vehicle.Flags.TransferToTarget) != ~Vehicle.Flags.All)
             {
-                if ((data.m_flags & Vehicle.Flags.GoingBack) != Vehicle.Flags.None)
+                if ((data.m_flags & Vehicle.Flags.GoingBack) != ~Vehicle.Flags.All)
                 {
                     ////target = InstanceID.Empty;
                     ////return Locale.Get("VEHICLE_STATUS_SNOW_RETURN");
                     return false;
                 }
-                if ((data.m_flags & Vehicle.Flags.WaitingTarget) != Vehicle.Flags.None)
+                if ((data.m_flags & Vehicle.Flags.WaitingTarget) != ~Vehicle.Flags.All)
                 {
                     ////target = InstanceID.Empty;
                     ////return Locale.Get("VEHICLE_STATUS_SNOW_UNLOAD");
@@ -1052,8 +1051,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <returns>True if taxi is confused.</returns>
         private static bool TaxiConfused(ref Vehicle data)
         {
-            // From TaxiAI.GetLocalizedStatus from original game code at version 1.4.1-f2.
-            ushort passengerInstance = TaxiGetPassengerInstance(ref data);
+            // From TaxiAI.GetLocalizedStatus from original game code at version 1.5.0-f4.
+            ushort passengerInstance = ConfusionHelper.TaxiGetPassengerInstance(ref data);
             if ((int)passengerInstance != 0)
             {
                 ////if ((Singleton<CitizenManager>.instance.m_instances.m_buffer[(int)passengerInstance].m_flags & CitizenInstance.Flags.Character) != CitizenInstance.Flags.None)
@@ -1067,13 +1066,13 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 ////return Locale.Get("VEHICLE_STATUS_TAXI_TRANSPORTING");
                 return false;
             }
-            if ((data.m_flags & Vehicle.Flags.WaitingTarget) != Vehicle.Flags.None)
+            if ((data.m_flags & Vehicle.Flags.WaitingTarget) != ~Vehicle.Flags.All)
             {
                 ////target = InstanceID.Empty;
                 ////return Locale.Get("VEHICLE_STATUS_TAXI_PLANNING");
                 return false;
             }
-            if ((data.m_flags & Vehicle.Flags.GoingBack) != Vehicle.Flags.None)
+            if ((data.m_flags & Vehicle.Flags.GoingBack) != ~Vehicle.Flags.All)
             {
                 ////target = InstanceID.Empty;
                 ////return Locale.Get("VEHICLE_STATUS_TAXI_RETURN");
@@ -1081,7 +1080,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             }
             if ((int)data.m_targetBuilding != 0)
             {
-                ////if ((data.m_flags & Vehicle.Flags.WaitingCargo) != Vehicle.Flags.None)
+                ////if ((data.m_flags & Vehicle.Flags.WaitingCargo) != ~Vehicle.Flags.All)
                 ////{
                 ////    target = InstanceID.Empty;
                 ////    return Locale.Get("VEHICLE_STATUS_TAXI_WAIT");
@@ -1232,14 +1231,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <returns>True if tram is confused.</returns>
         private static bool TramConfused(ref Vehicle data)
         {
-            // From TramAI.GetLocalizedStatus from original game code at version 1.4.1-f2.
-            if ((data.m_flags & Vehicle.Flags.Stopped) != Vehicle.Flags.None)
+            // From TramAI.GetLocalizedStatus from original game code at version 1.5.0-f4.
+            if ((data.m_flags & Vehicle.Flags.Stopped) != ~Vehicle.Flags.All)
             {
                 ////target = InstanceID.Empty;
                 ////return Locale.Get("VEHICLE_STATUS_TRAM_STOPPED");
                 return false;
             }
-            if ((data.m_flags & Vehicle.Flags.GoingBack) != Vehicle.Flags.None)
+            if ((data.m_flags & Vehicle.Flags.GoingBack) != ~Vehicle.Flags.All)
             {
                 ////target = InstanceID.Empty;
                 ////return Locale.Get("VEHICLE_STATUS_TRAM_RETURN");
