@@ -242,7 +242,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             bool targetSet = SetTarget(vehicleId, ref vehicle, 0);
 
-            if ((vehicle.m_flags & Vehicle.Flags.WaitingTarget) != Vehicle.Flags.None)
+            if ((vehicle.m_flags & Vehicle.Flags.WaitingTarget) != ~Vehicle.Flags.All)
             {
                 Global.TransferOffersCleaningNeeded = true;
 
@@ -379,7 +379,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 for (ushort id = 0; id < vehicles.Length; id++)
                 {
-                    if (vehicles[id].m_flags != Vehicle.Flags.None && vehicles[id].m_leadingVehicle == 0)
+                    if ((vehicles[id].m_flags & Vehicle.Flags.All) != ~Vehicle.Flags.All && vehicles[id].m_leadingVehicle == 0)
                     {
                         listed.Add(id);
                         vehicleList.Add(DebugInfoMsg(vehicles, buildings, id, true).ToString());
@@ -406,7 +406,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 for (ushort id = 0; id < vehicles.Length; id++)
                 {
-                    if (!listed.Contains(id) && vehicles[id].m_flags != Vehicle.Flags.None)
+                    if (!listed.Contains(id) && (vehicles[id].m_flags & Vehicle.Flags.All) != ~Vehicle.Flags.All)
                     {
                         listed.Add(id);
                         vehicleList.Add(DebugInfoMsg(vehicles, buildings, id, true).ToString());
@@ -447,7 +447,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             Vehicle[] vehicles = Singleton<VehicleManager>.instance.m_vehicles.m_buffer;
 
-            if ((vehicles[vehicleId].m_flags & VehicleExists) == Vehicle.Flags.None)
+            if ((vehicles[vehicleId].m_flags & VehicleExists) == ~Vehicle.Flags.All)
             {
                 return null;
             }
@@ -590,7 +590,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             {
                 foreach (Vehicle.Flags flag in Enum.GetValues(typeof(Vehicle.Flags)))
                 {
-                    if (flag != Vehicle.Flags.None && (vehicles[vehicleId].m_flags & flag) == flag)
+                    if ((vehicles[vehicleId].m_flags & flag) == flag)
                     {
                         flags += ", " + flag.ToString();
                     }
@@ -683,7 +683,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <param name="vehicleId">The vehicle identifier.</param>
         private static void DebugListLog(Vehicle[] vehicles, Building[] buildings, ushort vehicleId)
         {
-            if (vehicles[vehicleId].Info != null && (vehicles[vehicleId].m_flags & VehicleHelper.VehicleExists) != Vehicle.Flags.None &&
+            if (vehicles[vehicleId].Info != null && (vehicles[vehicleId].m_flags & VehicleHelper.VehicleExists) != ~Vehicle.Flags.All &&
                 (vehicles[vehicleId].Info.m_vehicleAI is HearseAI || vehicles[vehicleId].Info.m_vehicleAI is GarbageTruckAI || vehicles[vehicleId].Info.m_vehicleAI is AmbulanceAI))
             {
                 Log.DevDebug(typeof(VehicleKeeper), "DebugListLog", DebugInfoMsg(vehicles, buildings, vehicleId).ToString());
@@ -732,14 +732,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 vehicle.Info.m_vehicleAI.SetTarget(vehicleId, ref vehicle, targetBuildingId);
                 if (targetCitizenId == 0)
                 {
-                    return (vehicle.m_flags & VehicleHelper.VehicleExists) != Vehicle.Flags.None;
+                    return (vehicle.m_flags & VehicleHelper.VehicleExists) != ~Vehicle.Flags.All;
                 }
                 else
                 {
                     Citizen[] citizens = Singleton<CitizenManager>.instance.m_citizens.m_buffer;
                     citizens[targetCitizenId].SetVehicle(targetCitizenId, vehicleId, 0);
 
-                    return (vehicle.m_flags & VehicleHelper.VehicleExists) == Vehicle.Flags.None && citizens[targetCitizenId].m_vehicle == vehicleId;
+                    return (vehicle.m_flags & VehicleHelper.VehicleExists) == ~Vehicle.Flags.All && citizens[targetCitizenId].m_vehicle == vehicleId;
                 }
             }
             catch (Exception ex)

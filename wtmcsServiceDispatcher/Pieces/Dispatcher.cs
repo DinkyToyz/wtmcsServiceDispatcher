@@ -224,7 +224,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             if (serviceBuilding == null)
             {
-                if (vehicle.m_targetBuilding != 0 && (vehicle.m_flags & (VehicleHelper.VehicleUnavailable | VehicleHelper.VehicleBusy)) == Vehicle.Flags.None)
+                if (vehicle.m_targetBuilding != 0 && (vehicle.m_flags & (VehicleHelper.VehicleUnavailable | VehicleHelper.VehicleBusy)) == ~Vehicle.Flags.All)
                 {
                     if (Log.LogALot)
                     {
@@ -236,7 +236,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             }
             else if (serviceVehicle == null)
             {
-                if (vehicle.m_targetBuilding != 0 && (vehicle.m_flags & (VehicleHelper.VehicleUnavailable | VehicleHelper.VehicleBusy)) == Vehicle.Flags.None)
+                if (vehicle.m_targetBuilding != 0 && (vehicle.m_flags & (VehicleHelper.VehicleUnavailable | VehicleHelper.VehicleBusy)) == ~Vehicle.Flags.All)
                 {
                     if (Log.LogALot)
                     {
@@ -250,7 +250,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             {
                 if (vehicle.m_targetBuilding != 0)
                 {
-                    if ((vehicle.m_flags & (VehicleHelper.VehicleUnavailable | VehicleHelper.VehicleBusy)) == Vehicle.Flags.None)
+                    if ((vehicle.m_flags & (VehicleHelper.VehicleUnavailable | VehicleHelper.VehicleBusy)) == ~Vehicle.Flags.All)
                     {
                         if (vehicle.m_targetBuilding != serviceVehicle.Target)
                         {
@@ -856,7 +856,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         // Add or update status for relevant vehicles.
                         if (vehicles[vehicleId].Info != null &&
                             (vehicles[vehicleId].m_flags & Vehicle.Flags.Created) == Vehicle.Flags.Created &&
-                            (vehicles[vehicleId].m_flags & VehicleHelper.VehicleExists) != Vehicle.Flags.None)
+                            (vehicles[vehicleId].m_flags & VehicleHelper.VehicleExists) != ~Vehicle.Flags.All)
                         {
                             vehiclesMade++;
 
@@ -869,12 +869,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                             int loadSize, loadMax;
                             vehicles[vehicleId].Info.m_vehicleAI.GetSize(vehicleId, ref vehicles[vehicleId], out loadSize, out loadMax);
 
-                            bool collecting = (vehicles[vehicleId].m_flags & Vehicle.Flags.TransferToSource) != Vehicle.Flags.None && (vehicles[vehicleId].m_flags & Vehicle.Flags.TransferToTarget) == Vehicle.Flags.None;
-                            bool loading = (vehicles[vehicleId].m_flags & (Vehicle.Flags.Arriving | Vehicle.Flags.Stopped)) != Vehicle.Flags.None;
+                            bool collecting = (vehicles[vehicleId].m_flags & Vehicle.Flags.TransferToSource) != ~Vehicle.Flags.All && (vehicles[vehicleId].m_flags & Vehicle.Flags.TransferToTarget) == ~Vehicle.Flags.All;
+                            bool loading = (vehicles[vehicleId].m_flags & (Vehicle.Flags.Arriving | Vehicle.Flags.Stopped)) != ~Vehicle.Flags.All;
                             bool canCollect = collecting && !loading && loadSize < loadMax;
                             bool hasTarget = vehicles[vehicleId].m_targetBuilding != 0 && !(collecting && vehicles[vehicleId].m_targetBuilding == serviceBuilding.BuildingId && !this.targetBuildings.ContainsKey(serviceBuilding.BuildingId));
-                            bool unavailable = (vehicles[vehicleId].m_flags & VehicleHelper.VehicleUnavailable) != Vehicle.Flags.None;
-                            bool busy = (vehicles[vehicleId].m_flags & VehicleHelper.VehicleBusy) != Vehicle.Flags.None;
+                            bool unavailable = (vehicles[vehicleId].m_flags & VehicleHelper.VehicleUnavailable) != ~Vehicle.Flags.All;
+                            bool busy = (vehicles[vehicleId].m_flags & VehicleHelper.VehicleBusy) != ~Vehicle.Flags.All;
 
                             // Update vehicle status.
                             ServiceVehicleInfo serviceVehicle;
@@ -967,8 +967,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 foreach (ushort id in removeVehicles)
                 {
                     if (vehicles[vehicleId].Info == null ||
-                        (vehicles[vehicleId].m_flags & Vehicle.Flags.Created) == Vehicle.Flags.None ||
-                        (vehicles[vehicleId].m_flags & VehicleHelper.VehicleExists) == Vehicle.Flags.None ||
+                        (vehicles[vehicleId].m_flags & Vehicle.Flags.Created) == ~Vehicle.Flags.All ||
+                        (vehicles[vehicleId].m_flags & VehicleHelper.VehicleExists) == ~Vehicle.Flags.All ||
                         vehicles[vehicleId].m_transferType != this.TransferType)
                     {
                         if (Log.LogALot)

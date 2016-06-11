@@ -325,7 +325,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     this.CapacityUsed = (float)bufCur / (float)bufMax;
                 }
 
-                if (checkAssignment && (vehicle.m_flags & (VehicleHelper.VehicleUnavailable | VehicleHelper.VehicleBusy)) == Vehicle.Flags.None &&
+                if (checkAssignment && (vehicle.m_flags & (VehicleHelper.VehicleUnavailable | VehicleHelper.VehicleBusy)) == ~Vehicle.Flags.All &&
                     vehicle.m_targetBuilding != 0 && vehicle.m_targetBuilding != this.Target && Global.CurrentFrame - this.LastAssigned > Global.DemandLingerDelay)
                 {
                     if (Log.LogALot)
