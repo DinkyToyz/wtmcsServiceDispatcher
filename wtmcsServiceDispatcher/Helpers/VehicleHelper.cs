@@ -48,6 +48,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             return VehicleHelper.SetTarget(vehicleId, ref vehicle, targetBuildingId, targetCitizenId);
 
+            if (!Global.EnableExperiments)
+            {
+                return VehicleHelper.SetTarget(vehicleId, ref vehicle, targetBuildingId, targetCitizenId);
+            }
+
             if (targetBuildingId == 0 && targetCitizenId == 0)
             {
                 return VehicleHelper.SetTarget(vehicleId, ref vehicle, targetBuildingId, targetCitizenId);
@@ -58,7 +63,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 throw new InvalidOperationException("Ambulances must use citizen assignment");
             }
 
-            if (Global.Settings.AssignmentCompatibilityMode == ServiceDispatcherSettings.ModCompatibilityMode.UseCustomCode || !Global.EnableExperiments)
+            if (Global.Settings.AssignmentCompatibilityMode == ServiceDispatcherSettings.ModCompatibilityMode.UseCustomCode)
             {
                 if (vehicle.Info.m_vehicleAI is AmbulanceAI)
                 {
@@ -93,54 +98,36 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// Creates the service vehicle.
         /// </summary>
-        /// <param name="serviceBuilding">The service building.</param>
-        /// <param name="material">The material.</param>
-        /// <param name="vehicleId">The vehicle identifier.</param>
-        /// <returns>
-        /// The vehicle information.
-        /// </returns>
-        /// <exception cref="System.ArgumentException">Unhandled material.</exception>
-        public static VehicleInfo CreateServiceVehicle(ServiceBuildingInfo serviceBuilding, TransferManager.TransferReason material, out ushort vehicleId)
-        {
-            return CreateServiceVehicle(serviceBuilding, material, 0, out vehicleId);
-        }
-
-        /// <summary>
-        /// Creates the service vehicle.
-        /// </summary>
-        /// <param name="serviceBuilding">The service building.</param>
-        /// <param name="material">The material.</param>
-        /// <param name="targetBuildingId">The target building identifier.</param>
-        /// <param name="vehicleId">The vehicle identifier.</param>
-        /// <returns>
-        /// The vehicle information.
-        /// </returns>
-        /// <exception cref="System.ArgumentException">Unhandled material.</exception>
-        public static VehicleInfo CreateServiceVehicle(ServiceBuildingInfo serviceBuilding, TransferManager.TransferReason material, ushort targetBuildingId, out ushort vehicleId)
-        {
-            return CreateServiceVehicle(serviceBuilding.BuildingId, material, targetBuildingId, out vehicleId);
-        }
-
-        /// <summary>
-        /// Creates the service vehicle.
-        /// </summary>
         /// <param name="serviceBuildingId">The service building identifier.</param>
         /// <param name="material">The material.</param>
         /// <param name="targetBuildingId">The target building identifier.</param>
+        /// <param name="targetCitizenId">The target citizen identifier.</param>
         /// <param name="vehicleId">The vehicle identifier.</param>
         /// <returns>
         /// The vehicle information.
         /// </returns>
-        /// <exception cref="ArgumentException">Unhandled material.</exception>
+        /// <exception cref="System.NotImplementedException">Target citizen not implemented yet.</exception>
+        /// <exception cref="System.InvalidOperationException">Hospital assigments reuires target citizen.</exception>
         /// <exception cref="System.ArgumentException">Unhandled material.</exception>
-        public static VehicleInfo CreateServiceVehicle(ushort serviceBuildingId, TransferManager.TransferReason material, ushort targetBuildingId, out ushort vehicleId)
+        /// <exception cref="ArgumentException">Unhandled material.</exception>
+        public static VehicleInfo CreateServiceVehicle(ushort serviceBuildingId, TransferManager.TransferReason material, ushort targetBuildingId, uint targetCitizenId, out ushort vehicleId)
         {
+            if (targetCitizenId != 0)
+            {
+                throw new NotImplementedException("Target citizen not implemented yet");
+            }
+
             vehicleId = 0;
 
             VehicleManager manager = Singleton<VehicleManager>.instance;
             ColossalFramework.Math.Randomizer randomizer = Singleton<SimulationManager>.instance.m_randomizer;
 
             Building building = BuildingHelper.GetBuilding(serviceBuildingId);
+
+            if (building.Info.m_buildingAI is HospitalAI && targetCitizenId == 0)
+            {
+                throw new InvalidOperationException("Hospital assigments reuires target citizen");
+            }
 
             VehicleInfo info = manager.GetRandomVehicleInfo(ref randomizer, building.Info.m_class.m_service, building.Info.m_class.m_subService, building.Info.m_class.m_level);
             if (info == null)
@@ -219,6 +206,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             {
                 // Vehicle has spawned but not moved, just unspawn.
                 Vector3 spawnPos = GetSpawnPosition(vehicleId, vehicle.Info, vehicle.m_sourceBuilding);
+
+                if (Log.LogALot && Log.LogToFile)
+                {
+                    Log.DevDebug(typeof(VehicleHelper), "DeAssign", "DeSpawn", vehicleId, vehicle, spawnPos, vehicle.m_frame0.m_position, vehicle.m_frame1.m_position, vehicle.m_frame2.m_position, vehicle.m_frame3.m_position);
+                }
+
                 if (vehicle.m_frame0.m_position == spawnPos && vehicle.m_frame1.m_position == spawnPos && vehicle.m_frame2.m_position == spawnPos && vehicle.m_frame3.m_position == spawnPos)
                 {
                     Log.Debug(typeof(VehicleHelper), "DeAssign", "DeSpawn", vehicleId, vehicle, vehicle.Info.m_vehicleAI);
@@ -240,7 +233,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 Log.Error(typeof(VehicleHelper), "DeAssign", ex);
             }
 
-            bool targetSet = SetTarget(vehicleId, ref vehicle, 0);
+            bool targetSet = SetTarget(vehicleId, ref vehicle, 0, 0);
 
             if ((vehicle.m_flags & Vehicle.Flags.WaitingTarget) != ~Vehicle.Flags.All)
             {
@@ -700,7 +693,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <returns>
         /// True if target set and path to target found.
         /// </returns>
-        private static bool SetTarget(ushort vehicleId, ref Vehicle vehicle, ushort targetBuildingId, uint targetCitizenId = 0)
+        private static bool SetTarget(ushort vehicleId, ref Vehicle vehicle, ushort targetBuildingId, uint targetCitizenId)
         {
             try
             {
@@ -770,7 +763,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             vehicle.m_flags |= Vehicle.Flags.WaitingTarget;
 
             // Cast AI as games original AI so detoured methods are called, but not methods from not replaced classes.
-            if (Global.Settings.AssignmentCompatibilityMode != ServiceDispatcherSettings.ModCompatibilityMode.UseInstanciatedClassMethods || !Global.Settings.AllowReflection())
+            if (Global.Settings.AssignmentCompatibilityMode == ServiceDispatcherSettings.ModCompatibilityMode.UseInstanciatedClassMethods || !Global.Settings.AllowReflection())
             {
                 vehicle.Info.m_vehicleAI.StartTransfer(vehicleId, ref vehicle, material, offer);
             }

@@ -11,7 +11,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// The SetTarget call compatibility mode.
         /// </summary>
-        public ServiceDispatcherSettings.ModCompatibilityMode AssignmentCompatibilityMode = ServiceDispatcherSettings.ModCompatibilityMode.UseOriginalClassMethods;
+        public ServiceDispatcherSettings.ModCompatibilityMode AssignmentCompatibilityMode = ServiceDispatcherSettings.ModCompatibilityMode.UseCustomCode;
 
         /// <summary>
         /// Automatic bulldoze of abandoned buildings.
@@ -77,6 +77,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// When to create spare hearses.
         /// </summary>
         public SpareVehiclesCreation CreateSpareHearses = SpareVehiclesCreation.WhenBuildingIsCloser;
+
+        /// <summary>
+        /// The CreateVehicle call compatibility mode.
+        /// </summary>
+        public ServiceDispatcherSettings.ModCompatibilityMode CreationCompatibilityMode = ServiceDispatcherSettings.ModCompatibilityMode.UseOriginalClassMethods;
 
         /// <summary>
         /// The current dead people building checks.

@@ -73,7 +73,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// The SetTarget call compatibility mode.
         /// </summary>
-        public ServiceDispatcherSettings.ModCompatibilityMode AssignmentCompatibilityMode = ServiceDispatcherSettings.ModCompatibilityMode.UseOriginalClassMethods;
+        public ServiceDispatcherSettings.ModCompatibilityMode AssignmentCompatibilityMode = ServiceDispatcherSettings.ModCompatibilityMode.UseCustomCode;
+
+        /// <summary>
+        /// The CreateVehicle call compatibility mode.
+        /// </summary>
+        public ServiceDispatcherSettings.ModCompatibilityMode CreationCompatibilityMode = ServiceDispatcherSettings.ModCompatibilityMode.UseOriginalClassMethods;
 
         /// <summary>
         /// Limit building ranges.

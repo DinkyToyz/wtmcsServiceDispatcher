@@ -19,7 +19,7 @@
 # Changes and experiments
 
 - citizens?
-- Inhibit StartTransfer?
+- Ambulances: only emergency if citizen is sick enough?
 - if (Singleton<UnlockManager>.instance.Unlocked(ItemClass.Service.HealthCare))
 
 # Notes

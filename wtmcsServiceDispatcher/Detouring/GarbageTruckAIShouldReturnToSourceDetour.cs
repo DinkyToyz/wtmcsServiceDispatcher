@@ -14,6 +14,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public static UInt64 Calls = 0;
 
         /// <summary>
+        /// The number of returns.
+        /// </summary>
+        public static UInt64 Returns = 0;
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="GarbageTruckAIShouldReturnToSourceDetour"/> class.
         /// </summary>
         public GarbageTruckAIShouldReturnToSourceDetour()
@@ -82,7 +87,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// </summary>
         public override void LogCounts()
         {
-            Log.Debug(this, "Counts", Calls);
+            Log.Debug(this, "Counts", Calls, Returns);
         }
 
         /// <summary>
@@ -119,11 +124,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 return false;
             }
 
-            if (vehicle.m_targetBuilding == 0 && (vehicle.m_flags & Vehicle.Flags.TransferToTarget) == ~Vehicle.Flags.All && (vehicle.m_flags & Vehicle.Flags.TransferToSource) == ~Vehicle.Flags.All)
+            if (vehicle.m_targetBuilding == 0 && (vehicle.m_flags & Vehicle.Flags.TransferToTarget) == ~Vehicle.Flags.All /* && (vehicle.m_flags & Vehicle.Flags.TransferToSource) == ~Vehicle.Flags.All */)
             {
                 BuildingManager instance = Singleton<BuildingManager>.instance;
                 if (instance.m_buildings.m_buffer[vehicle.m_sourceBuilding].m_fireIntensity == 0)
                 {
+                    Returns++;
                     return true;
                 }
             }

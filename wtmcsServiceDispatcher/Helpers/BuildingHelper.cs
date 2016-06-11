@@ -237,7 +237,23 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// Starts the transfer.
         /// </summary>
-        /// <param name="buildingId">The building identifier.</param>
+        /// <param name="serviceBuildingId">The building identifier.</param>
+        /// <param name="material">The material.</param>
+        /// <param name="targetBuildingId">The target building identifier.</param>
+        /// <param name="targetCitizenId">The target citizen identifier.</param>
+        /// <param name="vehicleId">The vehicle identifier.</param>
+        /// <returns>
+        /// Vehicle info for the created vehicle.
+        /// </returns>
+        public static VehicleInfo StartTransfer(ushort serviceBuildingId, TransferManager.TransferReason material, ushort targetBuildingId, uint targetCitizenId, out ushort vehicleId)
+        {
+            return StartTransfer(serviceBuildingId, ref Singleton<BuildingManager>.instance.m_buildings.m_buffer[serviceBuildingId], material, targetBuildingId, targetCitizenId, out vehicleId);
+        }
+
+        /// <summary>
+        /// Starts the transfer.
+        /// </summary>
+        /// <param name="serviceBuildingId">The building identifier.</param>
         /// <param name="building">The building.</param>
         /// <param name="material">The material.</param>
         /// <param name="targetBuildingId">The target building identifier.</param>
@@ -245,11 +261,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <param name="vehicleId">The vehicle identifier.</param>
         /// <returns>Vehicle info for the created vehicle.</returns>
         /// <exception cref="Exception">Loop counter too high.</exception>
-        public static VehicleInfo StartTransfer(ushort buildingId, ref Building building, TransferManager.TransferReason material, ushort targetBuildingId, uint targetCitizenId, out ushort vehicleId)
+        public static VehicleInfo StartTransfer(ushort serviceBuildingId, ref Building building, TransferManager.TransferReason material, ushort targetBuildingId, uint targetCitizenId, out ushort vehicleId)
         {
             if (building.Info.m_buildingAI is HospitalAI && targetCitizenId == 0)
             {
-                return VehicleHelper.CreateServiceVehicle(buildingId, material, targetBuildingId, out vehicleId);
+                return VehicleHelper.CreateServiceVehicle(serviceBuildingId, material, targetBuildingId, targetCitizenId, out vehicleId);
             }
 
             Vehicle[] vehicles = Singleton<VehicleManager>.instance.m_vehicles.m_buffer;
@@ -262,25 +278,25 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             };
 
             // Cast AI as games original AI so detoured methods are called, but not methods from not replaced classes.
-            if (!Global.Settings.AllowReflection())
+            if (Global.Settings.CreationCompatibilityMode == ServiceDispatcherSettings.ModCompatibilityMode.UseInstanciatedClassMethods || !Global.Settings.AllowReflection())
             {
-                building.Info.m_buildingAI.StartTransfer(buildingId, ref building, material, offer);
+                building.Info.m_buildingAI.StartTransfer(serviceBuildingId, ref building, material, offer);
             }
             else if (building.Info.m_buildingAI is CemeteryAI)
             {
-                ((CemeteryAI)building.Info.m_buildingAI.CastTo<CemeteryAI>()).StartTransfer(buildingId, ref building, material, offer);
+                ((CemeteryAI)building.Info.m_buildingAI.CastTo<CemeteryAI>()).StartTransfer(serviceBuildingId, ref building, material, offer);
             }
             else if (building.Info.m_buildingAI is LandfillSiteAI)
             {
-                ((LandfillSiteAI)building.Info.m_buildingAI.CastTo<LandfillSiteAI>()).StartTransfer(buildingId, ref building, material, offer);
+                ((LandfillSiteAI)building.Info.m_buildingAI.CastTo<LandfillSiteAI>()).StartTransfer(serviceBuildingId, ref building, material, offer);
             }
             else if (building.Info.m_buildingAI is HospitalAI)
             {
-                ((HospitalAI)building.Info.m_buildingAI.CastTo<HospitalAI>()).StartTransfer(buildingId, ref building, material, offer);
+                ((HospitalAI)building.Info.m_buildingAI.CastTo<HospitalAI>()).StartTransfer(serviceBuildingId, ref building, material, offer);
             }
             else
             {
-                building.Info.m_buildingAI.StartTransfer(buildingId, ref building, material, offer);
+                building.Info.m_buildingAI.StartTransfer(serviceBuildingId, ref building, material, offer);
             }
 
             int count = 0;

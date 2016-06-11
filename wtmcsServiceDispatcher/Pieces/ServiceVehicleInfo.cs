@@ -186,13 +186,23 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <param name="material">The material.</param>
         /// <param name="dispatcherType">Type of the dispatcher.</param>
         /// <param name="targetBuildingId">The target building identifier.</param>
+        /// <param name="targetCitizenId">The target citizen identifier.</param>
         /// <returns>
         /// The service vehicle.
         /// </returns>
-        public static ServiceVehicleInfo Create(ServiceBuildingInfo serviceBuilding, TransferManager.TransferReason material, Dispatcher.DispatcherTypes dispatcherType, ushort targetBuildingId = 0)
+        public static ServiceVehicleInfo Create(ServiceBuildingInfo serviceBuilding, TransferManager.TransferReason material, Dispatcher.DispatcherTypes dispatcherType, ushort targetBuildingId, uint targetCitizenId)
         {
-            ushort vehicleId;
-            VehicleInfo info = VehicleHelper.CreateServiceVehicle(serviceBuilding, material, targetBuildingId, out vehicleId);
+            ushort vehicleId = 0;
+            VehicleInfo info = null;
+
+            //if (Global.Settings.CreationCompatibilityMode == ServiceDispatcherSettings.ModCompatibilityMode.UseCustomCode || !Global.EnableExperiments)
+            //{
+                info = VehicleHelper.CreateServiceVehicle(serviceBuilding.BuildingId, material, targetBuildingId, targetCitizenId, out vehicleId);
+            //}
+            //else
+            //{
+            //    info = BuildingHelper.StartTransfer(serviceBuilding.BuildingId, material, targetBuildingId, targetCitizenId, out vehicleId);
+            //}
 
             if (info == null)
             {

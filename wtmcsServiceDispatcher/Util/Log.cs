@@ -305,8 +305,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     {
                         using (StreamWriter logFile = OpenLogFile())
                         {
-                            if (Log.logALot)
-                                lineBuffer.Add((DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") + " Flush\n").ConformNewlines());
+                            ////if (Log.logALot)
+                            ////    lineBuffer.Add((DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") + " Flush\n").ConformNewlines());
 
                             logFile.Write(String.Join("", lineBuffer.ToArray()));
                             logFile.Close();
