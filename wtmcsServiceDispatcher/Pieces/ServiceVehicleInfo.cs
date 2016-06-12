@@ -197,7 +197,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             //if (Global.Settings.CreationCompatibilityMode == ServiceDispatcherSettings.ModCompatibilityMode.UseCustomCode || !Global.EnableExperiments)
             //{
-                info = VehicleHelper.CreateServiceVehicle(serviceBuilding.BuildingId, material, targetBuildingId, targetCitizenId, out vehicleId);
+            info = VehicleHelper.CreateServiceVehicle(serviceBuilding.BuildingId, material, targetBuildingId, targetCitizenId, out vehicleId);
             //}
             //else
             //{

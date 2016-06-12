@@ -209,10 +209,35 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 if (Log.LogALot && Log.LogToFile)
                 {
-                    Log.DevDebug(typeof(VehicleHelper), "DeAssign", "DeSpawn", vehicleId, vehicle, spawnPos, vehicle.m_frame0.m_position, vehicle.m_frame1.m_position, vehicle.m_frame2.m_position, vehicle.m_frame3.m_position);
+                    Vehicle[] vehicles = Singleton<VehicleManager>.instance.m_vehicles.m_buffer;
+
+                    Log.DevDebug(
+                        typeof(VehicleHelper), 
+                        "DeAssign", 
+                        "DeSpawn?", 
+                        vehicleId, 
+                        vehicle,
+                        (spawnPos - vehicle.m_frame0.m_position).magnitude,
+                        (spawnPos - vehicle.m_frame1.m_position).magnitude,
+                        (spawnPos - vehicle.m_frame2.m_position).magnitude,
+                        (spawnPos - vehicle.m_frame3.m_position).magnitude,
+                        GetVehicleName(vehicleId),
+                        BuildingHelper.GetBuildingName(vehicles[vehicleId].m_targetBuilding),
+                        (spawnPos - vehicle.m_frame0.m_position).sqrMagnitude,
+                        (spawnPos - vehicle.m_frame1.m_position).sqrMagnitude,
+                        (spawnPos - vehicle.m_frame2.m_position).sqrMagnitude,
+                        (spawnPos - vehicle.m_frame3.m_position).sqrMagnitude,
+                        spawnPos, 
+                        vehicle.m_frame0.m_position, 
+                        vehicle.m_frame1.m_position, 
+                        vehicle.m_frame2.m_position, 
+                        vehicle.m_frame3.m_position);
                 }
 
-                if (vehicle.m_frame0.m_position == spawnPos && vehicle.m_frame1.m_position == spawnPos && vehicle.m_frame2.m_position == spawnPos && vehicle.m_frame3.m_position == spawnPos)
+                if ((vehicle.m_frame0.m_position - spawnPos).sqrMagnitude < 1 &&
+                    (vehicle.m_frame1.m_position - spawnPos).sqrMagnitude < 1 && 
+                    (vehicle.m_frame2.m_position - spawnPos).sqrMagnitude < 1 && 
+                    (vehicle.m_frame3.m_position - spawnPos).sqrMagnitude < 1)
                 {
                     Log.Debug(typeof(VehicleHelper), "DeAssign", "DeSpawn", vehicleId, vehicle, vehicle.Info.m_vehicleAI);
 
