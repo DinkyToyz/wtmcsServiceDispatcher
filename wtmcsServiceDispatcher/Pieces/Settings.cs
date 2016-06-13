@@ -198,6 +198,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 this.RangeMinimum = settings.RangeMinimum;
                 this.ReflectionAllowance = settings.ReflectionAllowance;
                 this.AssignmentCompatibilityMode = settings.AssignmentCompatibilityMode;
+                this.CreationCompatibilityMode = settings.CreationCompatibilityMode;
 
                 this.DeathCare.DispatchVehicles = settings.DispatchHearses;
                 this.DeathCare.DispatchByDistrict = settings.DispatchHearsesByDistrict;
@@ -244,6 +245,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 this.Garbage.AutoEmpty = false;
             }
 
+            this.AssignmentCompatibilityMode = ServiceDispatcherSettings.ModCompatibilityMode.UseCustomCode;
+            this.CreationCompatibilityMode = ServiceDispatcherSettings.ModCompatibilityMode.UseCustomCode;
             this.HealthCare.DispatchVehicles = false;
         }
 
@@ -506,7 +509,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             Log.Debug(this, "LogSettings", "RangeMaximum", this.RangeMaximum);
 
             Log.Debug(this, "LogSettings", "ReflectionAllowance", this.ReflectionAllowance);
-            Log.Debug(this, "LogSettings", "SetTargetCallCompatibilityMode", this.AssignmentCompatibilityMode);
+            Log.Debug(this, "LogSettings", "AssignmentCompatibilityMode", this.AssignmentCompatibilityMode);
+            Log.Debug(this, "LogSettings", "CreationCompatibilityMode", this.CreationCompatibilityMode);
 
             Log.Debug(this, "LogSettings", "DispatchHearses", this.DeathCare.DispatchVehicles);
             Log.Debug(this, "LogSettings", "DispatchHearsesByDistrict", this.DeathCare.DispatchByDistrict);
@@ -609,6 +613,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     cfg.RangeMinimum = this.RangeMinimum;
                     cfg.ReflectionAllowance = this.ReflectionAllowance;
                     cfg.AssignmentCompatibilityMode = this.AssignmentCompatibilityMode;
+                    cfg.CreationCompatibilityMode = this.CreationCompatibilityMode;
 
                     cfg.DispatchHearses = this.DeathCare.DispatchVehicles;
                     cfg.DispatchHearsesByDistrict = this.DeathCare.DispatchByDistrict;

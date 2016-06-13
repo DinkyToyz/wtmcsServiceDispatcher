@@ -270,6 +270,39 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                                 Log.Error(this, "CreateAdvancedGroup", ex, "AssigmentCompatibilityMode", value);
                             }
                         });
+
+                    group.AddDropdown(
+                        "Creation compatibility mode",
+                        this.modCompatibilityModes.OrderBy(a => a.Key).Select(compatibilityMode => compatibilityMode.Value).ToArray(),
+                        (int)Global.Settings.CreationCompatibilityMode,
+                        value =>
+                        {
+                            try
+                            {
+                                foreach (ServiceDispatcherSettings.ModCompatibilityMode compatibilityMode in Enum.GetValues(typeof(ServiceDispatcherSettings.ModCompatibilityMode)))
+                                {
+                                    if ((byte)compatibilityMode == value)
+                                    {
+                                        if (compatibilityMode != Global.Settings.CreationCompatibilityMode)
+                                        {
+                                            if (Log.LogALot || Library.IsDebugBuild)
+                                            {
+                                                Log.Debug(this, "CreateAdvancedGroup", "Set", "CreationCompatibilityMode", value);
+                                            }
+
+                                            Global.Settings.CreationCompatibilityMode = compatibilityMode;
+                                            Global.Settings.Save();
+                                        }
+
+                                        break;
+                                    }
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                Log.Error(this, "CreateAdvancedGroup", ex, "CreationCompatibilityMode", value);
+                            }
+                        });
                 }
 
                 group.AddDropdown(

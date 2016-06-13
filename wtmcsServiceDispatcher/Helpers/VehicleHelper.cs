@@ -46,8 +46,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <exception cref="System.NotImplementedException">Ambulance dispatching not fully implemented yet.</exception>
         public static bool AssignTarget(ushort vehicleId, ref Vehicle vehicle, TransferManager.TransferReason? material, ushort targetBuildingId, uint targetCitizenId)
         {
-            return VehicleHelper.SetTarget(vehicleId, ref vehicle, targetBuildingId, targetCitizenId);
-
             if (!Global.EnableExperiments)
             {
                 return VehicleHelper.SetTarget(vehicleId, ref vehicle, targetBuildingId, targetCitizenId);
@@ -207,33 +205,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 // Vehicle has spawned but not moved, just unspawn.
                 Vector3 spawnPos = GetSpawnPosition(vehicleId, vehicle.Info, vehicle.m_sourceBuilding);
 
-                if (Log.LogALot && Log.LogToFile)
-                {
-                    Vehicle[] vehicles = Singleton<VehicleManager>.instance.m_vehicles.m_buffer;
-
-                    Log.DevDebug(
-                        typeof(VehicleHelper), 
-                        "DeAssign", 
-                        "DeSpawn?", 
-                        vehicleId, 
-                        vehicle,
-                        (spawnPos - vehicle.m_frame0.m_position).magnitude,
-                        (spawnPos - vehicle.m_frame1.m_position).magnitude,
-                        (spawnPos - vehicle.m_frame2.m_position).magnitude,
-                        (spawnPos - vehicle.m_frame3.m_position).magnitude,
-                        GetVehicleName(vehicleId),
-                        BuildingHelper.GetBuildingName(vehicles[vehicleId].m_targetBuilding),
-                        (spawnPos - vehicle.m_frame0.m_position).sqrMagnitude,
-                        (spawnPos - vehicle.m_frame1.m_position).sqrMagnitude,
-                        (spawnPos - vehicle.m_frame2.m_position).sqrMagnitude,
-                        (spawnPos - vehicle.m_frame3.m_position).sqrMagnitude,
-                        spawnPos, 
-                        vehicle.m_frame0.m_position, 
-                        vehicle.m_frame1.m_position, 
-                        vehicle.m_frame2.m_position, 
-                        vehicle.m_frame3.m_position);
-                }
-
                 if ((vehicle.m_frame0.m_position - spawnPos).sqrMagnitude < 1 &&
                     (vehicle.m_frame1.m_position - spawnPos).sqrMagnitude < 1 && 
                     (vehicle.m_frame2.m_position - spawnPos).sqrMagnitude < 1 && 
@@ -244,11 +215,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     vehicle.m_flags &= ~Vehicle.Flags.WaitingSpace;
                     vehicle.m_flags &= ~Vehicle.Flags.WaitingPath;
                     vehicle.Unspawn(vehicleId);
-
-                    ////if (Log.LogToFile && Log.LogALot)
-                    ////{
-                    ////    DebugListLog(vehicleId);
-                    ////}
 
                     return true;
                 }

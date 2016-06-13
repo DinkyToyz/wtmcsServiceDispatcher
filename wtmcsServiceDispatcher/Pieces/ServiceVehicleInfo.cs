@@ -195,14 +195,18 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             ushort vehicleId = 0;
             VehicleInfo info = null;
 
-            //if (Global.Settings.CreationCompatibilityMode == ServiceDispatcherSettings.ModCompatibilityMode.UseCustomCode || !Global.EnableExperiments)
-            //{
-            info = VehicleHelper.CreateServiceVehicle(serviceBuilding.BuildingId, material, targetBuildingId, targetCitizenId, out vehicleId);
-            //}
-            //else
-            //{
-            //    info = BuildingHelper.StartTransfer(serviceBuilding.BuildingId, material, targetBuildingId, targetCitizenId, out vehicleId);
-            //}
+            if (!Global.EnableExperiments)
+            {
+                info = VehicleHelper.CreateServiceVehicle(serviceBuilding.BuildingId, material, targetBuildingId, targetCitizenId, out vehicleId);
+            }
+            else if (Global.Settings.CreationCompatibilityMode == ServiceDispatcherSettings.ModCompatibilityMode.UseCustomCode)
+            {
+                info = VehicleHelper.CreateServiceVehicle(serviceBuilding.BuildingId, material, targetBuildingId, targetCitizenId, out vehicleId);
+            }
+            else
+            {
+                info = BuildingHelper.StartTransfer(serviceBuilding.BuildingId, material, targetBuildingId, targetCitizenId, out vehicleId);
+            }
 
             if (info == null)
             {
