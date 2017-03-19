@@ -1,7 +1,8 @@
 As of this writing there are no confirmed incompatibilities, but there are some theoretical and/or suspected incompatibilities.
 
-This mod does not completely replace any AIs or other original game objects, but it does override a few methods.
-The [Allow Code Overrides](OptionsAdvanced.html#ReflectionAllowance) option can be used to stop the mod from overriding any code.
+This mod does not completely replace any AIs or other original game objects, but it does override a few methods and may sometimes use it's own code instead of the games original methods. 
+
+The [Allow Code Overrides](OptionsAdvanced.html#ReflectionAllowance) option can be used to stop the mod from overriding any code, while the [Assignment compatibility mode](OptionsAdvanced.html#AssignmentCompatibilityMode) and [Creation compatibility mode](OptionsAdvanced.html#CreationCompatibilityMode) options can be used to tell the mod whether to use it's own code or not for some actions.
 
 ## Game Versions & Patches
 
@@ -13,9 +14,11 @@ To manually allow or disallow code overrides and deep game calls regardless of v
 
 ## Service Mods
 
-Any mod that override code in, or replaces, service vehicle AIs has a risk of being incompatible with this mod.
+Any mod that override code in, or replaces, the AI of service vehicles or buildings has a risk of being incompatible with this mod.
 
-Hopefully such incompatibilities will only result in limited functionality loss in the mod, and no crashes, but it is impossible to know for sure.
+Hopefully such incompatibilities will only result in limited functionality loss in one of the mods, and no crashes, but it is impossible to know for sure.
+
+To control whether another mod can override this mod at the moment of a few specific actions, use the [Assignment compatibility mode](OptionsAdvanced.html#AssignmentCompatibilityMode) and [Creation compatibility mode](OptionsAdvanced.html#CreationCompatibilityMode) options. 
 
 Also, using two mods that assigns/reassigns the same service vehicles is likely to cause problems.
 
