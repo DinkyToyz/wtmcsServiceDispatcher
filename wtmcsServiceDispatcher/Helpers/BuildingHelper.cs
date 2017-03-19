@@ -532,7 +532,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 if ((vehicles[vehicleId].m_transferType == (byte)TransferManager.TransferReason.Garbage || vehicles[vehicleId].m_transferType == (byte)TransferManager.TransferReason.Dead) &&
                     vehicles[vehicleId].Info != null &&
                     (vehicles[vehicleId].m_flags & Vehicle.Flags.Created) == Vehicle.Flags.Created &&
-                    (vehicles[vehicleId].m_flags & VehicleHelper.VehicleExists) != ~Vehicle.Flags.All)
+                    (vehicles[vehicleId].m_flags & VehicleHelper.VehicleExists) != ~VehicleHelper.VehicleAll)
                 {
                     madeVehicleCount++;
                 }

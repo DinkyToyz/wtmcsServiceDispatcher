@@ -23,7 +23,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// The flags that determined that this vehicle should be checked.
         /// </summary>
-        private Vehicle.Flags checkFlags = ~Vehicle.Flags.All;
+        private Vehicle.Flags checkFlags = ~VehicleHelper.VehicleAll;
 
         /// <summary>
         /// The frame since when the vehicle has been had a flag that should be checked.
@@ -196,7 +196,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public static bool HasProblem(ushort vehicleId, ref Vehicle vehicle)
         {
             // Don't check unspawned vehicles.
-            if (vehicle.Info == null || (vehicle.m_flags & Vehicle.Flags.Spawned) == ~Vehicle.Flags.All)
+            if (vehicle.Info == null || (vehicle.m_flags & Vehicle.Flags.Spawned) == ~VehicleHelper.VehicleAll)
             {
                 return false;
             }
@@ -225,7 +225,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             }
 
             // Check vehicles flags.
-            if ((vehicle.m_flags & FlagsToCheck) != ~Vehicle.Flags.All)
+            if ((vehicle.m_flags & FlagsToCheck) != ~VehicleHelper.VehicleAll)
             {
                 return true;
             }
@@ -316,7 +316,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             // Check if vehicle has flag that should be checked.
             Vehicle.Flags flags = vehicle.m_flags & FlagsToCheck;
-            if ((flags & Vehicle.Flags.All) != ~Vehicle.Flags.All)
+            if ((flags & VehicleHelper.VehicleAll) != ~VehicleHelper.VehicleAll)
             {
                 Vector3 position = vehicle.GetLastFramePosition();
 
@@ -345,14 +345,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 ////    Log.DevDebug(this, "Update", "CheckFlag", flags, this.vehicleId, this.CheckFlaggedForSeconds, this.CheckFlaggedForFrames, Global.Settings.RemoveStuckVehiclesDelaySeconds, Global.CheckFlagStuckDelay, this.checkFlags, flags, this.checkFlagPosition, position, (position - this.checkFlagPosition).sqrMagnitude, vehicle.m_targetBuilding, vehicle.m_flags, VehicleHelper.GetVehicleName(this.vehicleId), this.GetHashCode().ToString());
                 ////}
             }
-            else if ((this.checkFlags & Vehicle.Flags.All) != ~Vehicle.Flags.All || this.checkFlagSinceTime != 0 || this.checkFlagSinceFrame != 0)
+            else if ((this.checkFlags & VehicleHelper.VehicleAll) != ~VehicleHelper.VehicleAll || this.checkFlagSinceTime != 0 || this.checkFlagSinceFrame != 0)
             {
                 ////if (Log.LogALot)
                 ////{
                 ////    Log.DevDebug(this, "Update", "ResetCheckFlag", flags, this.vehicleId, this.CheckFlaggedForSeconds, this.CheckFlaggedForFrames, Global.Settings.RemoveStuckVehiclesDelaySeconds, Global.CheckFlagStuckDelay, this.checkFlags, flags, vehicle.m_targetBuilding, vehicle.m_flags, VehicleHelper.GetVehicleName(this.vehicleId), this.GetHashCode().ToString());
                 ////}
 
-                this.checkFlags = ~Vehicle.Flags.All;
+                this.checkFlags = ~VehicleHelper.VehicleAll;
                 this.checkFlagSinceTime = 0;
                 this.checkFlagSinceFrame = 0;
             }
@@ -399,7 +399,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 double delta;
 
                 // Check if stuck with flag.
-                if ((this.checkFlags & Vehicle.Flags.All) != ~Vehicle.Flags.All && this.CheckFlaggedForFrames > Global.CheckFlagStuckDelay)
+                if ((this.checkFlags & VehicleHelper.VehicleAll) != ~VehicleHelper.VehicleAll && this.CheckFlaggedForFrames > Global.CheckFlagStuckDelay)
                 {
                     delta = this.CheckFlaggedForSeconds;
 

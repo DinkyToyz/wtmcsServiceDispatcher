@@ -24,7 +24,7 @@ IF NOT EXIST ..\..\Build\SteamBBCode2MarkDown.pl GOTO NODESC
 IF NOT EXIST ..\..\Dox\SteamDescription.txt GOTO NODESC
 IF NOT EXIST ..\..\Dox\ReadMe.head.md GOTO NODESC
 
-..\..\Build\SteamBBCode2MarkDown.pl ..\..\Dox\ReadMe.head.md ..\..\Dox\SteamDescription.txt > ..\..\..\README.md
+perl ..\..\Build\SteamBBCode2MarkDown.pl ..\..\Dox\ReadMe.head.md ..\..\Dox\SteamDescription.txt > ..\..\..\README.md
 
 :NODESC
 

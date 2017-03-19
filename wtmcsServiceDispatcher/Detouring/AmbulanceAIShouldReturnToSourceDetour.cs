@@ -118,7 +118,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 return false;
             }
 
-            if (vehicle.m_targetBuilding == 0 && (vehicle.m_flags & Vehicle.Flags.TransferToTarget) == ~Vehicle.Flags.All)
+            if (vehicle.m_targetBuilding == 0 && (vehicle.m_flags & Vehicle.Flags.TransferToTarget) == ~VehicleHelper.VehicleAll)
             {
                 BuildingManager instance = Singleton<BuildingManager>.instance;
                 if (instance.m_buildings.m_buffer[vehicle.m_sourceBuilding].m_fireIntensity == 0)
