@@ -142,7 +142,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// </summary>
         private static Dictionary<ServiceDispatcherSettings.ModCompatibilityMode, string> modCompatibilityModeDescriptions = new Dictionary<ServiceDispatcherSettings.ModCompatibilityMode, string>()
         {
-            { ServiceDispatcherSettings.ModCompatibilityMode.UseCustomCode, "Uses custom assigment code. Bypasses original and modded code." },
+            { ServiceDispatcherSettings.ModCompatibilityMode.UseCustomCode, "Uses custom assignment code. Bypasses original and modded code." },
             { ServiceDispatcherSettings.ModCompatibilityMode.UseOriginalClassMethods, "Calls the games original AI, including methods detoured by other mods" },
             { ServiceDispatcherSettings.ModCompatibilityMode.UseInstanciatedClassMethods, "Use current AI, including AI completely overriden by other mod. " }
         };

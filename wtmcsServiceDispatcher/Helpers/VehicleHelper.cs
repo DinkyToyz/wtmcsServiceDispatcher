@@ -1,8 +1,8 @@
-﻿using System;
+﻿using ColossalFramework;
+using ColossalFramework.Math;
+using System;
 using System.Collections.Generic;
 using System.IO;
-using ColossalFramework;
-using ColossalFramework.Math;
 using UnityEngine;
 
 namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
@@ -211,8 +211,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 Vector3 spawnPos = GetSpawnPosition(vehicleId, vehicle.Info, vehicle.m_sourceBuilding);
 
                 if ((vehicle.m_frame0.m_position - spawnPos).sqrMagnitude < 1 &&
-                    (vehicle.m_frame1.m_position - spawnPos).sqrMagnitude < 1 && 
-                    (vehicle.m_frame2.m_position - spawnPos).sqrMagnitude < 1 && 
+                    (vehicle.m_frame1.m_position - spawnPos).sqrMagnitude < 1 &&
+                    (vehicle.m_frame2.m_position - spawnPos).sqrMagnitude < 1 &&
                     (vehicle.m_frame3.m_position - spawnPos).sqrMagnitude < 1)
                 {
                     Log.Debug(typeof(VehicleHelper), "DeAssign", "DeSpawn", vehicleId, vehicle, vehicle.Info.m_vehicleAI);

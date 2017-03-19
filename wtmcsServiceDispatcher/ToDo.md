@@ -1,14 +1,15 @@
-# Doing
-
+# Still experimental
 - road and rail recovery service crews (to remove stuck vehicles, including forgotten trailers and railway cars).
 - use buildings StartTransfer in order to allow ServiceVehicleSelector to work.
 - use vehicles StartTransfer in order to allow other mods to work?
 
+# Doing
+- ambulance services.
+
 # Additions and fixes
 
-- ambulance services.
-- Automatic emptying.
-- Remember problematic targets and delay next assigment to such target, so that it does not ceate a problem for the whole city.
+- automatic emptying.
+- remember problematic targets and delay next assigment to such target, so that it does not ceate a problem for the whole city.
 - fire fighting services?
 - law enforcement services?
 - send service now button on buildings?
