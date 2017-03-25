@@ -1,9 +1,9 @@
-﻿using System;
+﻿using ColossalFramework.UI;
+using ICities;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using ColossalFramework.UI;
-using ICities;
 
 namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 {
@@ -826,14 +826,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 if (settings.CanLimitOpportunisticCollection)
                 {
-                    if (settings.OpportunisticCollectionLimitDetour == Detours.Methods.None || Detours.CanDetour(settings.OpportunisticCollectionLimitDetour))
-                    {
-                        group.AddCheckbox(
-                            "Prioritize assigned buildings",
-                            settings.LimitOpportunisticCollection,
-                            value =>
+                    group.AddCheckbox(
+                        "Prioritize assigned buildings",
+                        settings.LimitOpportunisticCollection && settings.OpportunisticCollectionLimitDetourAllowed,
+                        value =>
+                        {
+                            try
                             {
-                                try
+                                if (settings.OpportunisticCollectionLimitDetourAllowed)
                                 {
                                     if (settings.LimitOpportunisticCollection != value)
                                     {
@@ -842,23 +842,13 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                                         Global.Settings.Save();
                                     }
                                 }
-                                catch (Exception ex)
-                                {
-                                    Log.Error(this, "OnSettingsUI", ex, "GarbageGroup", "LimitOpportunisticGarbageCollection", value);
-                                    Log.Error(this, "CreateServiceGroup", ex, settings.VehicleNamePlural, "LimitOpportunisticCollection");
-                                }
-                            });
-                    }
-                    else
-                    {
-                        UIComponent limitOpportunisticGarbageCollectionCheckBox = group.AddCheckbox(
-                            "Prioritize assigned buildings",
-                            false,
-                            value =>
+                            }
+                            catch (Exception ex)
                             {
-                            }) as UIComponent;
-                        limitOpportunisticGarbageCollectionCheckBox.Disable();
-                    }
+                                Log.Error(this, "OnSettingsUI", ex, "GarbageGroup", "LimitOpportunisticGarbageCollection", value);
+                                Log.Error(this, "CreateServiceGroup", ex, settings.VehicleNamePlural, "LimitOpportunisticCollection");
+                            }
+                        });
                 }
 
                 group.AddDropdown(

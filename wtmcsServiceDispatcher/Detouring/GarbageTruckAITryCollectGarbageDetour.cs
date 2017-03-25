@@ -1,5 +1,5 @@
-﻿using System;
-using ColossalFramework;
+﻿using ColossalFramework;
+using System;
 using UnityEngine;
 
 namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
@@ -43,13 +43,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// The maximum game version for detouring.
         /// </summary>
-        protected override uint MaxGameVersion
-        {
-            get
-            {
-                return BuildConfig.MakeVersionNumber(1, 6, 0, BuildConfig.ReleaseType.Final, 0, BuildConfig.BuildType.Unknown);
-            }
-        }
+        protected override uint MaxGameVersion => Settings.MaxTestedGameVersion;
 
         /// <summary>
         /// The minimum game version for detouring.

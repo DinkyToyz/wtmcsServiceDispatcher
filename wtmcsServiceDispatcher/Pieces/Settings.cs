@@ -12,6 +12,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
     internal class Settings
     {
         /// <summary>
+        /// The maximum tested game version.
+        /// </summary>
+        public static uint MaxTestedGameVersion = BuildConfig.MakeVersionNumber(1, 7, 0, BuildConfig.ReleaseType.Final, 0, BuildConfig.BuildType.Unknown);
+
+        /// <summary>
         /// The death-care settings.
         /// </summary>
         public readonly StandardServiceSettings DeathCare = new StandardServiceSettings()
@@ -109,78 +114,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// The save count.
         /// </summary>
         public uint SaveCount = 0;
-
-        /// <summary>
-        /// The descriptions for the building checks orders.
-        /// </summary>
-        private static Dictionary<ServiceDispatcherSettings.BuildingCheckOrder, string> buildingCheckOrderDescriptions = new Dictionary<ServiceDispatcherSettings.BuildingCheckOrder, string>()
-        {
-            { ServiceDispatcherSettings.BuildingCheckOrder.FirstFirst, "All buldings regardless of range." },
-            { ServiceDispatcherSettings.BuildingCheckOrder.ForgottenFirst, "Forgotten buildings in range, followed by forgotten buildings out of range, buildings in range and finally problematic buildings in or out of range." },
-            { ServiceDispatcherSettings.BuildingCheckOrder.InRange, "Buildings in range followed by forgotten buildings out of range." },
-            { ServiceDispatcherSettings.BuildingCheckOrder.InRangeFirst, "Buildings in range followed by problematic buildings in or out of range." },
-            { ServiceDispatcherSettings.BuildingCheckOrder.ProblematicFirst, "Problematic buildings in range followed by problematic buildings out of range and finally buildings in range." },
-            { ServiceDispatcherSettings.BuildingCheckOrder.VeryProblematicFirst, "Very problematic buildings in range followed by very problematic buildings out of range, buildings in range and finally problematic buildings in or out of range." }
-        };
-
-        /// <summary>
-        /// The display names for the building checks orders.
-        /// </summary>
-        private static Dictionary<ServiceDispatcherSettings.BuildingCheckOrder, string> buildingCheckOrderNames = new Dictionary<ServiceDispatcherSettings.BuildingCheckOrder, string>()
-        {
-            { ServiceDispatcherSettings.BuildingCheckOrder.Custom, "Custom" },
-            { ServiceDispatcherSettings.BuildingCheckOrder.FirstFirst, "First first" },
-            { ServiceDispatcherSettings.BuildingCheckOrder.ForgottenFirst, "Forgotten first" },
-            { ServiceDispatcherSettings.BuildingCheckOrder.InRange, "In range" },
-            { ServiceDispatcherSettings.BuildingCheckOrder.InRangeFirst, "In range first" },
-            { ServiceDispatcherSettings.BuildingCheckOrder.ProblematicFirst, "Problematic first" },
-            { ServiceDispatcherSettings.BuildingCheckOrder.VeryProblematicFirst, "Very problematic first" }
-        };
-
-        /// <summary>
-        /// The mod compatibility mode descriptions.
-        /// </summary>
-        private static Dictionary<ServiceDispatcherSettings.ModCompatibilityMode, string> modCompatibilityModeDescriptions = new Dictionary<ServiceDispatcherSettings.ModCompatibilityMode, string>()
-        {
-            { ServiceDispatcherSettings.ModCompatibilityMode.UseCustomCode, "Uses custom assignment code. Bypasses original and modded code." },
-            { ServiceDispatcherSettings.ModCompatibilityMode.UseOriginalClassMethods, "Calls the games original AI, including methods detoured by other mods" },
-            { ServiceDispatcherSettings.ModCompatibilityMode.UseInstanciatedClassMethods, "Use current AI, including AI completely overriden by other mod. " }
-        };
-
-        /// <summary>
-        /// The mod compatibility mode names.
-        /// </summary>
-        private static Dictionary<ServiceDispatcherSettings.ModCompatibilityMode, string> modCompatibilityModeNames = new Dictionary<ServiceDispatcherSettings.ModCompatibilityMode, string>()
-        {
-            { ServiceDispatcherSettings.ModCompatibilityMode.UseCustomCode, "Bypass AI" },
-            { ServiceDispatcherSettings.ModCompatibilityMode.UseOriginalClassMethods, "Use original AI" },
-            { ServiceDispatcherSettings.ModCompatibilityMode.UseInstanciatedClassMethods, "Use current AI" }
-        };
-
-        /// <summary>
-        /// The descriptions for the vehicle creation options.
-        /// </summary>
-        private static Dictionary<ServiceDispatcherSettings.SpareVehiclesCreation, string> spareVehiclesCreationDescriptions = new Dictionary<ServiceDispatcherSettings.SpareVehiclesCreation, string>()
-        {
-            { ServiceDispatcherSettings.SpareVehiclesCreation.Never, "Let the game's AI decide when to send out vehicles." },
-            { ServiceDispatcherSettings.SpareVehiclesCreation.WhenNoFree, "Send out spare vehicles when service building has no free vehicles." },
-            { ServiceDispatcherSettings.SpareVehiclesCreation.WhenBuildingIsCloser, "Send out spare vehicles when service building is closer than all free vehicles." }
-        };
-
-        /// <summary>
-        /// The display names for the vehicle creation options.
-        /// </summary>
-        private static Dictionary<ServiceDispatcherSettings.SpareVehiclesCreation, string> spareVehiclesCreationNames = new Dictionary<ServiceDispatcherSettings.SpareVehiclesCreation, string>()
-        {
-            { ServiceDispatcherSettings.SpareVehiclesCreation.Never, "Game decides" },
-            { ServiceDispatcherSettings.SpareVehiclesCreation.WhenNoFree, "None are free" },
-            { ServiceDispatcherSettings.SpareVehiclesCreation.WhenBuildingIsCloser, "Building is closer" }
-        };
-
-        /// <summary>
-        /// The settings version in the loaded file.
-        /// </summary>
-        private int? loadedVersion = null;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Settings"/> class.
@@ -677,55 +610,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
-        /// Check whether something is allowed.
-        /// </summary>
-        /// <param name="allowance">The allowance.</param>
-        /// <param name="minGameVersion">The minimum game version.</param>
-        /// <param name="maxGameVersion">The maximum game version.</param>
-        /// <returns>True if allowed.</returns>
-        private bool AllowanceCheck(ServiceDispatcherSettings.Allowance allowance, uint minGameVersion = 0, uint maxGameVersion = uint.MaxValue)
-        {
-            return allowance != ServiceDispatcherSettings.Allowance.Never &&
-                   BuildConfig.APPLICATION_VERSION >= minGameVersion &&
-                   (allowance == ServiceDispatcherSettings.Allowance.Always || BuildConfig.APPLICATION_VERSION < maxGameVersion);
-        }
-
-        /// <summary>
-        /// Describes something's allowance.
-        /// </summary>
-        /// <param name="allowance">The allowance.</param>
-        /// <param name="minGameVersion">The minimum game version.</param>
-        /// <param name="maxGameVersion">The maximum game version.</param>
-        /// <returns>The allowance description.</returns>
-        private string AllowanceText(ServiceDispatcherSettings.Allowance allowance, uint minGameVersion = 0, uint maxGameVersion = uint.MaxValue)
-        {
-            if (allowance == ServiceDispatcherSettings.Allowance.Never)
-            {
-                return "No (disabled)";
-            }
-            else if (BuildConfig.APPLICATION_VERSION < minGameVersion)
-            {
-                return "No (game version too low)";
-            }
-            else if (allowance == ServiceDispatcherSettings.Allowance.Always)
-            {
-                return "Yes (overridden)";
-            }
-            else if (BuildConfig.APPLICATION_VERSION >= maxGameVersion)
-            {
-                return "No (game version too high)";
-            }
-            else if (minGameVersion > 0 || maxGameVersion < uint.MaxValue)
-            {
-                return "Yes (game version within limits)";
-            }
-            else
-            {
-                return "Yes (enabled)";
-            }
-        }
-
-        /// <summary>
         /// Settings for hidden services.
         /// </summary>
         /// <seealso cref="WhatThe.Mods.CitiesSkylines.ServiceDispatcher.Settings.ServiceSettingsBase" />
@@ -765,16 +649,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             /// The dispatch toggle.
             /// </summary>
             public bool DispatchVehicles = false;
-
-            /// <summary>
-            /// The plural vehicle name value.
-            /// </summary>
-            private string vehicleNamePluralValue = null;
-
-            /// <summary>
-            /// The singular vehicle name value.
-            /// </summary>
-            private string vehicleNameSingularValue;
 
             /// <summary>
             /// Gets or sets the plural vehicle name.
@@ -851,6 +725,16 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     }
                 }
             }
+
+            /// <summary>
+            /// The plural vehicle name value.
+            /// </summary>
+            private string vehicleNamePluralValue = null;
+
+            /// <summary>
+            /// The singular vehicle name value.
+            /// </summary>
+            private string vehicleNameSingularValue;
         }
 
         /// <summary>
@@ -897,66 +781,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             /// The minimum amount for patrol.
             /// </summary>
             public ushort MinimumAmountForPatrol = 200;
-
-            /// <summary>
-            /// The automatic empty settings value.
-            /// </summary>
-            private bool autoEmptyValue = false;
-
-            /// <summary>
-            /// The automatic empty possible value.
-            /// </summary>
-            private bool? canAutoEmptyValue = null;
-
-            /// <summary>
-            /// The opportunistic collection limit possible value.
-            /// </summary>
-            private bool? canLimitOpportunisticCollectionValue = null;
-
-            /// <summary>
-            /// The remove from grid possible value.
-            /// </summary>
-            private bool? canRemoveFromGridValue = null;
-
-            /// <summary>
-            /// The checks preset settings value.
-            /// </summary>
-            private ServiceDispatcherSettings.BuildingCheckOrder checksPresetValue = ServiceDispatcherSettings.BuildingCheckOrder.InRange;
-
-            /// <summary>
-            /// The plural name for service buildings that can be emptied value.
-            /// </summary>
-            private string emptiableServiceBuildingNamePluralValue = null;
-
-            /// <summary>
-            /// The opportunistic collection limit settings value.
-            /// </summary>
-            private bool limitOpportunisticCollectionValue = true;
-
-            /// <summary>
-            /// The material name value.
-            /// </summary>
-            private string materialNameValue = null;
-
-            /// <summary>
-            /// The opportunistic collection limit detour value.
-            /// </summary>
-            private Detours.Methods opportunisticCollectionLimitDetour = Detours.Methods.None;
-
-            /// <summary>
-            /// The remove from grid settings value.
-            /// </summary>
-            private bool removeFromGrid = true;
-
-            /// <summary>
-            /// The minimum amount for dispatch usability value.
-            /// </summary>
-            private bool? useMinimumAmountForDispatch = null;
-
-            /// <summary>
-            /// The minimum amount for patrol usability value.
-            /// </summary>
-            private bool? useMinimumAmountForPatrol = null;
 
             /// <summary>
             /// Gets or sets a value indicating whether automatic emptying should be done.
@@ -1196,6 +1020,15 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 }
             }
 
+            public bool OpportunisticCollectionLimitDetourAllowed
+            {
+                get
+                {
+                    return this.CanLimitOpportunisticCollection &&
+                           (this.OpportunisticCollectionLimitDetour == Detours.Methods.None || Detours.CanDetour(this.OpportunisticCollectionLimitDetour));
+                }
+            }
+
             /// <summary>
             /// Gets a value indicating whether this service patrols.
             /// </summary>
@@ -1282,6 +1115,187 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         throw new InvalidOperationException("Write-once property modification");
                     }
                 }
+            }
+
+            /// <summary>
+            /// The automatic empty settings value.
+            /// </summary>
+            private bool autoEmptyValue = false;
+
+            /// <summary>
+            /// The automatic empty possible value.
+            /// </summary>
+            private bool? canAutoEmptyValue = null;
+
+            /// <summary>
+            /// The opportunistic collection limit possible value.
+            /// </summary>
+            private bool? canLimitOpportunisticCollectionValue = null;
+
+            /// <summary>
+            /// The remove from grid possible value.
+            /// </summary>
+            private bool? canRemoveFromGridValue = null;
+
+            /// <summary>
+            /// The checks preset settings value.
+            /// </summary>
+            private ServiceDispatcherSettings.BuildingCheckOrder checksPresetValue = ServiceDispatcherSettings.BuildingCheckOrder.InRange;
+
+            /// <summary>
+            /// The plural name for service buildings that can be emptied value.
+            /// </summary>
+            private string emptiableServiceBuildingNamePluralValue = null;
+
+            /// <summary>
+            /// The opportunistic collection limit settings value.
+            /// </summary>
+            private bool limitOpportunisticCollectionValue = true;
+
+            /// <summary>
+            /// The material name value.
+            /// </summary>
+            private string materialNameValue = null;
+
+            /// <summary>
+            /// The opportunistic collection limit detour value.
+            /// </summary>
+            private Detours.Methods opportunisticCollectionLimitDetour = Detours.Methods.None;
+
+            /// <summary>
+            /// The remove from grid settings value.
+            /// </summary>
+            private bool removeFromGrid = true;
+
+            /// <summary>
+            /// The minimum amount for dispatch usability value.
+            /// </summary>
+            private bool? useMinimumAmountForDispatch = null;
+
+            /// <summary>
+            /// The minimum amount for patrol usability value.
+            /// </summary>
+            private bool? useMinimumAmountForPatrol = null;
+        }
+
+        /// <summary>
+        /// The descriptions for the building checks orders.
+        /// </summary>
+        private static Dictionary<ServiceDispatcherSettings.BuildingCheckOrder, string> buildingCheckOrderDescriptions = new Dictionary<ServiceDispatcherSettings.BuildingCheckOrder, string>()
+        {
+            { ServiceDispatcherSettings.BuildingCheckOrder.FirstFirst, "All buldings regardless of range." },
+            { ServiceDispatcherSettings.BuildingCheckOrder.ForgottenFirst, "Forgotten buildings in range, followed by forgotten buildings out of range, buildings in range and finally problematic buildings in or out of range." },
+            { ServiceDispatcherSettings.BuildingCheckOrder.InRange, "Buildings in range followed by forgotten buildings out of range." },
+            { ServiceDispatcherSettings.BuildingCheckOrder.InRangeFirst, "Buildings in range followed by problematic buildings in or out of range." },
+            { ServiceDispatcherSettings.BuildingCheckOrder.ProblematicFirst, "Problematic buildings in range followed by problematic buildings out of range and finally buildings in range." },
+            { ServiceDispatcherSettings.BuildingCheckOrder.VeryProblematicFirst, "Very problematic buildings in range followed by very problematic buildings out of range, buildings in range and finally problematic buildings in or out of range." }
+        };
+
+        /// <summary>
+        /// The display names for the building checks orders.
+        /// </summary>
+        private static Dictionary<ServiceDispatcherSettings.BuildingCheckOrder, string> buildingCheckOrderNames = new Dictionary<ServiceDispatcherSettings.BuildingCheckOrder, string>()
+        {
+            { ServiceDispatcherSettings.BuildingCheckOrder.Custom, "Custom" },
+            { ServiceDispatcherSettings.BuildingCheckOrder.FirstFirst, "First first" },
+            { ServiceDispatcherSettings.BuildingCheckOrder.ForgottenFirst, "Forgotten first" },
+            { ServiceDispatcherSettings.BuildingCheckOrder.InRange, "In range" },
+            { ServiceDispatcherSettings.BuildingCheckOrder.InRangeFirst, "In range first" },
+            { ServiceDispatcherSettings.BuildingCheckOrder.ProblematicFirst, "Problematic first" },
+            { ServiceDispatcherSettings.BuildingCheckOrder.VeryProblematicFirst, "Very problematic first" }
+        };
+
+        /// <summary>
+        /// The mod compatibility mode descriptions.
+        /// </summary>
+        private static Dictionary<ServiceDispatcherSettings.ModCompatibilityMode, string> modCompatibilityModeDescriptions = new Dictionary<ServiceDispatcherSettings.ModCompatibilityMode, string>()
+        {
+            { ServiceDispatcherSettings.ModCompatibilityMode.UseCustomCode, "Uses custom assignment code. Bypasses original and modded code." },
+            { ServiceDispatcherSettings.ModCompatibilityMode.UseOriginalClassMethods, "Calls the games original AI, including methods detoured by other mods" },
+            { ServiceDispatcherSettings.ModCompatibilityMode.UseInstanciatedClassMethods, "Use current AI, including AI completely overriden by other mod. " }
+        };
+
+        /// <summary>
+        /// The mod compatibility mode names.
+        /// </summary>
+        private static Dictionary<ServiceDispatcherSettings.ModCompatibilityMode, string> modCompatibilityModeNames = new Dictionary<ServiceDispatcherSettings.ModCompatibilityMode, string>()
+        {
+            { ServiceDispatcherSettings.ModCompatibilityMode.UseCustomCode, "Bypass AI" },
+            { ServiceDispatcherSettings.ModCompatibilityMode.UseOriginalClassMethods, "Use original AI" },
+            { ServiceDispatcherSettings.ModCompatibilityMode.UseInstanciatedClassMethods, "Use current AI" }
+        };
+
+        /// <summary>
+        /// The descriptions for the vehicle creation options.
+        /// </summary>
+        private static Dictionary<ServiceDispatcherSettings.SpareVehiclesCreation, string> spareVehiclesCreationDescriptions = new Dictionary<ServiceDispatcherSettings.SpareVehiclesCreation, string>()
+        {
+            { ServiceDispatcherSettings.SpareVehiclesCreation.Never, "Let the game's AI decide when to send out vehicles." },
+            { ServiceDispatcherSettings.SpareVehiclesCreation.WhenNoFree, "Send out spare vehicles when service building has no free vehicles." },
+            { ServiceDispatcherSettings.SpareVehiclesCreation.WhenBuildingIsCloser, "Send out spare vehicles when service building is closer than all free vehicles." }
+        };
+
+        /// <summary>
+        /// The display names for the vehicle creation options.
+        /// </summary>
+        private static Dictionary<ServiceDispatcherSettings.SpareVehiclesCreation, string> spareVehiclesCreationNames = new Dictionary<ServiceDispatcherSettings.SpareVehiclesCreation, string>()
+        {
+            { ServiceDispatcherSettings.SpareVehiclesCreation.Never, "Game decides" },
+            { ServiceDispatcherSettings.SpareVehiclesCreation.WhenNoFree, "None are free" },
+            { ServiceDispatcherSettings.SpareVehiclesCreation.WhenBuildingIsCloser, "Building is closer" }
+        };
+
+        /// <summary>
+        /// The settings version in the loaded file.
+        /// </summary>
+        private int? loadedVersion = null;
+
+        /// <summary>
+        /// Check whether something is allowed.
+        /// </summary>
+        /// <param name="allowance">The allowance.</param>
+        /// <param name="minGameVersion">The minimum game version.</param>
+        /// <param name="maxGameVersion">The maximum game version.</param>
+        /// <returns>True if allowed.</returns>
+        private bool AllowanceCheck(ServiceDispatcherSettings.Allowance allowance, uint minGameVersion = 0, uint maxGameVersion = uint.MaxValue)
+        {
+            return allowance != ServiceDispatcherSettings.Allowance.Never &&
+                   BuildConfig.APPLICATION_VERSION >= minGameVersion &&
+                   (allowance == ServiceDispatcherSettings.Allowance.Always || BuildConfig.APPLICATION_VERSION < maxGameVersion);
+        }
+
+        /// <summary>
+        /// Describes something's allowance.
+        /// </summary>
+        /// <param name="allowance">The allowance.</param>
+        /// <param name="minGameVersion">The minimum game version.</param>
+        /// <param name="maxGameVersion">The maximum game version.</param>
+        /// <returns>The allowance description.</returns>
+        private string AllowanceText(ServiceDispatcherSettings.Allowance allowance, uint minGameVersion = 0, uint maxGameVersion = uint.MaxValue)
+        {
+            if (allowance == ServiceDispatcherSettings.Allowance.Never)
+            {
+                return "No (disabled)";
+            }
+            else if (BuildConfig.APPLICATION_VERSION < minGameVersion)
+            {
+                return "No (game version too low)";
+            }
+            else if (allowance == ServiceDispatcherSettings.Allowance.Always)
+            {
+                return "Yes (overridden)";
+            }
+            else if (BuildConfig.APPLICATION_VERSION >= maxGameVersion)
+            {
+                return "No (game version too high)";
+            }
+            else if (minGameVersion > 0 || maxGameVersion < uint.MaxValue)
+            {
+                return "Yes (game version within limits)";
+            }
+            else
+            {
+                return "Yes (enabled)";
             }
         }
     }

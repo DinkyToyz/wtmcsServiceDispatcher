@@ -1,6 +1,6 @@
-﻿using System;
+﻿using ColossalFramework;
+using System;
 using System.Reflection;
-using ColossalFramework;
 
 namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 {
@@ -12,7 +12,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// The clean transfer offers maximum game version.
         /// </summary>
-        private static uint cleanTransferOffersMaxGameVersion = BuildConfig.MakeVersionNumber(1, 6, 0, BuildConfig.ReleaseType.Final, 0, BuildConfig.BuildType.Unknown);
+        private static uint cleanTransferOffersMaxGameVersion = Settings.MaxTestedGameVersion;
 
         /// <summary>
         /// The clean transfer offers minimum game version.
