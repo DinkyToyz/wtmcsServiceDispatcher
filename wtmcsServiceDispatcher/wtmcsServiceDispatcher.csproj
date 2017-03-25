@@ -63,6 +63,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Build\PreBuildStamps.cs" />
     <Compile Include="Detours\AmbulanceAIShouldReturnToSourceDetour.cs" />
     <Compile Include="Detouring\ObjectMethods.cs" />
     <Compile Include="Detouring\SingleMethod.cs" />
@@ -123,6 +124,9 @@
   <PropertyGroup>
     <PostBuildEvent>"$(ProjectDir)Build\PostBuild.cmd" 512341354 $(SolutionName) $(TargetFileName) $(Configuration)
 </PostBuildEvent>
+  </PropertyGroup>
+  <PropertyGroup>
+    <PreBuildEvent>c:\Applications\bin\PreBuildStamper.exe "$(ProjectDir)\Build\PreBuildStamps.cs"</PreBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

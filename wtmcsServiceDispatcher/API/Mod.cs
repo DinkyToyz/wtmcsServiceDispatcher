@@ -348,6 +348,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     {
                         group.AddInformationalText("Mod Version:", modAss.GetName().Version.ToString());
                     }
+
+                    group.AddInformationalText("Mod Built At:", AssemblyInfo.PreBuildStamps.DateTime.ToString("yyyy-MM-dd HH:mm"));
                 }
                 catch
                 {
