@@ -63,7 +63,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Detouring\AmbulanceAIShouldReturnToSourceDetour.cs" />
+    <Compile Include="Detours\AmbulanceAIShouldReturnToSourceDetour.cs" />
     <Compile Include="Detouring\ObjectMethods.cs" />
     <Compile Include="Detouring\SingleMethod.cs" />
     <Compile Include="Helpers\BuildingHelper.cs" />
@@ -74,7 +74,7 @@
     <Compile Include="Pieces\BuildingKeeper.cs" />
     <Compile Include="Detouring\Detours.cs" />
     <Compile Include="Helpers\DistrictHelper.cs" />
-    <Compile Include="Detouring\GarbageTruckAIShouldReturnToSourceDetour.cs" />
+    <Compile Include="Detours\GarbageTruckAIShouldReturnToSourceDetour.cs" />
     <Compile Include="Pieces\IHandlerPart.cs" />
     <Compile Include="Pieces\Dispatcher.cs" />
     <Compile Include="Pieces\ServiceDispatcherSettings.cs" />
@@ -82,9 +82,9 @@
     <Compile Include="UI\ExtendedSlider.cs" />
     <Compile Include="Util\Extensions.cs" />
     <Compile Include="Util\FileSystem.cs" />
-    <Compile Include="Detouring\GarbageTruckAITryCollectGarbageDetour.cs" />
+    <Compile Include="Detours\GarbageTruckAITryCollectGarbageDetour.cs" />
     <Compile Include="Pieces\Global.cs" />
-    <Compile Include="Detouring\HearseAIShouldReturnToSourceDetour.cs" />
+    <Compile Include="Detours\HearseAIShouldReturnToSourceDetour.cs" />
     <Compile Include="Pieces\IBuildingInfo.cs" />
     <Compile Include="Pieces\Library.cs" />
     <Compile Include="API\LoadingExtension.cs" />
