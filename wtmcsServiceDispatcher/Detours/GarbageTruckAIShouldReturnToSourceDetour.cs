@@ -41,7 +41,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// The maximum game version for detouring.
         /// </summary>
-        protected override uint MaxGameVersion => Settings.MaxTestedGameVersion;
+        protected override uint MaxGameVersion => Settings.AboveMaxTestedGameVersion;
 
         /// <summary>
         /// The minimum game version for detouring.

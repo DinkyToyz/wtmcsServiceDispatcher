@@ -12,9 +12,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
     internal class Settings
     {
         /// <summary>
-        /// The maximum tested game version.
+        /// A bit above the maximum tested game version.
         /// </summary>
-        public static uint MaxTestedGameVersion = BuildConfig.MakeVersionNumber(1, 7, 0, BuildConfig.ReleaseType.Final, 0, BuildConfig.BuildType.Unknown);
+        public static uint AboveMaxTestedGameVersion = BuildConfig.MakeVersionNumber(1, 7, 31, BuildConfig.ReleaseType.Final, 31, BuildConfig.BuildType.Unknown);
 
         /// <summary>
         /// The death-care settings.

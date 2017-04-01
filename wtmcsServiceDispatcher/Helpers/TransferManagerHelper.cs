@@ -12,7 +12,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// The clean transfer offers maximum game version.
         /// </summary>
-        private static uint cleanTransferOffersMaxGameVersion = Settings.MaxTestedGameVersion;
+        private static uint cleanTransferOffersMaxGameVersion = Settings.AboveMaxTestedGameVersion;
 
         /// <summary>
         /// The clean transfer offers minimum game version.
