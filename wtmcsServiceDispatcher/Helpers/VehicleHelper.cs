@@ -95,6 +95,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     throw new InvalidOperationException("Material must be specified");
                 }
             }
+
             return VehicleHelper.StartTransfer(vehicleId, ref vehicle, material.Value, targetBuildingId, targetCitizenId);
         }
 
@@ -355,6 +356,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <exception cref="InvalidDataException">No vehicle objects.</exception>
         public static void DumpVehicles()
         {
+            if (!Global.LevelLoaded)
+            {
+                return;
+            }
+
             bool logNames = Log.LogNames;
             Log.LogNames = true;
 
@@ -520,6 +526,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             int bufCur, bufMax;
             string localeKey;
             float distance;
+            string name;
 
             info.Add("VehicleId", vehicleId);
 
@@ -530,136 +537,235 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 info.Add("CargoParent", vehicles[vehicleId].m_cargoParent);
             }
 
-            info.Add("AI", vehicles[vehicleId].Info.m_vehicleAI.GetType());
-            info.Add("InfoName", vehicles[vehicleId].Info.name);
-
-            string name = GetVehicleName(vehicleId);
-            if (!String.IsNullOrEmpty(name) && name != vehicles[vehicleId].Info.name)
+            try
             {
-                info.Add("VehicleName", name);
-            }
+                info.Add("AI", vehicles[vehicleId].Info.m_vehicleAI.GetType());
+                info.Add("InfoName", vehicles[vehicleId].Info.name);
 
-            string type = vehicles[vehicleId].m_transferType.ToString();
-            foreach (TransferManager.TransferReason reason in Enum.GetValues(typeof(TransferManager.TransferReason)))
-            {
-                if ((byte)reason == vehicles[vehicleId].m_transferType)
+                name = GetVehicleName(vehicleId);
+                if (!String.IsNullOrEmpty(name) && name != vehicles[vehicleId].Info.name)
                 {
-                    type = reason.ToString();
-                    break;
+                    info.Add("VehicleName", name);
                 }
             }
-            info.Add("Type", type);
-
-            if (vehicles[vehicleId].m_sourceBuilding != 0 && buildings[vehicles[vehicleId].m_sourceBuilding].Info != null)
+            catch
             {
-                distance = (vehicles[vehicleId].GetLastFramePosition() - buildings[vehicles[vehicleId].m_sourceBuilding].m_position).sqrMagnitude;
-                name = BuildingHelper.GetBuildingName(vehicles[vehicleId].m_sourceBuilding);
-                if (String.IsNullOrEmpty(name))
-                {
-                    name = buildings[vehicles[vehicleId].m_sourceBuilding].Info.name;
-                }
-
-                info.Add("Source", vehicles[vehicleId].m_sourceBuilding, name, distance);
+                info.Add("Error", "Info");
             }
 
-            if (vehicles[vehicleId].m_targetBuilding != 0 && buildings[vehicles[vehicleId].m_targetBuilding].Info != null)
+            try
             {
-                distance = (vehicles[vehicleId].GetLastFramePosition() - buildings[vehicles[vehicleId].m_targetBuilding].m_position).sqrMagnitude;
-                name = BuildingHelper.GetBuildingName(vehicles[vehicleId].m_targetBuilding);
-                if (String.IsNullOrEmpty(name))
+                string type = vehicles[vehicleId].m_transferType.ToString();
+                foreach (TransferManager.TransferReason reason in Enum.GetValues(typeof(TransferManager.TransferReason)))
                 {
-                    name = buildings[vehicles[vehicleId].m_targetBuilding].Info.name;
-                }
-
-                info.Add("Target", vehicles[vehicleId].m_targetBuilding, name, distance);
-            }
-
-            string flags = vehicles[vehicleId].m_flags.ToString();
-            if (flags.IndexOfAny(new char[] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' }) >= 0)
-            {
-                foreach (Vehicle.Flags flag in Enum.GetValues(typeof(Vehicle.Flags)))
-                {
-                    if ((vehicles[vehicleId].m_flags & flag) == flag)
+                    if ((byte)reason == vehicles[vehicleId].m_transferType)
                     {
-                        flags += ", " + flag.ToString();
+                        type = reason.ToString();
+                        break;
                     }
                 }
+                info.Add("Type", type);
             }
-            info.Add("Flags", flags);
-
-            info.Add("Enabled", vehicles[vehicleId].Info.enabled);
-            info.Add("Active", vehicles[vehicleId].Info.isActiveAndEnabled);
-            info.Add("AIEnabled", vehicles[vehicleId].Info.m_vehicleAI.enabled);
-            info.Add("AIActive", vehicles[vehicleId].Info.m_vehicleAI.isActiveAndEnabled);
-
-            if (vehicles[vehicleId].Info.m_vehicleAI.GetProgressStatus(vehicleId, ref vehicles[vehicleId], out prgCur, out prgMax))
+            catch
             {
-                info.Add("PrgCur", prgCur);
-                info.Add("PrgMax", prgMax);
+                info.Add("Error", "Transfer");
             }
 
-            vehicles[vehicleId].Info.m_vehicleAI.GetBufferStatus(vehicleId, ref vehicles[vehicleId], out localeKey, out bufCur, out bufMax);
-            if (!String.IsNullOrEmpty(localeKey))
+            try
             {
-                info.Add("BufLocKey", localeKey);
+                if (vehicles[vehicleId].m_sourceBuilding != 0 && buildings[vehicles[vehicleId].m_sourceBuilding].Info != null)
+                {
+                    distance = (vehicles[vehicleId].GetLastFramePosition() - buildings[vehicles[vehicleId].m_sourceBuilding].m_position).sqrMagnitude;
+                    name = BuildingHelper.GetBuildingName(vehicles[vehicleId].m_sourceBuilding);
+                    if (String.IsNullOrEmpty(name))
+                    {
+                        name = buildings[vehicles[vehicleId].m_sourceBuilding].Info.name;
+                    }
+
+                    info.Add("Source", vehicles[vehicleId].m_sourceBuilding, name, distance);
+                }
             }
-            info.Add("BufCur", bufCur);
-            info.Add("BufMax", bufMax);
+            catch
+            {
+                info.Add("Error", "SourceBuilding");
+            }
+
+            try
+            {
+                if (vehicles[vehicleId].m_targetBuilding != 0 && buildings[vehicles[vehicleId].m_targetBuilding].Info != null)
+                {
+                    distance = (vehicles[vehicleId].GetLastFramePosition() - buildings[vehicles[vehicleId].m_targetBuilding].m_position).sqrMagnitude;
+                    name = BuildingHelper.GetBuildingName(vehicles[vehicleId].m_targetBuilding);
+                    if (String.IsNullOrEmpty(name))
+                    {
+                        name = buildings[vehicles[vehicleId].m_targetBuilding].Info.name;
+                    }
+
+                    info.Add("Target", vehicles[vehicleId].m_targetBuilding, name, distance);
+                }
+            }
+            catch
+            {
+                info.Add("Error", "TargetBuilding");
+            }
+
+            try
+            {
+                string flags = vehicles[vehicleId].m_flags.ToString();
+                if (flags.IndexOfAny(new char[] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' }) >= 0)
+                {
+                    foreach (Vehicle.Flags flag in Enum.GetValues(typeof(Vehicle.Flags)))
+                    {
+                        if ((vehicles[vehicleId].m_flags & flag) == flag)
+                        {
+                            flags += ", " + flag.ToString();
+                        }
+                    }
+                }
+                info.Add("Flags", flags);
+            }
+            catch
+            {
+                info.Add("Error", "Flags");
+            }
+
+            try
+            {
+                info.Add("Enabled", vehicles[vehicleId].Info.enabled);
+                info.Add("Active", vehicles[vehicleId].Info.isActiveAndEnabled);
+                info.Add("AIEnabled", vehicles[vehicleId].Info.m_vehicleAI.enabled);
+                info.Add("AIActive", vehicles[vehicleId].Info.m_vehicleAI.isActiveAndEnabled);
+            }
+            catch
+            {
+                info.Add("Error", "Info");
+            }
+
+            try
+            {
+                if (vehicles[vehicleId].Info.m_vehicleAI.GetProgressStatus(vehicleId, ref vehicles[vehicleId], out prgCur, out prgMax))
+                {
+                    info.Add("PrgCur", prgCur);
+                    info.Add("PrgMax", prgMax);
+                }
+            }
+            catch
+            {
+                info.Add("Error", "Progress");
+            }
+
+            try
+            {
+                vehicles[vehicleId].Info.m_vehicleAI.GetBufferStatus(vehicleId, ref vehicles[vehicleId], out localeKey, out bufCur, out bufMax);
+                if (!String.IsNullOrEmpty(localeKey))
+                {
+                    info.Add("BufLocKey", localeKey);
+                }
+                info.Add("BufCur", bufCur);
+                info.Add("BufMax", bufMax);
+            }
+            catch
+            {
+                info.Add("Error", "Buffer");
+            }
 
             info.Add("TransferSize", vehicles[vehicleId].m_transferSize);
 
-            if (vehicles[vehicleId].Info.m_vehicleAI is HearseAI)
+            try
             {
-                info.Add("Capacity", ((HearseAI)vehicles[vehicleId].Info.m_vehicleAI).m_corpseCapacity);
+                if (vehicles[vehicleId].Info.m_vehicleAI is HearseAI)
+                {
+                    info.Add("Capacity", ((HearseAI)vehicles[vehicleId].Info.m_vehicleAI).m_corpseCapacity);
+                }
+                else if (vehicles[vehicleId].Info.m_vehicleAI is GarbageTruckAI)
+                {
+                    info.Add("Capacity", ((GarbageTruckAI)vehicles[vehicleId].Info.m_vehicleAI).m_cargoCapacity);
+                }
+                else if (vehicles[vehicleId].Info.m_vehicleAI is AmbulanceAI)
+                {
+                    info.Add("Capacity", ((AmbulanceAI)vehicles[vehicleId].Info.m_vehicleAI).m_patientCapacity);
+                }
             }
-            else if (vehicles[vehicleId].Info.m_vehicleAI is GarbageTruckAI)
+            catch
             {
-                info.Add("Capacity", ((GarbageTruckAI)vehicles[vehicleId].Info.m_vehicleAI).m_cargoCapacity);
-            }
-            else if (vehicles[vehicleId].Info.m_vehicleAI is AmbulanceAI)
-            {
-                info.Add("Capacity", ((AmbulanceAI)vehicles[vehicleId].Info.m_vehicleAI).m_patientCapacity);
+                info.Add("Error", "Capacity");
             }
 
-            string status = vehicles[vehicleId].Info.m_vehicleAI.GetLocalizedStatus(vehicleId, ref vehicles[vehicleId], out instanceId);
-            if (!String.IsNullOrEmpty(status))
+            try
             {
-                info.Add("Status", status);
+                string status = vehicles[vehicleId].Info.m_vehicleAI.GetLocalizedStatus(vehicleId, ref vehicles[vehicleId], out instanceId);
+                if (!String.IsNullOrEmpty(status))
+                {
+                    info.Add("Status", status);
+                }
+            }
+            catch
+            {
+                info.Add("Error", "Status");
             }
 
             if (verbose)
             {
-                if (vehicles[vehicleId].m_leadingVehicle == 0 && vehicles[vehicleId].m_trailingVehicle != 0)
+                try
                 {
-                    ushort trailerCount = 0;
-                    ushort trailerId = vehicles[vehicleId].m_trailingVehicle;
-
-                    while (trailerId != 0 && trailerCount < ushort.MaxValue)
+                    if (vehicles[vehicleId].m_leadingVehicle == 0 && vehicles[vehicleId].m_trailingVehicle != 0)
                     {
-                        trailerId = vehicles[trailerId].m_trailingVehicle;
-                        trailerCount++;
-                    }
+                        ushort trailerCount = 0;
+                        ushort trailerId = vehicles[vehicleId].m_trailingVehicle;
 
-                    info.Add("TrailerCount", trailerCount);
+                        while (trailerId != 0 && trailerCount < ushort.MaxValue)
+                        {
+                            trailerId = vehicles[trailerId].m_trailingVehicle;
+                            trailerCount++;
+                        }
+
+                        info.Add("TrailerCount", trailerCount);
+                    }
+                }
+                catch
+                {
+                    info.Add("Error", "Trailing");
                 }
 
                 info.Add("WaitCounter", vehicles[vehicleId].m_waitCounter);
-                info.Add("Position", vehicles[vehicleId].GetLastFramePosition());
+
+                try
+                {
+                    info.Add("Position", vehicles[vehicleId].GetLastFramePosition());
+                }
+                catch
+                {
+                    info.Add("Error", "Position");
+                }
 
                 if (Global.Vehicles != null)
                 {
-                    if (Global.Vehicles.StuckVehicles != null)
+                    try
                     {
-                        StuckVehicleInfo stuckVehicle;
-                        if (Global.Vehicles.StuckVehicles.TryGetValue(vehicleId, out stuckVehicle))
+                        if (Global.Vehicles.StuckVehicles != null)
                         {
-                            stuckVehicle.AddDebugInfoData(info);
+                            StuckVehicleInfo stuckVehicle;
+                            if (Global.Vehicles.StuckVehicles.TryGetValue(vehicleId, out stuckVehicle))
+                            {
+                                stuckVehicle.AddDebugInfoData(info);
+                            }
                         }
+                    }
+                    catch
+                    {
+                        info.Add("Error", "Stuck");
                     }
                 }
             }
 
-            info.Add("AI", vehicles[vehicleId].Info.m_vehicleAI.GetType().AssemblyQualifiedName);
+            try
+            {
+                info.Add("AI", vehicles[vehicleId].Info.m_vehicleAI.GetType().AssemblyQualifiedName);
+            }
+            catch
+            {
+                info.Add("Error", "AI");
+            }
 
             return info;
         }
@@ -719,6 +825,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 }
 
                 vehicle.Info.m_vehicleAI.SetTarget(vehicleId, ref vehicle, targetBuildingId);
+                if (Log.LogALot && Log.LogToFile)
+                {
+                    Log.DevDebug(typeof(VehicleHelper), "SetTarget", "Target Set", vehicleId, targetBuildingId, targetCitizenId, vehicle.m_targetBuilding, vehicle.m_flags, VehicleHelper.VehicleExists, VehicleHelper.VehicleAll);
+                }
+
                 if (targetCitizenId == 0)
                 {
                     return (vehicle.m_flags & VehicleHelper.VehicleExists) != ~VehicleHelper.VehicleAll;
@@ -749,11 +860,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <returns>True on success.</returns>
         private static bool StartTransfer(ushort vehicleId, ref Vehicle vehicle, TransferManager.TransferReason material, ushort targetBuildingId, uint targetCitizenId)
         {
-            TransferManager.TransferOffer offer = new TransferManager.TransferOffer()
-            {
-                Building = targetBuildingId,
-                Citizen = targetCitizenId,
-            };
+            TransferManager.TransferOffer offer = TransferManagerHelper.MakeOffer(targetBuildingId, targetCitizenId);
 
             vehicle.m_flags &= ~Vehicle.Flags.GoingBack;
             vehicle.m_flags |= Vehicle.Flags.WaitingTarget;
@@ -780,7 +887,13 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 vehicle.Info.m_vehicleAI.StartTransfer(vehicleId, ref vehicle, material, offer);
             }
 
-            return vehicle.m_targetBuilding == targetBuildingId && (targetCitizenId == 0 || Singleton<CitizenManager>.instance.m_citizens.m_buffer[targetCitizenId].m_vehicle == vehicleId);
+            if (vehicle.m_targetBuilding == targetBuildingId && (targetCitizenId == 0 || Singleton<CitizenManager>.instance.m_citizens.m_buffer[targetCitizenId].m_vehicle == vehicleId))
+            {
+                return true;
+            }
+
+            Log.Warning(typeof(VehicleHelper), "StartTransfer", "Target Not Assigned", vehicleId, targetBuildingId, targetCitizenId, material, vehicle.m_sourceBuilding, vehicle.m_targetBuilding, (TransferManager.TransferReason)vehicle.m_transferType, vehicle.m_flags);
+            return false;
         }
     }
 }

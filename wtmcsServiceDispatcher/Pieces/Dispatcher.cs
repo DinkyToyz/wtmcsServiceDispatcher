@@ -973,7 +973,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     {
                         if (Log.LogALot)
                         {
-                            Log.DevDebug(this, "CollectVehicles", "RemoveNonVehicle", serviceBuilding.BuildingId, id, vehicles[vehicleId].m_flags);
+                            Log.DevDebug(this, "CollectVehicles", "RemoveNonVehicle", serviceBuilding.BuildingId, id, vehicles[vehicleId].m_flags, vehicles[vehicleId].Info, vehicles[vehicleId].m_transferType);
                         }
 
                         serviceBuilding.Vehicles.Remove(id);

@@ -435,35 +435,47 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         continue;
                     }
 
-                    string message;
+                    string message = null;
 
-                    if (messages[i] is string)
+                    try
                     {
-                        message = (string)messages[i];
+                        if (messages[i] is string)
+                        {
+                            message = (string)messages[i];
+                        }
+                        else if (messages[i] is float)
+                        {
+                            message = ((float)messages[i]).ToString("#,0.##", CultureInfo.InvariantCulture);
+                        }
+                        else if (messages[i] is double)
+                        {
+                            message = ((double)messages[i]).ToString("#,0.##", CultureInfo.InvariantCulture);
+                        }
+                        else if (messages[i] is Vector3)
+                        {
+                            message = VectorToString((Vector3)messages[i]);
+                        }
+                        else if (messages[i] is Vector2)
+                        {
+                            message = VectorToString((Vector2)messages[i]);
+                        }
+                        else if (messages[i] is Vector4)
+                        {
+                            message = VectorToString((Vector4)messages[i]);
+                        }
+                        else
+                        {
+                            message = messages[i].ToString();
+                        }
                     }
-                    else if (messages[i] is float)
+                    catch(Exception ex)
                     {
-                        message = ((float)messages[i]).ToString("#,0.##", CultureInfo.InvariantCulture);
-                    }
-                    else if (messages[i] is double)
-                    {
-                        message = ((float)messages[i]).ToString("#,0.##", CultureInfo.InvariantCulture);
-                    }
-                    else if (messages[i] is Vector3)
-                    {
-                        message = VectorToString((Vector3)messages[i]);
-                    }
-                    else if (messages[i] is Vector2)
-                    {
-                        message = VectorToString((Vector2)messages[i]);
-                    }
-                    else if (messages[i] is Vector4)
-                    {
-                        message = VectorToString((Vector4)messages[i]);
-                    }
-                    else
-                    {
-                        message = messages[i].ToString();
+                        message = "(unable to log value: " + messages[i].GetType().ToString() + ", " + ex.GetType().ToString();
+                        if (!String.IsNullOrEmpty(ex.Message))
+                        {
+                            message += ", " + ex.Message;
+                        }
+                        message += ")";
                     }
 
                     if (message == null)
@@ -779,76 +791,89 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         continue;
                     }
 
-                    if (data[i] is IEnumerable<string>)
+                    try
                     {
-                        bool sa = false;
-                        foreach (string str in (IEnumerable<string>)data[i])
+                        if (data[i] is IEnumerable<string>)
                         {
-                            if (str == null)
+                            bool sa = false;
+                            foreach (string str in (IEnumerable<string>)data[i])
                             {
-                                continue;
+                                if (str == null)
+                                {
+                                    continue;
+                                }
+
+                                if (!sa)
+                                {
+                                    this.AddNameOrSeparator(name, dc);
+                                    sa = true;
+                                }
+
+                                this.info.Append(escapeRex.Replace(str.Trim(), "^$1"));
                             }
 
                             if (!sa)
                             {
-                                this.AddNameOrSeparator(name, dc);
-                                sa = true;
+                                continue;
+                            }
+                        }
+                        else if (data[i] is string)
+                        {
+                            this.AddNameOrSeparator(name, dc);
+                            this.info.Append(escapeRex.Replace(((string)data[i]).Trim(), "^$1"));
+                        }
+                        else if (data[i] is float)
+                        {
+                            this.AddNameOrSeparator(name, dc);
+                            this.info.Append(((float)data[i]).ToString("#,0.##", CultureInfo.InvariantCulture));
+                        }
+                        else if (data[i] is double)
+                        {
+                            this.AddNameOrSeparator(name, dc);
+                            this.info.Append(((double)data[i]).ToString("#,0.##", CultureInfo.InvariantCulture));
+                        }
+                        else if (data[i] is int || data[i] is Int16 || data[i] is Int32 || data[i] is Int64 || data[i] is short || data[i] is byte ||
+                                 data[i] is uint || data[i] is UInt16 || data[i] is UInt32 || data[i] is UInt64 || data[i] is ushort)
+                        {
+                            this.AddNameOrSeparator(name, dc);
+                            this.info.Append(data[i].ToString());
+                        }
+                        else if (data[i] is Vector3)
+                        {
+                            this.AddNameOrSeparator(name, dc);
+                            this.info.Append(VectorToString((Vector3)data[i]));
+                        }
+                        else if (data[i] is Vector2)
+                        {
+                            this.AddNameOrSeparator(name, dc);
+                            this.info.Append(VectorToString((Vector2)data[i]));
+                        }
+                        else if (data[i] is Vector4)
+                        {
+                            this.AddNameOrSeparator(name, dc);
+                            this.info.Append(VectorToString((Vector4)data[i]));
+                        }
+                        else
+                        {
+                            string text = data[i].ToString();
+                            if (text == null)
+                            {
+                                continue;
                             }
 
-                            this.info.Append(escapeRex.Replace(str.Trim(), "^$1"));
+                            this.AddNameOrSeparator(name, dc);
+                            this.info.Append(escapeRex.Replace(text.Trim(), "^$1"));
                         }
-
-                        if (!sa)
+                    }
+                    catch (Exception ex)
+                    {
+                        this.AddNameOrSeparator(name, dc);
+                        this.info.Append("(unable to show value: ").Append(data[i].GetType().ToString()).Append(", ").Append(ex.GetType().ToString());
+                        if (!String.IsNullOrEmpty(ex.Message))
                         {
-                            continue;
+                            info.Append(", ").Append(ex.Message);
                         }
-                    }
-                    else if (data[i] is string)
-                    {
-                        this.AddNameOrSeparator(name, dc);
-                        this.info.Append(escapeRex.Replace(((string)data[i]).Trim(), "^$1"));
-                    }
-                    else if (data[i] is float)
-                    {
-                        this.AddNameOrSeparator(name, dc);
-                        this.info.Append(((float)data[i]).ToString("#,0.##", CultureInfo.InvariantCulture));
-                    }
-                    else if (data[i] is double)
-                    {
-                        this.AddNameOrSeparator(name, dc);
-                        this.info.Append(((float)data[i]).ToString("#,0.##", CultureInfo.InvariantCulture));
-                    }
-                    else if (data[i] is int || data[i] is Int16 || data[i] is Int32 || data[i] is Int64 || data[i] is short || data[i] is byte ||
-                             data[i] is uint || data[i] is UInt16 || data[i] is UInt32 || data[i] is UInt64 || data[i] is ushort)
-                    {
-                        this.AddNameOrSeparator(name, dc);
-                        this.info.Append(data[i].ToString());
-                    }
-                    else if (data[i] is Vector3)
-                    {
-                        this.AddNameOrSeparator(name, dc);
-                        this.info.Append(VectorToString((Vector3)data[i]));
-                    }
-                    else if (data[i] is Vector2)
-                    {
-                        this.AddNameOrSeparator(name, dc);
-                        this.info.Append(VectorToString((Vector2)data[i]));
-                    }
-                    else if (data[i] is Vector4)
-                    {
-                        this.AddNameOrSeparator(name, dc);
-                        this.info.Append(VectorToString((Vector4)data[i]));
-                    }
-                    else
-                    {
-                        string text = data[i].ToString();
-                        if (text == null)
-                        {
-                            continue;
-                        }
-
-                        this.AddNameOrSeparator(name, dc);
-                        this.info.Append(escapeRex.Replace(text.Trim(), "^$1"));
+                        info.Append(")");
                     }
 
                     dc++;

@@ -343,17 +343,22 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 {
                     group.AddInformationalText("Config Path:", FileSystem.FilePath);
 
+                    string version = null;
                     Assembly modAss = this.GetType().Assembly;
                     if (modAss != null)
                     {
-                        group.AddInformationalText("Mod Version:", modAss.GetName().Version.ToString());
+                        version = modAss.GetName().Version.ToString() + ", " + version + " ";
                     }
 
-                    group.AddInformationalText("Mod Built At:", AssemblyInfo.PreBuildStamps.DateTime.ToString("yyyy-MM-dd HH:mm"));
+                    version += "(" + AssemblyInfo.PreBuildStamps.DateTime.ToString("yyyy-MM-dd HH:mm") + ")";
+
+                    group.AddInformationalText("Mod Version:", version);
                 }
                 catch
                 {
                 }
+
+                group.AddInformationalText("Note:", "Dumping is only possible when a city is loaded.");
 
                 group.AddButton(
                     "Dump buildings",
@@ -1038,7 +1043,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 this.AddHiddenServiceControls(group, Global.Settings.WreckingCrews, BulldozeHelper.CanBulldoze);
 
-                group.AddInformationalText("Experimental Recovery Services:", "The recovery services are experimental, and might create more problems than they solve.");
+                group.AddInformationalText("Experimental Recovery Services:", "The recovery services are experimental, and might create problems.");
 
                 this.AddHiddenServiceControls(group, Global.Settings.RecoveryCrews, true);
 

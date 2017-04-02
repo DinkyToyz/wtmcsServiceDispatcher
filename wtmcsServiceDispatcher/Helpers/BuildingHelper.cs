@@ -1,7 +1,7 @@
-﻿using System;
+﻿using ColossalFramework;
+using System;
 using System.Collections.Generic;
 using System.IO;
-using ColossalFramework;
 
 namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 {
@@ -118,6 +118,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <exception cref="InvalidDataException">No building objects.</exception>
         public static void DumpBuildings()
         {
+            if (!Global.LevelLoaded)
+            {
+                return;
+            }
+
             bool logNames = Log.LogNames;
             Log.LogNames = true;
 
@@ -144,6 +149,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 }
 
                 buildingList.Add("");
+
                 using (StreamWriter dumpFile = new StreamWriter(FileSystem.FilePathName(".Buildings.txt"), false))
                 {
                     dumpFile.Write(String.Join("\n", buildingList.ToArray()).ConformNewlines());
@@ -154,8 +160,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             {
                 Log.Error(typeof(VehicleKeeper), "DumpBuildings", ex);
             }
-
-            Log.LogNames = logNames;
+            finally
+            {
+                Log.LogNames = logNames;
+            }
         }
 
         /// <summary>
@@ -263,6 +271,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <exception cref="Exception">Loop counter too high.</exception>
         public static VehicleInfo StartTransfer(ushort serviceBuildingId, ref Building building, TransferManager.TransferReason material, ushort targetBuildingId, uint targetCitizenId, out ushort vehicleId)
         {
+            if (Log.LogALot && Log.LogToFile)
+            {
+                Log.DevDebug(typeof(BuildingHelper), "StartTransfer", serviceBuildingId, targetBuildingId, targetCitizenId, material);
+            }
+
             if (building.Info.m_buildingAI is HospitalAI && targetCitizenId == 0)
             {
                 return VehicleHelper.CreateServiceVehicle(serviceBuildingId, material, targetBuildingId, targetCitizenId, out vehicleId);
@@ -271,11 +284,25 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             Vehicle[] vehicles = Singleton<VehicleManager>.instance.m_vehicles.m_buffer;
             Citizen[] citizens = Singleton<CitizenManager>.instance.m_citizens.m_buffer;
 
-            TransferManager.TransferOffer offer = new TransferManager.TransferOffer()
+            TransferManager.TransferOffer offer = TransferManagerHelper.MakeOffer(targetBuildingId, targetCitizenId);
+
+            int count;
+            HashSet<ushort> ownVehicles = new HashSet<ushort>();
+
+            count = 0;
+            vehicleId = building.m_ownVehicles;
+            while (vehicleId != 0)
             {
-                Building = targetBuildingId,
-                Citizen = targetCitizenId,
-            };
+                ownVehicles.Add(vehicleId);
+
+                if (count >= ushort.MaxValue)
+                {
+                    throw new Exception("Loop counter too high");
+                }
+
+                count++;
+                vehicleId = vehicles[vehicleId].m_nextOwnVehicle;
+            }
 
             // Cast AI as games original AI so detoured methods are called, but not methods from not replaced classes.
             if (Global.Settings.CreationCompatibilityMode == ServiceDispatcherSettings.ModCompatibilityMode.UseInstanciatedClassMethods || !Global.Settings.AllowReflection())
@@ -299,13 +326,41 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 building.Info.m_buildingAI.StartTransfer(serviceBuildingId, ref building, material, offer);
             }
 
-            int count = 0;
+            ushort newVehicleId = 0;
+            ushort waitingVehicleId = 0;
+
+            Vehicle.Flags findFlags = Vehicle.Flags.Created;
+            switch (material)
+            {
+                case TransferManager.TransferReason.Dead:
+                case TransferManager.TransferReason.Garbage:
+                case TransferManager.TransferReason.Sick:
+                    findFlags |= Vehicle.Flags.TransferToSource;
+                    break;
+
+                case TransferManager.TransferReason.DeadMove:
+                case TransferManager.TransferReason.GarbageMove:
+                case TransferManager.TransferReason.SickMove:
+                    findFlags |= Vehicle.Flags.TransferToSource;
+                    break;
+            }
+
+            count = 0;
             vehicleId = building.m_ownVehicles;
             while (vehicleId != 0)
             {
-                if (vehicles[vehicleId].m_targetBuilding == targetBuildingId && (targetCitizenId == 0 || citizens[targetCitizenId].m_vehicle == vehicleId))
+                if (!ownVehicles.Contains(vehicleId) && (vehicles[vehicleId].m_flags & findFlags) == findFlags && vehicles[vehicleId].Info != null)
                 {
-                    return vehicles[vehicleId].Info;
+                    if (vehicles[vehicleId].m_targetBuilding == targetBuildingId && (targetCitizenId == 0 || citizens[targetCitizenId].m_vehicle == vehicleId))
+                    {
+                        return vehicles[vehicleId].Info;
+                    }
+
+                    newVehicleId = vehicleId;
+                    if ((vehicles[vehicleId].m_flags & Vehicle.Flags.WaitingTarget) == Vehicle.Flags.WaitingTarget)
+                    {
+                        waitingVehicleId = vehicleId;
+                    }
                 }
 
                 if (count >= ushort.MaxValue)
@@ -317,7 +372,30 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 vehicleId = vehicles[vehicleId].m_nextOwnVehicle;
             }
 
-            return null;
+            if (waitingVehicleId != 0)
+            {
+                vehicleId = waitingVehicleId;
+                Log.Warning(typeof(BuildingHelper), "StartTransfer", "Waiting Vehicle", serviceBuildingId, targetBuildingId, targetCitizenId, material, vehicleId, vehicles[vehicleId].m_flags);
+            }
+            else if (newVehicleId != 0)
+            {
+                vehicleId = newVehicleId;
+                Log.Warning(typeof(BuildingHelper), "StartTransfer", "Guess Vehicle", serviceBuildingId, targetBuildingId, targetCitizenId, material, vehicleId, vehicles[vehicleId].m_flags);
+            }
+            else
+            {
+                vehicleId = 0;
+                Log.Warning(typeof(BuildingHelper), "StartTransfer", "Lost Vehicle", serviceBuildingId, targetBuildingId, targetCitizenId, material);
+
+                return null;
+            }
+
+            if (!VehicleHelper.AssignTarget(vehicleId, ref vehicles[vehicleId], material, targetBuildingId, targetCitizenId))
+            {
+                return null;
+            }
+
+            return vehicles[vehicleId].Info;
         }
 
         /// <summary>
@@ -371,54 +449,73 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 if (serviceBuilding == null)
                 {
-                    if (Global.Buildings.GarbageBuildings == null || !Global.Buildings.GarbageBuildings.TryGetValue(buildingId, out serviceBuilding))
+                    if (Global.Buildings.GarbageBuildings != null && Global.Buildings.GarbageBuildings.TryGetValue(buildingId, out serviceBuilding))
                     {
                         serviceBuildings.Add(serviceBuilding);
                     }
 
-                    if (Global.Buildings.DeathCareBuildings == null || !Global.Buildings.DeathCareBuildings.TryGetValue(buildingId, out serviceBuilding))
+                    if (Global.Buildings.DeathCareBuildings != null && Global.Buildings.DeathCareBuildings.TryGetValue(buildingId, out serviceBuilding))
                     {
                         serviceBuildings.Add(serviceBuilding);
                     }
 
-                    if (Global.Buildings.HealthCareBuildings == null || !Global.Buildings.HealthCareBuildings.TryGetValue(buildingId, out serviceBuilding))
+                    if (Global.Buildings.HealthCareBuildings != null && Global.Buildings.HealthCareBuildings.TryGetValue(buildingId, out serviceBuilding))
                     {
                         serviceBuildings.Add(serviceBuilding);
                     }
+
+                    serviceBuilding = null;
                 }
 
                 if (targetBuilding == null)
                 {
-                    if (Global.Buildings.DeadPeopleBuildings == null || !Global.Buildings.DeadPeopleBuildings.TryGetValue(buildingId, out targetBuilding))
+                    if (Global.Buildings.DeadPeopleBuildings != null && Global.Buildings.DeadPeopleBuildings.TryGetValue(buildingId, out targetBuilding))
                     {
                         targetBuildings.Add(targetBuilding);
                     }
 
-                    if (Global.Buildings.DirtyBuildings == null || !Global.Buildings.DirtyBuildings.TryGetValue(buildingId, out targetBuilding))
+                    if (Global.Buildings.DirtyBuildings != null && Global.Buildings.DirtyBuildings.TryGetValue(buildingId, out targetBuilding))
                     {
                         targetBuildings.Add(targetBuilding);
                     }
 
-                    if (Global.Buildings.SickPeopleBuildings == null || !Global.Buildings.SickPeopleBuildings.TryGetValue(buildingId, out targetBuilding))
+                    if (Global.Buildings.SickPeopleBuildings != null && Global.Buildings.SickPeopleBuildings.TryGetValue(buildingId, out targetBuilding))
                     {
                         targetBuildings.Add(targetBuilding);
                     }
+
+                    targetBuilding = null;
                 }
             }
 
             info.Add("BuildingId", buildingId);
-            info.Add("AI", buildings[buildingId].Info.m_buildingAI.GetType());
-            info.Add("InfoName", buildings[buildingId].Info.name);
 
-            string name = GetBuildingName(buildingId);
-            if (!String.IsNullOrEmpty(name) && name != buildings[buildingId].Info.name)
+            try
             {
-                info.Add("BuildingName", name);
+                info.Add("AI", buildings[buildingId].Info.m_buildingAI.GetType());
+                info.Add("InfoName", buildings[buildingId].Info.name);
+
+                string name = GetBuildingName(buildingId);
+                if (!String.IsNullOrEmpty(name) && name != buildings[buildingId].Info.name)
+                {
+                    info.Add("BuildingName", name);
+                }
+            }
+            catch
+            {
+                info.Add("Error", "Info");
             }
 
-            byte district = districtManager.GetDistrict(buildings[buildingId].m_position);
-            info.Add("District", district);
-            info.Add("DistrictName", districtManager.GetDistrictName(district));
+            try
+            {
+                byte district = districtManager.GetDistrict(buildings[buildingId].m_position);
+                info.Add("District", district);
+                info.Add("DistrictName", districtManager.GetDistrictName(district));
+            }
+            catch (Exception ex)
+            {
+                info.Add("Exception", "District", ex.GetType().ToString(), ex.Message);
+            }
 
             if (buildingStamp != null)
             {
@@ -496,172 +593,266 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             int materialMax = 0;
             int materialAmount = 0;
             int serviceVehicleCount = 0;
-            if (buildings[buildingId].Info.m_buildingAI is CemeteryAI)
+
+            try
             {
-                serviceVehicleCount = ((CemeteryAI)buildings[buildingId].Info.m_buildingAI).m_hearseCount;
-                info.Add("CorpseCapacity", ((CemeteryAI)buildings[buildingId].Info.m_buildingAI).m_corpseCapacity);
-                info.Add("GraveCount", ((CemeteryAI)buildings[buildingId].Info.m_buildingAI).m_graveCount);
-                info.Add("CustomBuffer1", buildings[buildingId].m_customBuffer1); // GraveCapacity?
-                info.Add("CustomBuffer2", buildings[buildingId].m_customBuffer2);
-                info.Add("PR_HC_Calc", ((buildings[buildingId].m_productionRate * ((CemeteryAI)buildings[buildingId].Info.m_buildingAI).m_hearseCount) + 99) / 100); // Hearse capacity?
-                buildings[buildingId].Info.m_buildingAI.GetMaterialAmount(buildingId, ref buildings[buildingId], TransferManager.TransferReason.Dead, out materialAmount, out materialMax);
+                if (buildings[buildingId].Info.m_buildingAI is CemeteryAI)
+                {
+                    serviceVehicleCount = ((CemeteryAI)buildings[buildingId].Info.m_buildingAI).m_hearseCount;
+                    info.Add("CorpseCapacity", ((CemeteryAI)buildings[buildingId].Info.m_buildingAI).m_corpseCapacity);
+                    info.Add("GraveCount", ((CemeteryAI)buildings[buildingId].Info.m_buildingAI).m_graveCount);
+                    info.Add("CustomBuffer1", buildings[buildingId].m_customBuffer1); // GraveCapacity?
+                    info.Add("CustomBuffer2", buildings[buildingId].m_customBuffer2);
+                    info.Add("PR_HC_Calc", ((buildings[buildingId].m_productionRate * ((CemeteryAI)buildings[buildingId].Info.m_buildingAI).m_hearseCount) + 99) / 100); // Hearse capacity?
+                    buildings[buildingId].Info.m_buildingAI.GetMaterialAmount(buildingId, ref buildings[buildingId], TransferManager.TransferReason.Dead, out materialAmount, out materialMax);
+                }
+                else if (buildings[buildingId].Info.m_buildingAI is LandfillSiteAI)
+                {
+                    serviceVehicleCount = ((LandfillSiteAI)buildings[buildingId].Info.m_buildingAI).m_garbageTruckCount;
+                    buildings[buildingId].Info.m_buildingAI.GetMaterialAmount(buildingId, ref buildings[buildingId], TransferManager.TransferReason.Garbage, out materialAmount, out materialMax);
+                }
+                else if (buildings[buildingId].Info.m_buildingAI is HospitalAI)
+                {
+                    serviceVehicleCount = ((HospitalAI)buildings[buildingId].Info.m_buildingAI).m_ambulanceCount;
+                    info.Add("", ((HospitalAI)buildings[buildingId].Info.m_buildingAI).m_patientCapacity);
+                    buildings[buildingId].Info.m_buildingAI.GetMaterialAmount(buildingId, ref buildings[buildingId], TransferManager.TransferReason.Sick, out materialAmount, out materialMax);
+                }
+                info.Add("materialMax", materialMax);
+                info.Add("materialAmount", materialAmount);
+                info.Add("materialFree", materialMax - materialAmount);
             }
-            else if (buildings[buildingId].Info.m_buildingAI is LandfillSiteAI)
+            catch
             {
-                serviceVehicleCount = ((LandfillSiteAI)buildings[buildingId].Info.m_buildingAI).m_garbageTruckCount;
-                buildings[buildingId].Info.m_buildingAI.GetMaterialAmount(buildingId, ref buildings[buildingId], TransferManager.TransferReason.Garbage, out materialAmount, out materialMax);
+                info.Add("Error", "Material");
             }
-            else if (buildings[buildingId].Info.m_buildingAI is HospitalAI)
-            {
-                serviceVehicleCount = ((HospitalAI)buildings[buildingId].Info.m_buildingAI).m_ambulanceCount;
-                info.Add("", ((HospitalAI)buildings[buildingId].Info.m_buildingAI).m_patientCapacity);
-                buildings[buildingId].Info.m_buildingAI.GetMaterialAmount(buildingId, ref buildings[buildingId], TransferManager.TransferReason.Sick, out materialAmount, out materialMax);
-            }
-            info.Add("materialMax", materialMax);
-            info.Add("materialAmount", materialAmount);
-            info.Add("materialFree", materialMax - materialAmount);
 
             int productionRate = buildings[buildingId].m_productionRate;
 
             ushort ownVehicleCount = 0;
             ushort madeVehicleCount = 0;
-            ushort vehicleId = buildings[buildingId].m_ownVehicles;
-            while (vehicleId != 0 && ownVehicleCount < ushort.MaxValue)
-            {
-                ownVehicleCount++;
-                if ((vehicles[vehicleId].m_transferType == (byte)TransferManager.TransferReason.Garbage || vehicles[vehicleId].m_transferType == (byte)TransferManager.TransferReason.Dead) &&
-                    vehicles[vehicleId].Info != null &&
-                    (vehicles[vehicleId].m_flags & Vehicle.Flags.Created) == Vehicle.Flags.Created &&
-                    (vehicles[vehicleId].m_flags & VehicleHelper.VehicleExists) != ~VehicleHelper.VehicleAll)
-                {
-                    madeVehicleCount++;
-                }
 
-                vehicleId = vehicles[vehicleId].m_nextOwnVehicle;
+            try
+            {
+                ushort vehicleId = buildings[buildingId].m_ownVehicles;
+                while (vehicleId != 0 && ownVehicleCount < ushort.MaxValue)
+                {
+                    ownVehicleCount++;
+                    try
+                    {
+                        if ((vehicles[vehicleId].m_transferType == (byte)TransferManager.TransferReason.Garbage || vehicles[vehicleId].m_transferType == (byte)TransferManager.TransferReason.Dead) &&
+                            vehicles[vehicleId].Info != null &&
+                            (vehicles[vehicleId].m_flags & Vehicle.Flags.Created) == Vehicle.Flags.Created &&
+                            (vehicles[vehicleId].m_flags & VehicleHelper.VehicleExists) != ~VehicleHelper.VehicleAll)
+                        {
+                            madeVehicleCount++;
+                        }
+                    }
+                    catch
+                    {
+                        info.Add("Error", "Vehicle");
+                    }
+
+                    vehicleId = vehicles[vehicleId].m_nextOwnVehicle;
+                }
+                info.Add("OwnVehicles", ownVehicleCount);
+                info.Add("MadeVehicles", madeVehicleCount);
             }
-            info.Add("OwnVehicles", ownVehicleCount);
-            info.Add("MadeVehicles", madeVehicleCount);
+            catch
+            {
+                info.Add("Error", "Vehicles");
+            }
 
             info.Add("VehicleCount", serviceVehicleCount);
             info.Add("ProductionRate", productionRate);
             info.Add("VehicleCountNominal", ((productionRate * serviceVehicleCount) + 99) / 100);
 
-            int budget = Singleton<EconomyManager>.instance.GetBudget(buildings[buildingId].Info.m_buildingAI.m_info.m_class);
-            productionRate = PlayerBuildingAI.GetProductionRate(100, budget);
-            int actualVehicleCount = ((productionRate * serviceVehicleCount) + 99) / 100;
-            info.Add("Budget", budget);
-            info.Add("ProductionRateActual", productionRate);
-            info.Add("VehicleCountActual", actualVehicleCount);
-            info.Add("SpareVehicles", actualVehicleCount - ownVehicleCount);
-
-            float range = buildings[buildingId].Info.m_buildingAI.GetCurrentRange(buildingId, ref buildings[buildingId]);
-            range = range * range * Global.Settings.RangeModifier;
-            if (range < Global.Settings.RangeMinimum)
+            try
             {
-                info.Add("Range", range, Global.Settings.RangeMinimum);
+                int budget = Singleton<EconomyManager>.instance.GetBudget(buildings[buildingId].Info.m_buildingAI.m_info.m_class);
+                productionRate = PlayerBuildingAI.GetProductionRate(100, budget);
+                int actualVehicleCount = ((productionRate * serviceVehicleCount) + 99) / 100;
+                info.Add("Budget", budget);
+                info.Add("ProductionRateActual", productionRate);
+                info.Add("VehicleCountActual", actualVehicleCount);
+                info.Add("SpareVehicles", actualVehicleCount - ownVehicleCount);
             }
-            else if (range > Global.Settings.RangeMaximum)
+            catch
             {
-                info.Add("Range", range, Global.Settings.RangeMaximum);
-            }
-            else
-            {
-                info.Add("Range", range);
+                info.Add("Error", "Budget");
             }
 
-            List<string> needs = new List<string>();
-            if (buildings[buildingId].m_garbageBuffer >= Global.Settings.Garbage.MinimumAmountForDispatch)
+            try
             {
-                needs.Add("Filthy");
+                float range = buildings[buildingId].Info.m_buildingAI.GetCurrentRange(buildingId, ref buildings[buildingId]);
+                range = range * range * Global.Settings.RangeModifier;
+                if (range < Global.Settings.RangeMinimum)
+                {
+                    info.Add("Range", range, Global.Settings.RangeMinimum);
+                }
+                else if (range > Global.Settings.RangeMaximum)
+                {
+                    info.Add("Range", range, Global.Settings.RangeMaximum);
+                }
+                else
+                {
+                    info.Add("Range", range);
+                }
             }
-            if (buildings[buildingId].m_garbageBuffer >= Global.Settings.Garbage.MinimumAmountForPatrol)
+            catch
             {
-                needs.Add("Dirty");
+                info.Add("Error", "Range");
             }
-            else if (buildings[buildingId].m_garbageBuffer > 0)
+
+            try
             {
-                needs.Add("Dusty");
+                List<string> needs = new List<string>();
+                if (buildings[buildingId].m_garbageBuffer >= Global.Settings.Garbage.MinimumAmountForDispatch)
+                {
+                    needs.Add("Filthy");
+                }
+                if (buildings[buildingId].m_garbageBuffer >= Global.Settings.Garbage.MinimumAmountForPatrol)
+                {
+                    needs.Add("Dirty");
+                }
+                else if (buildings[buildingId].m_garbageBuffer > 0)
+                {
+                    needs.Add("Dusty");
+                }
+                if (buildings[buildingId].m_deathProblemTimer > 0)
+                {
+                    needs.Add("Dead");
+                }
+                if (buildings[buildingId].m_garbageBuffer * Dispatcher.ProblemBufferModifier >= Dispatcher.ProblemLimitForgotten ||
+                    buildings[buildingId].m_deathProblemTimer * Dispatcher.ProblemTimerModifier >= Dispatcher.ProblemLimitForgotten)
+                {
+                    needs.Add("Forgotten");
+                }
+                info.Add("Needs", needs);
             }
-            if (buildings[buildingId].m_deathProblemTimer > 0)
+            catch
             {
-                needs.Add("Dead");
+                info.Add("Error", "Needs");
             }
-            if (buildings[buildingId].m_garbageBuffer * Dispatcher.ProblemBufferModifier >= Dispatcher.ProblemLimitForgotten ||
-                buildings[buildingId].m_deathProblemTimer * Dispatcher.ProblemTimerModifier >= Dispatcher.ProblemLimitForgotten)
-            {
-                needs.Add("Forgotten");
-            }
-            info.Add("Needs", needs);
 
             info.Add("DeathProblemTimer", buildings[buildingId].m_deathProblemTimer);
             info.Add("HealthProblemTimer", buildings[buildingId].m_healthProblemTimer);
             info.Add("MajorProblemTimer", buildings[buildingId].m_majorProblemTimer);
 
-            int citizens = 0;
-            int count = 0;
-            uint unitId = buildings[buildingId].m_citizenUnits;
-            while (unitId != 0)
+            try
             {
-                CitizenUnit unit = citizenManager.m_units.m_buffer[unitId];
-                for (int i = 0; i < 5; i++)
+                int citizens = 0;
+                int count = 0;
+                uint unitId = buildings[buildingId].m_citizenUnits;
+                while (unitId != 0)
                 {
-                    uint citizenId = unit.GetCitizen(i);
-                    if (citizenId != 0)
+                    CitizenUnit unit = citizenManager.m_units.m_buffer[unitId];
+
+                    try
                     {
-                        Citizen citizen = citizenManager.m_citizens.m_buffer[citizenId];
-                        if (citizen.Dead && citizen.GetBuildingByLocation() == buildingId)
+                        for (int i = 0; i < 5; i++)
                         {
-                            citizens++;
+                            uint citizenId = unit.GetCitizen(i);
+                            if (citizenId != 0)
+                            {
+                                Citizen citizen = citizenManager.m_citizens.m_buffer[citizenId];
+                                if (citizen.Dead && citizen.GetBuildingByLocation() == buildingId)
+                                {
+                                    citizens++;
+                                }
+                            }
+                        }
+                    }
+                    catch
+                    {
+                        info.Add("Error", "Citizen");
+                    }
+
+                    count++;
+                    if (count > (int)ushort.MaxValue * 10)
+                    {
+                        break;
+                    }
+
+                    unitId = unit.m_nextUnit;
+                }
+                info.Add("DeadCitizens", citizens);
+            }
+            catch
+            {
+                info.Add("Error", "Citizens");
+            }
+
+            try
+            {
+                info.Add("GarbageAmount", buildings[buildingId].Info.m_buildingAI.GetGarbageAmount(buildingId, ref buildings[buildingId]));
+                info.Add("GarbageBuffer", buildings[buildingId].m_garbageBuffer);
+            }
+            catch
+            {
+                info.Add("Error", "Garbage");
+            }
+
+            try
+            {
+                string problems = buildings[buildingId].m_problems.ToString();
+                if (problems.IndexOfAny(new char[] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' }) >= 0)
+                {
+                    foreach (Notification.Problem problem in Enum.GetValues(typeof(Notification.Problem)))
+                    {
+                        if (problem != Notification.Problem.None && (buildings[buildingId].m_problems & problem) == problem)
+                        {
+                            problems += ", " + problem.ToString();
                         }
                     }
                 }
-
-                count++;
-                if (count > (int)ushort.MaxValue * 10)
-                {
-                    break;
-                }
-
-                unitId = unit.m_nextUnit;
+                info.Add("Problems", problems);
             }
-            info.Add("DeadCitizens", citizens);
-
-            info.Add("GarbageAmount", buildings[buildingId].Info.m_buildingAI.GetGarbageAmount(buildingId, ref buildings[buildingId]));
-            info.Add("GarbageBuffer", buildings[buildingId].m_garbageBuffer);
-
-            string problems = buildings[buildingId].m_problems.ToString();
-            if (problems.IndexOfAny(new char[] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' }) >= 0)
+            catch
             {
-                foreach (Notification.Problem problem in Enum.GetValues(typeof(Notification.Problem)))
+                info.Add("Error", "Problems");
+            }
+
+            try
+            {
+                string flags = buildings[buildingId].m_flags.ToString();
+                if (flags.IndexOfAny(new char[] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' }) >= 0)
                 {
-                    if (problem != Notification.Problem.None && (buildings[buildingId].m_problems & problem) == problem)
+                    foreach (Building.Flags flag in Enum.GetValues(typeof(Building.Flags)))
                     {
-                        problems += ", " + problem.ToString();
+                        if (flag != Building.Flags.None && (buildings[buildingId].m_flags & flag) == flag)
+                        {
+                            flags += ", " + flag.ToString();
+                        }
                     }
                 }
+                info.Add("Flags", flags);
             }
-            info.Add("Problems", problems);
-
-            string flags = buildings[buildingId].m_flags.ToString();
-            if (flags.IndexOfAny(new char[] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' }) >= 0)
+            catch
             {
-                foreach (Building.Flags flag in Enum.GetValues(typeof(Building.Flags)))
+                info.Add("Error", "Flags");
+            }
+
+            try
+            {
+                string status = buildings[buildingId].Info.m_buildingAI.GetLocalizedStatus(buildingId, ref buildings[buildingId]);
+                if (!String.IsNullOrEmpty(status))
                 {
-                    if (flag != Building.Flags.None && (buildings[buildingId].m_flags & flag) == flag)
-                    {
-                        flags += ", " + flag.ToString();
-                    }
+                    info.Add("Status", status);
                 }
             }
-            info.Add("Flags", flags);
-
-            string status = buildings[buildingId].Info.m_buildingAI.GetLocalizedStatus(buildingId, ref buildings[buildingId]);
-            if (!String.IsNullOrEmpty(status))
+            catch
             {
-                info.Add("Status", status);
+                info.Add("Error", "Status");
             }
 
-            info.Add("AI", buildings[buildingId].Info.m_buildingAI.GetType().AssemblyQualifiedName);
+            try
+            {
+                info.Add("AI", buildings[buildingId].Info.m_buildingAI.GetType().AssemblyQualifiedName);
+            }
+            catch
+            {
+                info.Add("Error", "AI");
+            }
 
             return info;
         }

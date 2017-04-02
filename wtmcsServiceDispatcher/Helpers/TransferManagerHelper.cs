@@ -196,6 +196,27 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Makes an offer.
+        /// </summary>
+        /// <param name="targetBuildingId">The target building identifier.</param>
+        /// <param name="targetCitizenId">The target citizen identifier.</param>
+        /// <returns>The offer.</returns>
+        public static TransferManager.TransferOffer MakeOffer(ushort targetBuildingId, uint targetCitizenId)
+        {
+            TransferManager.TransferOffer offer = new TransferManager.TransferOffer();
+            if (targetCitizenId == 0)
+            {
+                offer.Building = targetBuildingId;
+            }
+            else
+            {
+                offer.Citizen = targetCitizenId;
+            }
+
+            return offer;
+        }
+
+        /// <summary>
         /// Fetches the outgoing amount from a TransferManager instance.
         /// </summary>
         /// <param name="instance">The TransferManager instance.</param>

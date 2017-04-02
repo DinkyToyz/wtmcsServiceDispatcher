@@ -1,7 +1,7 @@
 # Still experimental
 - road and rail recovery service crews (to remove stuck vehicles, including forgotten trailers and railway cars).
 - use buildings StartTransfer in order to allow ServiceVehicleSelector to work.
-- use vehicles StartTransfer in order to allow other mods to work?
+- use vehicles StartTransfer in order to allow other mods to work.
 
 # Doing
 - ambulance services.
