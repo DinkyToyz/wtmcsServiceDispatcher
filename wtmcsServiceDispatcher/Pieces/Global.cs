@@ -63,6 +63,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public static uint DemandLingerDelay = 0u;
 
         /// <summary>
+        /// Indicates whether development experiments are enabled.
+        /// </summary>
+        public static bool EnableDevExperiments = FileSystem.Exists(".enable.experiments.dev");
+
+        /// <summary>
         /// Indicates whether experiments are enabled.
         /// </summary>
         public static bool EnableExperiments = FileSystem.Exists(".enable.experiments");

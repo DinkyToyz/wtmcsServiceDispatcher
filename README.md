@@ -16,9 +16,9 @@ The Central Services Dispatcher dispatches service vehicles and crews for variou
 
 ## Services
 
-Currently, the mod can dispatch garbage trucks, hearses, bulldozers and vehicle recovery crews (experimental removal of stuck vehicles).
+Currently, the mod can dispatch garbage trucks, hearses, bulldozers and vehicle recovery crews (removal of stuck vehicles).
 
-Future plans include supporting more services, starting with ambulances.
+Future plans include supporting more services.
 
 ## Documentation
 

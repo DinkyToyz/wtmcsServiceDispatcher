@@ -248,9 +248,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             {
                 this.DeathCare.AutoEmpty = false;
                 this.Garbage.AutoEmpty = false;
-
-                this.AssignmentCompatibilityMode = ServiceDispatcherSettings.ModCompatibilityMode.UseCustomCode;
-                this.CreationCompatibilityMode = ServiceDispatcherSettings.ModCompatibilityMode.UseCustomCode;
             }
 
             this.HealthCare.DispatchVehicles = false;

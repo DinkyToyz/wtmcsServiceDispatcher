@@ -195,11 +195,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             ushort vehicleId = 0;
             VehicleInfo info = null;
 
-            if (!Global.EnableExperiments)
-            {
-                info = VehicleHelper.CreateServiceVehicle(serviceBuilding.BuildingId, material, targetBuildingId, targetCitizenId, out vehicleId);
-            }
-            else if (Global.Settings.CreationCompatibilityMode == ServiceDispatcherSettings.ModCompatibilityMode.UseCustomCode)
+            if (Global.Settings.CreationCompatibilityMode == ServiceDispatcherSettings.ModCompatibilityMode.UseCustomCode)
             {
                 info = VehicleHelper.CreateServiceVehicle(serviceBuilding.BuildingId, material, targetBuildingId, targetCitizenId, out vehicleId);
             }

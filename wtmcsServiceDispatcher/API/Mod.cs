@@ -137,7 +137,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 }
 
                 // Add ambulance group.
-                if (Global.EnableExperiments || Global.Settings.HealthCare.DispatchVehicles)
+                if (Global.EnableDevExperiments || Global.Settings.HealthCare.DispatchVehicles)
                 {
                     UIHelperBase ambulanceGroup = this.CreateServiceGroup(helper, Global.Settings.HealthCare, Global.AmbulanceDispatcher, true);
                 }
@@ -236,74 +236,71 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             {
                 UIHelperBase group = helper.AddGroup("Advanced");
 
-                if (Global.EnableExperiments)
-                {
-                    group.AddDropdown(
-                        "Assigment compatibility mode",
-                        this.modCompatibilityModes.OrderBy(a => a.Key).Select(compatibilityMode => compatibilityMode.Value).ToArray(),
-                        (int)Global.Settings.AssignmentCompatibilityMode,
-                        value =>
+                group.AddDropdown(
+                    "Assigment compatibility mode",
+                    this.modCompatibilityModes.OrderBy(a => a.Key).Select(compatibilityMode => compatibilityMode.Value).ToArray(),
+                    (int)Global.Settings.AssignmentCompatibilityMode,
+                    value =>
+                    {
+                        try
                         {
-                            try
+                            foreach (ServiceDispatcherSettings.ModCompatibilityMode compatibilityMode in Enum.GetValues(typeof(ServiceDispatcherSettings.ModCompatibilityMode)))
                             {
-                                foreach (ServiceDispatcherSettings.ModCompatibilityMode compatibilityMode in Enum.GetValues(typeof(ServiceDispatcherSettings.ModCompatibilityMode)))
+                                if ((byte)compatibilityMode == value)
                                 {
-                                    if ((byte)compatibilityMode == value)
+                                    if (compatibilityMode != Global.Settings.AssignmentCompatibilityMode)
                                     {
-                                        if (compatibilityMode != Global.Settings.AssignmentCompatibilityMode)
+                                        if (Log.LogALot || Library.IsDebugBuild)
                                         {
-                                            if (Log.LogALot || Library.IsDebugBuild)
-                                            {
-                                                Log.Debug(this, "CreateAdvancedGroup", "Set", "AssigmentCompatibilityMode", value);
-                                            }
-
-                                            Global.Settings.AssignmentCompatibilityMode = compatibilityMode;
-                                            Global.Settings.Save();
+                                            Log.Debug(this, "CreateAdvancedGroup", "Set", "AssigmentCompatibilityMode", value);
                                         }
 
-                                        break;
+                                        Global.Settings.AssignmentCompatibilityMode = compatibilityMode;
+                                        Global.Settings.Save();
                                     }
+
+                                    break;
                                 }
                             }
-                            catch (Exception ex)
-                            {
-                                Log.Error(this, "CreateAdvancedGroup", ex, "AssigmentCompatibilityMode", value);
-                            }
-                        });
-
-                    group.AddDropdown(
-                        "Creation compatibility mode",
-                        this.modCompatibilityModes.OrderBy(a => a.Key).Select(compatibilityMode => compatibilityMode.Value).ToArray(),
-                        (int)Global.Settings.CreationCompatibilityMode,
-                        value =>
+                        }
+                        catch (Exception ex)
                         {
-                            try
-                            {
-                                foreach (ServiceDispatcherSettings.ModCompatibilityMode compatibilityMode in Enum.GetValues(typeof(ServiceDispatcherSettings.ModCompatibilityMode)))
-                                {
-                                    if ((byte)compatibilityMode == value)
-                                    {
-                                        if (compatibilityMode != Global.Settings.CreationCompatibilityMode)
-                                        {
-                                            if (Log.LogALot || Library.IsDebugBuild)
-                                            {
-                                                Log.Debug(this, "CreateAdvancedGroup", "Set", "CreationCompatibilityMode", value);
-                                            }
+                            Log.Error(this, "CreateAdvancedGroup", ex, "AssigmentCompatibilityMode", value);
+                        }
+                    });
 
-                                            Global.Settings.CreationCompatibilityMode = compatibilityMode;
-                                            Global.Settings.Save();
+                group.AddDropdown(
+                    "Creation compatibility mode",
+                    this.modCompatibilityModes.OrderBy(a => a.Key).Select(compatibilityMode => compatibilityMode.Value).ToArray(),
+                    (int)Global.Settings.CreationCompatibilityMode,
+                    value =>
+                    {
+                        try
+                        {
+                            foreach (ServiceDispatcherSettings.ModCompatibilityMode compatibilityMode in Enum.GetValues(typeof(ServiceDispatcherSettings.ModCompatibilityMode)))
+                            {
+                                if ((byte)compatibilityMode == value)
+                                {
+                                    if (compatibilityMode != Global.Settings.CreationCompatibilityMode)
+                                    {
+                                        if (Log.LogALot || Library.IsDebugBuild)
+                                        {
+                                            Log.Debug(this, "CreateAdvancedGroup", "Set", "CreationCompatibilityMode", value);
                                         }
 
-                                        break;
+                                        Global.Settings.CreationCompatibilityMode = compatibilityMode;
+                                        Global.Settings.Save();
                                     }
+
+                                    break;
                                 }
                             }
-                            catch (Exception ex)
-                            {
-                                Log.Error(this, "CreateAdvancedGroup", ex, "CreationCompatibilityMode", value);
-                            }
-                        });
-                }
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.Error(this, "CreateAdvancedGroup", ex, "CreationCompatibilityMode", value);
+                        }
+                    });
 
                 group.AddDropdown(
                     "Allow Code Overrides",
@@ -1042,8 +1039,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 UIHelperBase group = helper.AddGroup("Wrecking & Recovery");
 
                 this.AddHiddenServiceControls(group, Global.Settings.WreckingCrews, BulldozeHelper.CanBulldoze);
-
-                group.AddInformationalText("Experimental Recovery Services:", "The recovery services are experimental, and might create problems.");
 
                 this.AddHiddenServiceControls(group, Global.Settings.RecoveryCrews, true);
 

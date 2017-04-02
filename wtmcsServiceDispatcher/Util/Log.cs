@@ -87,7 +87,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             try
             {
                 AssemblyName name = Assembly.GetExecutingAssembly().GetName();
-                Output(Level.None, null, null, null, name.Name + " " + name.Version, Global.EnableExperiments ? "Experiments Enabled" : null);
+                Output(Level.None, null, null, null, name.Name + " " + name.Version, Global.EnableExperiments ? "Experiments Enabled" : null, Global.EnableDevExperiments ? "Development Experiments Enabled" : null);
             }
             catch
             {

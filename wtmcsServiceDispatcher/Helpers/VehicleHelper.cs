@@ -51,11 +51,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <exception cref="System.NotImplementedException">Ambulance dispatching not fully implemented yet.</exception>
         public static bool AssignTarget(ushort vehicleId, ref Vehicle vehicle, TransferManager.TransferReason? material, ushort targetBuildingId, uint targetCitizenId)
         {
-            if (!Global.EnableExperiments)
-            {
-                return VehicleHelper.SetTarget(vehicleId, ref vehicle, targetBuildingId, targetCitizenId);
-            }
-
             if (targetBuildingId == 0 && targetCitizenId == 0)
             {
                 return VehicleHelper.SetTarget(vehicleId, ref vehicle, targetBuildingId, targetCitizenId);
