@@ -65,7 +65,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// The settings version.
         /// </summary>
-        public readonly int Version = 3;
+        public readonly int Version = 4;
 
         /// <summary>
         /// The wrecking crews settings.
@@ -78,12 +78,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// The SetTarget call compatibility mode.
         /// </summary>
-        public ServiceDispatcherSettings.ModCompatibilityMode AssignmentCompatibilityMode = ServiceDispatcherSettings.ModCompatibilityMode.UseCustomCode;
+        public ServiceDispatcherSettings.ModCompatibilityMode AssignmentCompatibilityMode = ServiceDispatcherSettings.DefaultAssignmentCompatibilityMode;
 
         /// <summary>
         /// The CreateVehicle call compatibility mode.
         /// </summary>
-        public ServiceDispatcherSettings.ModCompatibilityMode CreationCompatibilityMode = ServiceDispatcherSettings.ModCompatibilityMode.UseOriginalClassMethods;
+        public ServiceDispatcherSettings.ModCompatibilityMode CreationCompatibilityMode = ServiceDispatcherSettings.DefaultCreationCompatibilityMode;
 
         /// <summary>
         /// Limit building ranges.
@@ -252,6 +252,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             this.HealthCare.DispatchVehicles = false;
         }
+
+        /// <summary>
+        /// Gets a value indicating whether the running game is above the version above the maximum tested game version.
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if version is to high; otherwise, <c>false</c>.
+        /// </value>
+        public static bool AboveAboveMaxTestedGameVersion => BuildConfig.APPLICATION_VERSION >= AboveMaxTestedGameVersion;
 
         /// <summary>
         /// Gets the complete path.
@@ -444,38 +452,46 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         {
                             Log.Debug(typeof(Settings), "Load", "Loaded");
 
-                            if (cfg.Version < 3)
+                            if (cfg.Version < 4)
                             {
-                                if (cfg.Version < 2)
-                                {
-                                    cfg.DispatchHearsesByDistrict = cfg.DispatchByDistrict;
-                                    cfg.DispatchHearsesByRange = cfg.DispatchByRange;
-                                    cfg.DispatchGarbageTrucksByDistrict = cfg.DispatchByDistrict;
-                                    cfg.DispatchGarbageTrucksByRange = cfg.DispatchByRange;
-                                    cfg.DispatchAmbulancesByDistrict = cfg.DispatchByDistrict;
-                                    cfg.DispatchAmbulancesByRange = cfg.DispatchByRange;
-                                }
+                                cfg.AssignmentCompatibilityMode = ServiceDispatcherSettings.DefaultAssignmentCompatibilityMode;
+                                cfg.CreationCompatibilityMode = ServiceDispatcherSettings.DefaultCreationCompatibilityMode;
 
-                                if (cfg.MinimumGarbageForDispatch >= 2000)
+                                if (cfg.Version < 3)
                                 {
-                                    cfg.MinimumGarbageForPatrol = 200;
-                                }
-                                else if (cfg.MinimumGarbageForDispatch >= 300)
-                                {
-                                    cfg.MinimumGarbageForPatrol = 150;
-                                }
-                                else if (cfg.MinimumGarbageForDispatch >= 100)
-                                {
-                                    cfg.MinimumGarbageForPatrol = 100;
-                                }
-                                else
-                                {
-                                    cfg.MinimumGarbageForPatrol = cfg.MinimumGarbageForDispatch;
+                                    if (cfg.Version < 2)
+                                    {
+                                        cfg.DispatchHearsesByDistrict = cfg.DispatchByDistrict;
+                                        cfg.DispatchHearsesByRange = cfg.DispatchByRange;
+                                        cfg.DispatchGarbageTrucksByDistrict = cfg.DispatchByDistrict;
+                                        cfg.DispatchGarbageTrucksByRange = cfg.DispatchByRange;
+                                        cfg.DispatchAmbulancesByDistrict = cfg.DispatchByDistrict;
+                                        cfg.DispatchAmbulancesByRange = cfg.DispatchByRange;
+                                    }
+
+                                    if (cfg.MinimumGarbageForDispatch >= 2000)
+                                    {
+                                        cfg.MinimumGarbageForPatrol = 200;
+                                    }
+                                    else if (cfg.MinimumGarbageForDispatch >= 300)
+                                    {
+                                        cfg.MinimumGarbageForPatrol = 150;
+                                    }
+                                    else if (cfg.MinimumGarbageForDispatch >= 100)
+                                    {
+                                        cfg.MinimumGarbageForPatrol = 100;
+                                    }
+                                    else
+                                    {
+                                        cfg.MinimumGarbageForPatrol = cfg.MinimumGarbageForDispatch;
+                                    }
                                 }
                             }
+
                             Settings sets = new Settings(cfg);
 
                             Log.Debug(typeof(Settings), "Load", "End");
+
                             return sets;
                         }
                     }

@@ -9,9 +9,21 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
     public class ServiceDispatcherSettings
     {
         /// <summary>
+        /// The default assignment compatibility mode.
+        /// </summary>
+        [NonSerialized]
+        public const ServiceDispatcherSettings.ModCompatibilityMode DefaultAssignmentCompatibilityMode = ServiceDispatcherSettings.ModCompatibilityMode.UseInstanciatedClassMethods;
+
+        /// <summary>
+        /// The default creation compatibility mode.
+        /// </summary>
+        [NonSerialized]
+        public const ServiceDispatcherSettings.ModCompatibilityMode DefaultCreationCompatibilityMode = ServiceDispatcherSettings.ModCompatibilityMode.UseInstanciatedClassMethods;
+
+        /// <summary>
         /// The SetTarget call compatibility mode.
         /// </summary>
-        public ServiceDispatcherSettings.ModCompatibilityMode AssignmentCompatibilityMode = ServiceDispatcherSettings.ModCompatibilityMode.UseCustomCode;
+        public ServiceDispatcherSettings.ModCompatibilityMode AssignmentCompatibilityMode = DefaultAssignmentCompatibilityMode;
 
         /// <summary>
         /// Automatic bulldoze of abandoned buildings.
@@ -81,7 +93,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// The CreateVehicle call compatibility mode.
         /// </summary>
-        public ServiceDispatcherSettings.ModCompatibilityMode CreationCompatibilityMode = ServiceDispatcherSettings.ModCompatibilityMode.UseOriginalClassMethods;
+        public ServiceDispatcherSettings.ModCompatibilityMode CreationCompatibilityMode = DefaultCreationCompatibilityMode;
 
         /// <summary>
         /// The current dead people building checks.

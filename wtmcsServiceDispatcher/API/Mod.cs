@@ -145,11 +145,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 // Add bulldoze and recovery group.
                 UIHelperBase wreckingRecoveryGroup = this.CreateWreckingRecoveryGroup(helper);
 
+                // Add compatibility group.
+                UIHelperBase compatibilityGroup = this.CreateCompatibilityGroup(helper);
+
                 // Add logging group.
                 UIHelperBase logGroup = this.CreateLogGroup(helper);
 
-                // Add Advanced group.
-                UIHelperBase advancedGroup = this.CreateAdvancedGroup(helper);
+                // Add miscellaneous group.
+                UIHelperBase miscellaneousGroup = this.CreateMiscellaneousGroup(helper);
 
                 Log.FlushBuffer();
             }
@@ -226,15 +229,20 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
-        /// Creates the advanced group.
+        /// Creates the compatibility group.
         /// </summary>
         /// <param name="helper">The helper.</param>
         /// <returns>The group.</returns>
-        private UIHelperBase CreateAdvancedGroup(UIHelperBase helper)
+        private UIHelperBase CreateCompatibilityGroup(UIHelperBase helper)
         {
             try
             {
-                UIHelperBase group = helper.AddGroup("Advanced");
+                UIHelperBase group = helper.AddGroup("Compatibility");
+
+                if (Settings.AboveAboveMaxTestedGameVersion)
+                {
+                    group.AddInformationalText("Note:", "The mod has not been tested with this version of the game.");
+                }
 
                 group.AddDropdown(
                     "Assigment compatibility mode",
@@ -252,7 +260,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                                     {
                                         if (Log.LogALot || Library.IsDebugBuild)
                                         {
-                                            Log.Debug(this, "CreateAdvancedGroup", "Set", "AssigmentCompatibilityMode", value);
+                                            Log.Debug(this, "CreateCompatibilityGroup", "Set", "AssigmentCompatibilityMode", value);
                                         }
 
                                         Global.Settings.AssignmentCompatibilityMode = compatibilityMode;
@@ -265,7 +273,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         }
                         catch (Exception ex)
                         {
-                            Log.Error(this, "CreateAdvancedGroup", ex, "AssigmentCompatibilityMode", value);
+                            Log.Error(this, "CreateCompatibilityGroup", ex, "AssigmentCompatibilityMode", value);
                         }
                     });
 
@@ -285,7 +293,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                                     {
                                         if (Log.LogALot || Library.IsDebugBuild)
                                         {
-                                            Log.Debug(this, "CreateAdvancedGroup", "Set", "CreationCompatibilityMode", value);
+                                            Log.Debug(this, "CreateCompatibilityGroup", "Set", "CreationCompatibilityMode", value);
                                         }
 
                                         Global.Settings.CreationCompatibilityMode = compatibilityMode;
@@ -298,7 +306,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         }
                         catch (Exception ex)
                         {
-                            Log.Error(this, "CreateAdvancedGroup", ex, "CreationCompatibilityMode", value);
+                            Log.Error(this, "CreateCompatibilityGroup", ex, "CreationCompatibilityMode", value);
                         }
                     });
 
@@ -318,7 +326,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                                     {
                                         if (Log.LogALot || Library.IsDebugBuild)
                                         {
-                                            Log.Debug(this, "CreateAdvancedGroup", "Set", "ReflectionAllowance", value);
+                                            Log.Debug(this, "CreateCompatibilityGroup", "Set", "ReflectionAllowance", value);
                                         }
 
                                         Global.Settings.ReflectionAllowance = allowance;
@@ -332,9 +340,29 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         }
                         catch (Exception ex)
                         {
-                            Log.Error(this, "CreateAdvancedGroup", ex, "ReflectionAllowance", value);
+                            Log.Error(this, "CreateCompatibilityGroup", ex, "ReflectionAllowance", value);
                         }
                     });
+
+                return group;
+            }
+            catch (Exception ex)
+            {
+                Log.Error(this, "CreateCompatibilityGroup", ex);
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Creates the miscellaneous group.
+        /// </summary>
+        /// <param name="helper">The helper.</param>
+        /// <returns>The group.</returns>
+        private UIHelperBase CreateMiscellaneousGroup(UIHelperBase helper)
+        {
+            try
+            {
+                UIHelperBase group = helper.AddGroup("Miscellaneous");
 
                 try
                 {
@@ -375,7 +403,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             }
             catch (Exception ex)
             {
-                Log.Error(this, "CreateAdvancedGroup", ex);
+                Log.Error(this, "CreateMiscellaneousGroup", ex);
                 return null;
             }
         }
