@@ -1,6 +1,6 @@
 ---
-title: Advanced Options
-sort_order: 550
+title: Compatibility Options
+sort_order: 540
 ---
 - **Assignment compatibility mode**:
   This option configures what code the mod uses when assigning a vehicle to a target.
@@ -33,12 +33,3 @@ These modes decides how the mod tells the game to do certain things, and affects
 - **Use current AI**:
   Use the currently assigned code, which may be the origina game code or code added by another mod.
   As long as other mods are compatible with the dispatcher, this should work and gives the other mode opportunity to override the original game.     
-
-## Information
-
-- **Config Path**:
-  The path to where the mods configuration and separate log file can be found.
-  See [Files](Files.html) for more info.
-  
-- **Mod Version**:
-  The mods version and build number.

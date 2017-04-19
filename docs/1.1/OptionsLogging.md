@@ -1,6 +1,6 @@
 ---
 title: Logging Options
-sort_order: 540
+sort_order: 550
 ---
 *The logging options are not saved in the settings, so they reset at every start of the game.*
 

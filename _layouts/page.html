@@ -29,7 +29,7 @@ format: page
         <figure>
           <img src="{{ site.imageurl | prepend:site.baseurl | prepend:site.url }}/{{ page.image }}" alt="{{ page.title | strip_html }}" itemprop="image">
 
-          {% if page.caption_url && page.caption %}
+          {% if page.caption_url and page.caption %}
           <figcaption>
             <a href="{{ page.caption_url }}" target="_blank">{{ page.caption }}</a>
           </figcaption>

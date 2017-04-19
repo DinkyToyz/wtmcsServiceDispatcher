@@ -1,5 +1,4 @@
 ---
-date: 2016-04-10
 title: General Info
 subheadline: version 1.1
 menu_title: 1.1
@@ -14,7 +13,7 @@ Currently the following services can be handled by Central Services:
 - [Hearses](ServiceHearses.html)
 - [Garbage Trucks](ServiceGarbageTrucks.html)
 - [Bulldozers](ServiceBulldozers.html)
-- [Recovery Crews](ServiceRecoveryCrews.html) (experimental)
+- [Recovery Crews](ServiceRecoveryCrews.html)
 
 ## Dispatching
 
@@ -32,18 +31,15 @@ When something needs to be done by the invisible services (such as bulldozing), 
 
 Which services should be dispatched by Central Services can be configured, as can the dispatch strategy, in the mod options in the content manager, or a configuration file.If no services are set to be dispatch by the mod, it should not affect the game.
 
-For available options see:
-
-- [Global Options](OptionsGlobal.html)
-- [Standard Service Options](OptionsStandardServices.html)
-- [Invisible Service Options](OptionsInvisibleServices.html)
-- [Configuration File](Files.html#Config)
+For available options see: [Configuration](Configuration.html)
 
 ## Compatibility
 
 For most options, this mod is not dependant on overriding any game code, which should minimize incompatibilities with other mods.
 
-Any mod that overrides, or replaces, service vehicle AIs may limit some of the dispatchers functionality, but hopefully in a non-fatal way.  
+Any mod that overrides, or replaces, service vehicle AIs may limit some of the dispatchers functionality, but hopefully in a non-fatal way.
+
+For more info, please see: [Incompatibilities](Incompatibilities.html)
 
 ## The Future
 

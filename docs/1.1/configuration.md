@@ -15,6 +15,7 @@ For more info about configuration, see:
 - [Invisible Service Options](OptionsInvisibleServices.html)
 - [Bulldozer Service Options](ServiceBulldozers.html#Options)
 - [Recovery Crews Options](ServiceRecoveryCrews.html#Options)
+- [Compatibility Options](OptionsCompatibility.html)
 - [Logging Options](OptionsLogging.html)
-- [Advanced Options](OptionsAdvanced.html)
+- [Miscellaneous Options](OptionsMiscellaneous.html)
 - [Configuration File](Files.html#Config)

@@ -25,7 +25,7 @@ format: versionindex
             {% assign verpath = '/' | append:pagepath[0] | append:'/' | append:pagepath[1] | append:'/' %}
             {% assign info = '' %}
             {% if page.date %}{% assign info = page.date | date:'%Y-%m-%d' %}{% endif %}
-            {% if verpath == site.current_url %}{% if info %}{% assign info = info | append:', ' %}{% endif %}{% assign info = info | append:site.language.current_mark %}{% endif %}
+            {% if verpath == site.current_url %}{% if info != '' %}{% assign info = info | append:', ' %}{% endif %}{% assign info = info | append:site.language.current_mark %}{% endif %}
             <li><a href="{{ site.baseurl }}{{ verpath }}">
               {{ pagepath[1] }}
               {% if info %}{% unless info == '' %}<span class="visible">({{ info }})</span>{% endunless %}{% endif %}

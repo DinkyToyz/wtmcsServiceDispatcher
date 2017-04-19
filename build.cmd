@@ -1,2 +1,2 @@
 @echo off
-call jekyll build --config _config.yml,_config_dev.yml
+call bundle exec jekyll build --config _config.yml,_config_dev.yml
