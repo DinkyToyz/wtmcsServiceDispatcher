@@ -290,6 +290,49 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Gets the buidling categories for a building.
+        /// </summary>
+        /// <param name="buildingId">The building identifier.</param>
+        /// <returns>The categories in which the buidling has been categorized.</returns>
+        public IEnumerable<string> GetCategories(ushort buildingId)
+        {
+            if (this.GarbageBuildings != null && this.GarbageBuildings.ContainsKey(buildingId))
+            {
+                yield return "Garbage";
+            }
+
+            if (this.DeathCareBuildings != null && this.DeathCareBuildings.ContainsKey(buildingId))
+            {
+                yield return "DeathCare";
+            }
+
+            if (this.HealthCareBuildings != null && this.HealthCareBuildings.ContainsKey(buildingId))
+            {
+                yield return "HealthCare";
+            }
+
+            if (this.DirtyBuildings != null && this.DirtyBuildings.ContainsKey(buildingId))
+            {
+                yield return "Dirty";
+            }
+
+            if (this.DeadPeopleBuildings != null && this.DeadPeopleBuildings.ContainsKey(buildingId))
+            {
+                yield return "DeadPeople";
+            }
+
+            if (this.SickPeopleBuildings != null && this.SickPeopleBuildings.ContainsKey(buildingId))
+            {
+                yield return "SickPeople";
+            }
+
+            if (this.DesolateBuildings != null && this.DesolateBuildings.ContainsKey(buildingId))
+            {
+                yield return "Desolate";
+            }
+        }
+
+        /// <summary>
         /// Re-initialize the part.
         /// </summary>
         public void ReInitialize()
@@ -828,7 +871,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             }
             else if (constructing || this.cemeteriesInNeedOfEmptyingChange == null)
             {
-                info.Add("CemeterisInNeedOfEmptying", "new");
+                info.Add("CemeteriesInNeedOfEmptying", "new");
                 this.cemeteriesInNeedOfEmptyingChange = new List<ServiceBuildingInfo>();
             }
 

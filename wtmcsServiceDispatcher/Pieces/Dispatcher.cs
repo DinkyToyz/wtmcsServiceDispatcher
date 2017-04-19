@@ -831,7 +831,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     continue;
                 }
 
-                if (allowCreateSpares && this.serviceSettings.CreateSpares != ServiceDispatcherSettings.SpareVehiclesCreation.Never && serviceBuilding.CanReceive && serviceBuilding.CapacityFree > 0)
+                if (allowCreateSpares && this.serviceSettings.CreateSpares != ServiceDispatcherSettings.SpareVehiclesCreation.Never && serviceBuilding.CanReceive)
                 {
                     this.freeVehicles += serviceBuilding.VehiclesSpare;
                 }

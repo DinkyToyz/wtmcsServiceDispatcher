@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 {
@@ -128,7 +129,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             try
             {
-                List<string> buildingList = new List<string>();
+                List<KeyValuePair<string, string>> buildingList = new List<KeyValuePair<string, string>>();
 
                 Building[] buildings = Singleton<BuildingManager>.instance.m_buildings.m_buffer;
                 Vehicle[] vehicles = Singleton<VehicleManager>.instance.m_vehicles.m_buffer;
@@ -139,7 +140,19 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 {
                     if (buildings[id].m_flags != Building.Flags.None)
                     {
-                        buildingList.Add(DebugInfoMsg(buildings, vehicles, districtManager, citizenManager, id, null, null, null, true).ToString());
+                        string sortValue;
+                        try
+                        {
+                            sortValue = buildings[id].Info.m_buildingAI.GetType().ToString();
+                        }
+                        catch
+                        {
+                            sortValue = "?";
+                        }
+
+                        sortValue += id.ToString().PadLeft(16, '0');
+
+                        buildingList.Add(new KeyValuePair<string, string>(sortValue, DebugInfoMsg(buildings, vehicles, districtManager, citizenManager, id, null, null, null, true).ToString()));
                     }
                 }
 
@@ -148,11 +161,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     throw new InvalidDataException("No building objects");
                 }
 
-                buildingList.Add("");
-
                 using (StreamWriter dumpFile = new StreamWriter(FileSystem.FilePathName(".Buildings.txt"), false))
                 {
-                    dumpFile.Write(String.Join("\n", buildingList.ToArray()).ConformNewlines());
+                    dumpFile.Write(String.Join(Environment.NewLine, buildingList.OrderBy(bi => bi.Key).Select(bi => bi.Value).ToArray()).ConformNewlines());
+                    dumpFile.WriteLine();
                     dumpFile.Close();
                 }
             }
@@ -210,6 +222,54 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             {
                 return null;
             }
+        }
+
+        /// <summary>
+        /// Gets the capacity amounts for a building.
+        /// </summary>
+        /// <param name="buildingId">The building identifier.</param>
+        /// <param name="building">The building.</param>
+        /// <param name="capacityAmount">The capacity amount.</param>
+        /// <param name="capacityMax">The capacity maximum.</param>
+        /// <param name="vehicleCount">The vehicle count.</param>
+        /// <returns>True if amounts fetched.</returns>
+        public static bool GetCapacityAmount(ushort buildingId, ref Building building, out int capacityAmount, out int capacityMax, out int vehicleCount)
+        {
+            if (building.Info.m_buildingAI is LandfillSiteAI)
+            {
+                vehicleCount = ((LandfillSiteAI)building.Info.m_buildingAI).m_garbageTruckCount;
+
+                capacityAmount = ((LandfillSiteAI)building.Info.m_buildingAI).GetGarbageAmount(buildingId, ref building);
+                capacityMax = ((LandfillSiteAI)building.Info.m_buildingAI).m_garbageCapacity;
+
+                return true;
+            }
+
+            if (building.Info.m_buildingAI is CemeteryAI)
+            {
+                vehicleCount = ((CemeteryAI)building.Info.m_buildingAI).m_hearseCount;
+
+                capacityAmount = building.m_customBuffer1;
+                capacityMax = ((CemeteryAI)building.Info.m_buildingAI).m_graveCount;
+
+                return true;
+            }
+
+            if (building.Info.m_buildingAI is HospitalAI)
+            {
+                vehicleCount = ((HospitalAI)building.Info.m_buildingAI).m_ambulanceCount;
+
+                capacityAmount = 0;
+                capacityMax = 0;
+
+                return true;
+            }
+
+            vehicleCount = 0;
+            capacityAmount = 0;
+            capacityMax = 0;
+
+            return false;
         }
 
         /// <summary>
@@ -399,6 +459,56 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Adds the service building information to debug information message.
+        /// </summary>
+        /// <param name="info">The information.</param>
+        /// <param name="serviceBuilding">The service building.</param>
+        /// <param name="tagSuffix">The tag suffix.</param>
+        private static void AddServiceBuildingInfoToDebugInfoMsg(Log.InfoList info, ServiceBuildingInfo serviceBuilding, string tagSuffix = null)
+        {
+            if (serviceBuilding != null)
+            {
+                info.Add("CanReceive" + tagSuffix, serviceBuilding.CanReceive);
+                info.Add("CapacityLevel" + tagSuffix, serviceBuilding.CapacityLevel);
+                info.Add("CapactyFree" + tagSuffix, serviceBuilding.CapacityFree);
+                info.Add("CapactyMax" + tagSuffix, serviceBuilding.CapacityMax);
+                info.Add("CapactyOverflow" + tagSuffix, serviceBuilding.CapacityOverflow);
+                info.Add("CapacityPercent" + tagSuffix, serviceBuilding.CapacityPercent);
+                info.Add("Range" + tagSuffix, serviceBuilding.Range);
+                info.Add("VehiclesFree" + tagSuffix, serviceBuilding.VehiclesFree);
+                info.Add("VehiclesSpare" + tagSuffix, serviceBuilding.VehiclesSpare);
+                info.Add("VehiclesMade" + tagSuffix, serviceBuilding.VehiclesMade);
+                info.Add("VehiclesTotal" + tagSuffix, serviceBuilding.VehiclesTotal);
+
+                info.Add("CanReceive" + tagSuffix, serviceBuilding.CanReceive);
+                info.Add("CanEmptyOther" + tagSuffix, serviceBuilding.CanEmptyOther);
+                info.Add("CanBeEmptied" + tagSuffix, serviceBuilding.CanBeEmptied);
+
+                info.Add("IsEmptying" + tagSuffix, serviceBuilding.IsEmptying);
+                info.Add("IsAutoEmptying" + tagSuffix, serviceBuilding.IsAutoEmptying);
+                info.Add("NeedsEmptying" + tagSuffix, serviceBuilding.NeedsEmptying);
+                info.Add("EmptyingIsDone" + tagSuffix, serviceBuilding.EmptyingIsDone);
+            }
+        }
+
+        /// <summary>
+        /// Adds the target building information to debug information message.
+        /// </summary>
+        /// <param name="info">The information.</param>
+        /// <param name="targetBuilding">The target building.</param>
+        /// <param name="tagSuffix">The tag suffix.</param>
+        private static void AddTargetBuildingInfoToDebugInfoMsg(Log.InfoList info, TargetBuildingInfo targetBuilding, string tagSuffix = null)
+        {
+            if (targetBuilding != null)
+            {
+                info.Add("Demand" + tagSuffix, targetBuilding.Demand);
+                info.Add("HasProblem" + tagSuffix, targetBuilding.HasProblem);
+                info.Add("ProblemSize" + tagSuffix, targetBuilding.ProblemSize);
+                info.Add("ProblemValue" + tagSuffix, targetBuilding.ProblemValue);
+            }
+        }
+
+        /// <summary>
         /// Collects building info for debug use.
         /// </summary>
         /// <param name="buildings">The buildings.</param>
@@ -424,6 +534,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             Log.InfoList info = new Log.InfoList();
 
+            info.Add("BuildingId", buildingId);
+
             if (buildingStamp != null)
             {
                 info.Add("O", "BuildingStamp");
@@ -439,29 +551,39 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 info.Add("O", "TargetBuilding");
             }
 
-            List<TargetBuildingInfo> targetBuildings = null;
-            List<ServiceBuildingInfo> serviceBuildings = null;
+            List<KeyValuePair<string, TargetBuildingInfo>> targetBuildings = null;
+            List<KeyValuePair<string, ServiceBuildingInfo>> serviceBuildings = null;
 
             if (verbose && Global.Buildings != null)
             {
-                targetBuildings = new List<TargetBuildingInfo>();
-                serviceBuildings = new List<ServiceBuildingInfo>();
+                //if (serviceBuilding == null)
+                //{
+                //    serviceBuilding = Global.Buildings.GetServiceBuilding(buildingId);
+                //}
+
+                //if (targetBuilding == null)
+                //{
+                //    targetBuilding = Global.Buildings.GetTargetBuilding(buildingId);
+                //}
+
+                targetBuildings = new List<KeyValuePair<string, TargetBuildingInfo>>();
+                serviceBuildings = new List<KeyValuePair<string, ServiceBuildingInfo>>();
 
                 if (serviceBuilding == null)
                 {
                     if (Global.Buildings.GarbageBuildings != null && Global.Buildings.GarbageBuildings.TryGetValue(buildingId, out serviceBuilding))
                     {
-                        serviceBuildings.Add(serviceBuilding);
+                        serviceBuildings.Add(new KeyValuePair<string, ServiceBuildingInfo>("GB", serviceBuilding));
                     }
 
                     if (Global.Buildings.DeathCareBuildings != null && Global.Buildings.DeathCareBuildings.TryGetValue(buildingId, out serviceBuilding))
                     {
-                        serviceBuildings.Add(serviceBuilding);
+                        serviceBuildings.Add(new KeyValuePair<string, ServiceBuildingInfo>("DCB", serviceBuilding));
                     }
 
                     if (Global.Buildings.HealthCareBuildings != null && Global.Buildings.HealthCareBuildings.TryGetValue(buildingId, out serviceBuilding))
                     {
-                        serviceBuildings.Add(serviceBuilding);
+                        serviceBuildings.Add(new KeyValuePair<string, ServiceBuildingInfo>("HCB", serviceBuilding));
                     }
 
                     serviceBuilding = null;
@@ -471,24 +593,22 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 {
                     if (Global.Buildings.DeadPeopleBuildings != null && Global.Buildings.DeadPeopleBuildings.TryGetValue(buildingId, out targetBuilding))
                     {
-                        targetBuildings.Add(targetBuilding);
+                        targetBuildings.Add(new KeyValuePair<string, TargetBuildingInfo>("DPB", targetBuilding));
                     }
 
                     if (Global.Buildings.DirtyBuildings != null && Global.Buildings.DirtyBuildings.TryGetValue(buildingId, out targetBuilding))
                     {
-                        targetBuildings.Add(targetBuilding);
+                        targetBuildings.Add(new KeyValuePair<string, TargetBuildingInfo>("DB", targetBuilding));
                     }
 
                     if (Global.Buildings.SickPeopleBuildings != null && Global.Buildings.SickPeopleBuildings.TryGetValue(buildingId, out targetBuilding))
                     {
-                        targetBuildings.Add(targetBuilding);
+                        targetBuildings.Add(new KeyValuePair<string, TargetBuildingInfo>("SPB", targetBuilding));
                     }
 
                     targetBuilding = null;
                 }
             }
-
-            info.Add("BuildingId", buildingId);
 
             try
             {
@@ -524,70 +644,27 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 info.Add("SimulationTimeDelta", buildingStamp.SimulationTimeDelta);
             }
 
-            if (serviceBuilding != null)
-            {
-                info.Add("CanReceive", serviceBuilding.CanReceive);
-                info.Add("CapacityLevel", serviceBuilding.CapacityLevel);
-                info.Add("CapactyFree", serviceBuilding.CapacityFree);
-                info.Add("CapactyMax", serviceBuilding.CapacityMax);
-                info.Add("CapactyOverflow", serviceBuilding.CapacityOverflow);
-                info.Add("Range", serviceBuilding.Range);
-                info.Add("VehiclesFree", serviceBuilding.VehiclesFree);
-                info.Add("VehiclesSpare", serviceBuilding.VehiclesSpare);
-                info.Add("VehiclesMade", serviceBuilding.VehiclesMade);
-                info.Add("VehiclesTotal", serviceBuilding.VehiclesTotal);
-            }
-
+            AddServiceBuildingInfoToDebugInfoMsg(info, serviceBuilding);
             if (serviceBuildings != null)
             {
-                for (int i = 0; i < serviceBuildings.Count; i++)
+                foreach (KeyValuePair<string, ServiceBuildingInfo> building in serviceBuildings)
                 {
-                    serviceBuilding = serviceBuildings[i];
-                    string n = (i + 1).ToString();
-
-                    info.Add("CanReceive" + n, serviceBuilding.CanReceive);
-                    info.Add("CapacityLevel" + n, serviceBuilding.CapacityLevel);
-                    info.Add("CapactyFree" + n, serviceBuilding.CapacityFree);
-                    info.Add("CapactyMax" + n, serviceBuilding.CapacityMax);
-                    info.Add("CapactyOverflow" + n, serviceBuilding.CapacityOverflow);
-                    info.Add("Range" + n, serviceBuilding.Range);
-                    info.Add("VehiclesFree" + n, serviceBuilding.VehiclesFree);
-                    info.Add("VehiclesSpare" + n, serviceBuilding.VehiclesSpare);
-                    info.Add("VehiclesMade" + n, serviceBuilding.VehiclesMade);
-                    info.Add("VehiclesTotal" + n, serviceBuilding.VehiclesTotal);
+                    AddServiceBuildingInfoToDebugInfoMsg(info, building.Value, building.Key);
                 }
             }
 
-            if (targetBuilding != null)
-            {
-                info.Add("Demand", targetBuilding.Demand);
-                info.Add("HasProblem", targetBuilding.HasProblem);
-                info.Add("ProblemSize", targetBuilding.ProblemSize);
-                info.Add("ProblemValue", targetBuilding.ProblemValue);
-            }
-
+            AddTargetBuildingInfoToDebugInfoMsg(info, targetBuilding);
             if (targetBuildings != null)
             {
-                for (int i = 0; i < targetBuildings.Count; i++)
+                foreach (KeyValuePair<string, TargetBuildingInfo> building in targetBuildings)
                 {
-                    targetBuilding = targetBuildings[i];
-                    string n = (i + 1).ToString();
-
-                    info.Add("Demand" + n, targetBuilding.Demand);
-                    info.Add("HasProblem" + n, targetBuilding.HasProblem);
-                    info.Add("ProblemSize" + n, targetBuilding.ProblemSize);
-                    info.Add("ProblemValue" + n, targetBuilding.ProblemValue);
+                    AddTargetBuildingInfoToDebugInfoMsg(info, building.Value, building.Key);
                 }
             }
 
             if (verbose && Global.Buildings != null)
             {
-                Double desolate;
-
-                if (Global.Buildings.DesolateBuildings != null && Global.Buildings.DesolateBuildings.TryGetValue(buildingId, out desolate))
-                {
-                    info.Add("Desolate", desolate);
-                }
+                info.Add("Categories", Global.Buildings.GetCategories(buildingId));
             }
 
             int materialMax = 0;
@@ -596,27 +673,39 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             try
             {
+                if (GetCapacityAmount(buildingId, ref buildings[buildingId], out materialAmount, out materialMax, out serviceVehicleCount))
+                {
+                    info.Add("CapacityAmount", materialAmount);
+                    info.Add("CapacityMax", materialMax);
+                    info.Add("ServiceVehicleCount", serviceVehicleCount);
+                }
+
+                serviceVehicleCount = 0;
+
                 if (buildings[buildingId].Info.m_buildingAI is CemeteryAI)
                 {
-                    serviceVehicleCount = ((CemeteryAI)buildings[buildingId].Info.m_buildingAI).m_hearseCount;
                     info.Add("CorpseCapacity", ((CemeteryAI)buildings[buildingId].Info.m_buildingAI).m_corpseCapacity);
                     info.Add("GraveCount", ((CemeteryAI)buildings[buildingId].Info.m_buildingAI).m_graveCount);
-                    info.Add("CustomBuffer1", buildings[buildingId].m_customBuffer1); // GraveCapacity?
+                    info.Add("CustomBuffer1", buildings[buildingId].m_customBuffer1); // GraveUsed?
                     info.Add("CustomBuffer2", buildings[buildingId].m_customBuffer2);
                     info.Add("PR_HC_Calc", ((buildings[buildingId].m_productionRate * ((CemeteryAI)buildings[buildingId].Info.m_buildingAI).m_hearseCount) + 99) / 100); // Hearse capacity?
                     buildings[buildingId].Info.m_buildingAI.GetMaterialAmount(buildingId, ref buildings[buildingId], TransferManager.TransferReason.Dead, out materialAmount, out materialMax);
                 }
                 else if (buildings[buildingId].Info.m_buildingAI is LandfillSiteAI)
                 {
-                    serviceVehicleCount = ((LandfillSiteAI)buildings[buildingId].Info.m_buildingAI).m_garbageTruckCount;
+                    info.Add("GarbageAmount", ((LandfillSiteAI)buildings[buildingId].Info.m_buildingAI).GetGarbageAmount(buildingId, ref buildings[buildingId]));
+                    info.Add("GarbageCapacity", ((LandfillSiteAI)buildings[buildingId].Info.m_buildingAI).m_garbageCapacity);
+                    info.Add("GarbageBuffer", buildings[buildingId].m_garbageBuffer);
+                    info.Add("CustomBuffer1", buildings[buildingId].m_customBuffer1); // Garbage?
+
                     buildings[buildingId].Info.m_buildingAI.GetMaterialAmount(buildingId, ref buildings[buildingId], TransferManager.TransferReason.Garbage, out materialAmount, out materialMax);
                 }
                 else if (buildings[buildingId].Info.m_buildingAI is HospitalAI)
                 {
-                    serviceVehicleCount = ((HospitalAI)buildings[buildingId].Info.m_buildingAI).m_ambulanceCount;
-                    info.Add("", ((HospitalAI)buildings[buildingId].Info.m_buildingAI).m_patientCapacity);
+                    info.Add("PatientCapacity", ((HospitalAI)buildings[buildingId].Info.m_buildingAI).m_patientCapacity);
                     buildings[buildingId].Info.m_buildingAI.GetMaterialAmount(buildingId, ref buildings[buildingId], TransferManager.TransferReason.Sick, out materialAmount, out materialMax);
                 }
+
                 info.Add("materialMax", materialMax);
                 info.Add("materialAmount", materialAmount);
                 info.Add("materialFree", materialMax - materialAmount);
@@ -706,11 +795,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             try
             {
                 List<string> needs = new List<string>();
+
                 if (buildings[buildingId].m_garbageBuffer >= Global.Settings.Garbage.MinimumAmountForDispatch)
                 {
                     needs.Add("Filthy");
                 }
-                if (buildings[buildingId].m_garbageBuffer >= Global.Settings.Garbage.MinimumAmountForPatrol)
+                else if (buildings[buildingId].m_garbageBuffer >= Global.Settings.Garbage.MinimumAmountForPatrol)
                 {
                     needs.Add("Dirty");
                 }
@@ -718,15 +808,18 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 {
                     needs.Add("Dusty");
                 }
+
                 if (buildings[buildingId].m_deathProblemTimer > 0)
                 {
                     needs.Add("Dead");
                 }
+
                 if (buildings[buildingId].m_garbageBuffer * Dispatcher.ProblemBufferModifier >= Dispatcher.ProblemLimitForgotten ||
                     buildings[buildingId].m_deathProblemTimer * Dispatcher.ProblemTimerModifier >= Dispatcher.ProblemLimitForgotten)
                 {
                     needs.Add("Forgotten");
                 }
+
                 info.Add("Needs", needs);
             }
             catch

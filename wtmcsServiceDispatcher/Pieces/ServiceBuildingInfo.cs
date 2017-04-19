@@ -593,22 +593,13 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             {
                 int max;
                 int amount;
+                int vehicles;
 
                 int productionRate = PlayerBuildingAI.GetProductionRate(100, Singleton<EconomyManager>.instance.GetBudget(building.Info.m_buildingAI.m_info.m_class));
-                if (building.Info.m_buildingAI is CemeteryAI)
+
+                if (BuildingHelper.GetCapacityAmount(this.BuildingId, ref building, out amount, out max, out vehicles))
                 {
-                    this.VehiclesTotal = ((CemeteryAI)building.Info.m_buildingAI).m_hearseCount;
-                    building.Info.m_buildingAI.GetMaterialAmount(this.BuildingId, ref building, TransferManager.TransferReason.Dead, out amount, out max);
-                }
-                else if (building.Info.m_buildingAI is LandfillSiteAI)
-                {
-                    this.VehiclesTotal = ((LandfillSiteAI)building.Info.m_buildingAI).m_garbageTruckCount;
-                    building.Info.m_buildingAI.GetMaterialAmount(this.BuildingId, ref building, TransferManager.TransferReason.Garbage, out amount, out max);
-                }
-                else if (building.Info.m_buildingAI is HospitalAI)
-                {
-                    this.VehiclesTotal = ((HospitalAI)building.Info.m_buildingAI).m_ambulanceCount;
-                    building.Info.m_buildingAI.GetMaterialAmount(this.BuildingId, ref building, TransferManager.TransferReason.Sick, out amount, out max);
+                    this.VehiclesTotal = vehicles;
                 }
                 else
                 {
@@ -619,14 +610,37 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 this.VehiclesTotal = ((productionRate * this.VehiclesTotal) + 99) / 100;
                 this.CapacityMax = max;
-                this.CapacityFree = max - amount;
 
-                this.CapacityPercent = (uint)Math.Round(((float)amount / (float)max) * 100);
+                if ((building.m_flags & Building.Flags.CapacityFull) == Building.Flags.CapacityFull)
+                {
+                    this.CapacityFree = 0;
+                    this.CapacityPercent = 100;
+                }
+                else
+                {
+                    this.CapacityFree = max - amount;
+
+                    if (max == 0)
+                    {
+                        this.CapacityPercent = 0;
+                    }
+                    else
+                    {
+                        this.CapacityPercent = (uint)Math.Round(((float)amount / (float)max) * 100);
+                    }
+                }
+
                 this.CanBeEmptied = building.Info.m_buildingAI.CanBeEmptied();
                 this.IsEmptying = (building.m_flags & Building.Flags.Downgrading) != Building.Flags.None;
                 this.IsAutoEmptying = this.IsAutoEmptying & this.IsEmptying;
-                this.NeedsEmptying = this.serviceSettings.AutoEmpty && !this.IsEmptying && this.CapacityPercent >= this.serviceSettings.AutoEmptyStartLevelPercent;
-                this.EmptyingIsDone = this.IsAutoEmptying && this.CapacityPercent <= this.serviceSettings.AutoEmptyStopLevelPercent;
+
+                this.NeedsEmptying = this.serviceSettings.AutoEmpty && !this.IsEmptying && 
+                                     ((building.m_flags & Building.Flags.CapacityFull) == Building.Flags.CapacityFull ||
+                                      this.CapacityPercent >= this.serviceSettings.AutoEmptyStartLevelPercent);
+
+                this.EmptyingIsDone = this.IsAutoEmptying &&
+                                      ((building.m_flags & Building.Flags.CapacityFull) != Building.Flags.CapacityFull &&
+                                      this.CapacityPercent <= this.serviceSettings.AutoEmptyStopLevelPercent);
 
                 this.CanEmptyOther = this.serviceSettings.AutoEmpty && !this.CanBeEmptied &&
                                      (building.m_flags & Building.Flags.Active) != Building.Flags.None && building.m_productionRate > 0;
@@ -635,10 +649,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 this.lastCapacityUpdate = Global.CurrentFrame;
             }
 
-            this.CanReceive = (building.m_flags & (Building.Flags.Downgrading | Building.Flags.Demolishing | Building.Flags.Deleted | Building.Flags.Hidden | Building.Flags.BurnedDown)) == Building.Flags.None &&
+            this.CanReceive = (building.m_flags & (Building.Flags.Downgrading | Building.Flags.Demolishing | Building.Flags.Deleted | Building.Flags.Hidden | Building.Flags.BurnedDown | Building.Flags.CapacityFull | Building.Flags.Collapsed | Building.Flags.Evacuating)) == Building.Flags.None &&
                               (building.m_flags & (Building.Flags.Created | Building.Flags.Completed)) == (Building.Flags.Created | Building.Flags.Completed) &&
                               (building.m_problems & (Notification.Problem.Emptying | Notification.Problem.LandfillFull | Notification.Problem.RoadNotConnected | Notification.Problem.TurnedOff | Notification.Problem.FatalProblem)) == Notification.Problem.None &&
-                              this.CapacityFree > 0 && !building.Info.m_buildingAI.IsFull(this.BuildingId, ref building);
+                              (this.CapacityMax == 0 || this.CapacityFree > 0) &&
+                              building.m_fireIntensity <= 0 && !building.Info.m_buildingAI.IsFull(this.BuildingId, ref building);
 
             if ((building.m_flags & Building.Flags.CapacityFull) == Building.Flags.CapacityFull)
             {

@@ -173,7 +173,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 int buildingMax;
                 int buildingAmount;
-
                 building.Info.m_buildingAI.GetMaterialAmount(buildingID, ref building, (TransferManager.TransferReason)vehicleData.m_transferType, out buildingAmount, out buildingMax);
                 ////if (logInfo != null)
                 ////{
