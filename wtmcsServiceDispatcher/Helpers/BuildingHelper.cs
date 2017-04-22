@@ -435,17 +435,17 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             if (waitingVehicleId != 0)
             {
                 vehicleId = waitingVehicleId;
-                Log.Warning(typeof(BuildingHelper), "StartTransfer", "Waiting Vehicle", serviceBuildingId, targetBuildingId, targetCitizenId, material, vehicleId, vehicles[vehicleId].m_flags);
+                Log.Debug(typeof(BuildingHelper), "StartTransfer", "Waiting Vehicle", serviceBuildingId, targetBuildingId, targetCitizenId, material, vehicleId, vehicles[vehicleId].m_flags);
             }
             else if (newVehicleId != 0)
             {
                 vehicleId = newVehicleId;
-                Log.Warning(typeof(BuildingHelper), "StartTransfer", "Guess Vehicle", serviceBuildingId, targetBuildingId, targetCitizenId, material, vehicleId, vehicles[vehicleId].m_flags);
+                Log.Debug(typeof(BuildingHelper), "StartTransfer", "Guess Vehicle", serviceBuildingId, targetBuildingId, targetCitizenId, material, vehicleId, vehicles[vehicleId].m_flags);
             }
             else
             {
                 vehicleId = 0;
-                Log.Warning(typeof(BuildingHelper), "StartTransfer", "Lost Vehicle", serviceBuildingId, targetBuildingId, targetCitizenId, material);
+                Log.Info(typeof(BuildingHelper), "StartTransfer", "Lost Vehicle", serviceBuildingId, targetBuildingId, targetCitizenId, material);
 
                 return null;
             }

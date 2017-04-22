@@ -596,6 +596,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         if (foundVehicleId == 0)
                         {
                             Log.Debug(this, "AssignVehicle", "SpareNotCreated", targetBuilding.BuildingId, serviceBuilding.BuildingId);
+
+                            Global.Problems.NoteServiceProblem(ProblemKeeper.ServiceProblem.VehicleNotCreated, serviceBuilding.BuildingId, targetBuilding.BuildingId);
                         }
                         else
                         {
@@ -677,7 +679,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                             // The vehicle failed to find a path to the target.
                             Log.Debug("AssignVehicle", "SetTarget", "Failed", targetBuilding.BuildingId, foundVehicleBuilding.BuildingId, foundVehicleBuilding.VehiclesSpare, foundVehicleId, foundVehicleDistance, vehicles[foundVehicleId].m_flags);
 
+                            Global.Problems.NoteServiceProblem(ProblemKeeper.ServiceProblem.PathNotFound, targetBuilding.BuildingId, foundVehicleBuilding.BuildingId);
                             lostVehicles.Add(foundVehicleId);
+
                             continue;
                         }
                     }
@@ -963,34 +967,44 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 serviceBuilding.VehiclesFree = vehiclesFree;
 
                 // Remove old vehicles.
-                ushort[] removeVehicles = serviceBuilding.Vehicles.Values.Where(v => v.LastSeen != Global.CurrentFrame).Select(v => v.VehicleId).ToArray();
-                foreach (ushort id in removeVehicles)
+                KeyValuePair<ushort, ushort>[] removeVehicles = serviceBuilding.Vehicles.Values.Where(v => v.LastSeen != Global.CurrentFrame).Select(v => new KeyValuePair<ushort, ushort>(v.VehicleId, v.Target)).ToArray();
+                foreach (KeyValuePair<ushort, ushort> vehicle in removeVehicles)
                 {
-                    if (vehicles[vehicleId].Info == null ||
-                        (vehicles[vehicleId].m_flags & Vehicle.Flags.Created) == ~VehicleHelper.VehicleAll ||
-                        (vehicles[vehicleId].m_flags & VehicleHelper.VehicleExists) == ~VehicleHelper.VehicleAll ||
-                        vehicles[vehicleId].m_transferType != this.TransferType)
+                    if (vehicles[vehicle.Key].Info == null ||
+                        (vehicles[vehicle.Key].m_flags & Vehicle.Flags.Created) == ~VehicleHelper.VehicleAll ||
+                        (vehicles[vehicle.Key].m_flags & VehicleHelper.VehicleExists) == ~VehicleHelper.VehicleAll ||
+                        vehicles[vehicle.Key].m_transferType != this.TransferType)
                     {
                         if (Log.LogALot)
                         {
-                            Log.DevDebug(this, "CollectVehicles", "RemoveNonVehicle", serviceBuilding.BuildingId, id, vehicles[vehicleId].m_flags, vehicles[vehicleId].Info, vehicles[vehicleId].m_transferType);
+                            Log.DevDebug(this, "CollectVehicles", "RemoveNonVehicle", serviceBuilding.BuildingId, vehicle.Key, vehicles[vehicle.Key].m_flags, vehicles[vehicle.Key].Info, vehicles[vehicle.Key].m_transferType);
                         }
 
-                        serviceBuilding.Vehicles.Remove(id);
+                        if (vehicle.Value > 0)
+                        {
+                            Global.Problems.NoteServiceProblem(ProblemKeeper.ServiceProblem.VehicleGone, serviceBuilding.BuildingId, vehicle.Value);
+                        }
+
+                        serviceBuilding.Vehicles.Remove(vehicle.Key);
                     }
                     else
                     {
-                        if (vehicles[vehicleId].m_sourceBuilding != serviceBuilding.BuildingId)
+                        if (vehicles[vehicle.Key].m_sourceBuilding != serviceBuilding.BuildingId)
                         {
                             if (Log.LogALot)
                             {
-                                Log.DevDebug(this, "CollectVehicles", "RemoveMovedVehicle", serviceBuilding.BuildingId, id, vehicles[vehicleId].m_flags);
+                                Log.DevDebug(this, "CollectVehicles", "RemoveMovedVehicle", serviceBuilding.BuildingId, vehicle.Key, vehicles[vehicle.Key].m_flags);
                             }
 
-                            serviceBuilding.Vehicles.Remove(id);
+                            if (vehicle.Value > 0)
+                            {
+                                Global.Problems.NoteServiceProblem(ProblemKeeper.ServiceProblem.VehicleGone, serviceBuilding.BuildingId, vehicle.Value);
+                            }
+
+                            serviceBuilding.Vehicles.Remove(vehicle.Key);
                         }
 
-                        this.assignedTargets[vehicles[vehicleId].m_targetBuilding] = Global.CurrentFrame;
+                        this.assignedTargets[vehicles[vehicle.Key].m_targetBuilding] = Global.CurrentFrame;
                     }
                 }
             }

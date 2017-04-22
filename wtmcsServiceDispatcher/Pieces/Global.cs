@@ -55,7 +55,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// The de-assign confused delay.
         /// </summary>
-        public static uint DeAssignConfusedDelay = 240;
+        public static uint DeAssignConfusedDelay = 240u;
 
         /// <summary>
         /// The demand update delay.
@@ -91,6 +91,16 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// The minimum object update interval.
         /// </summary>
         public static uint ObjectUpdateInterval = 120u;
+
+        /// <summary>
+        /// The problem linger delay.
+        /// </summary>
+        public static uint ProblemLingerDelay = 3600u;
+
+        /// <summary>
+        /// The problems.
+        /// </summary>
+        public static ProblemKeeper Problems = null;
 
         /// <summary>
         /// The minimum recheck interval for handled targets.
@@ -223,6 +233,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             Global.TargetBuildingInfoPriorityComparer = null;
             Global.Buildings = null;
             Global.Vehicles = null;
+            Global.Problems = null;
         }
 
         /// <summary>
@@ -326,6 +337,15 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     else
                     {
                         Buildings.ReInitialize();
+                    }
+
+                    if (Problems == null)
+                    {
+                        Problems = new ProblemKeeper();
+                    }
+                    else
+                    {
+                        Problems.ReInitialize();
                     }
 
                     if (TargetBuildingInfoPriorityComparer == null)
