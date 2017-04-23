@@ -597,7 +597,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         {
                             Log.Debug(this, "AssignVehicle", "SpareNotCreated", targetBuilding.BuildingId, serviceBuilding.BuildingId);
 
-                            Global.Problems.AddServiceProblemNote(ProblemKeeper.ServiceProblem.VehicleNotCreated, serviceBuilding.BuildingId, targetBuilding.BuildingId);
+                            if (Global.Problems != null)
+                            {
+                                Global.Problems.AddServiceProblemNote(ProblemKeeper.ServiceProblem.VehicleNotCreated, serviceBuilding.BuildingId, targetBuilding.BuildingId);
+                            }
                         }
                         else
                         {
@@ -679,7 +682,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                             // The vehicle failed to find a path to the target.
                             Log.Debug("AssignVehicle", "SetTarget", "Failed", targetBuilding.BuildingId, foundVehicleBuilding.BuildingId, foundVehicleBuilding.VehiclesSpare, foundVehicleId, foundVehicleDistance, vehicles[foundVehicleId].m_flags);
 
-                            Global.Problems.AddServiceProblemNote(ProblemKeeper.ServiceProblem.PathNotFound, targetBuilding.BuildingId, foundVehicleBuilding.BuildingId);
+                            if (Global.Problems != null)
+                            {
+                                Global.Problems.AddServiceProblemNote(ProblemKeeper.ServiceProblem.PathNotFound, targetBuilding.BuildingId, foundVehicleBuilding.BuildingId);
+                            }
+
                             lostVehicles.Add(foundVehicleId);
 
                             continue;
@@ -980,7 +987,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                             Log.DevDebug(this, "CollectVehicles", "RemoveNonVehicle", serviceBuilding.BuildingId, vehicle.Key, vehicles[vehicle.Key].m_flags, vehicles[vehicle.Key].Info, vehicles[vehicle.Key].m_transferType);
                         }
 
-                        if (vehicle.Value > 0)
+                        if (vehicle.Value > 0 && Global.Problems != null)
                         {
                             Global.Problems.AddServiceProblemNote(ProblemKeeper.ServiceProblem.VehicleGone, serviceBuilding.BuildingId, vehicle.Value);
                         }
@@ -996,7 +1003,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                                 Log.DevDebug(this, "CollectVehicles", "RemoveMovedVehicle", serviceBuilding.BuildingId, vehicle.Key, vehicles[vehicle.Key].m_flags);
                             }
 
-                            if (vehicle.Value > 0)
+                            if (vehicle.Value > 0 && Global.Problems != null)
                             {
                                 Global.Problems.AddServiceProblemNote(ProblemKeeper.ServiceProblem.VehicleGone, serviceBuilding.BuildingId, vehicle.Value);
                             }

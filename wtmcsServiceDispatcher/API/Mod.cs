@@ -122,19 +122,13 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 UIHelperBase hearseGroup = this.CreateServiceGroup(helper, Global.Settings.DeathCare, Global.HearseDispatcher, true);
 
                 // Add cemetery group.
-                if (Global.EnableExperiments || Global.Settings.DeathCare.AutoEmpty)
-                {
-                    UIHelperBase cemeteryGroup = this.CreateEmptiableServiceBuildingGroup(helper, Global.Settings.DeathCare, true);
-                }
+                UIHelperBase cemeteryGroup = this.CreateEmptiableServiceBuildingGroup(helper, Global.Settings.DeathCare, true);
 
                 // Add garbage group.
                 UIHelperBase garbageGroup = this.CreateServiceGroup(helper, Global.Settings.Garbage, Global.GarbageTruckDispatcher, true);
 
                 // Add landfill group.
-                if (Global.EnableExperiments || Global.Settings.Garbage.AutoEmpty)
-                {
-                    UIHelperBase landfillGroup = this.CreateEmptiableServiceBuildingGroup(helper, Global.Settings.Garbage, true);
-                }
+                UIHelperBase landfillGroup = this.CreateEmptiableServiceBuildingGroup(helper, Global.Settings.Garbage, true);
 
                 // Add ambulance group.
                 if (Global.EnableDevExperiments || Global.Settings.HealthCare.DispatchVehicles)
@@ -354,61 +348,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
-        /// Creates the miscellaneous group.
-        /// </summary>
-        /// <param name="helper">The helper.</param>
-        /// <returns>The group.</returns>
-        private UIHelperBase CreateMiscellaneousGroup(UIHelperBase helper)
-        {
-            try
-            {
-                UIHelperBase group = helper.AddGroup("Miscellaneous");
-
-                try
-                {
-                    group.AddInformationalText("Config Path:", FileSystem.FilePath);
-
-                    string version = null;
-                    Assembly modAss = this.GetType().Assembly;
-                    if (modAss != null)
-                    {
-                        version = modAss.GetName().Version.ToString() + ", " + version + " ";
-                    }
-
-                    version += "(" + AssemblyInfo.PreBuildStamps.DateTime.ToString("yyyy-MM-dd HH:mm") + ")";
-
-                    group.AddInformationalText("Mod Version:", version);
-                }
-                catch
-                {
-                }
-
-                group.AddInformationalText("Note:", "Dumping is only possible when a city is loaded.");
-
-                group.AddButton(
-                    "Dump buildings",
-                    () =>
-                    {
-                        BuildingHelper.DumpBuildings();
-                    });
-
-                group.AddButton(
-                    "Dump vehicles",
-                    () =>
-                    {
-                        VehicleHelper.DumpVehicles();
-                    });
-
-                return group;
-            }
-            catch (Exception ex)
-            {
-                Log.Error(this, "CreateMiscellaneousGroup", ex);
-                return null;
-            }
-        }
-
-        /// <summary>
         /// Creates the dispatch group.
         /// </summary>
         /// <param name="helper">The helper.</param>
@@ -535,6 +474,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             try
             {
                 UIHelperBase group = helper.AddGroup(settings.EmptiableServiceBuildingNamePlural);
+
+                group.AddInformationalText("Note:", "Automatic emptying is new and somewhat experimental.");
 
                 if (canService)
                 {
@@ -741,6 +682,61 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             catch (Exception ex)
             {
                 Log.Error(this, "CreateLogGroup", ex);
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Creates the miscellaneous group.
+        /// </summary>
+        /// <param name="helper">The helper.</param>
+        /// <returns>The group.</returns>
+        private UIHelperBase CreateMiscellaneousGroup(UIHelperBase helper)
+        {
+            try
+            {
+                UIHelperBase group = helper.AddGroup("Miscellaneous");
+
+                try
+                {
+                    group.AddInformationalText("Config Path:", FileSystem.FilePath);
+
+                    string version = null;
+                    Assembly modAss = this.GetType().Assembly;
+                    if (modAss != null)
+                    {
+                        version = modAss.GetName().Version.ToString() + ", " + version + " ";
+                    }
+
+                    version += "(" + AssemblyInfo.PreBuildStamps.DateTime.ToString("yyyy-MM-dd HH:mm") + ")";
+
+                    group.AddInformationalText("Mod Version:", version);
+                }
+                catch
+                {
+                }
+
+                group.AddInformationalText("Note:", "Dumping is only possible when a city is loaded.");
+
+                group.AddButton(
+                    "Dump buildings",
+                    () =>
+                    {
+                        BuildingHelper.DumpBuildings();
+                    });
+
+                group.AddButton(
+                    "Dump vehicles",
+                    () =>
+                    {
+                        VehicleHelper.DumpVehicles();
+                    });
+
+                return group;
+            }
+            catch (Exception ex)
+            {
+                Log.Error(this, "CreateMiscellaneousGroup", ex);
                 return null;
             }
         }

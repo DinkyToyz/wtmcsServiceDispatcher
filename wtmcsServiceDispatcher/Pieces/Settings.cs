@@ -246,8 +246,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             if (!Global.EnableExperiments)
             {
-                this.DeathCare.AutoEmpty = false;
-                this.Garbage.AutoEmpty = false;
+            }
+
+            if (!Global.EnableDevExperiments)
+            {
             }
 
             this.HealthCare.DispatchVehicles = false;
