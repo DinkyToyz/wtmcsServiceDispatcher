@@ -8,14 +8,84 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
     internal static class Global
     {
         /// <summary>
+        /// Whether updates should be framed or complete.
+        /// </summary>
+        public const bool BucketedUpdates = true;
+
+        /// <summary>
+        /// The minimum capacity update interval.
+        /// </summary>
+        public const uint CapacityUpdateInterval = 30u;
+
+        /// <summary>
+        /// The wait path stuck delay.
+        /// </summary>
+        public const uint CheckFlagStuckDelay = 600u;
+
+        /// <summary>
+        /// The minimum class check interval.
+        /// </summary>
+        public const uint ClassCheckInterval = 240u;
+
+        /// <summary>
+        /// The clean transfer offers delay.
+        /// </summary>
+        public const uint CleanTransferOffersDelay = 120u;
+
+        /// <summary>
+        /// The de-assign confused delay.
+        /// </summary>
+        public const uint DeAssignConfusedDelay = 240u;
+
+        /// <summary>
+        /// The debug list log delay.
+        /// </summary>
+        public const uint DebugListLogDelay = 1800u;
+
+        /// <summary>
+        /// The demand update delay.
+        /// </summary>
+        public const uint DemandLingerDelay = 0u;
+
+        /// <summary>
+        /// The log flush delay.
+        /// </summary>
+        public const uint LogFlushDelay = 600u;
+
+        /// <summary>
+        /// The minimum object update interval.
+        /// </summary>
+        public const uint ObjectUpdateInterval = 120u;
+
+        /// <summary>
+        /// The problem linger delay.
+        /// </summary>
+        public const uint ProblemLingerDelay = 3600u;
+
+        /// <summary>
+        /// The problem cleaning delay.
+        /// </summary>
+        public const uint ProblemUpdateDelay = 240u;
+
+        /// <summary>
+        /// The minimum recheck interval for handled targets.
+        /// </summary>
+        public const uint RecheckHandledInterval = 240u;
+
+        /// <summary>
+        /// The minimum recheck interval for targets.
+        /// </summary>
+        public const uint RecheckInterval = 60u;
+
+        /// <summary>
+        /// The target de-assign delay.
+        /// </summary>
+        public const uint TargetLingerDelay = 240u;
+
+        /// <summary>
         /// The ambulance dispatcher.
         /// </summary>
         public static Dispatcher AmbulanceDispatcher = null;
-
-        /// <summary>
-        /// Whether updates should be framed or complete.
-        /// </summary>
-        public static bool BucketedUpdates = true;
 
         /// <summary>
         /// The buildings.
@@ -28,39 +98,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public static bool BuildingUpdateNeeded = false;
 
         /// <summary>
-        /// The minimum capacity update interval.
-        /// </summary>
-        public static uint CapacityUpdateInterval = 30u;
-
-        /// <summary>
-        /// The wait path stuck delay.
-        /// </summary>
-        public static uint CheckFlagStuckDelay = 600u;
-
-        /// <summary>
-        /// The minimum class check interval.
-        /// </summary>
-        public static uint ClassCheckInterval = 240u;
-
-        /// <summary>
-        /// The clean transfer offers delay.
-        /// </summary>
-        public static uint CleanTransferOffersDelay = 120u;
-
-        /// <summary>
         /// The current frame.
         /// </summary>
         public static uint CurrentFrame = 0u;
-
-        /// <summary>
-        /// The de-assign confused delay.
-        /// </summary>
-        public static uint DeAssignConfusedDelay = 240u;
-
-        /// <summary>
-        /// The demand update delay.
-        /// </summary>
-        public static uint DemandLingerDelay = 0u;
 
         /// <summary>
         /// Indicates whether development experiments are enabled.
@@ -88,29 +128,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public static bool LevelLoaded = false;
 
         /// <summary>
-        /// The minimum object update interval.
-        /// </summary>
-        public static uint ObjectUpdateInterval = 120u;
-
-        /// <summary>
-        /// The problem linger delay.
-        /// </summary>
-        public static uint ProblemLingerDelay = 3600u;
-
-        /// <summary>
         /// The problems.
         /// </summary>
         public static ProblemKeeper Problems = null;
-
-        /// <summary>
-        /// The minimum recheck interval for handled targets.
-        /// </summary>
-        public static uint RecheckHandledInterval = 240u;
-
-        /// <summary>
-        /// The minimum recheck interval for targets.
-        /// </summary>
-        public static uint RecheckInterval = 60u;
 
         /// <summary>
         /// The service building information priority comparer.
@@ -131,11 +151,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// The target building information priority comparer.
         /// </summary>
         public static TargetBuildingInfo.PriorityComparer TargetBuildingInfoPriorityComparer = null;
-
-        /// <summary>
-        /// The target de-assign delay.
-        /// </summary>
-        public static uint TargetLingerDelay = 240u;
 
         /// <summary>
         /// The transfer offers needs cleaning.

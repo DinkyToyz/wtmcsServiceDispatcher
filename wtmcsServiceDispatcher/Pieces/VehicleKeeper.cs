@@ -1,7 +1,7 @@
-﻿using System;
+﻿using ColossalFramework;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using ColossalFramework;
 
 namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 {
@@ -51,6 +51,29 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             get;
             private set;
+        }
+
+        /// <summary>
+        /// Logs a list of vehicle info for debug use.
+        /// </summary>
+        public void DebugListLogVehicles()
+        {
+            try
+            {
+                if (this.StuckVehicles != null)
+                {
+                    foreach (StuckVehicleInfo vehicle in this.StuckVehicles.Values)
+                    {
+                        Log.InfoList info = new Log.InfoList();
+                        vehicle.AddDebugInfoData(info);
+                        Log.DevDebug(this, "DebugListLog", "StuckVehicle", info.ToString());
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error(this, "DebugListLogVehicles", ex);
+            }
         }
 
         /// <summary>

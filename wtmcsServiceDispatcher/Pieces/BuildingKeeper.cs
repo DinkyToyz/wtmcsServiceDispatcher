@@ -211,7 +211,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             }
             catch (Exception ex)
             {
-                Log.Error(typeof(BuildingKeeper), "DebugListLogBuildings", ex);
+                Log.Error(this, "DebugListLogBuildings", ex);
             }
         }
 
@@ -229,7 +229,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             }
             catch (Exception ex)
             {
-                Log.Error(typeof(BuildingKeeper), "DebugListLogDesolateBuildings", ex);
+                Log.Error(this, "DebugListLogDesolateBuildings", ex);
             }
         }
 
@@ -257,7 +257,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             }
             catch (Exception ex)
             {
-                Log.Error(typeof(BuildingKeeper), "DebugListLogServiceBuildings", ex);
+                Log.Error(this, "DebugListLogServiceBuildings", ex);
             }
         }
 
@@ -285,7 +285,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             }
             catch (Exception ex)
             {
-                Log.Error(typeof(BuildingKeeper), "DebugListLogTargetBuildings", ex);
+                Log.Error(this, "DebugListLogTargetBuildings", ex);
             }
         }
 

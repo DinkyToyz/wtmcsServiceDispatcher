@@ -1,6 +1,6 @@
-﻿using System;
+﻿using ColossalFramework;
+using System;
 using System.Collections.Generic;
-using ColossalFramework;
 using UnityEngine;
 
 namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
@@ -248,6 +248,17 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Log debug info.
+        /// </summary>
+        public void DebugLog()
+        {
+            Log.InfoList info = new Log.InfoList();
+            this.AddDebugInfoData(info, true);
+
+            Log.DevDebug(this, "DebugLog", this.vehicleId, info);
+        }
+
+        /// <summary>
         /// Handles the vehicles problems.
         /// </summary>
         /// <returns>True if a problem was handled.</returns>
@@ -465,6 +476,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             {
                 info.Add("Flagged", this.checkFlags, this.CheckFlaggedForSeconds, this.CheckFlaggedForFrames);
             }
+
+            info.Add("Dispatcher", this.dispatcherType);
+            info.Add("Responsible", this.DispatchersResponsibility);
         }
 
         /// <summary>
@@ -524,19 +538,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 VehicleHelper.DeAssign(this.vehicleId);
             }
-        }
-
-        /// <summary>
-        /// Log debug info.
-        /// </summary>
-        private void DebugLog()
-        {
-            Vehicle vehicle = Singleton<VehicleManager>.instance.m_vehicles.m_buffer[this.vehicleId];
-
-            Log.InfoList info = new Log.InfoList();
-            this.AddDebugInfoData(info, true);
-
-            Log.DevDebug(this, "DebugLog", this.vehicleId, info);
         }
     }
 }

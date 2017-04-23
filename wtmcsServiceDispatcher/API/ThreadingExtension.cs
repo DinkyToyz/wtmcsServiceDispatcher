@@ -1,5 +1,5 @@
-﻿using System;
-using ICities;
+﻿using ICities;
+using System;
 
 namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 {
@@ -161,17 +161,37 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         this.lastTransferOffersClean = Global.CurrentFrame;
                         Global.TransferOffersCleaningNeeded = false;
                     }
+
+                    if (Global.Problems != null && Global.CurrentFrame - Global.Problems.LastUpdate >= Global.ProblemUpdateDelay)
+                    {
+                        Global.Problems.Update();
+                    }
                 }
 
-                if (Log.LogDebugLists && Global.CurrentFrame - this.lastDebugListLog >= 1800)
+                if (Log.LogDebugLists && Global.CurrentFrame - this.lastDebugListLog >= Global.DebugListLogDelay)
                 {
                     this.lastDebugListLog = Global.CurrentFrame;
 
-                    Global.Buildings.DebugListLogBuildings();
+                    if (Global.Buildings != null)
+                    {
+                        Global.Buildings.DebugListLogBuildings();
+                    }
+
+                    if (Global.Vehicles != null)
+                    {
+                        Global.Vehicles.DebugListLogVehicles();
+                    }
+
+                    if (Global.Problems != null)
+                    {
+                        Global.Problems.DebugListLogServiceProblems();
+                    }
+
                     TransferManagerHelper.DebugListLog();
+
                     Log.FlushBuffer();
                 }
-                else if (!this.started || (Global.CurrentFrame - Log.LastFlush >= 600))
+                else if (!this.started || (Global.CurrentFrame - Log.LastFlush >= Global.LogFlushDelay))
                 {
                     Log.FlushBuffer();
                 }
