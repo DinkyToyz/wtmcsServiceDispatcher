@@ -21,8 +21,15 @@ These options are only available for garbage trucks.
 - **Garbage amount dispatch limit**: 
   Sets the amount of garbage a building must accumulate before a garbage truck is dispatch do take care of it.
 
-## Standard Service options
+## Standard Service Options
 
 These options works the same as for other service vehicles.
 
 {% capture StandardServices %}{% include_relative _OptionsStandardServices.md vehicle="Garbage truck" vehicles="garbage trucks" %}{% endcapture %}{{ StandardServices | markdownify }}
+{% if false %}
+## Landfill Options
+
+These options controls if/when the dispatcher orders emptying of landfills.
+
+{% capture StandardServices %}{% include_relative _OptionsEmptyableServices.md storagefacility="landfill" storagefacilities="landfills" %}{% endcapture %}{{ StandardServices | markdownify }}
+{% endif %}

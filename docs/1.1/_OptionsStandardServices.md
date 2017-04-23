@@ -13,4 +13,4 @@
 
 - **{{ include.vehicle }} dispatch strategy**: 
   Choose the dispatch strategy to use for these vehicles.
-  See [Dispatch Strategies](OptionsStandardServices.html#DispatchStrategies).  
+  See [Dispatch Strategies](OptionsStandardServices.html#DispatchStrategies).

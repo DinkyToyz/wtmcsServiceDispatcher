@@ -5,7 +5,13 @@ sort_order: 520
 These options are set separately for different standard service vehicles.
 
 {% capture StandardServices %}{% include_relative _OptionsStandardServices.md vehicle="`service vehicle`" vehicles="`service vehicles`" %}{% endcapture %}{{ StandardServices | markdownify }}
+{% if false %}
+## Facility Options
 
+These options controls if/when the dispatcher orders emptying of storage facilities.
+
+{% capture StandardServices %}{% include_relative _OptionsEmptyableServices.md storagefacility="`service facility`" storagefacilities="`service facilities`" %}{% endcapture %}{{ StandardServices | markdownify }}
+{% endif %}
 ## Specific Service Options
 
 See the different services for their unique options:
