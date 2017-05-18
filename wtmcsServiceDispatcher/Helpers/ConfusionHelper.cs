@@ -94,10 +94,32 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             }
             else
             {
-                //// PrisonerAI ResidentAI TouristAI
+                // TODO: 2017-05-18:
+                // PassengerBlimpAI
+                // CableCarAI
+                // PassengerFerryAI
+                // AmbulanceCopterAI
+                // DisasterResponseCopterAI
+                // DisasterResponseVehicleAI
+                // FireCopterAI
+                // SnowTruckAI
                 return false;
             }
         }
+
+        // TODO: CitizenIsConfused ThingyIsConfused?
+        // PrisonerAI
+        // ResidentAI
+        // TouristAI
+        // FiremanAI
+        // HearseDriverAI
+        // LivestockAI
+        // ParamedicAI
+        // PetAI
+        // PoliceOfficerAI
+        // RescueAnimalAI
+        // RescueWorkerAI
+        // WildlifeAI
 
         /// <summary>
         /// Check if ambulance is confused.
@@ -948,6 +970,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <returns>True if resident is confused.</returns>
         private static bool ResidentConfused(ref Citizen data)
         {
+            // TODO: 2017-05-18 Update needed?
+
             // From ResidentAI.GetLocalizedStatus from original game code at version 1.4.1-f2.
             CitizenManager instance = Singleton<CitizenManager>.instance;
             ushort instanceID = data.m_instance;
