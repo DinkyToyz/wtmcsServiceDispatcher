@@ -1,7 +1,3 @@
-# Update Needed
-
-- ConfusionHelper
-
 # Still or recently experimental
 - Road and rail recovery service crews (to remove stuck vehicles, including forgotten trailers and railway cars).
 - Use buildings StartTransfer in order to allow ServiceVehicleSelector to work.
@@ -27,6 +23,7 @@
 - citizens?
 - Ambulances: only emergency if citizen is sick enough?
 - if (Singleton<UnlockManager>.instance.Unlocked(ItemClass.Service.HealthCare))
+- Link speeders.
 
 # Notes
 
