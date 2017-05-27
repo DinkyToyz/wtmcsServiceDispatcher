@@ -472,7 +472,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 info.Add("CapacityLevel" + tagSuffix, serviceBuilding.CapacityLevel);
                 info.Add("CapactyFree" + tagSuffix, serviceBuilding.CapacityFree);
                 info.Add("CapactyMax" + tagSuffix, serviceBuilding.CapacityMax);
-                info.Add("CapactyOverflow" + tagSuffix, serviceBuilding.CapacityOverflow);
+                info.Add("CapactyOverflow" + tagSuffix, serviceBuilding.CurrentTargetCapacityOverflow);
                 info.Add("CapacityPercent" + tagSuffix, serviceBuilding.CapacityPercent);
                 info.Add("Range" + tagSuffix, serviceBuilding.Range);
                 info.Add("VehiclesFree" + tagSuffix, serviceBuilding.VehiclesFree);
@@ -488,6 +488,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 info.Add("IsAutoEmptying" + tagSuffix, serviceBuilding.IsAutoEmptying);
                 info.Add("NeedsEmptying" + tagSuffix, serviceBuilding.NeedsEmptying);
                 info.Add("EmptyingIsDone" + tagSuffix, serviceBuilding.EmptyingIsDone);
+
+                info.Add("ServiceProblemCount" + tagSuffix, serviceBuilding.ServiceProblemCount);
+                info.Add("ServiceProblemSize" + tagSuffix, serviceBuilding.ServiceProblemSize);
             }
         }
 
@@ -505,6 +508,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 info.Add("HasProblem" + tagSuffix, targetBuilding.HasProblem);
                 info.Add("ProblemSize" + tagSuffix, targetBuilding.ProblemSize);
                 info.Add("ProblemValue" + tagSuffix, targetBuilding.ProblemValue);
+
+                info.Add("ProblemWeight" + tagSuffix, targetBuilding.ProblemWeight);
+                info.Add("ServiceProblemCount" + tagSuffix, targetBuilding.ServiceProblemCount);
+                info.Add("ServiceProblemSize" + tagSuffix, targetBuilding.ServiceProblemSize);
             }
         }
 

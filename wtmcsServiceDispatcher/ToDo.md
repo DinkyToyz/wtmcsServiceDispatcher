@@ -18,6 +18,7 @@
 - Social services (taking care of confused citizens and tourists).
 - Fix invisible vehicles (flags == none, but not in m_vehicles.m_unusedItems)?
 - Service vehicle selector (for all service budilings)? Hopefully not.
+- Save states in save?
 
 # Changes and experiments
 

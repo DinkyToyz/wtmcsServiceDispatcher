@@ -400,6 +400,34 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Gets the problem weight for sorting.
+        /// </summary>
+        /// <value>
+        /// The problem sorting weight.
+        /// </value>
+        public int ProblemWeight
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// Gets the number service problems.
+        /// </summary>
+        /// <value>
+        /// The number of service problems.
+        /// </value>
+        public ushort ServiceProblemCount { get; private set; }
+
+        /// <summary>
+        /// Gets the total size of the service problem.
+        /// </summary>
+        /// <value>
+        /// The size of the service problem.
+        /// </value>
+        public uint ServiceProblemSize { get; private set; }
+
+        /// <summary>
         /// Gets a value indicating whether the building is updated.
         /// </summary>
         public bool Updated
@@ -459,7 +487,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             {
                 case Dispatcher.DispatcherTypes.HearseDispatcher:
                     this.UpdateCitizens(ref building);
-                    this.ProblemValue = (ushort)building.m_deathProblemTimer << 8;
+                    this.ProblemValue = ((ushort)building.m_deathProblemTimer << 8);
                     problemToCheck = Notification.Problem.Death;
                     break;
 
@@ -480,6 +508,30 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     this.ProblemSize = 0;
                     problemToCheck = Notification.Problem.None;
                     break;
+            }
+
+            if (Global.ServiceProblems == null)
+            {
+                this.ServiceProblemCount = 0;
+                this.ServiceProblemSize = 0;
+                this.ProblemWeight = this.ProblemValue;
+            }
+            else
+            {
+                this.ServiceProblemCount = Global.ServiceProblems.GetTargetBuildingProblemCount(this.BuildingId);
+                this.ServiceProblemSize = Global.ServiceProblems.GetTargetBuildingProblemSize(this.BuildingId);
+
+                if (this.ServiceProblemSize > 0 && this.ServiceProblemCount > 0)
+                {
+                    uint modifier = (uint)this.ServiceProblemSize * (uint)Math.Round(0.5 + (float)this.ServiceProblemCount / 4.0, 0);
+                    long weight = this.ProblemValue - modifier;
+                    this.ProblemWeight = (weight > int.MaxValue) ? int.MaxValue : (weight < int.MinValue) ? int.MinValue : (int)weight;
+
+                    if (Log.LogALot && Log.LogToFile)
+                    {
+                        Log.DevDebug(this, "Update", "ProblemWeighting", this.BuildingId, this.ProblemSize, this.ProblemValue, this.ProblemWeight, this.ServiceProblemCount, this.ServiceProblemSize, modifier, weight);
+                    }
+                }
             }
 
             this.HasProblem = (this.ProblemSize > 0) && ((building.m_problems & problemToCheck) != Notification.Problem.None || this.ProblemValue >= Dispatcher.ProblemLimit);
@@ -622,6 +674,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 }
                 else
                 {
+                    //todo: use ProblemWeight
                     return y.ProblemValue - x.ProblemValue;
                 }
             }

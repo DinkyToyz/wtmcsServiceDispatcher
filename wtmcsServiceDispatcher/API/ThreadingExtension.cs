@@ -117,6 +117,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 Global.CurrentFrame = simulationFrame;
 
+                if (Global.ServiceProblems != null && Global.CurrentFrame - Global.ServiceProblems.LastUpdate >= Global.ProblemUpdateDelay)
+                {
+                    Global.ServiceProblems.Update();
+                }
+
                 if (Global.Settings.Garbage.DispatchVehicles || Global.Settings.DeathCare.DispatchVehicles || Global.Settings.HealthCare.DispatchVehicles)
                 {
                     // Do vehicle based stuff.
@@ -161,33 +166,31 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         this.lastTransferOffersClean = Global.CurrentFrame;
                         Global.TransferOffersCleaningNeeded = false;
                     }
-
-                    if (Global.Problems != null && Global.CurrentFrame - Global.Problems.LastUpdate >= Global.ProblemUpdateDelay)
-                    {
-                        Global.Problems.Update();
-                    }
                 }
 
-                if (Log.LogDebugLists && Global.CurrentFrame - this.lastDebugListLog >= Global.DebugListLogDelay)
+                if ((Log.LogDebugLists || Global.ServiceProblems != null) && Global.CurrentFrame - this.lastDebugListLog >= Global.DebugListLogDelay)
                 {
                     this.lastDebugListLog = Global.CurrentFrame;
 
-                    if (Global.Buildings != null)
+                    if (Log.LogDebugLists)
                     {
-                        Global.Buildings.DebugListLogBuildings();
+                        if (Global.Buildings != null)
+                        {
+                            Global.Buildings.DebugListLogBuildings();
+                        }
+
+                        if (Global.Vehicles != null)
+                        {
+                            Global.Vehicles.DebugListLogVehicles();
+                        }
+
+                        TransferManagerHelper.DebugListLog();
                     }
 
-                    if (Global.Vehicles != null)
+                    if (Global.ServiceProblems != null)
                     {
-                        Global.Vehicles.DebugListLogVehicles();
+                        Global.ServiceProblems.DebugListLogServiceProblems();
                     }
-
-                    if (Global.Problems != null)
-                    {
-                        Global.Problems.DebugListLogServiceProblems();
-                    }
-
-                    TransferManagerHelper.DebugListLog();
 
                     Log.FlushBuffer();
                 }

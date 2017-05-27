@@ -409,7 +409,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             // Set target info on service buildings.
             foreach (ServiceBuildingInfo serviceBuilding in this.serviceBuildings.Values.Where(sb => sb.CanReceive && sb.VehiclesFree > 0))
             {
-                serviceBuilding.SetTargetInfo(targetBuilding, ignoreRange);
+                serviceBuilding.SetCurrentTargetInfo(targetBuilding, ignoreRange);
             }
 
             // Vehicles that failed to find a path.
@@ -478,7 +478,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 ////    }
                 ////}
 
-                foreach (ServiceBuildingInfo serviceBuilding in this.serviceBuildings.Values.Where(sb => sb.CanReceive && (sb.VehiclesFree > 0 || (allowCreateSpares && this.serviceSettings.CreateSpares != ServiceDispatcherSettings.SpareVehiclesCreation.Never && sb.VehiclesSpare > 0)) && sb.InRange).OrderBy(sb => sb, Global.ServiceBuildingInfoPriorityComparer))
+                foreach (ServiceBuildingInfo serviceBuilding in this.serviceBuildings.Values.Where(sb => sb.CanReceive && (sb.VehiclesFree > 0 || (allowCreateSpares && this.serviceSettings.CreateSpares != ServiceDispatcherSettings.SpareVehiclesCreation.Never && sb.VehiclesSpare > 0)) && sb.CurrentTargetInRange).OrderBy(sb => sb, Global.ServiceBuildingInfoPriorityComparer))
                 {
                     // Found vehicle that has enough free capacity.
                     foundVehicleId = 0;
@@ -495,12 +495,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     // If prefer to send new vehicle when building is closer.
                     if (allowCreateSpares && this.serviceSettings.CreateSpares == ServiceDispatcherSettings.SpareVehiclesCreation.WhenBuildingIsCloser && serviceBuilding.VehiclesSpare > 0)
                     {
-                        foundVehicleDistance = serviceBuilding.Distance;
+                        foundVehicleDistance = serviceBuilding.CurrentTargetDistance;
                     }
 
                     if (Log.LogALot)
                     {
-                        Log.DevDebug(this, "AssignVehicle", "ServiceBuilding", serviceBuilding.BuildingId, serviceBuilding.BuildingName, serviceBuilding.DistrictName, serviceBuilding.Distance, foundVehicleDistance);
+                        Log.DevDebug(this, "AssignVehicle", "ServiceBuilding", serviceBuilding.BuildingId, serviceBuilding.BuildingName, serviceBuilding.DistrictName, serviceBuilding.CurrentTargetDistance, foundVehicleDistance);
                     }
 
                     // Loop through vehicles and save the closest free vehicle.
@@ -597,15 +597,15 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         {
                             Log.Debug(this, "AssignVehicle", "SpareNotCreated", targetBuilding.BuildingId, serviceBuilding.BuildingId);
 
-                            if (Global.Problems != null)
+                            if (Global.ServiceProblems != null)
                             {
-                                Global.Problems.AddServiceProblemNote(ProblemKeeper.ServiceProblem.VehicleNotCreated, serviceBuilding.BuildingId, targetBuilding.BuildingId);
+                                Global.ServiceProblems.Add(ServiceProblemKeeper.ServiceProblem.VehicleNotCreated, serviceBuilding.BuildingId, targetBuilding.BuildingId);
                             }
                         }
                         else
                         {
                             createdVehicle = true;
-                            foundVehicleDistance = serviceBuilding.Distance;
+                            foundVehicleDistance = serviceBuilding.CurrentTargetDistance;
 
                             if (Log.LogALot)
                             {
@@ -682,9 +682,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                             // The vehicle failed to find a path to the target.
                             Log.Debug("AssignVehicle", "SetTarget", "Failed", targetBuilding.BuildingId, foundVehicleBuilding.BuildingId, foundVehicleBuilding.VehiclesSpare, foundVehicleId, foundVehicleDistance, vehicles[foundVehicleId].m_flags);
 
-                            if (Global.Problems != null)
+                            if (Global.ServiceProblems != null)
                             {
-                                Global.Problems.AddServiceProblemNote(ProblemKeeper.ServiceProblem.PathNotFound, targetBuilding.BuildingId, foundVehicleBuilding.BuildingId);
+                                Global.ServiceProblems.Add(ServiceProblemKeeper.ServiceProblem.PathNotFound, targetBuilding.BuildingId, foundVehicleBuilding.BuildingId);
                             }
 
                             lostVehicles.Add(foundVehicleId);
@@ -734,18 +734,18 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                             foundVehicleBuilding.BuildingId,
                             foundVehicleId,
                             foundVehicleBuilding.District,
-                            foundVehicleBuilding.InDistrict,
-                            foundVehicleBuilding.InRange,
+                            foundVehicleBuilding.CurrentTargetInDistrict,
+                            foundVehicleBuilding.CurrentTargetInRange,
                             foundVehicleBuilding.Range,
-                            foundVehicleBuilding.Distance,
+                            foundVehicleBuilding.CurrentTargetDistance,
                             foundVehicleBuilding.VehiclesTotal,
                             foundVehicleBuilding.VehiclesMade,
                             foundVehicleBuilding.VehiclesFree,
                             foundVehicleBuilding.VehiclesSpare,
                             foundVehicleBuilding.BuildingName,
                             foundVehicleBuilding.DistrictName,
-                            foundVehicleBuilding.InDistrict ? "InDistrict" : (string)null,
-                            foundVehicleBuilding.InRange ? "InRange" : "OutOfRange");
+                            foundVehicleBuilding.CurrentTargetInDistrict ? "InDistrict" : (string)null,
+                            foundVehicleBuilding.CurrentTargetInRange ? "InRange" : "OutOfRange");
                         Log.DevDebug(
                             this,
                             "AssignVehicle",
@@ -773,11 +773,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                             foundVehicleId,
                             targetBuilding.HasProblem,
                             targetBuilding.ProblemValue,
-                            foundVehicleBuilding.InDistrict,
-                            foundVehicleBuilding.InRange,
+                            foundVehicleBuilding.CurrentTargetInDistrict,
+                            foundVehicleBuilding.CurrentTargetInRange,
                             foundVehicleBuilding.Range,
-                            foundVehicleBuilding.Distance,
-                            foundVehicleBuilding.Distance,
+                            foundVehicleBuilding.CurrentTargetDistance,
+                            foundVehicleBuilding.CurrentTargetDistance,
                             targetBuilding.BuildingName,
                             targetBuilding.DistrictName,
                             foundVehicleBuilding.BuildingName,
@@ -795,10 +795,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                             foundVehicleId,
                             targetBuilding.HasProblem,
                             targetBuilding.ProblemValue,
-                            foundVehicleBuilding.InDistrict,
-                            foundVehicleBuilding.InRange,
+                            foundVehicleBuilding.CurrentTargetInDistrict,
+                            foundVehicleBuilding.CurrentTargetInRange,
                             foundVehicleBuilding.Range,
-                            foundVehicleBuilding.Distance,
+                            foundVehicleBuilding.CurrentTargetDistance,
                             foundVehicleDistance);
                     }
                 }
@@ -987,9 +987,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                             Log.DevDebug(this, "CollectVehicles", "RemoveNonVehicle", serviceBuilding.BuildingId, vehicle.Key, vehicles[vehicle.Key].m_flags, vehicles[vehicle.Key].Info, vehicles[vehicle.Key].m_transferType);
                         }
 
-                        if (vehicle.Value > 0 && Global.Problems != null)
+                        if (vehicle.Value > 0 && Global.ServiceProblems != null)
                         {
-                            Global.Problems.AddServiceProblemNote(ProblemKeeper.ServiceProblem.VehicleGone, serviceBuilding.BuildingId, vehicle.Value);
+                            Global.ServiceProblems.Add(ServiceProblemKeeper.ServiceProblem.VehicleGone, serviceBuilding.BuildingId, vehicle.Value);
                         }
 
                         serviceBuilding.Vehicles.Remove(vehicle.Key);
@@ -1003,9 +1003,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                                 Log.DevDebug(this, "CollectVehicles", "RemoveMovedVehicle", serviceBuilding.BuildingId, vehicle.Key, vehicles[vehicle.Key].m_flags);
                             }
 
-                            if (vehicle.Value > 0 && Global.Problems != null)
+                            if (vehicle.Value > 0 && Global.ServiceProblems != null)
                             {
-                                Global.Problems.AddServiceProblemNote(ProblemKeeper.ServiceProblem.VehicleGone, serviceBuilding.BuildingId, vehicle.Value);
+                                Global.ServiceProblems.Add(ServiceProblemKeeper.ServiceProblem.VehicleGone, serviceBuilding.BuildingId, vehicle.Value);
                             }
 
                             serviceBuilding.Vehicles.Remove(vehicle.Key);

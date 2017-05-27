@@ -517,7 +517,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 msg.Insert(0, "] ").Insert(0, Library.Name).Insert(0, "[");
 
-                if (level != Level.None && level != Level.Dev && level <= logLevel)
+                if (level != Level.None && level < Level.Info && level <= logLevel)
                 {
                     try
                     {
@@ -540,7 +540,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 msg.Insert(0, (((level == Level.None) ? "" : level.ToString()) + ":").PadRight(9));
 
-                if (level != Level.None && level != Level.Dev && level <= logLevel)
+                if (level != Level.None && level != Level.Dev && level <= logLevel && (level < Level.Debug || !LogToFile))
                 {
                     try
                     {

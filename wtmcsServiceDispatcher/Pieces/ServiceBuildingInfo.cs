@@ -1,6 +1,6 @@
-﻿using System;
+﻿using ColossalFramework;
+using System;
 using System.Collections.Generic;
-using ColossalFramework;
 using UnityEngine;
 
 namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
@@ -54,9 +54,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public ServiceBuildingInfo(ushort buildingId, ref Building building, Dispatcher.DispatcherTypes dispatcherType)
         {
             this.BuildingId = buildingId;
-            this.Distance = float.PositiveInfinity;
-            this.InDistrict = false;
-            this.InRange = true;
+            this.CurrentTargetDistance = float.PositiveInfinity;
+            this.CurrentTargetInDistrict = false;
+            this.CurrentTargetInRange = true;
             this.Range = 0;
             this.Vehicles = new Dictionary<ushort, ServiceVehicleInfo>();
             this.VehiclesFree = 0;
@@ -223,18 +223,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
-        /// Gets or the capacity overflow.
-        /// </summary>
-        /// <value>
-        /// The capacity overflow.
-        /// </value>
-        public int CapacityOverflow
-        {
-            get;
-            private set;
-        }
-
-        /// <summary>
         /// Gets the capacity level.
         /// </summary>
         /// <value>
@@ -247,13 +235,57 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
-        /// Gets the distance to the target.
+        /// Gets or the capacity overflow.
         /// </summary>
-        public float Distance
+        /// <value>
+        /// The capacity overflow.
+        /// </value>
+        public int CurrentTargetCapacityOverflow
         {
             get;
             private set;
         }
+
+        /// <summary>
+        /// Gets the distance to the target.
+        /// </summary>
+        public float CurrentTargetDistance
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// Gets a value indicating whether the building is in target district.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if [in district]; otherwise, <c>false</c>.
+        /// </value>
+        public bool CurrentTargetInDistrict
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// Gets a value indicating whether the target building is in service building's effective range.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if [in range]; otherwise, <c>false</c>.
+        /// </value>
+        public bool CurrentTargetInRange
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// Gets the size of the current target service problem.
+        /// </summary>
+        /// <value>
+        /// The size of the current target service problem.
+        /// </value>
+        public uint CurrentTargetServiceProblemSize { get; private set; }
 
         /// <summary>
         /// Gets the district the building is in.
@@ -297,30 +329,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             get;
             set;
-        }
-
-        /// <summary>
-        /// Gets a value indicating whether the building is in target district.
-        /// </summary>
-        /// <value>
-        ///   <c>true</c> if [in district]; otherwise, <c>false</c>.
-        /// </value>
-        public bool InDistrict
-        {
-            get;
-            private set;
-        }
-
-        /// <summary>
-        /// Gets a value indicating whether the target building is in service building's effective range.
-        /// </summary>
-        /// <value>
-        ///   <c>true</c> if [in range]; otherwise, <c>false</c>.
-        /// </value>
-        public bool InRange
-        {
-            get;
-            private set;
         }
 
         /// <summary>
@@ -375,6 +383,34 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             get;
             private set;
+        }
+
+        /// <summary>
+        /// Gets the number service problems.
+        /// </summary>
+        /// <value>
+        /// The number of service problems.
+        /// </value>
+        public ushort ServiceProblemCount
+        {
+            get
+            {
+                return (Global.ServiceProblems == null) ? (ushort)0 : Global.ServiceProblems.GetServiceBuildingProblemCount(this.BuildingId);
+            }
+        }
+
+        /// <summary>
+        /// Gets the total size of the service problem.
+        /// </summary>
+        /// <value>
+        /// The size of the service problem.
+        /// </value>
+        public uint ServiceProblemSize
+        {
+            get
+            {
+                return (Global.ServiceProblems == null) ? 0 : Global.ServiceProblems.GetServiceBuildingProblemSize(this.BuildingId);
+            }
         }
 
         /// <summary>
@@ -552,27 +588,41 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// </summary>
         /// <param name="building">The building.</param>
         /// <param name="ignoreRange">If set to <c>true</c> ignore the range.</param>
-        public void SetTargetInfo(TargetBuildingInfo building, bool ignoreRange)
+        public void SetCurrentTargetInfo(TargetBuildingInfo building, bool ignoreRange)
         {
             if (this.lastUpdate != Global.CurrentFrame)
             {
                 this.Update(ref Singleton<BuildingManager>.instance.m_buildings.m_buffer[this.BuildingId], true);
             }
 
-            this.Distance = (this.Position - building.Position).sqrMagnitude;
+            this.CurrentTargetDistance = (this.Position - building.Position).sqrMagnitude;
 
             if (this.serviceSettings.DispatchByDistrict)
             {
-                this.InDistrict = building.District == this.District;
+                this.CurrentTargetInDistrict = building.District == this.District;
             }
             else
             {
-                this.InDistrict = false;
+                this.CurrentTargetInDistrict = false;
             }
 
-            this.InRange = ignoreRange || this.InDistrict || (this.serviceSettings.DispatchByRange && this.Distance < this.Range) || (!this.serviceSettings.DispatchByDistrict && !this.serviceSettings.DispatchByRange);
+            this.CurrentTargetInRange = ignoreRange || this.CurrentTargetInDistrict || (this.serviceSettings.DispatchByRange && this.CurrentTargetDistance < this.Range) || (!this.serviceSettings.DispatchByDistrict && !this.serviceSettings.DispatchByRange);
 
-            this.CapacityOverflow = (this.CapacityFree >= building.ProblemSize) ? 0 : building.ProblemSize - this.CapacityFree;
+            this.CurrentTargetCapacityOverflow = (this.CapacityFree >= building.ProblemSize) ? 0 : building.ProblemSize - this.CapacityFree;
+
+            if (Global.ServiceProblems == null)
+            {
+                this.CurrentTargetServiceProblemSize = 0;
+            }
+            else
+            {
+                this.CurrentTargetServiceProblemSize = Global.ServiceProblems.GetProblemSize(this.BuildingId, building.BuildingId);
+
+                if (Log.LogALot && Log.LogToFile)
+                {
+                    Log.DevDebug(this, "SetCurrentTargetInfo", "ServiceProblemSize", this.BuildingId, building.BuildingId, this.CurrentTargetServiceProblemSize);
+                }
+            }
         }
 
         /// <summary>
@@ -634,7 +684,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 this.IsEmptying = (building.m_flags & Building.Flags.Downgrading) != Building.Flags.None;
                 this.IsAutoEmptying = this.IsAutoEmptying & this.IsEmptying;
 
-                this.NeedsEmptying = this.serviceSettings.AutoEmpty && !this.IsEmptying && 
+                this.NeedsEmptying = this.serviceSettings.AutoEmpty && !this.IsEmptying &&
                                      ((building.m_flags & Building.Flags.CapacityFull) == Building.Flags.CapacityFull ||
                                       this.CapacityPercent >= this.serviceSettings.AutoEmptyStartLevelPercent);
 
@@ -774,19 +824,39 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             /// </returns>
             public int Compare(ServiceBuildingInfo x, ServiceBuildingInfo y)
             {
-                if (x.InDistrict && !y.InDistrict)
+                long c;
+
+                //// Check service problem difference. Use if big enough.
+                //c = x.CurrentTargetServiceProblemSize - y.CurrentTargetServiceProblemSize;
+                //if (Math.Abs(c) > ServiceProblemKeeper.ProblemSizeImportant)
+                //{
+                //    return (c < 0) ? -1 : 1;
+                //}
+
+                // Check district.
+                if (x.CurrentTargetInDistrict && !y.CurrentTargetInDistrict)
                 {
                     return -1;
                 }
-                else if (y.InDistrict && !x.InDistrict)
+                else if (y.CurrentTargetInDistrict && !x.CurrentTargetInDistrict)
                 {
                     return 1;
                 }
 
-                int c;
+                //// Check service problem difference again.
+                //if (c < 0)
+                //{
+                //    return -1;
+                //}
+                //else if (c > 0)
+                //{
+                //    return 1;
+                //}
+
                 float s, d;
 
-                c = x.CapacityOverflow - y.CapacityOverflow;
+                // Check overflow.
+                c = x.CurrentTargetCapacityOverflow - y.CurrentTargetCapacityOverflow;
                 if (c < 0)
                 {
                     return -1;
@@ -796,8 +866,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     return 1;
                 }
 
-                d = Mathf.Min(x.Distance / 100.0f, y.Distance / 100.0f);
-                s = x.Distance - y.Distance;
+                // Check low accuracy distance.
+                d = Mathf.Min(x.CurrentTargetDistance / 100.0f, y.CurrentTargetDistance / 100.0f);
+                s = x.CurrentTargetDistance - y.CurrentTargetDistance;
                 if (s < -d)
                 {
                     return -1;
@@ -807,6 +878,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     return 1;
                 }
 
+                // Check capacity.
                 c = x.CapacityLevel - y.CapacityLevel;
                 if (c < 0)
                 {
@@ -817,7 +889,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     return 1;
                 }
 
-                s = x.Distance - y.Distance;
+                // Check high accuracy distance.
+                s = x.CurrentTargetDistance - y.CurrentTargetDistance;
                 if (s < 0)
                 {
                     return -1;
@@ -827,6 +900,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     return 1;
                 }
 
+                // No difference...
                 return 0;
             }
 

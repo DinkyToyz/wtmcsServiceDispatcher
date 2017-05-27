@@ -60,7 +60,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// The problem linger delay.
         /// </summary>
-        public const uint ProblemLingerDelay = 3600u;
+        public const uint ProblemLingerDelay = 60u;
 
         /// <summary>
         /// The problem cleaning delay.
@@ -128,14 +128,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public static bool LevelLoaded = false;
 
         /// <summary>
-        /// The problems.
-        /// </summary>
-        public static ProblemKeeper Problems = null;
-
-        /// <summary>
         /// The service building information priority comparer.
         /// </summary>
         public static ServiceBuildingInfo.PriorityComparer ServiceBuildingInfoPriorityComparer = null;
+
+        /// <summary>
+        /// The service problems.
+        /// </summary>
+        public static ServiceProblemKeeper ServiceProblems = null;
 
         /// <summary>
         /// The settings.
@@ -248,7 +248,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             Global.TargetBuildingInfoPriorityComparer = null;
             Global.Buildings = null;
             Global.Vehicles = null;
-            Global.Problems = null;
+            Global.ServiceProblems = null;
         }
 
         /// <summary>
@@ -305,36 +305,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
-        /// Re-initializes the ambulance dispatcher.
-        /// </summary>
-        public static void ReInitializeAmbulanceDispatcher()
-        {
-            try
-            {
-                AmbulanceDispatcher.ReInitialize();
-            }
-            catch (Exception ex)
-            {
-                Log.Error(typeof(Global), "ReInitializeAmbulanceDispatcher", ex);
-            }
-        }
-
-        /// <summary>
-        /// Re-initializes the garbage truck dispatcher.
-        /// </summary>
-        public static void ReInitializeGarbageTruckDispatcher()
-        {
-            try
-            {
-                GarbageTruckDispatcher.ReInitialize();
-            }
-            catch (Exception ex)
-            {
-                Log.Error(typeof(Global), "ReInitializeGarbageTruckDispatcher", ex);
-            }
-        }
-
-        /// <summary>
         /// Initializes the dispatchers.
         /// </summary>
         public static void ReInitializeHandlers()
@@ -352,15 +322,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     else
                     {
                         Buildings.ReInitialize();
-                    }
-
-                    if (Problems == null)
-                    {
-                        Problems = new ProblemKeeper();
-                    }
-                    else
-                    {
-                        Problems.ReInitialize();
                     }
 
                     if (TargetBuildingInfoPriorityComparer == null)
@@ -407,7 +368,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         }
                     }
 
-                    // Initialize hearse objects.
+                    // Initialize ambulance objects.
                     if (Settings.HealthCare.DispatchVehicles)
                     {
                         if (AmbulanceDispatcher == null)
@@ -418,6 +379,23 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         {
                             AmbulanceDispatcher.ReInitialize();
                         }
+                    }
+
+                    // Initialize problem keeper.
+                    if (EnableDevExperiments)
+                    {
+                        if (ServiceProblems == null)
+                        {
+                            ServiceProblems = new ServiceProblemKeeper();
+                        }
+                        else
+                        {
+                            ServiceProblems.ReInitialize();
+                        }
+                    }
+                    else
+                    {
+                        ServiceProblems = null;
                     }
                 }
 
