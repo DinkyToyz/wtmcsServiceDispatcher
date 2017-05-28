@@ -523,13 +523,18 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 if (this.ServiceProblemSize > 0 && this.ServiceProblemCount > 0)
                 {
-                    uint modifier = (uint)this.ServiceProblemSize * (uint)Math.Round(0.5 + (float)this.ServiceProblemCount / 4.0, 0);
+                    uint multiplier = (uint)(Math.Max(10.0, Math.Round(0.5 + (float)this.ServiceProblemCount / 4, 0)));
+                    uint modifier = (uint)this.ServiceProblemSize * multiplier;
                     long weight = this.ProblemValue - modifier;
                     this.ProblemWeight = (weight > int.MaxValue) ? int.MaxValue : (weight < int.MinValue) ? int.MinValue : (int)weight;
 
                     if (Log.LogALot && Log.LogToFile)
                     {
-                        Log.DevDebug(this, "Update", "ProblemWeighting", this.BuildingId, this.ProblemSize, this.ProblemValue, this.ProblemWeight, this.ServiceProblemCount, this.ServiceProblemSize, modifier, weight);
+                        ServiceProblemKeeper.DevLog("TargetBuidlingProblemWeighting",
+                            Log.Data("TargetBuilding", this.BuildingId, BuildingHelper.GetBuildingName(this.BuildingId)),
+                            Log.Data("BuildingProblem", this.ServiceProblemCount, this.ServiceProblemSize),
+                            Log.Data("Modifier", multiplier, modifier, weight),
+                            Log.Data("Weight", this.ProblemValue, this.ProblemWeight));
                     }
                 }
             }

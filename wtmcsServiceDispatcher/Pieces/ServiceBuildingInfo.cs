@@ -618,9 +618,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             {
                 this.CurrentTargetServiceProblemSize = Global.ServiceProblems.GetProblemSize(this.BuildingId, building.BuildingId);
 
-                if (Log.LogALot && Log.LogToFile)
+                if (Log.LogALot && Log.LogToFile && this.CurrentTargetServiceProblemSize > 0)
                 {
-                    Log.DevDebug(this, "SetCurrentTargetInfo", "ServiceProblemSize", this.BuildingId, building.BuildingId, this.CurrentTargetServiceProblemSize);
+                    ServiceProblemKeeper.DevLog("SetServiceBuildingCurrentTargetInfo",
+                            Log.Data("ServiceBuilding", this.BuildingId, BuildingHelper.GetBuildingName(this.BuildingId)),
+                            Log.Data("TargetBuilding", building.BuildingId, BuildingHelper.GetBuildingName(building.BuildingId)),
+                            "ProblemSize", this.CurrentTargetServiceProblemSize);
                 }
             }
         }
