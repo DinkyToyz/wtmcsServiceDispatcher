@@ -259,6 +259,17 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Instanciate a new info-list data item.
+        /// </summary>
+        /// <param name="name">The name.</param>
+        /// <param name="data">The data.</param>
+        /// <returns>A new info-list data item.</returns>
+        public static InfoList.InfoData Data(string name, params object[] data)
+        {
+            return new InfoList.InfoData(name, data);
+        }
+
+        /// <summary>
         /// Outputs the specified debugging message.
         /// </summary>
         /// <param name="sourceObject">The source object.</param>
@@ -338,6 +349,48 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public static void Info(object sourceObject, string sourceBlock, params object[] messages)
         {
             Output(Level.Info, sourceObject, sourceBlock, null, messages);
+        }
+
+        /// <summary>
+        /// Instanciates and fills a new information list.
+        /// </summary>
+        /// <param name="prefix">The prefix.</param>
+        /// <param name="data">The data, either as InfoList.InfoData, or in pairs of name, data.</param>
+        /// <returns>
+        /// A new information list.
+        /// </returns>
+        public static InfoList List(string prefix, params object[] data)
+        {
+            InfoList info = new InfoList(prefix);
+
+            object[] objects;
+            if (data.Length == 1 && data[0] is object[] && (data[0] as object[]).Length > 0)
+            {
+                objects = data[0] as object[];
+            }
+            else
+            {
+                objects = data;
+            }
+
+            for (int i = 0; i < objects.Length; i ++)
+            {
+                if (objects[i] is InfoList.InfoData)
+                {
+                    info.Add((InfoList.InfoData)objects[i]);
+                }
+                else if (i == objects.Length - 1)
+                {
+                    info.Add(null, objects[i]);
+                }
+                else
+                {
+                    info.Add(ObjectToString(objects[i]), objects[i + 1]);
+                    i++;
+                }
+            }
+
+            return info;
         }
 
         /// <summary>
@@ -439,36 +492,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                     try
                     {
-                        if (messages[i] is string)
-                        {
-                            message = (string)messages[i];
-                        }
-                        else if (messages[i] is float)
-                        {
-                            message = ((float)messages[i]).ToString("#,0.##", CultureInfo.InvariantCulture);
-                        }
-                        else if (messages[i] is double)
-                        {
-                            message = ((double)messages[i]).ToString("#,0.##", CultureInfo.InvariantCulture);
-                        }
-                        else if (messages[i] is Vector3)
-                        {
-                            message = VectorToString((Vector3)messages[i]);
-                        }
-                        else if (messages[i] is Vector2)
-                        {
-                            message = VectorToString((Vector2)messages[i]);
-                        }
-                        else if (messages[i] is Vector4)
-                        {
-                            message = VectorToString((Vector4)messages[i]);
-                        }
-                        else
-                        {
-                            message = messages[i].ToString();
-                        }
+                        message = ObjectToString(messages[i]);
                     }
-                    catch(Exception ex)
+                    catch (Exception ex)
                     {
                         message = "(unable to log value: " + messages[i].GetType().ToString() + ", " + ex.GetType().ToString();
                         if (!String.IsNullOrEmpty(ex.Message))
@@ -596,6 +622,95 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public static void Warning(object sourceObject, string sourceBlock, params object[] messages)
         {
             Output(Level.Warning, sourceObject, sourceBlock, null, messages);
+        }
+
+        /// <summary>
+        /// Converts objects to a list of readable strings.
+        /// </summary>
+        /// <param name="objects">The objects.</param>
+        /// <returns>
+        /// A list of readable strings.
+        /// </returns>
+        private static IEnumerable<string> ObjectsToStrings(params object[] objects)
+        {
+            foreach (object obj in objects)
+            {
+                yield return ObjectToString(obj);
+            }
+        }
+
+        /// <summary>
+        /// Converts object to readable string.
+        /// </summary>
+        /// <param name="obj">The object.</param>
+        /// <returns>
+        /// A readable string.
+        /// </returns>
+        private static string ObjectToString(object obj)
+        {
+            if (obj == null)
+            {
+                return null;
+            }
+
+            string str;
+
+            if (obj is string)
+            {
+                str = (string)obj;
+            }
+            else if (obj is float)
+            {
+                str = ((float)obj).ToString("#,0.##", CultureInfo.InvariantCulture);
+            }
+            else if (obj is double)
+            {
+                str = ((double)obj).ToString("#,0.##", CultureInfo.InvariantCulture);
+            }
+            else if (obj is Vector3)
+            {
+                str = VectorToString((Vector3)obj);
+            }
+            else if (obj is Vector2)
+            {
+                str = VectorToString((Vector2)obj);
+            }
+            else if (obj is Vector4)
+            {
+                str = VectorToString((Vector4)obj);
+            }
+            else if (obj is IEnumerable<InfoList.InfoData>)
+            {
+                str = (new InfoList(obj as IEnumerable<InfoList.InfoData>)).ToString();
+            }
+            else
+            {
+                str = obj.ToString();
+            }
+
+            return (str == null) ? str : str.Trim();
+        }
+
+        /// <summary>
+        /// Converts object to a list of readable strings.
+        /// </summary>
+        /// <param name="obj">The object.</param>
+        /// <returns>
+        /// A list of readable strings.
+        /// </returns>
+        private static IEnumerable<string> ObjectToStrings(object obj)
+        {
+            if (obj is IEnumerable<object>)
+            {
+                foreach (object item in obj as IEnumerable<object>)
+                {
+                    yield return ObjectToString(item);
+                }
+            }
+            else
+            {
+                yield return ObjectToString(obj);
+            }
         }
 
         /// <summary>
@@ -770,6 +885,45 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             }
 
             /// <summary>
+            /// Initializes a new instance of the <see cref="InfoList"/> class.
+            /// </summary>
+            /// <param name="data">The data.</param>
+            public InfoList(InfoData data)
+            {
+                this.Add(data);
+            }
+
+            /// <summary>
+            /// Initializes a new instance of the <see cref="InfoList"/> class.
+            /// </summary>
+            /// <param name="data">The data.</param>
+            public InfoList(IEnumerable<InfoData> data)
+            {
+                this.Add(data);
+            }
+
+            /// <summary>
+            /// Adds the info to the list.
+            /// </summary>
+            /// <param name="data">The data.</param>
+            public void Add(IEnumerable<InfoData> data)
+            {
+                foreach (InfoData item in data)
+                {
+                    this.Add(item);
+                }
+            }
+
+            /// <summary>
+            /// Adds the info to the list.
+            /// </summary>
+            /// <param name="data">The data.</param>
+            public void Add(InfoData data)
+            {
+                this.Add(data.Name, data.Data);
+            }
+
+            /// <summary>
             /// Adds the info to the list.
             /// </summary>
             /// <param name="name">The name.</param>
@@ -782,6 +936,16 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     return;
                 }
 
+                this.AddData(name, data);
+            }
+
+            /// <summary>
+            /// Adds the info to the list.
+            /// </summary>
+            /// <param name="name">The name.</param>
+            /// <param name="data">The data.</param>
+            public void AddData(string name, object[] data)
+            {
                 int dc = 0;
 
                 for (int i = 0; i < data.Length; i++)
@@ -793,76 +957,34 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                     try
                     {
+                        IEnumerable<string> strings;
+
                         if (data[i] is IEnumerable<string>)
                         {
-                            bool sa = false;
-                            foreach (string str in (IEnumerable<string>)data[i])
+                            strings = data[i] as IEnumerable<string>;
+                        }
+                        else
+                        {
+                            strings = new string[] { ObjectToString(data[i]) };
+                        }
+
+                        bool sa = false;
+                        foreach (string str in strings)
+                        {
+                            if (str == null)
                             {
-                                if (str == null)
-                                {
-                                    continue;
-                                }
-
-                                if (!sa)
-                                {
-                                    this.AddNameOrSeparator(name, dc);
-                                    sa = true;
-                                }
-
-                                this.info.Append(escapeRex.Replace(str.Trim(), "^$1"));
+                                continue;
                             }
 
                             if (!sa)
                             {
-                                continue;
-                            }
-                        }
-                        else if (data[i] is string)
-                        {
-                            this.AddNameOrSeparator(name, dc);
-                            this.info.Append(escapeRex.Replace(((string)data[i]).Trim(), "^$1"));
-                        }
-                        else if (data[i] is float)
-                        {
-                            this.AddNameOrSeparator(name, dc);
-                            this.info.Append(((float)data[i]).ToString("#,0.##", CultureInfo.InvariantCulture));
-                        }
-                        else if (data[i] is double)
-                        {
-                            this.AddNameOrSeparator(name, dc);
-                            this.info.Append(((double)data[i]).ToString("#,0.##", CultureInfo.InvariantCulture));
-                        }
-                        else if (data[i] is int || data[i] is Int16 || data[i] is Int32 || data[i] is Int64 || data[i] is short || data[i] is byte ||
-                                 data[i] is uint || data[i] is UInt16 || data[i] is UInt32 || data[i] is UInt64 || data[i] is ushort)
-                        {
-                            this.AddNameOrSeparator(name, dc);
-                            this.info.Append(data[i].ToString());
-                        }
-                        else if (data[i] is Vector3)
-                        {
-                            this.AddNameOrSeparator(name, dc);
-                            this.info.Append(VectorToString((Vector3)data[i]));
-                        }
-                        else if (data[i] is Vector2)
-                        {
-                            this.AddNameOrSeparator(name, dc);
-                            this.info.Append(VectorToString((Vector2)data[i]));
-                        }
-                        else if (data[i] is Vector4)
-                        {
-                            this.AddNameOrSeparator(name, dc);
-                            this.info.Append(VectorToString((Vector4)data[i]));
-                        }
-                        else
-                        {
-                            string text = data[i].ToString();
-                            if (text == null)
-                            {
-                                continue;
+                                this.AddNameOrSeparator(name, dc);
+
+                                sa = true;
+                                dc++;
                             }
 
-                            this.AddNameOrSeparator(name, dc);
-                            this.info.Append(escapeRex.Replace(text.Trim(), "^$1"));
+                            this.info.Append(escapeRex.Replace(str.Trim(), "^$1"));
                         }
                     }
                     catch (Exception ex)
@@ -874,9 +996,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                             info.Append(", ").Append(ex.Message);
                         }
                         info.Append(")");
-                    }
 
-                    dc++;
+                        dc++;
+                    }
                 }
             }
 
@@ -915,6 +1037,49 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 else
                 {
                     this.info.Append(", ");
+                }
+            }
+
+            /// <summary>
+            /// Named item for info list for log lines.
+            /// </summary>
+            public struct InfoData
+            {
+                /// <summary>
+                /// The data.
+                /// </summary>
+                public readonly object[] Data;
+
+                /// <summary>
+                /// The name.
+                /// </summary>
+                public readonly string Name;
+
+                /// <summary>
+                /// Initializes a new instance of the <see cref="InfoData"/> struct.
+                /// </summary>
+                /// <param name="name">The name.</param>
+                /// <param name="data">The data.</param>
+                public InfoData(string name, params object[] data)
+                {
+                    this.Name = name;
+                    this.Data = new object[data.Length];
+
+                    if (data.Length > 0)
+                    {
+                        data.CopyTo(this.Data, 0);
+                    }
+                }
+
+                /// <summary>
+                /// Returns a <see cref="System.String" /> that represents this instance.
+                /// </summary>
+                /// <returns>
+                /// A <see cref="System.String" /> that represents this instance.
+                /// </returns>
+                public override string ToString()
+                {
+                    return (new InfoList(this)).ToString();
                 }
             }
         }
