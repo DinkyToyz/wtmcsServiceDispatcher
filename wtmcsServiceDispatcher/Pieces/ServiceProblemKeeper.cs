@@ -25,11 +25,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         private readonly byte defaultWeight = 10;
 
         /// <summary>
-        /// The service problem notes.
-        /// </summary>
-        private List<ServiceProblemNote> ProblemNotes = null;
-
-        /// <summary>
         /// The service problem sizes.
         /// </summary>
         private Dictionary<uint, uint> ProblemSizes = null;
@@ -161,11 +156,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         "NewCount", newProblem.Count,
                         "NewSize", newProblem.Size);
                 }
-
-                if (this.ProblemNotes != null)
-                {
-                    this.ProblemNotes.Add(new ServiceProblemNote(problem, serviceBuildingId, targetBuildingId, weight));
-                }
             }
             catch (Exception ex)
             {
@@ -225,14 +215,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     info.Add("TargetBuildingName", BuildingHelper.GetBuildingName(problem.Key));
 
                     Log.DevDebug(this, "DebugListLog", info.ToString());
-                }
-
-                if (this.ProblemNotes != null)
-                {
-                    foreach (ServiceProblemNote note in this.ProblemNotes.OrderBy(n => n.ProblemFrame))
-                    {
-                        note.DebugListLog();
-                    }
                 }
             }
             catch (Exception ex)
@@ -355,22 +337,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 this.TargetBuildingProblems.Clear();
             }
 
-            if (Log.LogALot && Log.LogToFile)
-            {
-                if (this.ProblemNotes == null)
-                {
-                    this.ProblemNotes = new List<ServiceProblemNote>();
-                }
-                else
-                {
-                    this.ProblemNotes.Clear();
-                }
-            }
-            else if (this.ProblemNotes != null)
-            {
-                this.ProblemNotes = null;
-            }
-
             this.LastUpdate = Global.CurrentFrame;
         }
 
@@ -413,23 +379,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                         this.ProblemSizes.Remove(size.Key);
 
-                        if (this.ProblemNotes != null)
-                        {
-                            this.ProblemNotes.Add(new ServiceProblemNote(ServiceProblem.OldProblem, serviceBuildingId, targetBuildingId, size.Value));
-                        }
-
                         if (oldProblem.Count <= 1)
                         {
                             problemDec = false;
                             newProblem = new BuildingProblem(0, 0);
 
                             this.TargetBuildingProblems.Remove(targetBuildingId);
-
-                            if (this.ProblemNotes != null)
-                            {
-                                this.ProblemNotes.Add(new ServiceProblemNote(ServiceProblem.OldProblem, 0, targetBuildingId, oldProblem.Size));
-                            }
-
                         }
                         else
                         {
@@ -466,11 +421,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                             "NewCount", newProblem.Count,
                             "NewSize", newProblem.Size);
                     }
-                }
-
-                if (this.ProblemNotes != null && decrement >= 10 && this.ProblemNotes.Count > 0)
-                {
-                    this.ProblemNotes.RemoveAll(n => Global.CurrentFrame - n.ProblemFrame > Global.ProblemLingerDelay * n.ProblemWeight);
                 }
             }
             catch (Exception ex)

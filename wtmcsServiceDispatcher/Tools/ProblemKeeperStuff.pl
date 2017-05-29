@@ -27,6 +27,7 @@ sub FilterLog
     while (my $l = <$in>)
     {
         # 2017-05-28 21:08:35.062 Dev:     [wtmcsServiceDispatcher] @12894176 <ServiceProblemKeeper.DevLog> TargetBuidlingProblemWeightingTargetBuilding=42638, Activated sludge process tank; BuildingProblem=108, 1; Modifier=28, 28; Weight
+        # 2017-05-29 21:14:40.822 Dev:     [wtmcsServiceDispatcher] @12895117 <ServiceProblemKeeper.DevLog> [SetServiceBuildingCurrentTargetInfo]; ServiceBuilding=30882, Kombi-MÃ¼ll-Heizkraftwerk; TargetBuilding=27218, The Cherry Residence; ProblemSize=12
         next unless ($l =~ /^(\S+) (\S+) \S+\s+\[wtmcsServiceDispatcher\] (\@\d+) <ServiceProblemKeeper.DevLog> (.*?)\s*$/m);
 
         my $d = $1;

@@ -57,6 +57,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             this.CurrentTargetDistance = float.PositiveInfinity;
             this.CurrentTargetInDistrict = false;
             this.CurrentTargetInRange = true;
+            this.CurrentTargetCapacityOverflow = 0;
+            this.CurrentTargetServiceProblemSize = 0;
             this.Range = 0;
             this.Vehicles = new Dictionary<ushort, ServiceVehicleInfo>();
             this.VehiclesFree = 0;
@@ -829,12 +831,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             {
                 long c;
 
-                //// Check service problem difference. Use if big enough.
-                //c = x.CurrentTargetServiceProblemSize - y.CurrentTargetServiceProblemSize;
-                //if (Math.Abs(c) > ServiceProblemKeeper.ProblemSizeImportant)
-                //{
-                //    return (c < 0) ? -1 : 1;
-                //}
+                // Check service problem difference. Use if big enough.
+                c = x.CurrentTargetServiceProblemSize - y.CurrentTargetServiceProblemSize;
+                if (Math.Abs(c) > ServiceProblemKeeper.ProblemSizeImportant)
+                {
+                    return (c < 0) ? -1 : 1;
+                }
 
                 // Check district.
                 if (x.CurrentTargetInDistrict && !y.CurrentTargetInDistrict)
@@ -846,17 +848,15 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     return 1;
                 }
 
-                //// Check service problem difference again.
-                //if (c < 0)
-                //{
-                //    return -1;
-                //}
-                //else if (c > 0)
-                //{
-                //    return 1;
-                //}
-
-                float s, d;
+                // Check service problem difference again.
+                if (c < 0)
+                {
+                    return -1;
+                }
+                else if (c > 0)
+                {
+                    return 1;
+                }
 
                 // Check overflow.
                 c = x.CurrentTargetCapacityOverflow - y.CurrentTargetCapacityOverflow;
@@ -868,6 +868,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 {
                     return 1;
                 }
+
+                float s, d;
 
                 // Check low accuracy distance.
                 d = Mathf.Min(x.CurrentTargetDistance / 100.0f, y.CurrentTargetDistance / 100.0f);
