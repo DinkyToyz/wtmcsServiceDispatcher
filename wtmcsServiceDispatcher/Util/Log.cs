@@ -543,7 +543,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 msg.Insert(0, "] ").Insert(0, Library.Name).Insert(0, "[");
 
-                if (level != Level.None && level < Level.Info && level <= logLevel)
+                if (level != Level.None && level <= Level.Warning && level <= logLevel)
                 {
                     try
                     {
