@@ -221,10 +221,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <param name="sourceObject">The source object.</param>
         /// <param name="sourceBlock">The source block.</param>
         /// <param name="logMessage">The log message.</param>
-        /// <returns>
-        /// True if target is or was de-assigned.
-        /// </returns>
-        public bool DeAssign(bool force = false, object sourceObject = null, string sourceBlock = null, string logMessage = null)
+        /// <returns>The result of the action.</returns>
+        public VehicleResult DeAssign(bool force = false, object sourceObject = null, string sourceBlock = null, string logMessage = null)
         {
             return this.DeAssign(ref Singleton<VehicleManager>.instance.m_vehicles.m_buffer[this.VehicleId], force, sourceObject, sourceBlock, logMessage);
         }
@@ -237,14 +235,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <param name="sourceObject">The source object.</param>
         /// <param name="sourceBlock">The source block.</param>
         /// <param name="logMessage">The log message.</param>
-        /// <returns>
-        /// True if target is or was de-assigned.
-        /// </returns>
-        public bool DeAssign(ref Vehicle vehicle, bool force = false, object sourceObject = null, string sourceBlock = null, string logMessage = null)
+        /// <returns>The result of the action.</returns>
+        public VehicleResult DeAssign(ref Vehicle vehicle, bool force = false, object sourceObject = null, string sourceBlock = null, string logMessage = null)
         {
             if (this.lastDeAssignStamp == Global.CurrentFrame)
             {
-                return vehicle.m_targetBuilding == 0 && this.Target == 0;
+                return new VehicleResult(vehicle.m_targetBuilding == 0 && this.Target == 0);
             }
 
             if (force || Global.CurrentFrame - this.LastAssigned > Global.TargetLingerDelay || vehicle.m_targetBuilding != this.Target)
@@ -253,7 +249,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 if (vehicle.m_targetBuilding == 0 && this.Target == 0)
                 {
-                    return true;
+                    return new VehicleResult(true);
                 }
 
                 if (Log.LogALot && (sourceObject != null || sourceBlock != null || logMessage != null))
@@ -265,10 +261,21 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 this.Target = 0;
 
                 // Unassign the vehicle.
-                return VehicleHelper.DeAssign(this.VehicleId, ref vehicle);
+                ushort serviceBuildingId = vehicle.m_sourceBuilding;
+                VehicleResult result = VehicleHelper.DeAssign(this.VehicleId, ref vehicle);
+                if (result.DeSpawned)
+                {
+                    ServiceBuildingInfo building = Global.Buildings.GetServiceBuilding(serviceBuildingId);
+                    if (building != null)
+                    {
+                        building.Vehicles.Remove(this.VehicleId);
+                    }
+                }
+
+                return result;
             }
 
-            return vehicle.m_targetBuilding == 0 && this.Target == 0;
+            return new VehicleResult(vehicle.m_targetBuilding == 0 && this.Target == 0);
         }
 
         /// <summary>
@@ -277,16 +284,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <param name="targetBuildingId">The target building identifier.</param>
         /// <param name="vehicle">The vehicle.</param>
         /// <param name="material">The material.</param>
-        /// <returns>
-        /// True if target set vehicle found path the target.
-        /// </returns>
-        public bool SetTarget(ushort targetBuildingId, ref Vehicle vehicle, TransferManager.TransferReason? material)
+        /// <returns>The result of the action.</returns>
+        public VehicleResult SetTarget(ushort targetBuildingId, ref Vehicle vehicle, TransferManager.TransferReason? material)
         {
             if (targetBuildingId == 0)
             {
                 if (this.Target == 0 && vehicle.m_targetBuilding == 0)
                 {
-                    return true;
+                    return new VehicleResult(true);
                 }
 
                 return this.DeAssign(ref vehicle, true, "SetTarget");
@@ -297,22 +302,24 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 Log.DevDebug(this, "SetTarget", this.VehicleId, targetBuildingId, this.Target, vehicle.m_targetBuilding, vehicle.m_flags);
             }
 
-            if (VehicleHelper.AssignTarget(this.VehicleId, ref vehicle, material, targetBuildingId, 0))
+            VehicleResult result = VehicleHelper.AssignTarget(this.VehicleId, ref vehicle, material, targetBuildingId, 0);
+
+            if (result)
             {
                 this.LastAssigned = Global.CurrentFrame;
                 this.FreeToCollect = false;
                 this.Target = targetBuildingId;
+            }
+            else
+            {
+                Log.Debug(this, "SetTarget", "Failed", this.VehicleId, targetBuildingId, this.Target, vehicle.m_targetBuilding, vehicle.m_flags);
 
-                return true;
+                this.LastAssigned = 0;
+                this.FreeToCollect = false;
+                this.Target = 0;
             }
 
-            Log.Debug(this, "SetTarget", "Failed", this.VehicleId, targetBuildingId, this.Target, vehicle.m_targetBuilding, vehicle.m_flags);
-
-            this.LastAssigned = 0;
-            this.FreeToCollect = false;
-            this.Target = 0;
-
-            return false;
+            return result;
         }
 
         /// <summary>
@@ -322,8 +329,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <param name="freeToCollect">If set to <c>true</c> the vehicle is free.</param>
         /// <param name="checkAssignment">If set to <c>true</c> check vehicles assignment and possibly de-assign vehicle].</param>
         /// <param name="updateValues">If set to <c>true</c> update vehicle values.</param>
-        public void Update(ref Vehicle vehicle, bool freeToCollect, bool checkAssignment, bool updateValues)
+        public VehicleResult Update(ref Vehicle vehicle, bool freeToCollect, bool checkAssignment, bool updateValues)
         {
+            VehicleResult result = true;
+
             if (this.LastSeen != Global.CurrentFrame)
             {
                 if (updateValues)
@@ -343,7 +352,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         Log.DevDebug(this, "Update", this.dispatcherType, "CheckAssignment", "DeAssign", this.VehicleId, vehicle.m_targetBuilding, vehicle.m_flags);
                     }
 
-                    this.DeAssign(ref vehicle, false, "Update");
+                    result = this.DeAssign(ref vehicle, false, "Update");
                 }
             }
 
@@ -359,6 +368,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             {
                 this.LastAssigned = Global.CurrentFrame;
             }
+
+            return result;
         }
     }
 }

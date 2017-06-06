@@ -40,16 +40,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <param name="material">The material.</param>
         /// <param name="targetBuildingId">The target building identifier.</param>
         /// <param name="targetCitizenId">The target citizen identifier.</param>
-        /// <returns>
-        /// True on success.
-        /// </returns>
-        /// <exception cref="System.InvalidOperationException">
-        /// Ambulances must use citizen assignment
+        /// <returns>The result of the action.</returns>
+        /// <exception cref="System.InvalidOperationException">Ambulances must use citizen assignment
         /// or
-        /// Material must be specified.
-        /// </exception>
+        /// Material must be specified.</exception>
         /// <exception cref="System.NotImplementedException">Ambulance dispatching not fully implemented yet.</exception>
-        public static bool AssignTarget(ushort vehicleId, ref Vehicle vehicle, TransferManager.TransferReason? material, ushort targetBuildingId, uint targetCitizenId)
+        public static VehicleResult AssignTarget(ushort vehicleId, ref Vehicle vehicle, TransferManager.TransferReason? material, ushort targetBuildingId, uint targetCitizenId)
         {
             if (targetBuildingId == 0 && targetCitizenId == 0)
             {
@@ -91,7 +87,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 }
             }
 
-            return VehicleHelper.StartTransfer(vehicleId, ref vehicle, material.Value, targetBuildingId, targetCitizenId);
+            return new VehicleResult(StartTransfer(vehicleId, ref vehicle, material.Value, targetBuildingId, targetCitizenId), VehicleResult.Result.Assigned);
         }
 
         /// <summary>
@@ -185,9 +181,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// Removes target assignment from vehicle.
         /// </summary>
         /// <param name="vehicleId">The vehicle identifier.</param>
-        /// <returns>True if vehicle de-assigned and ok.</returns>
         /// <param name="recall">If set to <c>true</c> recall vehicle to service building.</param>
-        public static bool DeAssign(ushort vehicleId, bool recall = false)
+        /// <returns>
+        /// The result of the action.
+        /// </returns>
+        public static VehicleResult DeAssign(ushort vehicleId, bool recall = false)
         {
             return DeAssign(vehicleId, ref Singleton<VehicleManager>.instance.m_vehicles.m_buffer[vehicleId], recall);
         }
@@ -197,9 +195,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// </summary>
         /// <param name="vehicleId">The vehicle identifier.</param>
         /// <param name="vehicle">The vehicle data.</param>
-        /// <returns>True if vehicle de-assigned and ok.</returns>
         /// <param name="recall">If set to <c>true</c> recall vehicle to service building.</param>
-        public static bool DeAssign(ushort vehicleId, ref Vehicle vehicle, bool recall = false)
+        /// <returns>
+        /// The result of the action.
+        /// </returns>
+        public static VehicleResult DeAssign(ushort vehicleId, ref Vehicle vehicle, bool recall = false)
         {
             try
             {
@@ -217,7 +217,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     vehicle.m_flags &= ~Vehicle.Flags.WaitingPath;
                     vehicle.Unspawn(vehicleId);
 
-                    return true;
+                    return new VehicleResult(VehicleResult.Result.DeSpawned);
                 }
             }
             catch (Exception ex)
@@ -225,7 +225,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 Log.Error(typeof(VehicleHelper), "DeAssign", ex);
             }
 
-            bool targetSet = SetTarget(vehicleId, ref vehicle, 0, 0);
+            VehicleResult result = SetTarget(vehicleId, ref vehicle, 0, 0);
 
             if ((vehicle.m_flags & Vehicle.Flags.WaitingTarget) != ~VehicleHelper.VehicleAll)
             {
@@ -239,10 +239,15 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     }
 
                     vehicle.m_waitCounter = byte.MaxValue - 1;
+
+                    if (result)
+                    {
+                        result = new VehicleResult(VehicleResult.Result.Recalled);
+                    }
                 }
             }
 
-            return targetSet;
+            return result;
         }
 
         /// <summary>
@@ -787,10 +792,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <param name="vehicle">The vehicle.</param>
         /// <param name="targetBuildingId">The target building identifier.</param>
         /// <param name="targetCitizenId">The target citizen identifier.</param>
-        /// <returns>
-        /// True if target set and path to target found.
-        /// </returns>
-        private static bool SetTarget(ushort vehicleId, ref Vehicle vehicle, ushort targetBuildingId, uint targetCitizenId)
+        /// <returns>The result of the action.</returns>
+        private static VehicleResult SetTarget(ushort vehicleId, ref Vehicle vehicle, ushort targetBuildingId, uint targetCitizenId)
         {
             try
             {
@@ -810,7 +813,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     else if (targetCitizenBuildingId != targetBuildingId)
                     {
                         Log.Warning(typeof(VehicleHelper), "SetTarget", "Target citizen location not same as target building", targetBuildingId, targetCitizenBuildingId);
-                        return false;
+                        return new VehicleResult(VehicleResult.Result.Failure);
                     }
                 }
 
@@ -827,20 +830,20 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 if (targetCitizenId == 0)
                 {
-                    return (vehicle.m_flags & VehicleHelper.VehicleExists) != ~VehicleHelper.VehicleAll;
+                    return new VehicleResult((vehicle.m_flags & VehicleHelper.VehicleExists) != ~VehicleHelper.VehicleAll, VehicleResult.Result.Assigned);
                 }
                 else
                 {
                     Citizen[] citizens = Singleton<CitizenManager>.instance.m_citizens.m_buffer;
                     citizens[targetCitizenId].SetVehicle(targetCitizenId, vehicleId, 0);
 
-                    return (vehicle.m_flags & VehicleHelper.VehicleExists) == ~VehicleHelper.VehicleAll && citizens[targetCitizenId].m_vehicle == vehicleId;
+                    return new VehicleResult((vehicle.m_flags & VehicleHelper.VehicleExists) == ~VehicleHelper.VehicleAll && citizens[targetCitizenId].m_vehicle == vehicleId, VehicleResult.Result.Assigned);
                 }
             }
             catch (Exception ex)
             {
                 Log.Error(typeof(VehicleHelper), "SetTarget", ex);
-                return false;
+                return new VehicleResult(VehicleResult.Result.Failure);
             }
         }
 

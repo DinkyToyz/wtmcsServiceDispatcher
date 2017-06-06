@@ -30,7 +30,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// The clean transfer offers delay.
         /// </summary>
-        public const uint CleanTransferOffersDelay = 120u;
+        public const uint CleanTransferOffersDelay = 30u;
 
         /// <summary>
         /// The de-assign confused delay.
@@ -60,12 +60,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// The problem linger delay.
         /// </summary>
-        public const uint ProblemLingerDelay = 60u;
+        public const uint ProblemLingerDelay = 240u;
 
         /// <summary>
         /// The problem cleaning delay.
         /// </summary>
-        public const uint ProblemUpdateDelay = 240u;
+        public const uint ProblemUpdateDelay = 960u;
 
         /// <summary>
         /// The minimum recheck interval for handled targets.

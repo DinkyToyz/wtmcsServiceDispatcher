@@ -99,6 +99,7 @@
     <Compile Include="Helpers\ObjectHelpers\TouristHelper.cs" />
     <Compile Include="Helpers\ObjectHelpers\TramHelper.cs" />
     <Compile Include="Helpers\TransportLineHelper.cs" />
+    <Compile Include="Helpers\VehicleResult.cs" />
     <Compile Include="Pieces\BuildingKeeper.cs" />
     <Compile Include="Detouring\Detours.cs" />
     <Compile Include="Helpers\DistrictHelper.cs" />

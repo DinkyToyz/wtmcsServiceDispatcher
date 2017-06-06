@@ -19,6 +19,7 @@
 - Fix invisible vehicles (flags == none, but not in m_vehicles.m_unusedItems)?
 - Service vehicle selector (for all service budilings)? Hopefully not.
 - Save states in save?
+- Override TransferManager.AddIncomingOffer and TransferManager.AddOutgoingOffer?
 
 # Changes and experiments
 

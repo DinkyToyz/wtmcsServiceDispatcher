@@ -1,7 +1,7 @@
-﻿using System;
+﻿using ColossalFramework;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using ColossalFramework;
 
 namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 {
@@ -222,6 +222,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 serviceVehicle = null;
             }
 
+            VehicleResult vehicleResult = true;
+
             if (serviceBuilding == null)
             {
                 if (vehicle.m_targetBuilding != 0 && (vehicle.m_flags & (VehicleHelper.VehicleUnavailable | VehicleHelper.VehicleBusy)) == ~VehicleHelper.VehicleAll)
@@ -254,20 +256,23 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     {
                         if (vehicle.m_targetBuilding != serviceVehicle.Target)
                         {
-                            serviceVehicle.DeAssign(ref vehicle, false, this, "CheckVehicleTarget", "WrongTarget");
+                            vehicleResult = serviceVehicle.DeAssign(ref vehicle, false, this, "CheckVehicleTarget", "WrongTarget");
                         }
                         else
                         {
                             TargetBuildingInfo targetBuilding;
                             if (!this.targetBuildings.TryGetValue(vehicle.m_targetBuilding, out targetBuilding) || !targetBuilding.WantedService)
                             {
-                                serviceVehicle.DeAssign(ref vehicle, false, this, "CheckVehicleTarget", "NoNeed");
+                                vehicleResult = serviceVehicle.DeAssign(ref vehicle, false, this, "CheckVehicleTarget", "NoNeed");
                             }
                         }
                     }
                 }
 
-                serviceVehicle.Update(ref vehicle, vehicle.m_targetBuilding == 0, true, false);
+                if (!vehicleResult.DeSpawned)
+                {
+                    vehicleResult = serviceVehicle.Update(ref vehicle, vehicle.m_targetBuilding == 0, true, false);
+                }
             }
         }
 
@@ -887,6 +892,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                             bool unavailable = (vehicles[vehicleId].m_flags & VehicleHelper.VehicleUnavailable) != ~VehicleHelper.VehicleAll;
                             bool busy = (vehicles[vehicleId].m_flags & VehicleHelper.VehicleBusy) != ~VehicleHelper.VehicleAll;
 
+                            VehicleResult vehicleResult = true;
+
                             // Update vehicle status.
                             ServiceVehicleInfo serviceVehicle;
                             if (serviceBuilding.Vehicles.TryGetValue(vehicleId, out serviceVehicle))
@@ -901,14 +908,16 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                                     if (targetBuilding == null || !targetBuilding.WantedService)
                                     {
-                                        if (serviceVehicle.DeAssign(ref vehicles[vehicleId], false, this, "CollectVehicles", "NoNeed"))
+                                        vehicleResult = serviceVehicle.DeAssign(ref vehicles[vehicleId], false, this, "CollectVehicles", "NoNeed");
+                                        if (vehicleResult)
                                         {
                                             hasTarget = false;
                                         }
                                     }
                                     else if (vehicles[vehicleId].m_targetBuilding != serviceVehicle.Target)
                                     {
-                                        if (serviceVehicle.DeAssign(ref vehicles[vehicleId], false, this, "CollectVehicles", "WrongTarget"))
+                                        vehicleResult = serviceVehicle.DeAssign(ref vehicles[vehicleId], false, this, "CollectVehicles", "WrongTarget");
+                                        if (vehicleResult)
                                         {
                                             hasTarget = false;
                                         }
@@ -919,33 +928,42 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                                     }
                                 }
 
-                                serviceVehicle.Update(ref vehicles[vehicleId], canCollect && !hasTarget && !busy && !unavailable, false, true);
+                                if (!vehicleResult.DeSpawned)
+                                {
+                                    serviceVehicle.Update(ref vehicles[vehicleId], canCollect && !hasTarget && !busy && !unavailable, false, true);
+                                }
                             }
                             else
                             {
                                 if (collecting && !loading && !unavailable && !busy && vehicles[vehicleId].m_targetBuilding != 0)
                                 {
-                                    VehicleHelper.DeAssign(vehicleId, ref vehicles[vehicleId]);
+                                    vehicleResult = VehicleHelper.DeAssign(vehicleId, ref vehicles[vehicleId]);
                                     hasTarget = false;
                                 }
 
-                                serviceVehicle = new ServiceVehicleInfo(vehicleId, ref vehicles[vehicleId], canCollect && !hasTarget && !unavailable, this.DispatcherType);
-                                if (Log.LogALot)
+                                if (!vehicleResult.DeSpawned)
                                 {
-                                    Log.DevDebug(this, "CollectVehicles", "AddVehicle", serviceBuilding.BuildingId, vehicleId, vehicles[vehicleId].Info.name, serviceVehicle.VehicleName, serviceVehicle.FreeToCollect, collecting);
-                                }
+                                    serviceVehicle = new ServiceVehicleInfo(vehicleId, ref vehicles[vehicleId], canCollect && !hasTarget && !unavailable, this.DispatcherType);
+                                    if (Log.LogALot)
+                                    {
+                                        Log.DevDebug(this, "CollectVehicles", "AddVehicle", serviceBuilding.BuildingId, vehicleId, vehicles[vehicleId].Info.name, serviceVehicle.VehicleName, serviceVehicle.FreeToCollect, collecting);
+                                    }
 
-                                serviceBuilding.Vehicles[vehicleId] = serviceVehicle;
+                                    serviceBuilding.Vehicles[vehicleId] = serviceVehicle;
+                                }
                             }
 
-                            // If target doesn't need service, deassign...
-                            if (collecting && !loading && vehicles[vehicleId].m_targetBuilding != 0 && vehicles[vehicleId].m_targetBuilding != serviceBuilding.BuildingId && !hasTarget && !unavailable && !busy)
+                            if (!vehicleResult.DeAssigned)
                             {
-                                serviceBuilding.Vehicles[vehicleId].DeAssign(ref vehicles[vehicleId], false, this, "CollectVehicles", "NoNeeed");
+                                // If target doesn't need service, deassign...
+                                if (collecting && !loading && vehicles[vehicleId].m_targetBuilding != 0 && vehicles[vehicleId].m_targetBuilding != serviceBuilding.BuildingId && !hasTarget && !unavailable && !busy)
+                                {
+                                    vehicleResult = serviceBuilding.Vehicles[vehicleId].DeAssign(ref vehicles[vehicleId], false, this, "CollectVehicles", "NoNeeed");
+                                }
                             }
 
                             // Update assigned target status.
-                            if (collecting && hasTarget)
+                            if (collecting && hasTarget && !vehicleResult.DeAssigned)
                             {
                                 if (Log.LogALot && !this.assignedTargets.ContainsKey(vehicles[vehicleId].m_targetBuilding))
                                 {

@@ -69,6 +69,33 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Gets the building list pairs.
+        /// </summary>
+        /// <value>
+        /// The building list pairs.
+        /// </value>
+        public IEnumerable<BuildingListPair> BuildingListPairs
+        {
+            get
+            {
+                if (this.GarbageBuildings != null && this.DirtyBuildings != null)
+                {
+                    yield return new BuildingListPair(this.GarbageBuildings, this.DirtyBuildings);
+                }
+
+                if (this.DeathCareBuildings != null && this.DeadPeopleBuildings != null)
+                {
+                    yield return new BuildingListPair(this.DeathCareBuildings, this.DeadPeopleBuildings);
+                }
+
+                if (this.HealthCareBuildings != null && this.SickPeopleBuildings != null)
+                {
+                    yield return new BuildingListPair(this.HealthCareBuildings, this.SickPeopleBuildings);
+                }
+            }
+        }
+
+        /// <summary>
         /// Gets the dead people buildings.
         /// </summary>
         public Dictionary<ushort, TargetBuildingInfo> DeadPeopleBuildings
@@ -159,12 +186,66 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Gets the service building lists.
+        /// </summary>
+        /// <value>
+        /// The service building lists.
+        /// </value>
+        public IEnumerable<Dictionary<ushort, ServiceBuildingInfo>> ServiceBuildingLists
+        {
+            get
+            {
+                if (this.GarbageBuildings != null)
+                {
+                    yield return this.GarbageBuildings;
+                }
+
+                if (this.DeathCareBuildings != null)
+                {
+                    yield return this.DeathCareBuildings;
+                }
+
+                if (this.HealthCareBuildings != null)
+                {
+                    yield return this.HealthCareBuildings;
+                }
+            }
+        }
+
+        /// <summary>
         /// Gets the sick people buildings.
         /// </summary>
         public Dictionary<ushort, TargetBuildingInfo> SickPeopleBuildings
         {
             get;
             private set;
+        }
+
+        /// <summary>
+        /// Gets the target building lists.
+        /// </summary>
+        /// <value>
+        /// The target building lists.
+        /// </value>
+        public IEnumerable<Dictionary<ushort, TargetBuildingInfo>> TargetBuildingLists
+        {
+            get
+            {
+                if (this.DirtyBuildings != null)
+                {
+                    yield return this.DirtyBuildings;
+                }
+
+                if (this.DeadPeopleBuildings != null)
+                {
+                    yield return this.DeadPeopleBuildings;
+                }
+
+                if (this.SickPeopleBuildings != null)
+                {
+                    yield return this.SickPeopleBuildings;
+                }
+            }
         }
 
         /// <summary>
@@ -330,6 +411,33 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             {
                 yield return "Desolate";
             }
+        }
+
+        /// <summary>
+        /// Gets the service building.
+        /// </summary>
+        /// <param name="buildingId">The building identifier.</param>
+        /// <returns>A list of service buildings with the id.</returns>
+        public ServiceBuildingInfo GetServiceBuilding(ushort buildingId)
+        {
+            ServiceBuildingInfo building;
+
+            if (this.GarbageBuildings != null && this.GarbageBuildings.TryGetValue(buildingId, out building))
+            {
+                return building;
+            }
+
+            if (this.DeathCareBuildings != null && this.DeathCareBuildings.TryGetValue(buildingId, out building))
+            {
+                return building;
+            }
+
+            if (this.HealthCareBuildings != null && this.HealthCareBuildings.TryGetValue(buildingId, out building))
+            {
+                return building;
+            }
+
+            return null;
         }
 
         /// <summary>
@@ -985,6 +1093,33 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             {
                 building.ReInitialize();
                 building.UpdateValues(ref buildings[building.BuildingId], true);
+            }
+        }
+
+        /// <summary>
+        /// A pair of service and target building lists.
+        /// </summary>
+        public struct BuildingListPair
+        {
+            /// <summary>
+            /// The service buildings.
+            /// </summary>
+            public readonly Dictionary<ushort, ServiceBuildingInfo> ServiceBuildings;
+
+            /// <summary>
+            /// The target buildings.
+            /// </summary>
+            public readonly Dictionary<ushort, TargetBuildingInfo> TargetBuildings;
+
+            /// <summary>
+            /// Initializes a new instance of the <see cref="BuildingListPair"/> struct.
+            /// </summary>
+            /// <param name="serviceBuildings">The service buildings.</param>
+            /// <param name="targetBuildings">The target buildings.</param>
+            public BuildingListPair(Dictionary<ushort, ServiceBuildingInfo> serviceBuildings, Dictionary<ushort, TargetBuildingInfo> targetBuildings)
+            {
+                this.ServiceBuildings = serviceBuildings;
+                this.TargetBuildings = targetBuildings;
             }
         }
     }

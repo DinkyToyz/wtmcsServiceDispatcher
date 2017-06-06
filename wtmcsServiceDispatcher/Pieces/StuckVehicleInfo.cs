@@ -1,6 +1,5 @@
 ﻿using ColossalFramework;
 using System;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
@@ -272,7 +271,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     Log.Debug(this, "HandleProblem", "StuckOrBroken", "DeSpawn", this.vehicleId, VehicleHelper.GetVehicleName(this.vehicleId));
                     Log.FlushBuffer();
 
-                    Singleton<VehicleManager>.instance.m_vehicles.m_buffer[this.vehicleId].Unspawn(this.vehicleId);
+                    this.DeSpawn();
 
                     return true;
                 }
@@ -482,51 +481,39 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
-        /// De-assign the vehicle.
-        /// </summary>
-        /// <param name="serviceBuildings">The service buildings.</param>
-        /// <param name="targetBuildings">The target buildings.</param>
-        private void DeAssign(Dictionary<ushort, ServiceBuildingInfo> serviceBuildings, Dictionary<ushort, TargetBuildingInfo> targetBuildings)
-        {
-            if (serviceBuildings != null)
-            {
-                foreach (ServiceBuildingInfo serviceBuilding in serviceBuildings.Values)
-                {
-                    ServiceVehicleInfo serviceVehicle;
-
-                    if (serviceBuilding.Vehicles.TryGetValue(this.vehicleId, out serviceVehicle) && serviceVehicle.Target != 0)
-                    {
-                        if (targetBuildings != null)
-                        {
-                            TargetBuildingInfo targetBuilding;
-
-                            if (targetBuildings.TryGetValue(serviceVehicle.Target, out targetBuilding))
-                            {
-                                targetBuilding.Handled = false;
-                            }
-                        }
-
-                        if (this.lastDeAssignStamp != Global.CurrentFrame)
-                        {
-                            serviceVehicle.DeAssign();
-
-                            this.lastDeAssignStamp = Global.CurrentFrame;
-                        }
-                    }
-                }
-            }
-        }
-
-        /// <summary>
         /// De-assigns the vehicle.
         /// </summary>
         private void DeAssign()
         {
             if (Global.Buildings != null)
             {
-                this.DeAssign(Global.Buildings.DeathCareBuildings, Global.Buildings.DeadPeopleBuildings);
-                this.DeAssign(Global.Buildings.GarbageBuildings, Global.Buildings.DirtyBuildings);
-                this.DeAssign(Global.Buildings.HealthCareBuildings, Global.Buildings.SickPeopleBuildings);
+                foreach (BuildingKeeper.BuildingListPair buildings in Global.Buildings.BuildingListPairs)
+                {
+                    foreach (ServiceBuildingInfo serviceBuilding in buildings.ServiceBuildings.Values)
+                    {
+                        ServiceVehicleInfo serviceVehicle;
+
+                        if (serviceBuilding.Vehicles.TryGetValue(this.vehicleId, out serviceVehicle) && serviceVehicle.Target != 0)
+                        {
+                            TargetBuildingInfo targetBuilding;
+
+                            if (buildings.TargetBuildings.TryGetValue(serviceVehicle.Target, out targetBuilding))
+                            {
+                                targetBuilding.Handled = false;
+                            }
+
+                            if (this.lastDeAssignStamp != Global.CurrentFrame)
+                            {
+                                if (serviceVehicle.DeAssign().DeSpawned)
+                                {
+                                    serviceBuilding.Vehicles.Remove(this.vehicleId);
+                                }
+
+                                this.lastDeAssignStamp = Global.CurrentFrame;
+                            }
+                        }
+                    }
+                }
             }
 
             if (this.lastDeAssignStamp != Global.CurrentFrame)
@@ -538,6 +525,37 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 VehicleHelper.DeAssign(this.vehicleId);
             }
+        }
+
+        /// <summary>
+        /// De-spawns the vehicle.
+        /// </summary>
+        private void DeSpawn()
+        {
+            if (Global.Buildings != null)
+            {
+                foreach (BuildingKeeper.BuildingListPair buildings in Global.Buildings.BuildingListPairs)
+                {
+                    foreach (ServiceBuildingInfo serviceBuilding in buildings.ServiceBuildings.Values)
+                    {
+                        ServiceVehicleInfo serviceVehicle;
+
+                        if (serviceBuilding.Vehicles.TryGetValue(this.vehicleId, out serviceVehicle) && serviceVehicle.Target != 0)
+                        {
+                            TargetBuildingInfo targetBuilding;
+
+                            if (buildings.TargetBuildings.TryGetValue(serviceVehicle.Target, out targetBuilding))
+                            {
+                                targetBuilding.Handled = false;
+                            }
+                        }
+
+                        serviceBuilding.Vehicles.Remove(this.vehicleId);
+                    }
+                }
+            }
+
+            Singleton<VehicleManager>.instance.m_vehicles.m_buffer[this.vehicleId].Unspawn(this.vehicleId);
         }
     }
 }
