@@ -828,16 +828,18 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     Log.DevDebug(typeof(VehicleHelper), "SetTarget", "Target Set", vehicleId, targetBuildingId, targetCitizenId, vehicle.m_targetBuilding, vehicle.m_flags, VehicleHelper.VehicleExists, VehicleHelper.VehicleAll);
                 }
 
+                VehicleResult.Result resultValue = (targetBuildingId == 0) ? VehicleResult.Result.DeAssigned : VehicleResult.Result.Assigned;
+
                 if (targetCitizenId == 0)
                 {
-                    return new VehicleResult((vehicle.m_flags & VehicleHelper.VehicleExists) != ~VehicleHelper.VehicleAll, VehicleResult.Result.Assigned);
+                    return new VehicleResult((vehicle.m_flags & VehicleHelper.VehicleExists) != ~VehicleHelper.VehicleAll, resultValue);
                 }
                 else
                 {
                     Citizen[] citizens = Singleton<CitizenManager>.instance.m_citizens.m_buffer;
                     citizens[targetCitizenId].SetVehicle(targetCitizenId, vehicleId, 0);
 
-                    return new VehicleResult((vehicle.m_flags & VehicleHelper.VehicleExists) == ~VehicleHelper.VehicleAll && citizens[targetCitizenId].m_vehicle == vehicleId, VehicleResult.Result.Assigned);
+                    return new VehicleResult((vehicle.m_flags & VehicleHelper.VehicleExists) == ~VehicleHelper.VehicleAll && citizens[targetCitizenId].m_vehicle == vehicleId, resultValue);
                 }
             }
             catch (Exception ex)
