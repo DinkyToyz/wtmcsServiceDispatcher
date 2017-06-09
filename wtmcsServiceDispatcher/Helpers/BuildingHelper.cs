@@ -462,9 +462,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// Adds the service building information to debug information message.
         /// </summary>
         /// <param name="info">The information.</param>
+        /// <param name="buildings">The buildings.</param>
         /// <param name="serviceBuilding">The service building.</param>
         /// <param name="tagSuffix">The tag suffix.</param>
-        private static void AddServiceBuildingInfoToDebugInfoMsg(Log.InfoList info, ServiceBuildingInfo serviceBuilding, string tagSuffix = null)
+        private static void AddServiceBuildingInfoToDebugInfoMsg(Log.InfoList info, Building[] buildings, ServiceBuildingInfo serviceBuilding, string tagSuffix = null)
         {
             if (serviceBuilding != null)
             {
@@ -491,6 +492,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 info.Add("ServiceProblemCount" + tagSuffix, serviceBuilding.ServiceProblemCount);
                 info.Add("ServiceProblemSize" + tagSuffix, serviceBuilding.ServiceProblemSize);
+
+                ServiceBuildingInfo.AddToInfoMsg(info, serviceBuilding.BuildingId, ref buildings[serviceBuilding.BuildingId], tagSuffix);
             }
         }
 
@@ -651,12 +654,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 info.Add("SimulationTimeDelta", buildingStamp.SimulationTimeDelta);
             }
 
-            AddServiceBuildingInfoToDebugInfoMsg(info, serviceBuilding);
+            AddServiceBuildingInfoToDebugInfoMsg(info, buildings, serviceBuilding);
             if (serviceBuildings != null)
             {
                 foreach (KeyValuePair<string, ServiceBuildingInfo> building in serviceBuildings)
                 {
-                    AddServiceBuildingInfoToDebugInfoMsg(info, building.Value, building.Key);
+                    AddServiceBuildingInfoToDebugInfoMsg(info, buildings, building.Value, building.Key);
                 }
             }
 
@@ -696,6 +699,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     info.Add("CustomBuffer1", buildings[buildingId].m_customBuffer1); // GraveUsed?
                     info.Add("CustomBuffer2", buildings[buildingId].m_customBuffer2);
                     info.Add("PR_HC_Calc", ((buildings[buildingId].m_productionRate * ((CemeteryAI)buildings[buildingId].Info.m_buildingAI).m_hearseCount) + 99) / 100); // Hearse capacity?
+                    info.Add("IsFull", buildings[buildingId].Info.m_buildingAI.IsFull(buildingId, ref buildings[buildingId]));
                     buildings[buildingId].Info.m_buildingAI.GetMaterialAmount(buildingId, ref buildings[buildingId], TransferManager.TransferReason.Dead, out materialAmount, out materialMax);
                 }
                 else if (buildings[buildingId].Info.m_buildingAI is LandfillSiteAI)
@@ -704,12 +708,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     info.Add("GarbageCapacity", ((LandfillSiteAI)buildings[buildingId].Info.m_buildingAI).m_garbageCapacity);
                     info.Add("GarbageBuffer", buildings[buildingId].m_garbageBuffer);
                     info.Add("CustomBuffer1", buildings[buildingId].m_customBuffer1); // Garbage?
+                    info.Add("IsFull", buildings[buildingId].Info.m_buildingAI.IsFull(buildingId, ref buildings[buildingId]));
 
                     buildings[buildingId].Info.m_buildingAI.GetMaterialAmount(buildingId, ref buildings[buildingId], TransferManager.TransferReason.Garbage, out materialAmount, out materialMax);
                 }
                 else if (buildings[buildingId].Info.m_buildingAI is HospitalAI)
                 {
                     info.Add("PatientCapacity", ((HospitalAI)buildings[buildingId].Info.m_buildingAI).m_patientCapacity);
+                    info.Add("IsFull", buildings[buildingId].Info.m_buildingAI.IsFull(buildingId, ref buildings[buildingId]));
                     buildings[buildingId].Info.m_buildingAI.GetMaterialAmount(buildingId, ref buildings[buildingId], TransferManager.TransferReason.Sick, out materialAmount, out materialMax);
                 }
 
@@ -911,6 +917,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             {
                 info.Add("Error", "Problems");
             }
+
+            info.Add("FireIntensoty", buildings[buildingId].m_fireIntensity);
 
             try
             {

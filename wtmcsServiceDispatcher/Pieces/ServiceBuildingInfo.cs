@@ -483,6 +483,43 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Adds debug info to info list.
+        /// </summary>
+        /// <param name="info">The information list.</param>
+        /// <param name="buildingId">The building identifier.</param>
+        /// <param name="building">The building.</param>
+        /// <param name="tagSuffix">The tag suffix.</param>
+        public static void AddToInfoMsg(Log.InfoList info, ushort buildingId, ref Building building, string tagSuffix = null)
+        {
+            info.Add("sbiCanReceiveFlags1" + tagSuffix, (building.m_flags & (Building.Flags.Downgrading | Building.Flags.Demolishing | Building.Flags.Deleted | Building.Flags.Hidden | Building.Flags.BurnedDown | Building.Flags.Collapsed | Building.Flags.Evacuating)) == Building.Flags.None);
+            info.Add("sbiCanReceiveFlags2" + tagSuffix, (building.m_flags & (Building.Flags.Created | Building.Flags.Completed)) == (Building.Flags.Created | Building.Flags.Completed));
+            info.Add("sbiCanReceiveFlagsCapacityFull" + tagSuffix, (building.m_flags & Building.Flags.CapacityFull) != Building.Flags.CapacityFull);
+            info.Add("sbiCanReceiveProblems" + tagSuffix, (building.m_problems & (Notification.Problem.Emptying | Notification.Problem.LandfillFull | Notification.Problem.RoadNotConnected | Notification.Problem.TurnedOff | Notification.Problem.FatalProblem)) == Notification.Problem.None);
+
+            int max;
+            int amount;
+            int vehicles;
+            int free;
+
+            if (BuildingHelper.GetCapacityAmount(buildingId, ref building, out amount, out max, out vehicles))
+            {
+                if ((building.m_flags & Building.Flags.CapacityFull) == Building.Flags.CapacityFull)
+                {
+                    free = 0;
+                }
+                else
+                {
+                    free = max - amount;
+                }
+
+                info.Add("sbiCanReceiveCapacity" + tagSuffix, (max == 0 || free > 0));
+            }
+
+            info.Add("sbiCanReceiveFire" + tagSuffix, building.m_fireIntensity <= 0);
+            info.Add("sbiCanReceiveIsFull" + tagSuffix, !building.Info.m_buildingAI.IsFull(buildingId, ref building));
+        }
+
+        /// <summary>
         /// Starts the automatic emptying.
         /// </summary>
         /// <returns>True if started.</returns>
@@ -704,8 +741,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 this.lastCapacityUpdate = Global.CurrentFrame;
             }
 
-            this.CanReceive = (building.m_flags & (Building.Flags.Downgrading | Building.Flags.Demolishing | Building.Flags.Deleted | Building.Flags.Hidden | Building.Flags.BurnedDown | Building.Flags.CapacityFull | Building.Flags.Collapsed | Building.Flags.Evacuating)) == Building.Flags.None &&
+            this.CanReceive = (building.m_flags & (Building.Flags.Downgrading | Building.Flags.Demolishing | Building.Flags.Deleted | Building.Flags.Hidden | Building.Flags.BurnedDown | Building.Flags.Collapsed | Building.Flags.Evacuating)) == Building.Flags.None &&
                               (building.m_flags & (Building.Flags.Created | Building.Flags.Completed)) == (Building.Flags.Created | Building.Flags.Completed) &&
+                              (building.m_flags & Building.Flags.CapacityFull) != Building.Flags.CapacityFull &&
                               (building.m_problems & (Notification.Problem.Emptying | Notification.Problem.LandfillFull | Notification.Problem.RoadNotConnected | Notification.Problem.TurnedOff | Notification.Problem.FatalProblem)) == Notification.Problem.None &&
                               (this.CapacityMax == 0 || this.CapacityFree > 0) &&
                               building.m_fireIntensity <= 0 && !building.Info.m_buildingAI.IsFull(this.BuildingId, ref building);

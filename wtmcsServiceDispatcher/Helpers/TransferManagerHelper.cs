@@ -358,7 +358,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             if (Log.LogALot)
             {
-                Log.DevDebug(typeof(TransferManagerHelper), "Reset");
+                Log.DevDebug(typeof(TransferManagerHelper), "DeInitialize");
             }
 
             TransferManagerInstanceId = null;

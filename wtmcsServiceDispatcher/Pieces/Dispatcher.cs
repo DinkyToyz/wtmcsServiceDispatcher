@@ -838,14 +838,19 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 // Skip missing buildings.
                 if (buildings[serviceBuilding.BuildingId].Info == null || (buildings[serviceBuilding.BuildingId].m_flags & Building.Flags.Created) == Building.Flags.None || (buildings[serviceBuilding.BuildingId].m_flags & (Building.Flags.Abandoned | Building.Flags.BurnedDown | Building.Flags.Deleted | Building.Flags.Hidden)) != Building.Flags.None)
                 {
-                    ////if (Log.LogALot)
-                    ////{
-                    ////    Log.DevDebug(this, "CollectVehicles", "NotBuilding", serviceBuilding.BuildingId);
-                    ////}
+                    if (Log.LogALot)
+                    {
+                        Log.DevDebug(this, "CollectVehicleData", "NotBuilding", serviceBuilding.BuildingId);
+                    }
 
                     serviceBuilding.CanReceive = false;
                     continue;
                 }
+
+                ////if (Log.LogALot && Log.LogToFile)
+                ////{
+                ////    Log.DevDebug(this, "CollectVehicleData", "Building", serviceBuilding.BuildingId, serviceBuilding.BuildingName, serviceBuilding.DistrictName);
+                ////}
 
                 if (allowCreateSpares && this.serviceSettings.CreateSpares != ServiceDispatcherSettings.SpareVehiclesCreation.Never && serviceBuilding.CanReceive)
                 {
@@ -874,8 +879,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                             (vehicles[vehicleId].m_flags & Vehicle.Flags.Created) == Vehicle.Flags.Created &&
                             (vehicles[vehicleId].m_flags & VehicleHelper.VehicleExists) != ~VehicleHelper.VehicleAll)
                         {
-                            vehiclesMade++;
-
                             if (vehicleAIs != null)
                             {
                                 vehicleAIs.Add(vehicles[vehicleId].Info.m_vehicleAI.GetType());
@@ -963,19 +966,24 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                             }
 
                             // Update assigned target status.
-                            if (collecting && hasTarget && !vehicleResult.DeAssigned)
+                            if (!vehicleResult.DeSpawned)
                             {
-                                if (Log.LogALot && !this.assignedTargets.ContainsKey(vehicles[vehicleId].m_targetBuilding))
-                                {
-                                    Log.DevDebug(this, "CollectVehicles", "AddAssigned", serviceBuilding.BuildingId, vehicleId, vehicles[vehicleId].m_targetBuilding);
-                                }
+                                vehiclesMade++;
 
-                                this.assignedTargets[vehicles[vehicleId].m_targetBuilding] = Global.CurrentFrame;
-                            }
-                            else if (canCollect && !unavailable)
-                            {
-                                this.freeVehicles++;
-                                vehiclesFree++;
+                                if (collecting && hasTarget && !vehicleResult.DeAssigned)
+                                {
+                                    if (Log.LogALot && !this.assignedTargets.ContainsKey(vehicles[vehicleId].m_targetBuilding))
+                                    {
+                                        Log.DevDebug(this, "CollectVehicles", "AddAssigned", serviceBuilding.BuildingId, vehicleId, vehicles[vehicleId].m_targetBuilding);
+                                    }
+
+                                    this.assignedTargets[vehicles[vehicleId].m_targetBuilding] = Global.CurrentFrame;
+                                }
+                                else if (canCollect && !unavailable)
+                                {
+                                    this.freeVehicles++;
+                                    vehiclesFree++;
+                                }
                             }
                         }
                     }
@@ -990,6 +998,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 // Set counts in service building.
                 serviceBuilding.VehiclesMade = vehiclesMade;
                 serviceBuilding.VehiclesFree = vehiclesFree;
+
+                ////if (Log.LogALot)
+                ////{
+                ////    Log.DevDebug(this, "CollectVehicleData", "VehicleCounts", serviceBuilding.BuildingId, vehiclesFree, vehiclesMade, count);
+                ////    Log.DevDebug(this, "CollectVehicleData", "Status", serviceBuilding.BuildingId, serviceBuilding.CanReceive, serviceBuilding.VehiclesFree, serviceBuilding.VehiclesSpare, serviceBuilding.Range);
+                ////}
 
                 // Remove old vehicles.
                 KeyValuePair<ushort, ushort>[] removeVehicles = serviceBuilding.Vehicles.Values.Where(v => v.LastSeen != Global.CurrentFrame).Select(v => new KeyValuePair<ushort, ushort>(v.VehicleId, v.Target)).ToArray();
