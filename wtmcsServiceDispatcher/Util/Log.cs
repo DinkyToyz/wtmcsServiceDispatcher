@@ -373,7 +373,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 objects = data;
             }
 
-            for (int i = 0; i < objects.Length; i ++)
+            for (int i = 0; i < objects.Length; i++)
             {
                 if (objects[i] is InfoList.InfoData)
                 {
