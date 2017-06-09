@@ -67,6 +67,8 @@
     <Compile Include="Detours\AmbulanceAIShouldReturnToSourceDetour.cs" />
     <Compile Include="Detouring\ObjectMethods.cs" />
     <Compile Include="Detouring\SingleMethod.cs" />
+    <Compile Include="Detours\TransferManagerAddIncomingOfferDetour.cs" />
+    <Compile Include="Detours\TransferManagerAddOutgoingOfferDetour.cs" />
     <Compile Include="Helpers\BuildingHelper.cs" />
     <Compile Include="Helpers\BulldozeHelper.cs" />
     <Compile Include="Helpers\CitizenHelper.cs" />
