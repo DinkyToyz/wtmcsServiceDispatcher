@@ -269,7 +269,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 {
                     // Remove vehicle.
                     Log.Debug(this, "HandleProblem", "StuckOrBroken", "DeSpawn", this.vehicleId, VehicleHelper.GetVehicleName(this.vehicleId));
-                    Log.FlushBuffer();
 
                     this.DeSpawn();
 
@@ -278,7 +277,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 catch (Exception ex)
                 {
                     Log.Error(this, "HandleProblem", ex, this.vehicleId);
-                    Log.FlushBuffer();
                 }
                 finally
                 {
@@ -298,14 +296,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 {
                     // De-assign vehicle.
                     Log.Debug(this, "HandleProblem", "Confused", "DeAssign", this.vehicleId, VehicleHelper.GetVehicleName(this.vehicleId));
-                    Log.FlushBuffer();
 
                     this.DeAssign();
                 }
                 catch (Exception ex)
                 {
                     Log.Error(this, "HandleProblem", ex, this.vehicleId);
-                    Log.FlushBuffer();
                 }
                 finally
                 {

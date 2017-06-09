@@ -222,8 +222,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 serviceVehicle = null;
             }
 
-            VehicleResult vehicleResult = true;
-
             if (serviceBuilding == null)
             {
                 if (vehicle.m_targetBuilding != 0 && (vehicle.m_flags & (VehicleHelper.VehicleUnavailable | VehicleHelper.VehicleBusy)) == ~VehicleHelper.VehicleAll)
@@ -250,6 +248,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             }
             else
             {
+                VehicleResult vehicleResult = true;
+
                 if (vehicle.m_targetBuilding != 0)
                 {
                     if ((vehicle.m_flags & (VehicleHelper.VehicleUnavailable | VehicleHelper.VehicleBusy)) == ~VehicleHelper.VehicleAll)
