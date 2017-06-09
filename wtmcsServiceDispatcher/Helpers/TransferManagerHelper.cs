@@ -25,6 +25,106 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         private static bool error = false;
 
         /// <summary>
+        /// The incoming amount value.
+        /// </summary>
+        private static int[] incomingAmountValue = null;
+
+        /// <summary>
+        /// The incoming count value.
+        /// </summary>
+        private static ushort[] incomingCountValue = null;
+
+        /// <summary>
+        /// The incoming offers value.
+        /// </summary>
+        private static TransferManager.TransferOffer[] incomingOffersValue;
+
+        /// <summary>
+        /// The outgoing amount value.
+        /// </summary>
+        private static int[] outgoingAmountValue = null;
+
+        /// <summary>
+        /// The outgoing count value.
+        /// </summary>
+        private static ushort[] outgoingCountValue = null;
+
+        /// <summary>
+        /// The outgoing offers value.
+        /// </summary>
+        private static TransferManager.TransferOffer[] outgoingOffersValue;
+
+        /// <summary>
+        /// The transfer manager instance identifier.
+        /// </summary>
+        private static int? TransferManagerInstanceId = null;
+
+        /// <summary>
+        /// Gets the incoming amount.
+        /// </summary>
+        /// <value>
+        /// The incoming amount.
+        /// </value>
+        public static int[] IncomingAmount => incomingAmountValue;
+
+        /// <summary>
+        /// Gets the incoming count.
+        /// </summary>
+        /// <value>
+        /// The incoming count.
+        /// </value>
+        public static ushort[] IncomingCount => incomingCountValue;
+
+        /// <summary>
+        /// Gets the incoming offers.
+        /// </summary>
+        /// <value>
+        /// The incoming offers.
+        /// </value>
+        public static TransferManager.TransferOffer[] IncomingOffers => incomingOffersValue;
+
+        /// <summary>
+        /// Gets the outgoing amount.
+        /// </summary>
+        /// <value>
+        /// The outgoing amount.
+        /// </value>
+        public static int[] OutgoingAmount => outgoingAmountValue;
+
+        /// <summary>
+        /// Gets the outgoing count.
+        /// </summary>
+        /// <value>
+        /// The outgoing count.
+        /// </value>
+        public static ushort[] OutgoingCount => outgoingCountValue;
+
+        /// <summary>
+        /// Gets the outgoing offers.
+        /// </summary>
+        /// <value>
+        /// The outgoing offers.
+        /// </value>
+        public static TransferManager.TransferOffer[] OutgoingOffers => outgoingOffersValue;
+
+        /// <summary>
+        /// Checks the instance, and resaves references if necessary.
+        /// </summary>
+        /// <param name="instance">The instance.</param>
+        public static void CheckInstance(TransferManager instance)
+        {
+            if (TransferManagerInstanceId == null || !TransferManagerInstanceId.HasValue)
+            {
+                Initialize(instance);
+            }
+            else if (instance.GetInstanceID() != TransferManagerInstanceId)
+            {
+                DeInitialize();
+                Initialize(instance);
+            }
+        }
+
+        /// <summary>
         /// Cleans the transfer offers for the handled materials.
         /// This might not be a good idea.
         /// </summary>
@@ -42,12 +142,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     TransferManager transferManager = Singleton<TransferManager>.instance;
 
                     // Get private data.
-                    TransferManager.TransferOffer[] outgoingOffers = OutgoingOffers(transferManager);
-                    TransferManager.TransferOffer[] incomingOffers = IncomingOffers(transferManager);
-                    ushort[] outgoingCount = OutgoingCount(transferManager);
-                    ushort[] incomingCount = IncomingCount(transferManager);
-                    int[] outgoingAmount = OutgoingAmount(transferManager);
-                    int[] incomingAmount = IncomingAmount(transferManager);
+                    CheckInstance(transferManager);
+
+                    //TransferManager.TransferOffer[] outgoingOffers = GetOutgoingOffers(transferManager);
+                    //TransferManager.TransferOffer[] incomingOffers = GetIncomingOffers(transferManager);
+                    //ushort[] outgoingCount = GetOutgoingCount(transferManager);
+                    //ushort[] incomingCount = GetIncomingCount(transferManager);
+                    //int[] outgoingAmount = GetOutgoingAmount(transferManager);
+                    //int[] incomingAmount = GetIncomingAmount(transferManager);
 
                     // Clean for hearses.
                     if (Global.CleanHearseTransferOffers)
@@ -57,7 +159,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                             Log.DevDebug(typeof(TransferManagerHelper), "CleanTransferOffers", "TransferManager.TransferReason.Dead");
                         }
 
-                        CleanTransferOffers(outgoingOffers, incomingOffers, outgoingCount, incomingCount, outgoingAmount, incomingAmount, TransferManager.TransferReason.Dead);
+                        //CleanTransferOffers(outgoingOffers, incomingOffers, outgoingCount, incomingCount, outgoingAmount, incomingAmount, TransferManager.TransferReason.Dead);
+                        CleanTransferOffers(TransferManager.TransferReason.Dead);
                     }
 
                     // Clean for garbage trucks.
@@ -68,7 +171,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                             Log.DevDebug(typeof(TransferManagerHelper), "CleanTransferOffers", "TransferManager.TransferReason.Garbage");
                         }
 
-                        CleanTransferOffers(outgoingOffers, incomingOffers, outgoingCount, incomingCount, outgoingAmount, incomingAmount, TransferManager.TransferReason.Garbage);
+                        //CleanTransferOffers(outgoingOffers, incomingOffers, outgoingCount, incomingCount, outgoingAmount, incomingAmount, TransferManager.TransferReason.Garbage);
+                        CleanTransferOffers(TransferManager.TransferReason.Garbage);
                     }
 
                     // Clean for hearses.
@@ -79,7 +183,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                             Log.DevDebug(typeof(TransferManagerHelper), "CleanTransferOffers", "TransferManager.TransferReason.Sick");
                         }
 
-                        CleanTransferOffers(outgoingOffers, incomingOffers, outgoingCount, incomingCount, outgoingAmount, incomingAmount, TransferManager.TransferReason.Sick);
+                        //CleanTransferOffers(outgoingOffers, incomingOffers, outgoingCount, incomingCount, outgoingAmount, incomingAmount, TransferManager.TransferReason.Sick);
+                        CleanTransferOffers(TransferManager.TransferReason.Sick);
                     }
                 }
                 catch (Exception ex)
@@ -101,12 +206,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 TransferManager transferManager = Singleton<TransferManager>.instance;
 
                 // Get private data.
-                TransferManager.TransferOffer[] outgoingOffers = OutgoingOffers(transferManager);
-                TransferManager.TransferOffer[] incomingOffers = IncomingOffers(transferManager);
-                ushort[] outgoingCount = OutgoingCount(transferManager);
-                ushort[] incomingCount = IncomingCount(transferManager);
-                int[] outgoingAmount = OutgoingAmount(transferManager);
-                int[] incomingAmount = IncomingAmount(transferManager);
+                TransferManager.TransferOffer[] outgoingOffers = GetOutgoingOffers(transferManager);
+                TransferManager.TransferOffer[] incomingOffers = GetIncomingOffers(transferManager);
+                ushort[] outgoingCount = GetOutgoingCount(transferManager);
+                ushort[] incomingCount = GetIncomingCount(transferManager);
+                int[] outgoingAmount = GetOutgoingAmount(transferManager);
+                int[] incomingAmount = GetIncomingAmount(transferManager);
                 Building[] buildings = Singleton<BuildingManager>.instance.m_buildings.m_buffer;
 
                 // Log
@@ -130,12 +235,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 TransferManager transferManager = Singleton<TransferManager>.instance;
 
                 // Get private data.
-                TransferManager.TransferOffer[] outgoingOffers = OutgoingOffers(transferManager);
-                TransferManager.TransferOffer[] incomingOffers = IncomingOffers(transferManager);
-                ushort[] outgoingCount = OutgoingCount(transferManager);
-                ushort[] incomingCount = IncomingCount(transferManager);
-                int[] outgoingAmount = OutgoingAmount(transferManager);
-                int[] incomingAmount = IncomingAmount(transferManager);
+                TransferManager.TransferOffer[] outgoingOffers = GetOutgoingOffers(transferManager);
+                TransferManager.TransferOffer[] incomingOffers = GetIncomingOffers(transferManager);
+                ushort[] outgoingCount = GetOutgoingCount(transferManager);
+                ushort[] incomingCount = GetIncomingCount(transferManager);
+                int[] outgoingAmount = GetOutgoingAmount(transferManager);
+                int[] incomingAmount = GetIncomingAmount(transferManager);
                 Building[] buildings = Singleton<BuildingManager>.instance.m_buildings.m_buffer;
 
                 // Log for garbage.
@@ -162,7 +267,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// </summary>
         /// <param name="instance">The TransferManager instance.</param>
         /// <returns>The incoming amount.</returns>
-        public static int[] IncomingAmount(TransferManager instance)
+        public static int[] GetIncomingAmount(TransferManager instance)
         {
             return (int[])GetFieldValue(instance, "m_incomingAmount");
         }
@@ -172,7 +277,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// </summary>
         /// <param name="instance">The TransferManager instance.</param>
         /// <returns>The incoming count.</returns>
-        public static ushort[] IncomingCount(TransferManager instance)
+        public static ushort[] GetIncomingCount(TransferManager instance)
         {
             return (ushort[])GetFieldValue(instance, "m_incomingCount");
         }
@@ -182,9 +287,39 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// </summary>
         /// <param name="instance">The TransferManager instance.</param>
         /// <returns>The incoming offers.</returns>
-        public static TransferManager.TransferOffer[] IncomingOffers(TransferManager instance)
+        public static TransferManager.TransferOffer[] GetIncomingOffers(TransferManager instance)
         {
             return (TransferManager.TransferOffer[])GetFieldValue(instance, "m_incomingOffers");
+        }
+
+        /// <summary>
+        /// Fetches the outgoing amount from a TransferManager instance.
+        /// </summary>
+        /// <param name="instance">The TransferManager instance.</param>
+        /// <returns>The outgoing amount.</returns>
+        public static int[] GetOutgoingAmount(TransferManager instance)
+        {
+            return (int[])GetFieldValue(instance, "m_outgoingAmount");
+        }
+
+        /// <summary>
+        /// Fetches the outgoing count from a TransferManager instance.
+        /// </summary>
+        /// <param name="instance">The TransferManager instance.</param>
+        /// <returns>The outgoing count.</returns>
+        public static ushort[] GetOutgoingCount(TransferManager instance)
+        {
+            return (ushort[])GetFieldValue(instance, "m_outgoingCount");
+        }
+
+        /// <summary>
+        /// Fetches the outgoing offers from a TransferManager instance.
+        /// </summary>
+        /// <param name="instance">The TransferManager instance.</param>
+        /// <returns>The outgoing offers.</returns>
+        public static TransferManager.TransferOffer[] GetOutgoingOffers(TransferManager instance)
+        {
+            return (TransferManager.TransferOffer[])GetFieldValue(instance, "m_outgoingOffers");
         }
 
         /// <summary>
@@ -217,33 +352,24 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
-        /// Fetches the outgoing amount from a TransferManager instance.
+        /// Resets saved references.
         /// </summary>
-        /// <param name="instance">The TransferManager instance.</param>
-        /// <returns>The outgoing amount.</returns>
-        public static int[] OutgoingAmount(TransferManager instance)
+        public static void DeInitialize()
         {
-            return (int[])GetFieldValue(instance, "m_outgoingAmount");
-        }
+            if (Log.LogALot)
+            {
+                Log.DevDebug(typeof(TransferManagerHelper), "Reset");
+            }
 
-        /// <summary>
-        /// Fetches the outgoing count from a TransferManager instance.
-        /// </summary>
-        /// <param name="instance">The TransferManager instance.</param>
-        /// <returns>The outgoing count.</returns>
-        public static ushort[] OutgoingCount(TransferManager instance)
-        {
-            return (ushort[])GetFieldValue(instance, "m_outgoingCount");
-        }
+            TransferManagerInstanceId = null;
 
-        /// <summary>
-        /// Fetches the outgoing offers from a TransferManager instance.
-        /// </summary>
-        /// <param name="instance">The TransferManager instance.</param>
-        /// <returns>The outgoing offers.</returns>
-        public static TransferManager.TransferOffer[] OutgoingOffers(TransferManager instance)
-        {
-            return (TransferManager.TransferOffer[])GetFieldValue(instance, "m_outgoingOffers");
+            incomingAmountValue = null;
+            incomingCountValue = null;
+            incomingOffersValue = null;
+
+            outgoingAmountValue = null;
+            outgoingCountValue = null;
+            outgoingOffersValue = null;
         }
 
         /// <summary>
@@ -287,6 +413,36 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             // Zero amounts.
             incomingAmount[(int)material] = 0;
             outgoingAmount[(int)material] = 0;
+        }
+
+        /// <summary>
+        /// Cleans the transfer offers for the specified material.
+        /// </summary>
+        /// <param name="material">The material.</param>
+        private static void CleanTransferOffers(TransferManager.TransferReason material)
+        {
+            ////if (Log.LogALot && (incomingAmount[(int)material] != 0 || outgoingAmount[(int)material] != 0))
+            ////{
+            ////    Log.DevDebug(typeof(TransferManagerHelper), "CleanTransferOffers", "Amounts", incomingAmount[(int)material], outgoingAmount[(int)material]);
+            ////}
+
+            // Zero counts.
+            for (int priority = 0; priority < 8; priority++)
+            {
+                int index = ((int)material * 8) + priority;
+
+                ////if (Log.LogALot && (incomingCount[index] != 0 || outgoingCount[index] != 0))
+                ////{
+                ////    Log.DevDebug(typeof(TransferManagerHelper), "CleanTransferOffers", "Counts", index, incomingCount[index], outgoingCount[index]);
+                ////}
+
+                incomingCountValue[index] = 0;
+                outgoingCountValue[index] = 0;
+            }
+
+            // Zero amounts.
+            incomingAmountValue[(int)material] = 0;
+            outgoingAmountValue[(int)material] = 0;
         }
 
         /// <summary>
@@ -344,6 +500,28 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             FieldInfo fieldInfo = instance.GetType().GetField(fieldName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static | BindingFlags.FlattenHierarchy);
 
             return fieldInfo.GetValue(instance);
+        }
+
+        /// <summary>
+        /// Saves references from specified instance.
+        /// </summary>
+        /// <param name="instance">The instance.</param>
+        private static void Initialize(TransferManager instance)
+        {
+            if (Log.LogALot)
+            {
+                Log.DevDebug(typeof(TransferManagerHelper), "Initialize");
+            }
+
+            incomingAmountValue = GetIncomingAmount(instance);
+            incomingCountValue = GetIncomingCount(instance);
+            incomingOffersValue = GetIncomingOffers(instance);
+
+            outgoingAmountValue = GetOutgoingAmount(instance);
+            outgoingCountValue = GetOutgoingCount(instance);
+            outgoingOffersValue = GetOutgoingOffers(instance);
+
+            TransferManagerInstanceId = instance.GetInstanceID();
         }
     }
 }

@@ -30,7 +30,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// The clean transfer offers delay.
         /// </summary>
-        public const uint CleanTransferOffersDelay = 30u;
+        public const uint CleanTransferOffersDelay = 120u;
 
         /// <summary>
         /// The de-assign confused delay.
@@ -233,6 +233,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// </summary>
         public static void DeInitializeHelpers()
         {
+            TransferManagerHelper.DeInitialize();
             BulldozeHelper.DeInitialize();
         }
 
@@ -267,6 +268,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// </summary>
         public static void InitializeHelpers()
         {
+            TransferManagerHelper.DeInitialize();
             VehicleHelper.Initialize();
             BulldozeHelper.Initialize();
         }

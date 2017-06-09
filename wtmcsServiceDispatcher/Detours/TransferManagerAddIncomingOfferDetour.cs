@@ -77,19 +77,17 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// </summary>
         public static void TransferManager_AddIncomingOffer_Original(TransferManager transferManager, TransferManager.TransferReason material, TransferManager.TransferOffer offer)
         {
-            TransferManager.TransferOffer[] incomingOffers = TransferManagerHelper.IncomingOffers(transferManager);
-            ushort[] incomingCount = TransferManagerHelper.IncomingCount(transferManager);
-            int[] incomingAmount = TransferManagerHelper.IncomingAmount(transferManager);
+            TransferManagerHelper.CheckInstance(transferManager);
 
             for (int priority = offer.Priority; priority >= 0; --priority)
             {
                 int index = (int)material * 8 + priority;
-                int num = (int)incomingCount[index];
+                int num = (int)TransferManagerHelper.IncomingCount[index];
                 if (num < 256)
                 {
-                    incomingOffers[index * 256 + num] = offer;
-                    incomingCount[index] = (ushort)(num + 1);
-                    incomingAmount[(int)material] += offer.Amount;
+                    TransferManagerHelper.IncomingOffers[index * 256 + num] = offer;
+                    TransferManagerHelper.IncomingCount[index] = (ushort)(num + 1);
+                    TransferManagerHelper.IncomingAmount[(int)material] += offer.Amount;
                     break;
                 }
             }
