@@ -30,7 +30,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// The vehicle is unavailable if any of these flags are set.
         /// </summary>
-        public const Vehicle.Flags VehicleUnavailable = Vehicle.Flags.WaitingPath | Vehicle.Flags.WaitingSpace | Vehicle.Flags.WaitingLoading | Vehicle.Flags.Deleted;
+        public const Vehicle.Flags VehicleUnavailable = /*Vehicle.Flags.WaitingPath |*/ Vehicle.Flags.WaitingSpace | Vehicle.Flags.WaitingLoading | Vehicle.Flags.Deleted;
 
         /// <summary>
         /// Assigns target to vehicle.
@@ -213,8 +213,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 {
                     Log.Debug(typeof(VehicleHelper), "DeAssign", "DeSpawn", vehicleId, vehicle, vehicle.Info.m_vehicleAI);
 
+                    if ((vehicle.m_flags & Vehicle.Flags.WaitingPath) == Vehicle.Flags.WaitingPath && vehicle.m_path != 0)
+                    {
+                        Singleton<PathManager>.instance.ReleasePath(vehicle.m_path);
+                        vehicle.m_path = 0;
+                        vehicle.m_flags &= ~Vehicle.Flags.WaitingPath;
+                    }
+
                     vehicle.m_flags &= ~Vehicle.Flags.WaitingSpace;
-                    vehicle.m_flags &= ~Vehicle.Flags.WaitingPath;
                     vehicle.Unspawn(vehicleId);
 
                     return new VehicleResult(VehicleResult.Result.DeSpawned);

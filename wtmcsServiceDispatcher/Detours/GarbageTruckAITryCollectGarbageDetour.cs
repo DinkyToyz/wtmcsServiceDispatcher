@@ -30,6 +30,20 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Gets the counts.
+        /// </summary>
+        /// <value>
+        /// The counts.
+        /// </value>
+        public override ulong[] Counts
+        {
+            get
+            {
+                return new UInt64[] { Tries, Limitations };
+            }
+        }
+
+        /// <summary>
         /// The original class type.
         /// </summary>
         public override Type OriginalClassType
@@ -76,14 +90,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             {
                 return "GarbageTruckAI_TryCollectGarbage_Override";
             }
-        }
-
-        /// <summary>
-        /// Logs the counts.
-        /// </summary>
-        public override void LogCounts()
-        {
-            Log.Debug(this, "Counts", Tries, Limitations);
         }
 
         /// <summary>

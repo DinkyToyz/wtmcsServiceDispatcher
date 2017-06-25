@@ -1,6 +1,8 @@
 ﻿using ColossalFramework;
 using System;
 using System.Reflection;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 {
@@ -228,7 +230,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// Logs the transfer offers.
         /// </summary>
-        public static void DebugListLog()
+        /// <param name="allMaterials">if set to <c>true</c> log for all materials.</param>
+        public static void DebugListLog(bool allMaterials = false)
         {
             try
             {
@@ -243,23 +246,78 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 int[] incomingAmount = GetIncomingAmount(transferManager);
                 Building[] buildings = Singleton<BuildingManager>.instance.m_buildings.m_buffer;
 
-                // Log for garbage.
-                DebugListLog("Outgoing", outgoingOffers, outgoingCount, outgoingAmount, buildings, TransferManager.TransferReason.Garbage);
-                DebugListLog("Incoming", incomingOffers, incomingCount, incomingAmount, buildings, TransferManager.TransferReason.Garbage);
-                DebugListLog("Outgoing", outgoingOffers, outgoingCount, outgoingAmount, buildings, TransferManager.TransferReason.GarbageMove);
-                DebugListLog("Incoming", incomingOffers, incomingCount, incomingAmount, buildings, TransferManager.TransferReason.GarbageMove);
+                List<TransferManager.TransferReason> materials;
 
-                // Log for dead people.
-                DebugListLog("Outgoing", outgoingOffers, outgoingCount, outgoingAmount, buildings, TransferManager.TransferReason.Dead);
-                DebugListLog("Incoming", incomingOffers, incomingCount, incomingAmount, buildings, TransferManager.TransferReason.Dead);
-                DebugListLog("Outgoing", outgoingOffers, outgoingCount, outgoingAmount, buildings, TransferManager.TransferReason.DeadMove);
-                DebugListLog("Incoming", incomingOffers, incomingCount, incomingAmount, buildings, TransferManager.TransferReason.DeadMove);
+                if (allMaterials)
+                {
+                    materials = new List<TransferManager.TransferReason>(
+                        ((IEnumerable < TransferManager.TransferReason > )Enum.GetValues(typeof(TransferManager.TransferReason)))
+                        .Where(m => m != TransferManager.TransferReason.None));
+                }
+                else
+                {
+                    materials = new List<TransferManager.TransferReason>();
+
+                    if (Global.Settings.Garbage.DispatchVehicles)
+                    {
+                        materials.Add(TransferManager.TransferReason.Garbage);
+                        materials.Add(TransferManager.TransferReason.GarbageMove);
+                    }
+
+                    if (Global.Settings.DeathCare.DispatchVehicles)
+                    {
+                        materials.Add(TransferManager.TransferReason.Dead);
+                        materials.Add(TransferManager.TransferReason.DeadMove);
+                    }
+
+                    if (Global.Settings.HealthCare.DispatchVehicles)
+                    {
+                        materials.Add(TransferManager.TransferReason.Sick);
+                        materials.Add(TransferManager.TransferReason.SickMove);
+                    }
+                }
+
+                foreach (TransferManager.TransferReason material in materials)
+                {
+                    {
+                        try
+                        {
+                            DebugListLog("Outgoing", outgoingOffers, outgoingCount, outgoingAmount, buildings, material);
+                            DebugListLog("Incoming", incomingOffers, incomingCount, incomingAmount, buildings, material);
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.Error(typeof(TransferManagerHelper), "DebugListLog", ex, material);
+                        }
+                    }
+                }
             }
             catch (Exception ex)
             {
                 error = true;
                 Log.Error(typeof(TransferManagerHelper), "DebugListLog", ex);
             }
+        }
+
+        /// <summary>
+        /// Resets saved references.
+        /// </summary>
+        public static void DeInitialize()
+        {
+            if (Log.LogALot)
+            {
+                Log.DevDebug(typeof(TransferManagerHelper), "DeInitialize");
+            }
+
+            TransferManagerInstanceId = null;
+
+            incomingAmountValue = null;
+            incomingCountValue = null;
+            incomingOffersValue = null;
+
+            outgoingAmountValue = null;
+            outgoingCountValue = null;
+            outgoingOffersValue = null;
         }
 
         /// <summary>
@@ -352,27 +410,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
-        /// Resets saved references.
-        /// </summary>
-        public static void DeInitialize()
-        {
-            if (Log.LogALot)
-            {
-                Log.DevDebug(typeof(TransferManagerHelper), "DeInitialize");
-            }
-
-            TransferManagerInstanceId = null;
-
-            incomingAmountValue = null;
-            incomingCountValue = null;
-            incomingOffersValue = null;
-
-            outgoingAmountValue = null;
-            outgoingCountValue = null;
-            outgoingOffersValue = null;
-        }
-
-        /// <summary>
         /// Cleans the transfer offers for the specified material.
         /// </summary>
         /// <param name="outgoingOffers">The outgoing offers.</param>
@@ -391,20 +428,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             int[] incomingAmount,
             TransferManager.TransferReason material)
         {
-            ////if (Log.LogALot && (incomingAmount[(int)material] != 0 || outgoingAmount[(int)material] != 0))
-            ////{
-            ////    Log.DevDebug(typeof(TransferManagerHelper), "CleanTransferOffers", "Amounts", incomingAmount[(int)material], outgoingAmount[(int)material]);
-            ////}
-
             // Zero counts.
             for (int priority = 0; priority < 8; priority++)
             {
                 int index = ((int)material * 8) + priority;
-
-                ////if (Log.LogALot && (incomingCount[index] != 0 || outgoingCount[index] != 0))
-                ////{
-                ////    Log.DevDebug(typeof(TransferManagerHelper), "CleanTransferOffers", "Counts", index, incomingCount[index], outgoingCount[index]);
-                ////}
 
                 incomingCount[index] = 0;
                 outgoingCount[index] = 0;
@@ -421,20 +448,22 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <param name="material">The material.</param>
         private static void CleanTransferOffers(TransferManager.TransferReason material)
         {
-            ////if (Log.LogALot && (incomingAmount[(int)material] != 0 || outgoingAmount[(int)material] != 0))
-            ////{
-            ////    Log.DevDebug(typeof(TransferManagerHelper), "CleanTransferOffers", "Amounts", incomingAmount[(int)material], outgoingAmount[(int)material]);
-            ////}
+            if (Log.LogALot && Log.LogToFile && Global.EnableDevExperiments)
+            {
+                if (Global.Settings.BlockTransferManagerOffers)
+                {
+                    Detours.LogCounts(Detours.Methods.TransferManager_AddOutgoingOffer);
+                    Detours.LogCounts(Detours.Methods.TransferManager_AddIncomingOffer);
+                }
+
+                DebugListLog("Outgoing", outgoingOffersValue, outgoingCountValue, outgoingAmountValue, null, material);
+                DebugListLog("Incoming", incomingOffersValue, incomingCountValue, incomingAmountValue, null, material);
+            }
 
             // Zero counts.
             for (int priority = 0; priority < 8; priority++)
             {
                 int index = ((int)material * 8) + priority;
-
-                ////if (Log.LogALot && (incomingCount[index] != 0 || outgoingCount[index] != 0))
-                ////{
-                ////    Log.DevDebug(typeof(TransferManagerHelper), "CleanTransferOffers", "Counts", index, incomingCount[index], outgoingCount[index]);
-                ////}
 
                 incomingCountValue[index] = 0;
                 outgoingCountValue[index] = 0;

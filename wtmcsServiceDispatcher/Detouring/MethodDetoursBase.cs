@@ -51,6 +51,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Gets the counts.
+        /// </summary>
+        /// <value>
+        /// The counts.
+        /// </value>
+        public abstract UInt64[] Counts { get; }
+
+        /// <summary>
         /// Gets a value indicating whether the method is detoured.
         /// </summary>
         /// <value>
@@ -226,7 +234,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// Logs the counts.
         /// </summary>
-        public abstract void LogCounts();
+        public void LogCounts()
+        {
+            Log.Debug(this, "LogCounts", Counts);
+        }
 
         /// <summary>
         /// Logs some information.
@@ -239,7 +250,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             }
             else
             {
-                Log.Info(this, "LogInfo", "AllowDetour", Global.Settings.ReflectionAllowanceText(this.MinGameVersion, this.MaxGameVersion));
+                Log.Info(this, "LogInfo", "AllowDetour", Global.Settings.ReflectionAllowanceText(this.MinGameVersion, this.MaxGameVersion), Counts);
             }
         }
 

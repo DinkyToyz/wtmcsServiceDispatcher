@@ -46,7 +46,17 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             /// <summary>
             /// AmbulanceAI.ShouldReturnToSource method.
             /// </summary>
-            AmbulanceAI_ShouldReturnToSource = 4
+            AmbulanceAI_ShouldReturnToSource = 4,
+
+            /// <summary>
+            /// TransferManager.AddOutgoingOffer method.
+            /// </summary>
+            TransferManager_AddOutgoingOffer = 5,
+
+            /// <summary>
+            /// TransferManager.AddIncomingOffer method.
+            /// </summary>
+            TransferManager_AddIncomingOffer = 6
         }
 
         /// <summary>
@@ -170,6 +180,32 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 Revert(Methods.AmbulanceAI_ShouldReturnToSource);
             }
 
+            if (Global.Settings.DispatchAnyVehicles && Global.Settings.BlockTransferManagerOffers)
+            {
+                if (CanDetour(Methods.TransferManager_AddIncomingOffer))
+                {
+                    Detour(Methods.TransferManager_AddIncomingOffer);
+                }
+                else
+                {
+                    Revert(Methods.TransferManager_AddIncomingOffer);
+                }
+
+                if (CanDetour(Methods.TransferManager_AddOutgoingOffer))
+                {
+                    Detour(Methods.TransferManager_AddOutgoingOffer);
+                }
+                else
+                {
+                    Revert(Methods.TransferManager_AddOutgoingOffer);
+                }
+            }
+            else
+            {
+                Revert(Methods.TransferManager_AddIncomingOffer);
+                Revert(Methods.TransferManager_AddOutgoingOffer);
+            }
+
             InitNeeded = false;
         }
 
@@ -208,6 +244,30 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Logs the counts.
+        /// </summary>
+        /// <param name="method">The method.</param>
+        public static void LogCounts(Methods method)
+        {
+            if (methodsDetours != null && methodsDetours[method] != null)
+            {
+                methodsDetours[method].LogCounts();
+            }
+        }
+
+        /// <summary>
+        /// Logs some information.
+        /// </summary>
+        /// <param name="method">The method.</param>
+        public static void LogInfo(Methods method)
+        {
+            if (methodsDetours != null && methodsDetours[method] != null)
+            {
+                methodsDetours[method].LogInfo();
+            }
+        }
+
+        /// <summary>
         /// Reverts all detours.
         /// </summary>
         public static void Revert()
@@ -240,6 +300,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     methodsDetours[Methods.GarbageTruckAI_TryCollectGarbage] = new GarbageTruckAITryCollectGarbageDetour();
                     methodsDetours[Methods.GarbageTruckAI_ShouldReturnToSource] = new GarbageTruckAIShouldReturnToSourceDetour();
                     methodsDetours[Methods.AmbulanceAI_ShouldReturnToSource] = new AmbulanceAIShouldReturnToSourceDetour();
+                    methodsDetours[Methods.TransferManager_AddIncomingOffer] = new TransferManagerAddIncomingOfferDetour();
+                    methodsDetours[Methods.TransferManager_AddOutgoingOffer] = new TransferManagerAddOutgoingOfferDetour();
                 }
             }
             catch (Exception ex)

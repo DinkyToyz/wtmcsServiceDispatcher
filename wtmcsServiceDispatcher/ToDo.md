@@ -8,6 +8,10 @@
 - ambulance services.
 - remember problematic targets and delay next assigment to such target, so that it does not ceate a problem for the whole city.
 
+# Dox etc
+
+- Link to Service Radius Adjuster in description (after testing that they work well together).
+
 # Additions and fixes
 
 - fire fighting services?

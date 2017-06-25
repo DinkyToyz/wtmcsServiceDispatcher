@@ -171,5 +171,16 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             return vehicleResult.Success;
         }
+
+        /// <summary>
+        /// Returns a <see cref="System.String" /> that represents this instance.
+        /// </summary>
+        /// <returns>
+        /// A <see cref="System.String" /> that represents this instance.
+        /// </returns>
+        public override string ToString()
+        {
+            return (this.Failure ? "Failure" : this.Success ? "Success" : "Undefined") + "(" + this.resultValue.ToString() + ")";
+        }
     }
 }

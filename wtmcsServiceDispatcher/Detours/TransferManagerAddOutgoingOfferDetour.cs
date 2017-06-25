@@ -24,6 +24,20 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Gets the counts.
+        /// </summary>
+        /// <value>
+        /// The counts.
+        /// </value>
+        public override ulong[] Counts
+        {
+            get
+            {
+                return new UInt64[] { Calls, Blocked };
+            }
+        }
+
+        /// <summary>
         /// The original class type.
         /// </summary>
         public override Type OriginalClassType
@@ -73,7 +87,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
-        /// Copied from original game code at game version 1.7.n-xn.
+        /// Copied from original game code at game version 1.7.2-f1.
         /// </summary>
         public static void TransferManager_AddOutgoingOffer_Original(TransferManager transferManager, TransferManager.TransferReason material, TransferManager.TransferOffer offer)
         {
@@ -107,18 +121,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 (material == TransferManager.TransferReason.Garbage && Global.Settings.Garbage.DispatchVehicles) ||
                 (material == TransferManager.TransferReason.Sick && Global.Settings.HealthCare.DispatchVehicles))
             {
+                Blocked++;
                 return;
             }
 
             TransferManager_AddOutgoingOffer_Original(transferManager, material, offer);
-        }
-
-        /// <summary>
-        /// Logs the counts.
-        /// </summary>
-        public override void LogCounts()
-        {
-            Log.Debug(this, "Counts", Calls, Blocked);
         }
     }
 }

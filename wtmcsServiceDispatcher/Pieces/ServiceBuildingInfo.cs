@@ -626,8 +626,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// Sets the target information.
         /// </summary>
         /// <param name="building">The building.</param>
-        /// <param name="ignoreRange">If set to <c>true</c> ignore the range.</param>
-        public void SetCurrentTargetInfo(TargetBuildingInfo building, bool ignoreRange)
+        public void SetCurrentTargetInfo(TargetBuildingInfo building)
         {
             if (this.lastUpdate != Global.CurrentFrame)
             {
@@ -645,7 +644,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 this.CurrentTargetInDistrict = false;
             }
 
-            this.CurrentTargetInRange = ignoreRange || this.CurrentTargetInDistrict || (this.serviceSettings.DispatchByRange && this.CurrentTargetDistance < this.Range) || (!this.serviceSettings.DispatchByDistrict && !this.serviceSettings.DispatchByRange);
+            this.CurrentTargetInRange = this.CurrentTargetInDistrict || (this.serviceSettings.DispatchByRange && this.CurrentTargetDistance < this.Range) || (!this.serviceSettings.DispatchByDistrict && !this.serviceSettings.DispatchByRange);
 
             this.CurrentTargetCapacityOverflow = (this.CapacityFree >= building.ProblemSize) ? 0 : building.ProblemSize - this.CapacityFree;
 
@@ -855,7 +854,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// Compares service buildings for priority sorting.
         /// </summary>
-        public class PriorityComparer : IComparer<ServiceBuildingInfo>, IHandlerPart
+        public class PriorityComparer : IComparer<ServiceBuildingInfo>
         {
             /// <summary>
             /// Compares two buildings and returns a value indicating whether one is less than, equal to, or greater than the other.
@@ -911,7 +910,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 // Check low accuracy distance.
                 d = Mathf.Min(x.CurrentTargetDistance / 100.0f, y.CurrentTargetDistance / 100.0f);
-                s = x.CurrentTargetDistance - y.CurrentTargetDistance;
+                s = (x.CurrentTargetDistance - y.CurrentTargetDistance) / 100.0f;
                 if (s < -d)
                 {
                     return -1;
@@ -945,13 +944,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 // No difference...
                 return 0;
-            }
-
-            /// <summary>
-            /// Re-initialize the part.
-            /// </summary>
-            public void ReInitialize()
-            {
             }
         }
     }

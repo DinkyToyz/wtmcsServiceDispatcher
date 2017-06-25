@@ -66,6 +66,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public uint AutoEmptyLandfillStopLevelPercent = 5u;
 
         /// <summary>
+        /// Whether transfer manager offer blocking is allowed or not.
+        /// </summary>
+        public bool BlockTransferManagerOffers = true;
+
+        /// <summary>
         /// The possible building checks.
         /// </summary>
         public BuildingCheckParameters[] BuildingChecksPossible = null;

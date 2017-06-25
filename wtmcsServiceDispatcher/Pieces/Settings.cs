@@ -81,6 +81,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public ServiceDispatcherSettings.ModCompatibilityMode AssignmentCompatibilityMode = ServiceDispatcherSettings.DefaultAssignmentCompatibilityMode;
 
         /// <summary>
+        /// Whether transfer manager offer blocking is allowed or not.
+        /// </summary>
+        public bool BlockTransferManagerOffers = true;
+
+        /// <summary>
         /// The CreateVehicle call compatibility mode.
         /// </summary>
         public ServiceDispatcherSettings.ModCompatibilityMode CreationCompatibilityMode = ServiceDispatcherSettings.DefaultCreationCompatibilityMode;
@@ -202,6 +207,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 this.RangeMaximum = settings.RangeMaximum;
                 this.RangeMinimum = settings.RangeMinimum;
                 this.ReflectionAllowance = settings.ReflectionAllowance;
+                this.BlockTransferManagerOffers = settings.BlockTransferManagerOffers;
                 this.AssignmentCompatibilityMode = settings.AssignmentCompatibilityMode;
                 this.CreationCompatibilityMode = settings.CreationCompatibilityMode;
 
@@ -250,6 +256,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             if (!Global.EnableDevExperiments)
             {
+                this.BlockTransferManagerOffers = false;
             }
 
             this.HealthCare.DispatchVehicles = false;
@@ -302,6 +309,20 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             get
             {
                 return this.DeathCare.DispatchByRange || this.Garbage.DispatchByRange || this.HealthCare.DispatchByRange;
+            }
+        }
+
+        /// <summary>
+        /// Gets a value indicating whether to dispatch vehicles.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if dispatching vehicles; otherwise, <c>false</c>.
+        /// </value>
+        public bool DispatchAnyVehicles
+        {
+            get
+            {
+                return this.Garbage.DispatchVehicles || this.DeathCare.DispatchVehicles || this.HealthCare.DispatchVehicles;
             }
         }
 
@@ -530,6 +551,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             Log.Debug(this, "LogSettings", "RangeMaximum", this.RangeMaximum);
 
             Log.Debug(this, "LogSettings", "ReflectionAllowance", this.ReflectionAllowance);
+            Log.Debug(this, "LogSettings", "BlockTransferManagerOffers", this.BlockTransferManagerOffers);
             Log.Debug(this, "LogSettings", "AssignmentCompatibilityMode", this.AssignmentCompatibilityMode);
             Log.Debug(this, "LogSettings", "CreationCompatibilityMode", this.CreationCompatibilityMode);
 
@@ -633,6 +655,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     cfg.RangeMaximum = this.RangeMaximum;
                     cfg.RangeMinimum = this.RangeMinimum;
                     cfg.ReflectionAllowance = this.ReflectionAllowance;
+                    //cfg.BlockTransferManagerOffers = this.BlockTransferManagerOffers;
                     cfg.AssignmentCompatibilityMode = this.AssignmentCompatibilityMode;
                     cfg.CreationCompatibilityMode = this.CreationCompatibilityMode;
 

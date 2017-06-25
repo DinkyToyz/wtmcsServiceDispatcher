@@ -1,8 +1,10 @@
-﻿using ColossalFramework.Plugins;
+﻿using ColossalFramework;
+using ColossalFramework.Plugins;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -87,7 +89,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             try
             {
                 AssemblyName name = Assembly.GetExecutingAssembly().GetName();
-                Output(Level.None, null, null, null, name.Name + " " + name.Version, Global.EnableExperiments ? "Experiments Enabled" : null, Global.EnableDevExperiments ? "Development Experiments Enabled" : null);
+                Output(Level.None, null, null, null, name.Name + " " + name.Version, AssemblyInfo.PreBuildStamps.DateTime.ToString("yyyy-MM-dd HH:mm"), Global.EnableExperiments ? "Experiments Enabled" : null, Global.EnableDevExperiments ? "Development Experiments Enabled" : null);
+                Output(Level.None, null, null, null, "Cities Skylines", BuildConfig.applicationVersionFull, GetDLCString());
             }
             catch
             {
@@ -625,6 +628,32 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Gets the DLC string.
+        /// </summary>
+        /// <value>
+        /// The DLC string.
+        /// </value>
+        private static string GetDLCString()
+        {
+            return String.Join(
+                ", ",
+                ((IEnumerable<SteamHelper.DLC>)Enum.GetValues(typeof(SteamHelper.DLC)))
+                .Where(dlc => dlc != SteamHelper.DLC.None && SteamHelper.IsDLCOwned(dlc))
+                .Select(dlc => dlc.ToString())
+                .ToArray());
+        }
+
+        /// <summary>
+        /// Gets the mod string.
+        /// </summary>
+        /// <param name="enabled">if set to <c>true</c> return only enabled mods, otherwise return only disabled mods.</param>
+        /// <returns>A comma separated list of mod names.</returns>
+        private static string GetModString(bool enabled)
+        {
+            return String.Join(", ", Singleton<PluginManager>.instance.GetPluginsInfo().Where(pi => pi.isEnabled).Select(pi => pi.name).ToArray());
+        }
+
+        /// <summary>
         /// Converts objects to a list of readable strings.
         /// </summary>
         /// <param name="objects">The objects.</param>
@@ -634,6 +663,22 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         private static IEnumerable<string> ObjectsToStrings(params object[] objects)
         {
             foreach (object obj in objects)
+            {
+                yield return ObjectToString(obj);
+            }
+        }
+
+        /// <summary>
+        /// Converts a list of objects to a list of readable strings.
+        /// </summary>
+        /// <typeparam name="T">The type of the objects.</typeparam>
+        /// <param name="objects">The objects.</param>
+        /// <returns>
+        /// A list of readable strings.
+        /// </returns>
+        private static IEnumerable<string> ObjectsToStrings<T>(IEnumerable<T> objects)
+        {
+            foreach (T obj in objects)
             {
                 yield return ObjectToString(obj);
             }
@@ -682,6 +727,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             else if (obj is IEnumerable<InfoList.InfoData>)
             {
                 str = (new InfoList(obj as IEnumerable<InfoList.InfoData>)).ToString();
+            }
+            else if (obj is IEnumerable<UInt64>)
+            {
+                str = String.Join(", ", ObjectsToStrings<UInt64>((IEnumerable<UInt64>)obj).ToArray());
             }
             else
             {

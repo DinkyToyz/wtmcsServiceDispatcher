@@ -417,7 +417,20 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <value>
         /// The number of service problems.
         /// </value>
-        public ushort ServiceProblemCount { get; private set; }
+        public ushort ServiceProblemCount => this.serviceProblemCountValue;
+
+        /// <summary>
+        /// The service problem count value.
+        /// </summary>
+        private ushort serviceProblemCountValue;
+
+        /// <summary>
+        /// Gets the service problem magnitude.
+        /// </summary>
+        /// <value>
+        /// The service problem magnitude.
+        /// </value>
+        public uint ServiceProblemMagnitude { get; private set; }
 
         /// <summary>
         /// Gets the total size of the service problem.
@@ -425,7 +438,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <value>
         /// The size of the service problem.
         /// </value>
-        public uint ServiceProblemSize { get; private set; }
+        public uint ServiceProblemSize => this.serviceProblemSizeValue;
+
+        /// <summary>
+        /// The service problem size value
+        /// </summary>
+        private uint serviceProblemSizeValue;
 
         /// <summary>
         /// Gets a value indicating whether the building is updated.
@@ -512,30 +530,43 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             if (Global.ServiceProblems == null)
             {
-                this.ServiceProblemCount = 0;
-                this.ServiceProblemSize = 0;
+                this.serviceProblemCountValue = 0;
+                this.serviceProblemSizeValue = 0;
+                this.ServiceProblemMagnitude = 0;
                 this.ProblemWeight = this.ProblemValue;
             }
             else
             {
-                this.ServiceProblemCount = Global.ServiceProblems.GetTargetBuildingProblemCount(this.BuildingId);
-                this.ServiceProblemSize = Global.ServiceProblems.GetTargetBuildingProblemSize(this.BuildingId);
+                Global.ServiceProblems.GetTargetBuildingProblemInfo(this.BuildingId, out this.serviceProblemCountValue, out this.serviceProblemSizeValue);
 
-                if (this.ServiceProblemSize > 0 && this.ServiceProblemCount > 0)
+                if (this.serviceProblemSizeValue > 0 && this.serviceProblemCountValue > 0)
                 {
-                    uint multiplier = (uint)(Math.Min(10.0, Math.Round(0.5 + (float)this.ServiceProblemCount / 4, 0)));
-                    uint modifier = (uint)this.ServiceProblemSize * multiplier;
-                    long weight = this.ProblemValue - modifier;
-                    this.ProblemWeight = (int)Math.Min(Math.Max(weight, int.MaxValue), 0);
+                    uint multiplier = (uint)(Math.Min(10.0, Math.Round(0.5 + (float)this.serviceProblemCountValue / 4.0, 0.0)));
+                    this.ServiceProblemMagnitude = (uint)this.serviceProblemSizeValue * multiplier;
+                    long weight = this.ProblemValue - this.ServiceProblemMagnitude;
+                    this.ProblemWeight = (int)Math.Max(Math.Min(weight, int.MaxValue), 0L);
 
                     if (Log.LogALot && Log.LogToFile)
                     {
                         ServiceProblemKeeper.DevLog("TargetBuildingProblemWeighting",
                             Log.Data("TargetBuilding", this.BuildingId, BuildingHelper.GetBuildingName(this.BuildingId)),
-                            Log.Data("BuildingProblem", this.ServiceProblemCount, this.ServiceProblemSize),
-                            Log.Data("Modifier", multiplier, modifier, weight),
-                            Log.Data("Weight", this.ProblemValue, this.ProblemWeight));
+                            Log.Data("BuildingProblem", this.serviceProblemCountValue, this.serviceProblemSizeValue),
+                            Log.Data("Modifier", multiplier, this.ServiceProblemMagnitude, weight),
+                            Log.Data("Weight", this.ProblemValue, this.ProblemWeight, this.ProblemWeight - this.ProblemValue));
                     }
+                }
+                else
+                {
+                    this.ServiceProblemMagnitude = 0;
+                    this.ProblemWeight = this.ProblemValue;
+
+                    ////if (Log.LogALot && Log.LogToFile && Global.EnableDevExperiments)
+                    ////{
+                    ////    ServiceProblemKeeper.DevLog("TargetBuildingProblemWeighting",
+                    ////        Log.Data("TargetBuilding", this.BuildingId, BuildingHelper.GetBuildingName(this.BuildingId)),
+                    ////        Log.Data("BuildingProblem", this.ServiceProblemCount, this.ServiceProblemSize),
+                    ////        Log.Data("Weight", this.ProblemValue, this.ProblemWeight, 0));
+                    ////}
                 }
             }
 
@@ -657,7 +688,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// Compares target buildings for priority sorting.
         /// </summary>
-        public class PriorityComparer : IComparer<TargetBuildingInfo>, IHandlerPart
+        public class PriorityComparer : IComparer<TargetBuildingInfo>
         {
             /// <summary>
             /// Compares two buildings and returns a value indicating whether one is less than, equal to, or greater than the other.
@@ -669,6 +700,15 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             /// </returns>
             public int Compare(TargetBuildingInfo x, TargetBuildingInfo y)
             {
+                if (y.ServiceProblemMagnitude * 100 < x.ServiceProblemMagnitude)
+                {
+                    return -1;
+                }
+                else if (y.ServiceProblemMagnitude > x.ServiceProblemMagnitude * 100)
+                {
+                    return 1;
+                }
+
                 if (x.HasProblem && !y.HasProblem)
                 {
                     return -1;
@@ -677,17 +717,17 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 {
                     return 1;
                 }
-                else
-                {
-                    return y.ProblemWeight - x.ProblemWeight;
-                }
-            }
 
-            /// <summary>
-            /// Re-initialize the part.
-            /// </summary>
-            public void ReInitialize()
-            {
+                if (y.ProblemWeight < x.ProblemWeight)
+                {
+                    return -1;
+                }
+                else if (y.ProblemWeight > x.ProblemWeight)
+                {
+                    return 1;
+                }
+
+                return 0;
             }
         }
 

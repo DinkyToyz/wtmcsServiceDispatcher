@@ -225,6 +225,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// </summary>
         public static void DeInitialize()
         {
+            LogDebugLists(false, true);
+
             DeInitializeHelpers();
         }
 
@@ -260,7 +262,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             InitializeSettings();
             ReInitializeHandlers();
             InitializeHelpers();
+
             SimulationTime = 0.0;
+            LogDebugLists(true, false);
         }
 
         /// <summary>
@@ -307,6 +311,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Logs the debug lists.
+        /// </summary>
+        public static void LogDebugLists()
+        {
+            LogDebugLists(false, false);
+        }
+
+        /// <summary>
         /// Initializes the dispatchers.
         /// </summary>
         public static void ReInitializeHandlers()
@@ -314,7 +326,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             // Initialize dispatch objects.
             try
             {
-                if (Settings.DeathCare.DispatchVehicles || Settings.Garbage.DispatchVehicles || Settings.HealthCare.DispatchVehicles)
+                if (Settings.DispatchAnyVehicles)
                 {
                     // Initialize buildings.
                     if (Buildings == null)
@@ -330,18 +342,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     {
                         TargetBuildingInfoPriorityComparer = new TargetBuildingInfo.PriorityComparer();
                     }
-                    else
-                    {
-                        TargetBuildingInfoPriorityComparer.ReInitialize();
-                    }
 
                     if (ServiceBuildingInfoPriorityComparer == null)
                     {
                         ServiceBuildingInfoPriorityComparer = new ServiceBuildingInfo.PriorityComparer();
-                    }
-                    else
-                    {
-                        ServiceBuildingInfoPriorityComparer.ReInitialize();
                     }
 
                     // Initialize hearse objects.
@@ -435,6 +439,84 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             catch (Exception ex)
             {
                 Log.Error(typeof(Global), "ReInitializeHearseDispatcher", ex);
+            }
+        }
+
+        /// <summary>
+        /// Logs the debug lists.
+        /// </summary>
+        /// <param name="initializing">if set to <c>true</c> level is loading.</param>
+        /// <param name="deInitializing">if set to <c>true</c> level is unloading.</param>
+        private static void LogDebugLists(bool initializing, bool deInitializing)
+        {
+            try
+            {
+                bool flush = false;
+
+                if (initializing)
+                {
+                    if (Log.LogDebugLists)
+                    {
+                        Log.Debug(typeof(Global), "LogDebugLists", "Initializing");
+                    }
+                }
+                else if (deInitializing)
+                {
+                    if (Log.LogDebugLists)
+                    {
+                        Log.Debug(typeof(Global), "LogDebugLists", "DeInitializing");
+                    }
+                }
+                else if (CurrentFrame == 0)
+                {
+                    if (Log.LogDebugLists)
+                    {
+                        Log.Debug(typeof(Global), "LogDebugLists", "Started");
+
+                        Detours.LogInfo();
+                        TransferManagerHelper.LogInfo();
+                        VehicleHelper.DebugListLog();
+                        BuildingHelper.DebugListLog();
+                        TransferManagerHelper.DebugListLog();
+
+                        flush = true;
+                    }
+                }
+                else if (CurrentFrame > 0)
+                {
+                    if (Log.LogDebugLists)
+                    {
+                        Log.Debug(typeof(Global), "LogDebugLists", "Running");
+
+                        if (Global.Buildings != null)
+                        {
+                            Global.Buildings.DebugListLogBuildings();
+                        }
+
+                        if (Global.Vehicles != null)
+                        {
+                            Global.Vehicles.DebugListLogVehicles();
+                        }
+
+                        TransferManagerHelper.DebugListLog();
+                        flush = true;
+                    }
+
+                    if (Global.ServiceProblems != null)
+                    {
+                        Global.ServiceProblems.DebugListLogServiceProblems();
+                        flush = true;
+                    }
+                }
+
+                if (flush)
+                {
+                    Log.FlushBuffer();
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error(typeof(Global), "LogDebugLists", ex);
             }
         }
     }
