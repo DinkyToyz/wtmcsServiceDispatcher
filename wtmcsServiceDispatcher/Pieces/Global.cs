@@ -388,20 +388,13 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     }
 
                     // Initialize problem keeper.
-                    if (EnableDevExperiments)
+                    if (ServiceProblems == null)
                     {
-                        if (ServiceProblems == null)
-                        {
-                            ServiceProblems = new ServiceProblemKeeper();
-                        }
-                        else
-                        {
-                            ServiceProblems.ReInitialize();
-                        }
+                        ServiceProblems = new ServiceProblemKeeper();
                     }
                     else
                     {
-                        ServiceProblems = null;
+                        ServiceProblems.ReInitialize();
                     }
                 }
 

@@ -304,39 +304,62 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         }
                     });
 
-                group.AddDropdown(
-                    "Allow Code Overrides",
-                    this.allowances.OrderBy(a => a.Key).Select(allowances => allowances.Value).ToArray(),
-                    (int)Global.Settings.ReflectionAllowance,
-                    value =>
-                    {
-                        try
+                if (Global.EnableDevExperiments)
+                {
+                    group.AddCheckbox(
+                        "Restrict transfer manager",
+                        Global.Settings.BlockTransferManagerOffers,
+                        value =>
                         {
-                            foreach (ServiceDispatcherSettings.Allowance allowance in Enum.GetValues(typeof(ServiceDispatcherSettings.Allowance)))
+                            try
                             {
-                                if ((byte)allowance == value)
+                                if (Global.Settings.BlockTransferManagerOffers != value)
                                 {
-                                    if (allowance != Global.Settings.ReflectionAllowance)
-                                    {
-                                        if (Log.LogALot || Library.IsDebugBuild)
-                                        {
-                                            Log.Debug(this, "CreateCompatibilityGroup", "Set", "ReflectionAllowance", value);
-                                        }
-
-                                        Global.Settings.ReflectionAllowance = allowance;
-                                        Global.ReInitializeHandlers();
-                                        Global.Settings.Save();
-                                    }
-
-                                    break;
+                                    Global.Settings.BlockTransferManagerOffers = value;
+                                    Global.Settings.Save();
+                                    Global.ReInitializeHandlers();
                                 }
                             }
-                        }
-                        catch (Exception ex)
+                            catch (Exception ex)
+                            {
+                                Log.Error(this, "CreateCompatibilityGroup", ex, "BlockTransferManagerOffers", value);
+                            }
+                        });
+                }
+
+                group.AddDropdown(
+                        "Allow Code Overrides",
+                        this.allowances.OrderBy(a => a.Key).Select(allowances => allowances.Value).ToArray(),
+                        (int)Global.Settings.ReflectionAllowance,
+                        value =>
                         {
-                            Log.Error(this, "CreateCompatibilityGroup", ex, "ReflectionAllowance", value);
-                        }
-                    });
+                            try
+                            {
+                                foreach (ServiceDispatcherSettings.Allowance allowance in Enum.GetValues(typeof(ServiceDispatcherSettings.Allowance)))
+                                {
+                                    if ((byte)allowance == value)
+                                    {
+                                        if (allowance != Global.Settings.ReflectionAllowance)
+                                        {
+                                            if (Log.LogALot || Library.IsDebugBuild)
+                                            {
+                                                Log.Debug(this, "CreateCompatibilityGroup", "Set", "ReflectionAllowance", value);
+                                            }
+
+                                            Global.Settings.ReflectionAllowance = allowance;
+                                            Global.ReInitializeHandlers();
+                                            Global.Settings.Save();
+                                        }
+
+                                        break;
+                                    }
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                Log.Error(this, "CreateCompatibilityGroup", ex, "ReflectionAllowance", value);
+                            }
+                        });
 
                 return group;
             }

@@ -250,13 +250,13 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 this.RecoveryCrews.DelaySeconds = settings.RemoveStuckVehiclesDelaySeconds;
             }
 
-            if (!Global.EnableExperiments)
+            if (!Global.EnableExperiments && !Global.EnableDevExperiments)
             {
+                this.BlockTransferManagerOffers = false;
             }
 
             if (!Global.EnableDevExperiments)
             {
-                this.BlockTransferManagerOffers = false;
             }
 
             this.HealthCare.DispatchVehicles = false;
@@ -655,7 +655,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     cfg.RangeMaximum = this.RangeMaximum;
                     cfg.RangeMinimum = this.RangeMinimum;
                     cfg.ReflectionAllowance = this.ReflectionAllowance;
-                    //cfg.BlockTransferManagerOffers = this.BlockTransferManagerOffers;
+                    if (Global.EnableExperiments || Global.EnableDevExperiments) cfg.BlockTransferManagerOffers = this.BlockTransferManagerOffers;
                     cfg.AssignmentCompatibilityMode = this.AssignmentCompatibilityMode;
                     cfg.CreationCompatibilityMode = this.CreationCompatibilityMode;
 
