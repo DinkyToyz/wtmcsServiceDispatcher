@@ -255,6 +255,32 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Gets the service settings.
+        /// </summary>
+        /// <param name="dispatcherType">Type of the dispatcher.</param>
+        /// <returns>The service settings.</returns>
+        public static Settings.StandardServiceSettings GetServiceSettings(Dispatcher.DispatcherTypes dispatcherType)
+        {
+            switch (dispatcherType)
+            {
+                case Dispatcher.DispatcherTypes.GarbageTruckDispatcher:
+                    return Global.Settings.Garbage;
+
+                case Dispatcher.DispatcherTypes.HearseDispatcher:
+                    return Global.Settings.DeathCare;
+
+                case Dispatcher.DispatcherTypes.AmbulanceDispatcher:
+                    return Global.Settings.HealthCare;
+
+                case Dispatcher.DispatcherTypes.None:
+                    throw new ArgumentNullException("Dispathcher type 'None' can not have settings");
+
+                default:
+                    throw new ArgumentException("No settings for dispatcher type: " + dispatcherType.ToString());
+            }
+        }
+
+        /// <summary>
         /// Initializes the mod for use.
         /// </summary>
         public static void Initialize()

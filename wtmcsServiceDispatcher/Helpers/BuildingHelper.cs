@@ -465,7 +465,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <param name="buildings">The buildings.</param>
         /// <param name="serviceBuilding">The service building.</param>
         /// <param name="tagSuffix">The tag suffix.</param>
-        private static void AddServiceBuildingInfoToDebugInfoMsg(Log.InfoList info, Building[] buildings, ServiceBuildingInfo serviceBuilding, string tagSuffix = null)
+        private static void AddServiceBuildingInfoToDebugInfoMsg(Log.InfoList info, Building[] buildings, ServiceBuildingInfo serviceBuilding, string tagSuffix)
         {
             if (serviceBuilding != null)
             {
@@ -503,7 +503,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <param name="info">The information.</param>
         /// <param name="targetBuilding">The target building.</param>
         /// <param name="tagSuffix">The tag suffix.</param>
-        private static void AddTargetBuildingInfoToDebugInfoMsg(Log.InfoList info, TargetBuildingInfo targetBuilding, string tagSuffix = null)
+        private static void AddTargetBuildingInfoToDebugInfoMsg(Log.InfoList info, TargetBuildingInfo targetBuilding, string tagSuffix)
         {
             if (targetBuilding != null)
             {
@@ -654,7 +654,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 info.Add("SimulationTimeDelta", buildingStamp.SimulationTimeDelta);
             }
 
-            AddServiceBuildingInfoToDebugInfoMsg(info, buildings, serviceBuilding);
+            AddServiceBuildingInfoToDebugInfoMsg(info, buildings, serviceBuilding, "B");
             if (serviceBuildings != null)
             {
                 foreach (KeyValuePair<string, ServiceBuildingInfo> building in serviceBuildings)
@@ -663,7 +663,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 }
             }
 
-            AddTargetBuildingInfoToDebugInfoMsg(info, targetBuilding);
+            AddTargetBuildingInfoToDebugInfoMsg(info, targetBuilding, "B");
             if (targetBuildings != null)
             {
                 foreach (KeyValuePair<string, TargetBuildingInfo> building in targetBuildings)
@@ -677,6 +677,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 info.Add("Categories", Global.Buildings.GetCategories(buildingId));
             }
 
+            float radius = float.NaN;
+ 
             int materialMax = 0;
             int materialAmount = 0;
             int serviceVehicleCount = 0;
@@ -694,16 +696,23 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 if (buildings[buildingId].Info.m_buildingAI is CemeteryAI)
                 {
+                    radius = ((CemeteryAI)buildings[buildingId].Info.m_buildingAI).m_deathCareRadius;
+
+                    info.Add("DeathCareRadius", ((CemeteryAI)buildings[buildingId].Info.m_buildingAI).m_deathCareRadius);
                     info.Add("CorpseCapacity", ((CemeteryAI)buildings[buildingId].Info.m_buildingAI).m_corpseCapacity);
                     info.Add("GraveCount", ((CemeteryAI)buildings[buildingId].Info.m_buildingAI).m_graveCount);
                     info.Add("CustomBuffer1", buildings[buildingId].m_customBuffer1); // GraveUsed?
                     info.Add("CustomBuffer2", buildings[buildingId].m_customBuffer2);
                     info.Add("PR_HC_Calc", ((buildings[buildingId].m_productionRate * ((CemeteryAI)buildings[buildingId].Info.m_buildingAI).m_hearseCount) + 99) / 100); // Hearse capacity?
                     info.Add("IsFull", buildings[buildingId].Info.m_buildingAI.IsFull(buildingId, ref buildings[buildingId]));
+
                     buildings[buildingId].Info.m_buildingAI.GetMaterialAmount(buildingId, ref buildings[buildingId], TransferManager.TransferReason.Dead, out materialAmount, out materialMax);
                 }
                 else if (buildings[buildingId].Info.m_buildingAI is LandfillSiteAI)
                 {
+                    radius = ((LandfillSiteAI)buildings[buildingId].Info.m_buildingAI).m_collectRadius;
+
+                    info.Add("CollectRadius", ((LandfillSiteAI)buildings[buildingId].Info.m_buildingAI).m_collectRadius);
                     info.Add("GarbageAmount", ((LandfillSiteAI)buildings[buildingId].Info.m_buildingAI).GetGarbageAmount(buildingId, ref buildings[buildingId]));
                     info.Add("GarbageCapacity", ((LandfillSiteAI)buildings[buildingId].Info.m_buildingAI).m_garbageCapacity);
                     info.Add("GarbageBuffer", buildings[buildingId].m_garbageBuffer);
@@ -714,8 +723,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 }
                 else if (buildings[buildingId].Info.m_buildingAI is HospitalAI)
                 {
+                    radius = ((HospitalAI)buildings[buildingId].Info.m_buildingAI).m_healthCareRadius;
+
+                    info.Add("HealthCareRadius", ((HospitalAI)buildings[buildingId].Info.m_buildingAI).m_healthCareRadius);
                     info.Add("PatientCapacity", ((HospitalAI)buildings[buildingId].Info.m_buildingAI).m_patientCapacity);
                     info.Add("IsFull", buildings[buildingId].Info.m_buildingAI.IsFull(buildingId, ref buildings[buildingId]));
+
                     buildings[buildingId].Info.m_buildingAI.GetMaterialAmount(buildingId, ref buildings[buildingId], TransferManager.TransferReason.Sick, out materialAmount, out materialMax);
                 }
 
@@ -727,8 +740,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             {
                 info.Add("Error", "Material");
             }
-
-            int productionRate = buildings[buildingId].m_productionRate;
 
             ushort ownVehicleCount = 0;
             ushort madeVehicleCount = 0;
@@ -764,6 +775,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 info.Add("Error", "Vehicles");
             }
 
+            int productionRate = buildings[buildingId].m_productionRate;
+
             info.Add("VehicleCount", serviceVehicleCount);
             info.Add("ProductionRate", productionRate);
             info.Add("VehicleCountNominal", ((productionRate * serviceVehicleCount) + 99) / 100);
@@ -771,12 +784,25 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             try
             {
                 int budget = Singleton<EconomyManager>.instance.GetBudget(buildings[buildingId].Info.m_buildingAI.m_info.m_class);
-                productionRate = PlayerBuildingAI.GetProductionRate(100, budget);
+                productionRate = PlayerBuildingAI.GetProductionRate(productionRate, budget);
+                int productionRate100 = PlayerBuildingAI.GetProductionRate(100, budget);
                 int actualVehicleCount = ((productionRate * serviceVehicleCount) + 99) / 100;
+                int actualVehicleCount100 = ((productionRate100 * serviceVehicleCount) + 99) / 100;
+
+                if (!float.IsNaN(radius))
+                {
+                    info.Add("Radius", radius);
+                }
+
                 info.Add("Budget", budget);
-                info.Add("ProductionRateActual", productionRate);
-                info.Add("VehicleCountActual", actualVehicleCount);
-                info.Add("SpareVehicles", actualVehicleCount - ownVehicleCount);
+                info.Add("ProductionRateActual", productionRate, productionRate100);
+                info.Add("VehicleCountActual", actualVehicleCount, actualVehicleCount100);
+                info.Add("SpareVehicles", actualVehicleCount - ownVehicleCount, actualVehicleCount100 - ownVehicleCount);
+
+                if (!float.IsNaN(radius))
+                {
+                    info.Add("ProductionRange", (double)productionRate * (double)radius * 0.00999999977648258);
+                }
             }
             catch
             {
@@ -789,15 +815,15 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 range = range * range * Global.Settings.RangeModifier;
                 if (range < Global.Settings.RangeMinimum)
                 {
-                    info.Add("Range", range, Global.Settings.RangeMinimum);
+                    info.Add("Range", range, '<', Global.Settings.RangeMinimum);
                 }
                 else if (range > Global.Settings.RangeMaximum)
                 {
-                    info.Add("Range", range, Global.Settings.RangeMaximum);
+                    info.Add("Range", range, '>', Global.Settings.RangeMaximum);
                 }
                 else
                 {
-                    info.Add("Range", range);
+                    info.Add("Range", range, ">=<");
                 }
             }
             catch

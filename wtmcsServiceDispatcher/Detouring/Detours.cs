@@ -180,7 +180,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 Revert(Methods.AmbulanceAI_ShouldReturnToSource);
             }
 
-            if (Global.Settings.DispatchAnyVehicles && Global.Settings.BlockTransferManagerOffers)
+            if (Global.Settings.DispatchAnyVehicles && Global.Settings.BlockTransferManagerOffers && Global.CleanTransferOffers)
             {
                 if (CanDetour(Methods.TransferManager_AddIncomingOffer))
                 {

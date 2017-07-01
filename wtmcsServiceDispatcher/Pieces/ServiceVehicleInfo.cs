@@ -93,6 +93,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Gets a value indicating whether vehicle with wrong target should linger before deassign.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if lingering vehicles with wrong target; otherwise, <c>false</c>.
+        /// </value>
+        protected bool LingerWrongTargets => this.ServiceSettings.CreateSpares == ServiceDispatcherSettings.SpareVehiclesCreation.Never;
+
+        /// <summary>
         /// Gets or sets a value indicating whether this vehicle confused.
         /// </summary>
         /// <value>
@@ -180,6 +188,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Gets the service settings.
+        /// </summary>
+        /// <value>
+        /// The service settings.
+        /// </value>
+        protected Settings.StandardServiceSettings ServiceSettings => Global.GetServiceSettings(this.dispatcherType);
+
+        /// <summary>
         /// Creates the specified service building.
         /// </summary>
         /// <param name="serviceBuilding">The service building.</param>
@@ -243,7 +259,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 return new VehicleResult(vehicle.m_targetBuilding == 0 && this.Target == 0);
             }
 
-            if (force || Global.CurrentFrame - this.LastAssigned > Global.TargetLingerDelay || vehicle.m_targetBuilding != this.Target)
+            if (force || Global.CurrentFrame - this.LastAssigned > Global.TargetLingerDelay || (vehicle.m_targetBuilding != this.Target && !this.LingerWrongTargets))
             {
                 this.lastDeAssignStamp = Global.CurrentFrame;
 

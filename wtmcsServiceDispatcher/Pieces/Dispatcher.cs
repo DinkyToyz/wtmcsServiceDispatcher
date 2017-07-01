@@ -529,7 +529,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     {
                         continue;
                     }
-                        
+
                     // Found vehicle that has enough free capacity.
                     foundVehicleId = 0;
                     foundVehicleDistance = float.PositiveInfinity;
@@ -955,23 +955,17 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                                         targetBuilding = null;
                                     }
 
-                                    if (targetBuilding == null || !targetBuilding.WantedService)
+                                    if (targetBuilding == null || !targetBuilding.WantedService || (vehicles[vehicleId].m_targetBuilding != serviceBuilding.BuildingId && !hasTarget))
                                     {
                                         Global.TransferOffersCleaningNeeded = true;
                                         vehicleResult = serviceVehicle.DeAssign(ref vehicles[vehicleId], false, this, "CollectVehicleData", "NoNeed");
-                                        if (vehicleResult)
-                                        {
-                                            hasTarget = false;
-                                        }
+                                        hasTarget = false;
                                     }
                                     else if (vehicles[vehicleId].m_targetBuilding != serviceVehicle.Target)
                                     {
                                         Global.TransferOffersCleaningNeeded = true;
                                         vehicleResult = serviceVehicle.DeAssign(ref vehicles[vehicleId], false, this, "CollectVehicleData", "WrongTarget");
-                                        if (vehicleResult)
-                                        {
-                                            hasTarget = false;
-                                        }
+                                        hasTarget = false;
                                     }
                                     else if (targetBuilding != null && targetBuilding.NeedsService)
                                     {
@@ -1009,7 +1003,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                                 }
                                 else
                                 {
-                                    serviceVehicle = new ServiceVehicleInfo(vehicleId, ref vehicles[vehicleId], canCollect && !hasTarget && !unavailable, this.DispatcherType);
+                                    serviceVehicle = new ServiceVehicleInfo(vehicleId, ref vehicles[vehicleId], canCollect && !hasTarget && !busy && !unavailable, this.DispatcherType);
                                     if (Log.LogALot)
                                     {
                                         Log.DevDebug(this, "CollectVehicleData", "AddVehicle", serviceBuilding.BuildingId, vehicleId, vehicles[vehicleId].Info.name, serviceVehicle.VehicleName, serviceVehicle.FreeToCollect, collecting, vehicles[vehicleId].m_flags, loadSize, loadMax, loading, unavailable, busy, hasTarget, vehicles[vehicleId].m_targetBuilding, vehicleResult);
@@ -1019,20 +1013,31 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                                 }
                             }
 
-                            if (!vehicleResult.DeAssigned)
-                            {
-                                // If target doesn't need service, deassign...
-                                if (collecting && !loading && vehicles[vehicleId].m_targetBuilding != 0 && vehicles[vehicleId].m_targetBuilding != serviceBuilding.BuildingId && !hasTarget && !unavailable && !busy)
-                                {
-                                    Global.TransferOffersCleaningNeeded = true;
-                                    vehicleResult = serviceBuilding.Vehicles[vehicleId].DeAssign(ref vehicles[vehicleId], false, this, "CollectVehicleData", "NoNeeed");
-                                }
-                            }
+                            //if (!vehicleResult.DeAssigned)
+                            //{
+                            //    // If target doesn't need service, deassign...
+                            //    if (collecting && !loading && vehicles[vehicleId].m_targetBuilding != 0 && vehicles[vehicleId].m_targetBuilding != serviceBuilding.BuildingId && !hasTarget && !unavailable && !busy)
+                            //    {
+                            //        canReAssign = true;
+                            //        Global.TransferOffersCleaningNeeded = true;
+                            //        vehicleResult = serviceBuilding.Vehicles[vehicleId].DeAssign(ref vehicles[vehicleId], false, this, "CollectVehicleData", "NoNeeed");
+                            //        if (vehicleResult)
+                            //        {
+                            //            hasTarget = false;
+                            //        }
+                            //    }
+                            //}
 
-                            // Update assigned target status.
+                            // Update counts and assigned target status.
                             if (!vehicleResult.DeSpawned)
                             {
                                 vehiclesMade++;
+
+                                if (serviceVehicle.FreeToCollect)
+                                {
+                                    this.freeVehicles++;
+                                    vehiclesFree++;
+                                }
 
                                 if (collecting && hasTarget && !vehicleResult.DeAssigned)
                                 {
@@ -1042,11 +1047,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                                     }
 
                                     this.assignedTargets[vehicles[vehicleId].m_targetBuilding] = Global.CurrentFrame;
-                                }
-                                else if (canCollect && !unavailable)
-                                {
-                                    this.freeVehicles++;
-                                    vehiclesFree++;
                                 }
                             }
                         }
