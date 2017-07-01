@@ -304,29 +304,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         }
                     });
 
-                if (Global.EnableDevExperiments)
-                {
-                    group.AddCheckbox(
-                        "Restrict transfer manager",
-                        Global.Settings.BlockTransferManagerOffers,
-                        value =>
-                        {
-                            try
-                            {
-                                if (Global.Settings.BlockTransferManagerOffers != value)
-                                {
-                                    Global.Settings.BlockTransferManagerOffers = value;
-                                    Global.Settings.Save();
-                                    Global.ReInitializeHandlers();
-                                }
-                            }
-                            catch (Exception ex)
-                            {
-                                Log.Error(this, "CreateCompatibilityGroup", ex, "BlockTransferManagerOffers", value);
-                            }
-                        });
-                }
-
                 group.AddDropdown(
                         "Allow Code Overrides",
                         this.allowances.OrderBy(a => a.Key).Select(allowances => allowances.Value).ToArray(),
@@ -360,6 +337,29 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                                 Log.Error(this, "CreateCompatibilityGroup", ex, "ReflectionAllowance", value);
                             }
                         });
+
+                if (Global.EnableDevExperiments)
+                {
+                    group.AddCheckbox(
+                        "Restrict transfer manager",
+                        Global.Settings.BlockTransferManagerOffers,
+                        value =>
+                        {
+                            try
+                            {
+                                if (Global.Settings.BlockTransferManagerOffers != value)
+                                {
+                                    Global.Settings.BlockTransferManagerOffers = value;
+                                    Global.Settings.Save();
+                                    Global.ReInitializeHandlers();
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                Log.Error(this, "CreateCompatibilityGroup", ex, "BlockTransferManagerOffers", value);
+                            }
+                        });
+                }
 
                 return group;
             }
