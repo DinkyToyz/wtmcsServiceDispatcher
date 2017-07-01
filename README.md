@@ -12,7 +12,9 @@ Dispatches Cities: Skylines services.
 
 ## Purpose
 
-The Central Services Dispatcher dispatches service vehicles and crews for various functions in a City, taking distances between buildings, services and vehicles in account, in order to use service vehices more efficently, with options for limiting by district and finetuning many settings.
+The Central Services Dispatcher dispatches service vehicles and crews for various functions in a City, taking distances between buildings, services and vehicles in account, in order to use service vehices more efficently, with options for limiting by range or district and finetuning many settings.
+
+When limiting by range, the [Service Radius Adjuster](http://steamcommunity.com/sharedfiles/filedetails/?id=785237088) mod can be used to tune the range of service builings, giving even more control. (It currently, at the time of writing, does not have support for adjusting landfills and incinerators though.)
 
 ## Services
 

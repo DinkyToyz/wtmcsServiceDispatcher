@@ -10,8 +10,6 @@
 
 # Dox etc
 
-- Link to Service Radius Adjuster in description (after testing that they work well together).
-
 # Additions and fixes
 
 - fire fighting services?
