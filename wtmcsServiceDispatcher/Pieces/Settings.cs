@@ -252,7 +252,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             if (!Global.EnableExperiments && !Global.EnableDevExperiments)
             {
-                this.BlockTransferManagerOffers = false;
             }
 
             if (!Global.EnableDevExperiments)
@@ -655,7 +654,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     cfg.RangeMaximum = this.RangeMaximum;
                     cfg.RangeMinimum = this.RangeMinimum;
                     cfg.ReflectionAllowance = this.ReflectionAllowance;
-                    if (Global.EnableExperiments || Global.EnableDevExperiments) cfg.BlockTransferManagerOffers = this.BlockTransferManagerOffers;
+                    cfg.BlockTransferManagerOffers = this.BlockTransferManagerOffers;
                     cfg.AssignmentCompatibilityMode = this.AssignmentCompatibilityMode;
                     cfg.CreationCompatibilityMode = this.CreationCompatibilityMode;
 

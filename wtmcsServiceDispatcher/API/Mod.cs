@@ -338,28 +338,25 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                             }
                         });
 
-                if (Global.EnableDevExperiments)
-                {
-                    group.AddCheckbox(
-                        "Restrict transfer manager",
-                        Global.Settings.BlockTransferManagerOffers,
-                        value =>
+                group.AddCheckbox(
+                    "Restrict transfer manager",
+                    Global.Settings.BlockTransferManagerOffers,
+                    value =>
+                    {
+                        try
                         {
-                            try
+                            if (Global.Settings.BlockTransferManagerOffers != value)
                             {
-                                if (Global.Settings.BlockTransferManagerOffers != value)
-                                {
-                                    Global.Settings.BlockTransferManagerOffers = value;
-                                    Global.Settings.Save();
-                                    Global.ReInitializeHandlers();
-                                }
+                                Global.Settings.BlockTransferManagerOffers = value;
+                                Global.Settings.Save();
+                                Global.ReInitializeHandlers();
                             }
-                            catch (Exception ex)
-                            {
-                                Log.Error(this, "CreateCompatibilityGroup", ex, "BlockTransferManagerOffers", value);
-                            }
-                        });
-                }
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.Error(this, "CreateCompatibilityGroup", ex, "BlockTransferManagerOffers", value);
+                        }
+                    });
 
                 return group;
             }
@@ -497,8 +494,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             try
             {
                 UIHelperBase group = helper.AddGroup(settings.EmptiableServiceBuildingNamePlural);
-
-                group.AddInformationalText("Note:", "Automatic emptying is new and somewhat experimental.");
 
                 if (canService)
                 {

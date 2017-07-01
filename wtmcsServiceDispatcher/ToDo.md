@@ -1,8 +1,6 @@
 # Still or recently experimental
-- Road and rail recovery service crews (to remove stuck vehicles, including forgotten trailers and railway cars).
-- Use buildings StartTransfer in order to allow ServiceVehicleSelector to work.
-- Use vehicles StartTransfer in order to allow other mods to work.
 - Automatic emptying.
+- Override TransferManager.AddIncomingOffer and TransferManager.AddOutgoingOffer?
 
 # Doing
 - ambulance services.
@@ -12,6 +10,8 @@
 
 # Additions and fixes
 
+- New stragety option: Make it so IgnoreRange only ignores range for the n closest buildings.
+- Make a simple textbox for adding comma separated custom startegy.
 - fire fighting services?
 - law enforcement services?
 - send service now button on buildings?
@@ -19,9 +19,7 @@
 - Save in vehicles how much capacity they will have left after pickup and add send-out-option to send when no vehicles are free now or will be free with enough capacity after next pickup?
 - Social services (taking care of confused citizens and tourists).
 - Fix invisible vehicles (flags == none, but not in m_vehicles.m_unusedItems)?
-- Service vehicle selector (for all service budilings)? Hopefully not.
 - Save states in save?
-- Override TransferManager.AddIncomingOffer and TransferManager.AddOutgoingOffer?
 
 # Changes and experiments
 
