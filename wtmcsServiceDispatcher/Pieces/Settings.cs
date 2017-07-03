@@ -700,7 +700,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     cfg.RemoveStuckVehiclesDelaySeconds = this.RecoveryCrews.DelaySeconds;
 
                     cfg.BuildingChecksPresets = (Enum.GetValues(typeof(ServiceDispatcherSettings.BuildingCheckOrder)) as ServiceDispatcherSettings.BuildingCheckOrder[]).Where(bco => bco != ServiceDispatcherSettings.BuildingCheckOrder.Custom).Select(bco => new ServiceDispatcherSettings.BuildingChecksPresetInfo(bco)).ToArray();
-                    cfg.BuildingChecksPossible = (Enum.GetValues(typeof(ServiceDispatcherSettings.BuildingCheckParameters)) as ServiceDispatcherSettings.BuildingCheckParameters[]).Where(bcp => bcp != ServiceDispatcherSettings.BuildingCheckParameters.Custom).ToArray();
+                    cfg.BuildingChecksPossible = (Enum.GetValues(typeof(ServiceDispatcherSettings.BuildingCheckParameters)) as ServiceDispatcherSettings.BuildingCheckParameters[]).Where(bcp => bcp != ServiceDispatcherSettings.BuildingCheckParameters.Undefined).ToArray();
 
                     cfg.Version = this.Version;
                     cfg.SaveCount = this.SaveCount;
@@ -930,6 +930,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             /// The dispatch by range toggle.
             /// </summary>
             public bool DispatchByRange = true;
+
+            /// <summary>
+            /// Limit too the closest service buildings when igoring range.
+            /// </summary>
+            public byte IgnoreRangeUseClosestBuildings = 0;
 
             /// <summary>
             /// The minimum amount for dispatch.

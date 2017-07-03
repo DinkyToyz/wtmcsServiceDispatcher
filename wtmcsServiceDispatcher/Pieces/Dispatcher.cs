@@ -471,9 +471,30 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             }
 
             // Remove unusable buildings.
-            if (!ignoreRange && (this.serviceSettings.DispatchByRange || this.serviceSettings.DispatchByDistrict))
+            if ((this.serviceSettings.DispatchByRange || this.serviceSettings.DispatchByDistrict) &&
+                (this.serviceSettings.IgnoreRangeUseClosestBuildings > 0 || !ignoreRange))
             {
-                checkBuildings = checkBuildings.Where(sb => sb.CurrentTargetInRange).ToArray();
+                if (ignoreRange)
+                {
+                    int buildingCountTotal = checkBuildings.Length;
+
+                    checkBuildings = checkBuildings
+                                        .Where(sb => sb.CurrentTargetInRange)
+                                        .Union(
+                                            checkBuildings
+                                                .Where(sb => !sb.CurrentTargetInRange)
+                                                .OrderBy(sb => sb.CurrentTargetDistance)
+                                                .Take(this.serviceSettings.IgnoreRangeUseClosestBuildings)).ToArray();
+
+                    if (Log.LogALot && Log.LogToFile)
+                    {
+                        Log.DevDebug(this, "AssignVehicle", "UsableBuildings", checkBuildings.Length, buildingCountTotal);
+                    }
+                }
+                else
+                {
+                    checkBuildings = checkBuildings.Where(sb => sb.CurrentTargetInRange).ToArray();
+                }
 
                 if (checkBuildings.Length == 0)
                 {
@@ -1211,7 +1232,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             /// <param name="allowCreateSpares">If set to <c>true</c> allow creation of spare vehicles.</param>
             public BuldingCheckParameters(bool onlyProblematic, bool includeUneedy, bool ignoreRange, byte minProblemValue, bool allowCreateSpares)
             {
-                this.Setting = ServiceDispatcherSettings.BuildingCheckParameters.Custom;
+                this.Setting = ServiceDispatcherSettings.BuildingCheckParameters.Undefined;
                 this.OnlyProblematic = onlyProblematic;
                 this.IncludeUneedy = includeUneedy;
                 this.IgnoreRange = ignoreRange;

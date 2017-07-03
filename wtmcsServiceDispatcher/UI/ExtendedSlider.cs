@@ -362,6 +362,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             this.textField.numericalOnly = true;
             this.textField.allowFloats = this.AllowFloats;
+            this.textField.allowNegative = min < 0;
             this.textField.submitOnFocusLost = this.submitOnFocusLost;
             this.textField.eventVisibilityChanged += (component, value) =>
             {

@@ -1006,6 +1006,82 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         }
                     });
 
+                if (Global.EnableExperiments)
+                {
+                    group.AddInformationalText(
+                        "Current dispatch strategy",
+                        ServiceDispatcherSettings.BuildingChecksPresetInfo.ToString(settings.ChecksParameters));
+
+                    bool updatingCustomStrategy = false;
+                    group.AddTextfield(
+                        "Custom dispatch strategy",
+                        ServiceDispatcherSettings.BuildingChecksPresetInfo.ToString(settings.ChecksCustom),
+                        value =>
+                        {
+                        },
+                        value =>
+                        {
+                            if (!updatingCustomStrategy)
+                            {
+                                updatingCustomStrategy = true;
+
+                                try
+                                {
+                                    if (String.IsNullOrEmpty(value))
+                                    {
+                                        settings.ChecksCustom = new ServiceDispatcherSettings.BuildingCheckParameters[] { };
+                                    }
+                                    else
+                                    {
+                                        settings.ChecksCustom = ServiceDispatcherSettings.BuildingChecksPresetInfo.ToArray(value);
+                                        value = ServiceDispatcherSettings.BuildingChecksPresetInfo.ToString(settings.ChecksCustom);
+                                    }
+                                }
+                                catch (Exception ex)
+                                {
+                                    Log.Error(this, "CreateServiceGroup", ex, settings.VehicleNamePlural, "ChecksCustom", value);
+                                }
+                                finally
+                                {
+                                    updatingCustomStrategy = false;
+                                }
+                            }
+                        });
+                }
+
+                if (Global.EnableDevExperiments)
+                {
+                    UITextField textField = (UITextField)group.AddTextfield(
+                        "Closest buildings to use when ignoring range",
+                        settings.IgnoreRangeUseClosestBuildings == 0 ? "" : settings.IgnoreRangeUseClosestBuildings.ToString(),
+                        value =>
+                        {
+                        },
+                        value =>
+                        {
+                            try
+                            {
+                                if (String.IsNullOrEmpty(value))
+                                {
+                                    settings.IgnoreRangeUseClosestBuildings = 0;
+                                }
+                                else
+                                {
+                                    settings.IgnoreRangeUseClosestBuildings = byte.Parse(value);
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                Log.Error(this, "CreateServiceGroup", ex, settings.VehicleNamePlural, "IgnoreRangeUseClosestBuildings", value);
+                            }
+                        });
+
+                    textField.numericalOnly = true;
+                    textField.allowFloats = false;
+                    textField.allowNegative = false;
+                    textField.maxLength = 2;
+                }
+
                 if (settings.UseMinimumAmountForPatrol)
                 {
                     group.AddExtendedSlider(

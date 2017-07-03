@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 {
@@ -345,7 +347,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             /// <summary>
             /// Custom parameters.
             /// </summary>
-            Custom = 0,
+            Undefined = 0,
 
             /// <summary>
             /// Any buildings.
@@ -474,6 +476,65 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 this.Name = Settings.GetBuildingCheckOrderName(buildingCheckOrder);
                 this.Description = Settings.GetBuildingCheckOrderDescription(buildingCheckOrder);
                 this.BuildingChecks = Settings.GetBuildingChecksParameters(this.Identifier);
+            }
+
+            /// <summary>
+            /// Initializes a new instance of the <see cref="BuildingChecksPresetInfo"/> class.
+            /// </summary>
+            /// <param name="buildingChecks">The building checks.</param>
+            public BuildingChecksPresetInfo(string buildingChecks)
+            {
+                this.Identifier = ServiceDispatcherSettings.BuildingCheckOrder.Custom;
+                this.BuildingChecks = ToArray(buildingChecks);
+            }
+
+            /// <summary>
+            /// Converts string to building check array.
+            /// </summary>
+            /// <param name="buildingChecks">The building checks.</param>
+            /// <returns>The building checks in an array.</returns>
+            public static BuildingCheckParameters[] ToArray(string buildingChecks)
+            {
+                List<BuildingCheckParameters> checks = new List<BuildingCheckParameters>();
+
+                foreach (string check in buildingChecks.Split(',', ';', ':', '/', ' ', '\t', '\r', '\n'))
+                {
+                    string checkLow = check.ToLower();
+                    foreach (BuildingCheckParameters parameter in Enum.GetValues(typeof(BuildingCheckParameters)))
+                    {
+                        if (parameter.ToString().ToLower() == checkLow)
+                        {
+                            checks.Add(parameter);
+                        }
+                    }
+                }
+
+                return checks.ToArray();
+            }
+
+            /// <summary>
+            /// Returns a <see cref="System.String" /> that represents the specified checks.
+            /// </summary>
+            /// <param name="buildingChecks">The building checks.</param>
+            /// <returns>
+            /// A <see cref="System.String" /> that represents the checks.
+            /// </returns>
+            public static string ToString(BuildingCheckParameters[] buildingChecks)
+            {
+                return buildingChecks == null
+                    ? null
+                    : String.Join(", ", buildingChecks.Where(c => c != BuildingCheckParameters.Undefined).Select(c => c.ToString()).ToArray());
+            }
+
+            /// <summary>
+            /// Returns a <see cref="System.String" /> that represents this instance.
+            /// </summary>
+            /// <returns>
+            /// A <see cref="System.String" /> that represents this instance.
+            /// </returns>
+            public override string ToString()
+            {
+                return ToString(this.BuildingChecks);
             }
         }
     }
