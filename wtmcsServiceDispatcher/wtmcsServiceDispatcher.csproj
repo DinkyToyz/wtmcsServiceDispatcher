@@ -151,6 +151,9 @@
     <Content Include="Dox\SteamDescription.txt" />
     <Content Include="Tools\VehicleCounts.sql" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Dox\Documentation\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>"$(ProjectDir)Build\PostBuild.cmd" 512341354 $(SolutionName) $(TargetFileName) $(Configuration)
