@@ -472,7 +472,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             // Remove unusable buildings.
             if ((this.serviceSettings.DispatchByRange || this.serviceSettings.DispatchByDistrict) &&
-                (this.serviceSettings.IgnoreRangeUseClosestBuildings > 0 || !ignoreRange))
+                ((Global.EnableDevExperiments && this.serviceSettings.IgnoreRangeUseClosestBuildings > 0) || !ignoreRange))
             {
                 if (ignoreRange)
                 {

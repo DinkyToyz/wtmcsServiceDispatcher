@@ -522,7 +522,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             public static string ToString(BuildingCheckParameters[] buildingChecks)
             {
                 return buildingChecks == null
-                    ? null
+                    ? ""
                     : String.Join(", ", buildingChecks.Where(c => c != BuildingCheckParameters.Undefined).Select(c => c.ToString()).ToArray());
             }
 

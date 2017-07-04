@@ -55,4 +55,32 @@ Services are dispatched based on problem magnitude within the strategy rules, ch
   Very problematic buildings in range followed by very problematic buildings out of range, buildings in range and finally problematic buildings in or out of range.
 
 - **Custom**: 
-  Custom strategy manually defined in the configuration file.
+  Custom strategy manually defined in the settings.
+  
+## Custom Dispatch Strategy Rules {#CustomDispatchStrategy}
+
+A custom dispatch strategy consists of a list of rules, which will be checked in order. 
+
+- **Any**
+  Service any building.
+
+- **InRange**
+  Service buildings in range.
+
+- **ProblematicInRange**
+  Service problematic buildings in range.
+
+- **ProblematicIgnoreRange**
+  Service problematic buildings in or out of range.
+
+- **VeryProblematicInRange**
+  Service very problematic buildings in range.
+
+- **VeryProblematicIgnoreRange**
+  Service very problematic buildings in or out of range.
+
+- **ForgottenInRange**
+  Service forgotten problematic buildings in range.
+
+- **ForgottenIgnoreRange**
+  Service forgotten problematic buildings in or out of range.

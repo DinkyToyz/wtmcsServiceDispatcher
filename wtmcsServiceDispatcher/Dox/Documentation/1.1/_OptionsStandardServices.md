@@ -15,4 +15,8 @@
   Choose the dispatch strategy to use for these vehicles.
   See [Dispatch Strategies](OptionsStandardServices.html#DispatchStrategies).
 
+- **Custom dispatch strategy**
+  The rules used for the custom dispatch strategy.
+  See [Custom Dispatch Strategy Rules](OptionsStandardServices.html#CustomDispatchStrategy).
+
 If both *Dispatch by district* and *Dispatch by building range* are selected, a building is considered in range if it is either in the same district as, *or* within the coverage radius of, the service building. 

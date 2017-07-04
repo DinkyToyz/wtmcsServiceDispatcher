@@ -270,6 +270,40 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public static bool AboveAboveMaxTestedGameVersion => BuildConfig.APPLICATION_VERSION >= AboveMaxTestedGameVersion;
 
         /// <summary>
+        /// Gets the default custom building checks parameters.
+        /// </summary>
+        /// <value>
+        /// The default custom building checks parameters.
+        /// </value>
+        public static ServiceDispatcherSettings.BuildingCheckParameters[] DefaultCustomBuildingChecksParameters
+        {
+            get => new ServiceDispatcherSettings.BuildingCheckParameters[]
+                        {
+                            ServiceDispatcherSettings.BuildingCheckParameters.ForgottenInRange,
+                            ServiceDispatcherSettings.BuildingCheckParameters.ForgottenIgnoreRange,
+                            ServiceDispatcherSettings.BuildingCheckParameters.VeryProblematicInRange,
+                            ServiceDispatcherSettings.BuildingCheckParameters.VeryProblematicIgnoreRange,
+                            ServiceDispatcherSettings.BuildingCheckParameters.ProblematicInRange,
+                            ServiceDispatcherSettings.BuildingCheckParameters.ProblematicIgnoreRange,
+                            ServiceDispatcherSettings.BuildingCheckParameters.InRange
+                        };
+        }
+
+        /// <summary>
+        /// Gets the default custom building checks parameters for empty list.
+        /// </summary>
+        /// <value>
+        /// The default custom building checks parameters for empty list.
+        /// </value>
+        public static ServiceDispatcherSettings.BuildingCheckParameters[] DefaultCustomBuildingChecksParametersIfEmpty
+        {
+            get => new ServiceDispatcherSettings.BuildingCheckParameters[]
+                        {
+                            ServiceDispatcherSettings.BuildingCheckParameters.Any
+                        };
+        }
+
+        /// <summary>
         /// Gets the complete path.
         /// </summary>
         /// <value>
@@ -384,25 +418,55 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             switch (buildingChecks)
             {
                 case ServiceDispatcherSettings.BuildingCheckOrder.FirstFirst:
-                    return new ServiceDispatcherSettings.BuildingCheckParameters[] { ServiceDispatcherSettings.BuildingCheckParameters.Any };
+                    return new ServiceDispatcherSettings.BuildingCheckParameters[]
+                        {
+                            ServiceDispatcherSettings.BuildingCheckParameters.Any
+                        };
 
                 case ServiceDispatcherSettings.BuildingCheckOrder.InRangeFirst:
-                    return new ServiceDispatcherSettings.BuildingCheckParameters[] { ServiceDispatcherSettings.BuildingCheckParameters.InRange, ServiceDispatcherSettings.BuildingCheckParameters.ProblematicIgnoreRange };
+                    return new ServiceDispatcherSettings.BuildingCheckParameters[]
+                        {
+                            ServiceDispatcherSettings.BuildingCheckParameters.InRange,
+                            ServiceDispatcherSettings.BuildingCheckParameters.ProblematicIgnoreRange
+                        };
 
                 case ServiceDispatcherSettings.BuildingCheckOrder.ProblematicFirst:
-                    return new ServiceDispatcherSettings.BuildingCheckParameters[] { ServiceDispatcherSettings.BuildingCheckParameters.ProblematicInRange, ServiceDispatcherSettings.BuildingCheckParameters.ProblematicIgnoreRange, ServiceDispatcherSettings.BuildingCheckParameters.InRange };
+                    return new ServiceDispatcherSettings.BuildingCheckParameters[]
+                        {
+                            ServiceDispatcherSettings.BuildingCheckParameters.ProblematicInRange,
+                            ServiceDispatcherSettings.BuildingCheckParameters.ProblematicIgnoreRange,
+                            ServiceDispatcherSettings.BuildingCheckParameters.InRange
+                        };
 
                 case ServiceDispatcherSettings.BuildingCheckOrder.VeryProblematicFirst:
-                    return new ServiceDispatcherSettings.BuildingCheckParameters[] { ServiceDispatcherSettings.BuildingCheckParameters.VeryProblematicInRange, ServiceDispatcherSettings.BuildingCheckParameters.VeryProblematicIgnoreRange, ServiceDispatcherSettings.BuildingCheckParameters.InRange, ServiceDispatcherSettings.BuildingCheckParameters.ProblematicIgnoreRange };
+                    return new ServiceDispatcherSettings.BuildingCheckParameters[]
+                        {
+                            ServiceDispatcherSettings.BuildingCheckParameters.VeryProblematicInRange,
+                            ServiceDispatcherSettings.BuildingCheckParameters.VeryProblematicIgnoreRange,
+                            ServiceDispatcherSettings.BuildingCheckParameters.InRange,
+                            ServiceDispatcherSettings.BuildingCheckParameters.ProblematicIgnoreRange
+                        };
 
                 case ServiceDispatcherSettings.BuildingCheckOrder.ForgottenFirst:
-                    return new ServiceDispatcherSettings.BuildingCheckParameters[] { ServiceDispatcherSettings.BuildingCheckParameters.ForgottenInRange, ServiceDispatcherSettings.BuildingCheckParameters.ForgottenIgnoreRange, ServiceDispatcherSettings.BuildingCheckParameters.InRange, ServiceDispatcherSettings.BuildingCheckParameters.ProblematicIgnoreRange };
+                    return new ServiceDispatcherSettings.BuildingCheckParameters[]
+                        {
+                            ServiceDispatcherSettings.BuildingCheckParameters.ForgottenInRange,
+                            ServiceDispatcherSettings.BuildingCheckParameters.ForgottenIgnoreRange,
+                            ServiceDispatcherSettings.BuildingCheckParameters.InRange,
+                            ServiceDispatcherSettings.BuildingCheckParameters.ProblematicIgnoreRange
+                        };
 
                 case ServiceDispatcherSettings.BuildingCheckOrder.InRange:
-                    return new ServiceDispatcherSettings.BuildingCheckParameters[] { ServiceDispatcherSettings.BuildingCheckParameters.InRange, ServiceDispatcherSettings.BuildingCheckParameters.ForgottenIgnoreRange };
+                    return new ServiceDispatcherSettings.BuildingCheckParameters[]
+                        {
+                            ServiceDispatcherSettings.BuildingCheckParameters.InRange,
+                            ServiceDispatcherSettings.BuildingCheckParameters.ForgottenIgnoreRange
+                        };
 
                 case ServiceDispatcherSettings.BuildingCheckOrder.Custom:
-                    return (customBuildingCheckParameters != null) ? customBuildingCheckParameters : GetBuildingChecksParameters(ServiceDispatcherSettings.BuildingCheckOrder.InRange);
+                    return (customBuildingCheckParameters != null && customBuildingCheckParameters.Length > 0)
+                        ? customBuildingCheckParameters
+                        : DefaultCustomBuildingChecksParameters;
 
                 default:
                     return GetBuildingChecksParameters(ServiceDispatcherSettings.BuildingCheckOrder.FirstFirst);
@@ -561,10 +625,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             Log.Debug(this, "LogSettings", "CreateSpareHearses", this.DeathCare.CreateSpares);
             Log.Debug(this, "LogSettings", "DeathChecks", (byte)this.DeathCare.ChecksPreset, this.DeathCare.ChecksPreset, GetBuildingCheckOrderName(this.DeathCare.ChecksPreset));
             Log.Debug(this, "LogSettings", "DeathChecksParameters", String.Join(", ", this.DeathCare.ChecksParameters.Select(bc => bc.ToString()).ToArray()));
-            if (this.DeathCare.ChecksCustom != null)
-            {
-                Log.Debug(this, "LogSettings", "DeathChecksCustom", String.Join(", ", this.DeathCare.ChecksCustom.Select(bc => bc.ToString()).ToArray()));
-            }
+            Log.Debug(this, "LogSettings", "DeathChecksCustom", this.DeathCare.ChecksCustomString);
 
             Log.Debug(this, "LogSettings", "AutoEmptyCemeteries", this.DeathCare.AutoEmpty);
             Log.Debug(this, "LogSettings", "AutoEmptyCemeteryStartLevelPercent", this.DeathCare.AutoEmptyStartLevelPercent);
@@ -577,10 +638,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             Log.Debug(this, "LogSettings", "CreateSpareAmbulances", this.HealthCare.CreateSpares);
             Log.Debug(this, "LogSettings", "SickChecks", (byte)this.HealthCare.ChecksPreset, this.HealthCare.ChecksPreset, GetBuildingCheckOrderName(this.HealthCare.ChecksPreset));
             Log.Debug(this, "LogSettings", "SickChecksParameters", String.Join(", ", this.HealthCare.ChecksParameters.Select(bc => bc.ToString()).ToArray()));
-            if (this.HealthCare.ChecksCustom != null)
-            {
-                Log.Debug(this, "LogSettings", "SickChecksCustom", String.Join(", ", this.HealthCare.ChecksCustom.Select(bc => bc.ToString()).ToArray()));
-            }
+            Log.Debug(this, "LogSettings", "SickChecksCustom", this.HealthCare.ChecksCustomString);
 
             Log.Debug(this, "LogSettings", "DispatchGarbageTrucks", this.Garbage.DispatchVehicles);
             Log.Debug(this, "LogSettings", "DispatchGarbageTrucksByDistrict", this.Garbage.DispatchByDistrict);
@@ -591,10 +649,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             Log.Debug(this, "LogSettings", "MinimumGarbageForPatrol", this.Garbage.MinimumAmountForPatrol);
             Log.Debug(this, "LogSettings", "GarbageChecks", (byte)this.Garbage.ChecksPreset, this.Garbage.ChecksPreset, GetBuildingCheckOrderName(this.Garbage.ChecksPreset));
             Log.Debug(this, "LogSettings", "GarbageChecksParameters", String.Join(", ", this.Garbage.ChecksParameters.Select(bc => bc.ToString()).ToArray()));
-            if (this.Garbage.ChecksCustom != null)
-            {
-                Log.Debug(this, "LogSettings", "GarbageChecksCustom", String.Join(", ", this.Garbage.ChecksCustom.Select(bc => bc.ToString()).ToArray()));
-            }
+            Log.Debug(this, "LogSettings", "GarbageChecksCustom", this.Garbage.ChecksCustomString);
 
             Log.Debug(this, "LogSettings", "AutoEmptyLandfills", this.Garbage.AutoEmpty);
             Log.Debug(this, "LogSettings", "AutoEmptyLandfillStartLevelPercent", this.Garbage.AutoEmptyStartLevelPercent);
@@ -912,11 +967,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             public uint AutoEmptyStopLevelPercent = 5u;
 
             /// <summary>
-            /// The custom checks parameters.
-            /// </summary>
-            public ServiceDispatcherSettings.BuildingCheckParameters[] ChecksCustom = null;
-
-            /// <summary>
             /// The create spares option.
             /// </summary>
             public ServiceDispatcherSettings.SpareVehiclesCreation CreateSpares = ServiceDispatcherSettings.SpareVehiclesCreation.WhenBuildingIsCloser;
@@ -970,6 +1020,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             /// The checks preset settings value.
             /// </summary>
             private ServiceDispatcherSettings.BuildingCheckOrder checksPresetValue = ServiceDispatcherSettings.BuildingCheckOrder.InRange;
+
+            /// <summary>
+            /// The custom check parameters.
+            /// </summary>
+            private ServiceDispatcherSettings.BuildingCheckParameters[] customCheckParameters = Settings.DefaultCustomBuildingChecksParameters;
 
             /// <summary>
             /// The plural name for service buildings that can be emptied value.
@@ -1107,6 +1162,64 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             }
 
             /// <summary>
+            /// Gets or sets the custom checks parameters.
+            /// </summary>
+            /// <value>
+            /// The custom checks parameters.
+            /// </value>
+            public ServiceDispatcherSettings.BuildingCheckParameters[] ChecksCustom
+            {
+                get
+                {
+                    return this.customCheckParameters;
+                }
+                set
+                {
+                    if (value == null)
+                    {
+                        this.customCheckParameters = Settings.DefaultCustomBuildingChecksParameters;
+                    }
+                    else if (value.Length == 0)
+                    {
+                        this.customCheckParameters = Settings.DefaultCustomBuildingChecksParametersIfEmpty;
+                    }
+                    else
+                    {
+                        this.customCheckParameters = value.DistinctInOrder<ServiceDispatcherSettings.BuildingCheckParameters>().ToArray();
+                    }
+                }
+            }
+
+            /// <summary>
+            /// Gets or sets the custom checks parameters as a string.
+            /// </summary>
+            /// <value>
+            /// The custom checks parameters.
+            /// </value>
+            public string ChecksCustomString
+            {
+                get
+                {
+                    return ServiceDispatcherSettings.BuildingChecksPresetInfo.ToString(this.ChecksCustom);
+                }
+                set
+                {
+                    if (value == null)
+                    {
+                        this.ChecksCustom = null;
+                    }
+                    else if (value == String.Empty)
+                    {
+                        this.ChecksCustom = new ServiceDispatcherSettings.BuildingCheckParameters[] { };
+                    }
+                    else
+                    {
+                        this.ChecksCustom = ServiceDispatcherSettings.BuildingChecksPresetInfo.ToArray(value);
+                    }
+                }
+            }
+
+            /// <summary>
             /// Gets the building checks parameters.
             /// </summary>
             /// <value>
@@ -1117,6 +1230,20 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 get
                 {
                     return Settings.GetBuildingChecksParameters(this.checksPresetValue, this.ChecksCustom);
+                }
+            }
+
+            /// <summary>
+            /// Gets the building checks parameters as a string.
+            /// </summary>
+            /// <value>
+            /// The building checks parameters.
+            /// </value>
+            public string ChecksParametersString
+            {
+                get
+                {
+                    return ServiceDispatcherSettings.BuildingChecksPresetInfo.ToString(this.ChecksParameters);
                 }
             }
 
@@ -1136,11 +1263,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 set
                 {
                     this.checksPresetValue = value;
-
-                    if (value == ServiceDispatcherSettings.BuildingCheckOrder.Custom && (this.ChecksCustom == null || this.ChecksCustom.Length == 0))
-                    {
-                        this.ChecksCustom = Settings.GetBuildingChecksParameters(ServiceDispatcherSettings.BuildingCheckOrder.InRange);
-                    }
                 }
             }
 

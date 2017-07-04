@@ -948,6 +948,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         }
                     });
 
+                //UILabel currentStrategyInformationalText = null;
+
                 group.AddDropdown(
                     settings.VehicleNameSingular + " dispatch strategy",
                     this.targetBuildingChecks.OrderBy(bco => bco.Key).Select(bco => bco.Value).ToArray(),
@@ -996,6 +998,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                                         Global.Settings.Save();
                                     }
 
+                                    //if (currentStrategyInformationalText != null)
+                                    //{
+                                    //    currentStrategyInformationalText.text = settings.ChecksParametersString;
+                                    //}
+
                                     break;
                                 }
                             }
@@ -1008,34 +1015,31 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 if (Global.EnableExperiments)
                 {
-                    group.AddInformationalText(
-                        "Current dispatch strategy",
-                        ServiceDispatcherSettings.BuildingChecksPresetInfo.ToString(settings.ChecksParameters));
+                    //currentStrategyInformationalText = (UILabel)group.AddInformationalText(
+                    //    "Current dispatch strategy",
+                    //    settings.ChecksParametersString);
 
                     bool updatingCustomStrategy = false;
-                    group.AddTextfield(
+                    UITextField customStrategyTextField = null;
+                    customStrategyTextField = (UITextField)group.AddTextfield(
                         "Custom dispatch strategy",
-                        ServiceDispatcherSettings.BuildingChecksPresetInfo.ToString(settings.ChecksCustom),
-                        value =>
-                        {
-                        },
+                        settings.ChecksCustomString,
+                        value => {},
                         value =>
                         {
                             if (!updatingCustomStrategy)
                             {
-                                updatingCustomStrategy = true;
-
                                 try
                                 {
-                                    if (String.IsNullOrEmpty(value))
-                                    {
-                                        settings.ChecksCustom = new ServiceDispatcherSettings.BuildingCheckParameters[] { };
-                                    }
-                                    else
-                                    {
-                                        settings.ChecksCustom = ServiceDispatcherSettings.BuildingChecksPresetInfo.ToArray(value);
-                                        value = ServiceDispatcherSettings.BuildingChecksPresetInfo.ToString(settings.ChecksCustom);
-                                    }
+                                    updatingCustomStrategy = true;
+
+                                    settings.ChecksCustomString = value;
+                                    customStrategyTextField.text = settings.ChecksCustomString;
+
+                                    //if (currentStrategyInformationalText != null && settings.ChecksPreset == ServiceDispatcherSettings.BuildingCheckOrder.Custom)
+                                    //{
+                                    //    currentStrategyInformationalText.text = settings.ChecksParametersString;
+                                    //}
                                 }
                                 catch (Exception ex)
                                 {
@@ -1051,7 +1055,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 if (Global.EnableDevExperiments)
                 {
-                    UITextField textField = (UITextField)group.AddTextfield(
+                    UITextField ignoreRangeUseClosestBuildingsTextField = (UITextField)group.AddTextfield(
                         "Closest buildings to use when ignoring range",
                         settings.IgnoreRangeUseClosestBuildings == 0 ? "" : settings.IgnoreRangeUseClosestBuildings.ToString(),
                         value =>
@@ -1076,10 +1080,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                             }
                         });
 
-                    textField.numericalOnly = true;
-                    textField.allowFloats = false;
-                    textField.allowNegative = false;
-                    textField.maxLength = 2;
+                    ignoreRangeUseClosestBuildingsTextField.numericalOnly = true;
+                    ignoreRangeUseClosestBuildingsTextField.allowFloats = false;
+                    ignoreRangeUseClosestBuildingsTextField.allowNegative = false;
+                    ignoreRangeUseClosestBuildingsTextField.maxLength = 2;
                 }
 
                 if (settings.UseMinimumAmountForPatrol)
