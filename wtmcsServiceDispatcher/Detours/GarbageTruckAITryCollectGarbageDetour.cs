@@ -105,13 +105,13 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             if ((double)Vector3.SqrMagnitude(building.CalculateSidewalkPosition() - frameData.m_position) >= 1024.0)
                 return;
-            int amountDelta = Mathf.Min(0, (int)vehicleData.m_transferSize - garbageTruckAI.m_cargoCapacity);
+            int amountDelta = Math.Min(0, (int)vehicleData.m_transferSize - garbageTruckAI.m_cargoCapacity);
             if (amountDelta == 0)
                 return;
             building.Info.m_buildingAI.ModifyMaterialBuffer(buildingID, ref building, (TransferManager.TransferReason)vehicleData.m_transferType, ref amountDelta);
             if (amountDelta == 0)
                 return;
-            vehicleData.m_transferSize += (ushort)Mathf.Max(0, -amountDelta);
+            vehicleData.m_transferSize += (ushort)Math.Max(0, -amountDelta);
         }
 
         /// <summary>

@@ -125,25 +125,5 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             return text.ToString().ConformNewlines();
         }
-
-        /// <summary>
-        /// Returns distinct items in ucnhanged order.
-        /// </summary>
-        /// <typeparam name="T">The item type.</typeparam>
-        /// <param name="enumerable">The enumerable items.</param>
-        /// <returns>The distinct items.</returns>
-        public static IEnumerable<T> DistinctInOrder<T>(this IEnumerable<T> enumerable)
-        {
-            HashSet<T> seen = new HashSet<T>();
-
-            foreach (T item in enumerable)
-            {
-                if (!seen.Contains(item))
-                {
-                    seen.Add(item);
-                    yield return item;
-                }
-            }
-        }
     }
 }

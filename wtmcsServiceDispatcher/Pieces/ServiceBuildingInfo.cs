@@ -909,7 +909,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 float s, d;
 
                 // Check low accuracy distance.
-                d = Mathf.Min(x.CurrentTargetDistance / 100.0f, y.CurrentTargetDistance / 100.0f);
+                d = Math.Min(x.CurrentTargetDistance / 100.0f, y.CurrentTargetDistance / 100.0f);
                 s = (x.CurrentTargetDistance - y.CurrentTargetDistance) / 100.0f;
                 if (s < -d)
                 {

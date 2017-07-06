@@ -247,7 +247,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <returns>The number of problems for the building.</returns>
         public ushort GetServiceBuildingProblemCount(ushort serviceBuildingId)
         {
-            return (ushort)(this.ProblemSizes.Where(sz => GetServiceBuildingFromBuildingKey(sz.Key) == serviceBuildingId).Count());
+            return (ushort)(this.ProblemSizes.Count(sz => GetServiceBuildingFromBuildingKey(sz.Key) == serviceBuildingId));
         }
 
         /// <summary>

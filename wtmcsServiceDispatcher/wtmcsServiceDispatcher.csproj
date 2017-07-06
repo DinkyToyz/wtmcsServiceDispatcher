@@ -120,6 +120,7 @@
     <Compile Include="Pieces\IBuildingInfo.cs" />
     <Compile Include="Pieces\Library.cs" />
     <Compile Include="API\LoadingExtension.cs" />
+    <Compile Include="Util\LinqExtensions.cs" />
     <Compile Include="Util\Log.cs" />
     <Compile Include="Detouring\MethodDetoursBase.cs" />
     <Compile Include="API\Mod.cs" />
