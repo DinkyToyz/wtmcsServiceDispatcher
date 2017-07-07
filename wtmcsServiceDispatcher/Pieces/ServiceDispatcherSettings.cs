@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Xml.Serialization;
 
 namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 {
@@ -11,7 +12,15 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
     public class ServiceDispatcherSettings
     {
         /// <summary>
-        /// The default assignment compatibility mode.
+        /// Gets the XML root.
+        /// </summary>
+        /// <value>
+        /// The XML root.
+        /// </value>
+        public static XmlRootAttribute XmlRoot => new XmlRootAttribute("ServiceDispatcherSettings");
+
+        /// <summary>
+        /// The default assignment compatibility mode. 
         /// </summary>
         [NonSerialized]
         public const ServiceDispatcherSettings.ModCompatibilityMode DefaultAssignmentCompatibilityMode = ServiceDispatcherSettings.ModCompatibilityMode.UseInstanciatedClassMethods;
@@ -186,6 +195,21 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// The dirty building checks presets.
         /// </summary>
         public BuildingCheckOrder GarbageChecksPreset = BuildingCheckOrder.InRange;
+
+        /// <summary>
+        /// Limit too the closest service buildings when igoring range for hearses.
+        /// </summary>
+        public byte IgnoreRangeUseClosestDeathCareBuilding = 0;
+
+        /// <summary>
+        /// Limit too the closest service buildings when igoring range fro garbage trucks.
+        /// </summary>
+        public byte IgnoreRangeUseClosestGarbageBuilding = 0;
+
+        /// <summary>
+        /// Limit too the closest service buildings when igoring range ambulances.
+        /// </summary>
+        public byte IgnoreRangeUseClosestHealthCareBuilding = 0;
 
         /// <summary>
         /// Limit opportunistic garbage collection.

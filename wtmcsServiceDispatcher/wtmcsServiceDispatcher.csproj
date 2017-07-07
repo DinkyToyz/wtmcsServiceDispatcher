@@ -111,6 +111,7 @@
     <Compile Include="Pieces\ServiceProblemKeeper.cs" />
     <Compile Include="Pieces\ServiceDispatcherSettings.cs" />
     <Compile Include="Pieces\StuckVehicleInfo.cs" />
+    <Compile Include="SerializableSettings\Version0.cs" />
     <Compile Include="UI\ExtendedSlider.cs" />
     <Compile Include="Util\Extensions.cs" />
     <Compile Include="Util\FileSystem.cs" />

@@ -662,6 +662,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     fileName = FilePathName;
                 }
 
+                if (Global.EnableDevExperiments)
+                {
+                    SerializableSettings.Version0.Save(fileName + ".Version0.xml", this);
+                }
+
                 string filePath = Path.GetDirectoryName(Path.GetFullPath(fileName));
                 if (!Directory.Exists(filePath))
                 {
