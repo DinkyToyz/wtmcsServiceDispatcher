@@ -89,7 +89,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             // Forget stuck vehicles that are no longer the dispatcher's responcibility.
             if (this.StuckVehicles != null && !Global.Settings.RecoveryCrews.DispatchVehicles)
             {
-                ushort[] vehicleIds = this.StuckVehicles.Where(kvp => !kvp.Value.DispatchersResponsibility).Select(kvp => kvp.Key).ToArray();
+                ushort[] vehicleIds = this.StuckVehicles.WhereSelect(kvp => !kvp.Value.DispatchersResponsibility, kvp => kvp.Key).ToArray();
 
                 for (int i = 0; i < vehicleIds.Length; i++)
                 {

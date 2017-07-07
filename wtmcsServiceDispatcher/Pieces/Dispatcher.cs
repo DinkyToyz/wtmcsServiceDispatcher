@@ -483,8 +483,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                                         .Union(
                                             checkBuildings
                                                 .Where(sb => !sb.CurrentTargetInRange)
-                                                .OrderBy(sb => sb.CurrentTargetDistance)
-                                                .Take(this.serviceSettings.IgnoreRangeUseClosestBuildings)).ToArray();
+                                                .OrderByTake(sb => sb.CurrentTargetDistance, this.serviceSettings.IgnoreRangeUseClosestBuildings)).ToArray();
 
                     if (Log.LogALot && Log.LogToFile)
                     {
@@ -1096,7 +1095,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 ////}
 
                 // Remove old vehicles.
-                KeyValuePair<ushort, ushort>[] removeVehicles = serviceBuilding.Vehicles.Values.Where(v => v.LastSeen != Global.CurrentFrame).Select(v => new KeyValuePair<ushort, ushort>(v.VehicleId, v.Target)).ToArray();
+                KeyValuePair<ushort, ushort>[] removeVehicles = serviceBuilding.Vehicles.Values.WhereSelect(v => v.LastSeen != Global.CurrentFrame, v => new KeyValuePair<ushort, ushort>(v.VehicleId, v.Target)).ToArray();
                 foreach (KeyValuePair<ushort, ushort> vehicle in removeVehicles)
                 {
                     if (vehicles[vehicle.Key].Info == null ||
@@ -1139,7 +1138,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             }
 
             // Remove old target assigments.
-            ushort[] removeTargets = this.assignedTargets.Where(at => at.Value != Global.CurrentFrame).Select(at => at.Key).ToArray();
+            ushort[] removeTargets = this.assignedTargets.WhereSelect(at => at.Value != Global.CurrentFrame, at => at.Key).ToArray();
             foreach (ushort id in removeTargets)
             {
                 if (Log.LogALot)
@@ -1403,7 +1402,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             /// </returns>
             public static BuldingCheckParameters[] GetBuldingCheckParametersWithPatrol(ServiceDispatcherSettings.BuildingCheckParameters[] buildingCheckParameters)
             {
-                List<BuldingCheckParameters> parameters = buildingCheckParameters.Select(bcp => new BuldingCheckParameters(bcp)).ToList();
+                IList<BuldingCheckParameters> parameters = buildingCheckParameters.SelectToList(bcp => new BuldingCheckParameters(bcp));
                 parameters.Add(new BuldingCheckParameters(false, true, false, 0, false));
 
                 return parameters.ToArray();

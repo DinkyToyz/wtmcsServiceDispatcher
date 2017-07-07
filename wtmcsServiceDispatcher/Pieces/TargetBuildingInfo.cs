@@ -362,7 +362,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             get
             {
-                return (this.citizens == null) ? null : this.citizens.Values.Where(c => c.VehicleId == 0).OrderBy(c => c.ProblemSize).Last();
+                return (this.citizens == null) ? null : this.citizens.Values.Where(c => c.VehicleId == 0).OrderByLastOrDefault(c => c.ProblemSize);
             }
         }
 
