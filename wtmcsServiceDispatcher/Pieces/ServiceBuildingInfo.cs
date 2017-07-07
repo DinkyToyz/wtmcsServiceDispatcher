@@ -230,7 +230,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <value>
         /// The capacity level.
         /// </value>
-        public float CapacityPercent
+        public uint CapacityPercent
         {
             get;
             private set;
@@ -705,7 +705,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 if ((building.m_flags & Building.Flags.CapacityFull) == Building.Flags.CapacityFull)
                 {
                     this.CapacityFree = 0;
-                    this.CapacityPercent = 100.0f;
+                    this.CapacityPercent = 100;
                 }
                 else
                 {
@@ -713,11 +713,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                     if (max == 0)
                     {
-                        this.CapacityPercent = 0.0f;
+                        this.CapacityPercent = 0;
                     }
                     else
                     {
-                        this.CapacityPercent = ((float)amount / (float)max) * 100.0f;
+                        this.CapacityPercent = (uint)Math.Truncate(((float)amount / (float)max) * 100);
                     }
                 }
 
@@ -727,11 +727,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 this.NeedsEmptying = this.serviceSettings.AutoEmpty && !this.IsEmptying &&
                                      ((building.m_flags & Building.Flags.CapacityFull) == Building.Flags.CapacityFull ||
-                                      this.CapacityPercent >= (float)this.serviceSettings.AutoEmptyStartLevelPercent);
+                                      this.CapacityPercent >= this.serviceSettings.AutoEmptyStartLevelPercent);
 
                 this.EmptyingIsDone = this.IsAutoEmptying &&
                                       ((building.m_flags & Building.Flags.CapacityFull) != Building.Flags.CapacityFull &&
-                                      this.CapacityPercent <= (float)this.serviceSettings.AutoEmptyStopLevelPercent);
+                                      this.CapacityPercent <= this.serviceSettings.AutoEmptyStopLevelPercent);
 
                 this.CanEmptyOther = this.serviceSettings.AutoEmpty && !this.CanBeEmptied &&
                                      (building.m_flags & Building.Flags.Active) != Building.Flags.None && building.m_productionRate > 0;
