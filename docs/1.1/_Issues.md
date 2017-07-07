@@ -1,6 +1,6 @@
 There are a few known issues, but those issues has been seen both with and without this mod, and seems to be related to things that should not be affected by this mod.
 
-*Some problems caused by road planning, the original game or other mods may become or appear worse with this mod because the dispatcher will keep will keep assigning vehicles to the same targets more often than the original game.*
+*Some problems caused by road planning, the original game or other mods may become or appear worse with this mod because the dispatcher sometimes keeps assigning vehicles to the same targets more often than the original game.*
 
 - **Service vehicles despawn**
   When service vehicles can't find a path to their target they will sometimes despawn.

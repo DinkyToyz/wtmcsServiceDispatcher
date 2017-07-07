@@ -7,4 +7,4 @@
 - **Stop emptying at %**:
   Stop emptying the facility when less than this amount of space is used.
 
-The dispatcher does not control how the facilities vehicles are used when emptying, nor to which it empties.
+The dispatcher does not control how the facilitie's vehicles are used when emptying, nor to which it empties.

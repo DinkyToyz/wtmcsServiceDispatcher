@@ -26,11 +26,11 @@ Not all service buildings are willing to dispatch to all buildings, and there ar
 ### Invisible Services
 
 When something needs to be done by the invisible services (such as bulldozing), the dispatcher will simply make it happen.
-{% if false %}
+
 ### Emptying
 
 When a service building is full, the dipatcher can order its vehicles to start emptying, and to keep emptying until it has as much spaces as specified.
-{% endif %}
+
 ## Configuration
 
 Which services should be dispatched by Central Services can be configured, as can the dispatch strategy, in the mod options in the content manager, or a configuration file.If no services are set to be dispatch by the mod, it should not affect the game.

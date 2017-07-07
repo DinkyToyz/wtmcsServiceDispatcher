@@ -20,6 +20,10 @@ sort_order: 540
   - *Always*:
     Allow code overrides even if the game version is higher than the mods coded margin.
 
+- **Restrict transfer manager**:
+  If this option is enabled, the game's built-in manager will not see requests or offers related to services handled by the mod's dispatcher.
+  The transfer manager is used for a lot more than services (goods and resources, people going around, etc), so if you have problem with a mod that alters how anything is moved around there is a possibility that you need to disable this.
+
 ## Compatibility Modes {#CompatibilityModes}
 
 These modes decides how the mod tells the game to do certain things, and affects compatibility with other mods.

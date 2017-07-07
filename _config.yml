@@ -48,6 +48,8 @@ gems:
 exclude:
   - serve.cmd
   - build.cmd
+  - archive.cmd
+  - 'Browse local site.url'
   - .sass-cache
   - Gemfile
   - Gemfile.lock

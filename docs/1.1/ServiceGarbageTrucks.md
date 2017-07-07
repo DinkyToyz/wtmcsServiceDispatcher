@@ -26,10 +26,9 @@ These options are only available for garbage trucks.
 These options works the same as for other service vehicles.
 
 {% capture StandardServices %}{% include_relative _OptionsStandardServices.md vehicle="Garbage truck" vehicles="garbage trucks" %}{% endcapture %}{{ StandardServices | markdownify }}
-{% if false %}
+
 ## Landfill Options
 
 These options controls if/when the dispatcher orders emptying of landfills.
 
 {% capture StandardServices %}{% include_relative _OptionsEmptyableServices.md storagefacility="landfill" storagefacilities="landfills" %}{% endcapture %}{{ StandardServices | markdownify }}
-{% endif %}
