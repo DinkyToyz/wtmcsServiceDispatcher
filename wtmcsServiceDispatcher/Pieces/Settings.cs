@@ -218,6 +218,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 this.DeathCare.RemoveFromGrid = settings.RemoveHearsesFromGrid;
                 this.DeathCare.ChecksCustom = settings.DeathChecksCustom;
                 this.DeathCare.ChecksPreset = settings.DeathChecksPreset;
+                this.DeathCare.IgnoreRangeUseClosestBuildings = settings.IgnoreRangeUseClosestDeathCareBuilding;
                 this.DeathCare.AutoEmpty = settings.AutoEmptyCemeteries;
                 this.DeathCare.AutoEmptyStartLevelPercent = settings.AutoEmptyCemeteryStartLevelPercent;
                 this.DeathCare.AutoEmptyStopLevelPercent = settings.AutoEmptyCemeteryStopLevelPercent;
@@ -229,6 +230,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 this.HealthCare.RemoveFromGrid = settings.RemoveAmbulancesFromGrid;
                 this.HealthCare.ChecksCustom = settings.SickChecksCustom;
                 this.HealthCare.ChecksPreset = settings.SickChecksPreset;
+                this.HealthCare.IgnoreRangeUseClosestBuildings = settings.IgnoreRangeUseClosestHealthCareBuilding;
 
                 this.Garbage.DispatchVehicles = settings.DispatchGarbageTrucks;
                 this.Garbage.DispatchByDistrict = settings.DispatchGarbageTrucksByDistrict;
@@ -239,6 +241,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 this.Garbage.MinimumAmountForPatrol = settings.MinimumGarbageForPatrol;
                 this.Garbage.ChecksCustom = settings.GarbageChecksCustom;
                 this.Garbage.ChecksPreset = settings.GarbageChecksPreset;
+                this.Garbage.IgnoreRangeUseClosestBuildings = settings.IgnoreRangeUseClosestGarbageBuilding;
                 this.Garbage.AutoEmpty = settings.AutoEmptyLandfills;
                 this.Garbage.AutoEmptyStartLevelPercent = settings.AutoEmptyLandfillStartLevelPercent;
                 this.Garbage.AutoEmptyStopLevelPercent = settings.AutoEmptyLandfillStopLevelPercent;
@@ -618,42 +621,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             Log.Debug(this, "LogSettings", "AssignmentCompatibilityMode", this.AssignmentCompatibilityMode);
             Log.Debug(this, "LogSettings", "CreationCompatibilityMode", this.CreationCompatibilityMode);
 
-            Log.Debug(this, "LogSettings", "DispatchHearses", this.DeathCare.DispatchVehicles);
-            Log.Debug(this, "LogSettings", "DispatchHearsesByDistrict", this.DeathCare.DispatchByDistrict);
-            Log.Debug(this, "LogSettings", "DispatchHearsesByRange", this.DeathCare.DispatchByRange);
-            Log.Debug(this, "LogSettings", "RemoveHearsesFromGrid", this.DeathCare.RemoveFromGrid);
-            Log.Debug(this, "LogSettings", "CreateSpareHearses", this.DeathCare.CreateSpares);
-            Log.Debug(this, "LogSettings", "DeathChecks", (byte)this.DeathCare.ChecksPreset, this.DeathCare.ChecksPreset, GetBuildingCheckOrderName(this.DeathCare.ChecksPreset));
-            Log.Debug(this, "LogSettings", "DeathChecksParameters", String.Join(", ", this.DeathCare.ChecksParameters.Select(bc => bc.ToString()).ToArray()));
-            Log.Debug(this, "LogSettings", "DeathChecksCustom", this.DeathCare.ChecksCustomString);
+            this.DeathCare.LogSettings();
+            this.Garbage.LogSettings();
+            this.HealthCare.LogSettings();
 
-            Log.Debug(this, "LogSettings", "AutoEmptyCemeteries", this.DeathCare.AutoEmpty);
-            Log.Debug(this, "LogSettings", "AutoEmptyCemeteryStartLevelPercent", this.DeathCare.AutoEmptyStartLevelPercent);
-            Log.Debug(this, "LogSettings", "AutoEmptyCemeteryStopLevelPercent", this.DeathCare.AutoEmptyStopLevelPercent);
-
-            Log.Debug(this, "LogSettings", "DispatchAmbulances", this.HealthCare.DispatchVehicles);
-            Log.Debug(this, "LogSettings", "DispatchAmbulancesByDistrict", this.HealthCare.DispatchByDistrict);
-            Log.Debug(this, "LogSettings", "DispatchAmbulancesByRange", this.HealthCare.DispatchByRange);
-            Log.Debug(this, "LogSettings", "RemoveAmbulancesFromGrid", this.HealthCare.RemoveFromGrid);
-            Log.Debug(this, "LogSettings", "CreateSpareAmbulances", this.HealthCare.CreateSpares);
-            Log.Debug(this, "LogSettings", "SickChecks", (byte)this.HealthCare.ChecksPreset, this.HealthCare.ChecksPreset, GetBuildingCheckOrderName(this.HealthCare.ChecksPreset));
-            Log.Debug(this, "LogSettings", "SickChecksParameters", String.Join(", ", this.HealthCare.ChecksParameters.Select(bc => bc.ToString()).ToArray()));
-            Log.Debug(this, "LogSettings", "SickChecksCustom", this.HealthCare.ChecksCustomString);
-
-            Log.Debug(this, "LogSettings", "DispatchGarbageTrucks", this.Garbage.DispatchVehicles);
-            Log.Debug(this, "LogSettings", "DispatchGarbageTrucksByDistrict", this.Garbage.DispatchByDistrict);
-            Log.Debug(this, "LogSettings", "DispatchGarbageTrucksByRange", this.Garbage.DispatchByRange);
-            Log.Debug(this, "LogSettings", "LimitOportunisticGarbageCollection", this.Garbage.LimitOpportunisticCollection);
-            Log.Debug(this, "LogSettings", "CreateSpareGarbageTrucks", this.Garbage.CreateSpares);
-            Log.Debug(this, "LogSettings", "MinimumGarbageForDispatch", this.Garbage.MinimumAmountForDispatch);
-            Log.Debug(this, "LogSettings", "MinimumGarbageForPatrol", this.Garbage.MinimumAmountForPatrol);
-            Log.Debug(this, "LogSettings", "GarbageChecks", (byte)this.Garbage.ChecksPreset, this.Garbage.ChecksPreset, GetBuildingCheckOrderName(this.Garbage.ChecksPreset));
-            Log.Debug(this, "LogSettings", "GarbageChecksParameters", String.Join(", ", this.Garbage.ChecksParameters.Select(bc => bc.ToString()).ToArray()));
-            Log.Debug(this, "LogSettings", "GarbageChecksCustom", this.Garbage.ChecksCustomString);
-
-            Log.Debug(this, "LogSettings", "AutoEmptyLandfills", this.Garbage.AutoEmpty);
-            Log.Debug(this, "LogSettings", "AutoEmptyLandfillStartLevelPercent", this.Garbage.AutoEmptyStartLevelPercent);
-            Log.Debug(this, "LogSettings", "AutoEmptyLandfillStopLevelPercent", this.Garbage.AutoEmptyStopLevelPercent);
+            this.RecoveryCrews.LogSettings();
+            this.WreckingCrews.LogSettings();
 
             Log.Debug(this, "LogSettings", this.Version, this.LoadedVersion, this.SaveCount);
         }
@@ -721,6 +694,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     cfg.DeathChecksPreset = this.DeathCare.ChecksPreset;
                     cfg.DeathChecksCustom = this.DeathCare.ChecksCustom;
                     cfg.DeathChecksCurrent = this.DeathCare.ChecksParameters;
+                    cfg.IgnoreRangeUseClosestDeathCareBuilding = this.DeathCare.IgnoreRangeUseClosestBuildings;
                     cfg.AutoEmptyCemeteries = this.DeathCare.AutoEmpty;
                     cfg.AutoEmptyCemeteryStartLevelPercent = this.DeathCare.AutoEmptyStartLevelPercent;
                     cfg.AutoEmptyCemeteryStopLevelPercent = this.DeathCare.AutoEmptyStopLevelPercent;
@@ -733,6 +707,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     cfg.SickChecksPreset = this.HealthCare.ChecksPreset;
                     cfg.SickChecksCustom = this.HealthCare.ChecksCustom;
                     cfg.SickChecksCurrent = this.HealthCare.ChecksParameters;
+                    cfg.IgnoreRangeUseClosestHealthCareBuilding = this.HealthCare.IgnoreRangeUseClosestBuildings;
 
                     cfg.DispatchGarbageTrucks = this.Garbage.DispatchVehicles;
                     cfg.DispatchGarbageTrucksByDistrict = this.Garbage.DispatchByDistrict;
@@ -744,6 +719,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     cfg.GarbageChecksPreset = this.Garbage.ChecksPreset;
                     cfg.GarbageChecksCustom = this.Garbage.ChecksCustom;
                     cfg.GarbageChecksCurrent = this.Garbage.ChecksParameters;
+                    cfg.IgnoreRangeUseClosestGarbageBuilding = this.Garbage.IgnoreRangeUseClosestBuildings;
                     cfg.AutoEmptyLandfills = this.Garbage.AutoEmpty;
                     cfg.AutoEmptyLandfillStartLevelPercent = this.Garbage.AutoEmptyStartLevelPercent;
                     cfg.AutoEmptyLandfillStopLevelPercent = this.Garbage.AutoEmptyStopLevelPercent;
@@ -852,6 +828,17 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     this.DelaySeconds = (value < 0.0) ? 0.0 : value * 60.0;
                 }
             }
+
+            /// <summary>
+            /// Logs the settings.
+            /// </summary>
+            public override void LogSettings()
+            {
+                base.LogSettings();
+
+                Log.Debug(this, "LogSettings", this.VehicleNamePlural, "DelayMinutes", this.DelayMinutes);
+                Log.Debug(this, "LogSettings", this.VehicleNamePlural, "DelaySeconds", this.DelaySeconds);
+            }
         }
 
         /// <summary>
@@ -872,7 +859,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             /// <summary>
             /// The singular vehicle name value.
             /// </summary>
-            private string vehicleNameSingularValue;
+            private string vehicleNameSingularValue = null;
 
             /// <summary>
             /// Gets or sets the plural vehicle name.
@@ -948,6 +935,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         throw new InvalidOperationException("Write-once property modification");
                     }
                 }
+            }
+
+            /// <summary>
+            /// Logs the settings.
+            /// </summary>
+            public virtual void LogSettings()
+            {
+                Log.Debug(this, "LogSettings", this.VehicleNamePlural, "DispatchVehicles", this.DispatchVehicles);
             }
         }
 
@@ -1210,7 +1205,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     }
                     else if (value == String.Empty)
                     {
-                        this.ChecksCustom = new ServiceDispatcherSettings.BuildingCheckParameters[] { };
+                        this.ChecksCustom = new ServiceDispatcherSettings.BuildingCheckParameters[0];
                     }
                     else
                     {
@@ -1460,6 +1455,50 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     {
                         throw new InvalidOperationException("Write-once property modification");
                     }
+                }
+            }
+
+            /// <summary>
+            /// Logs the settings.
+            /// </summary>
+            public override void LogSettings()
+            {
+                base.LogSettings();
+
+                Log.Debug(this, "LogSettings", this.VehicleNamePlural, this.MaterialName, "DispatchByDistrict", this.DispatchByDistrict);
+                Log.Debug(this, "LogSettings", this.VehicleNamePlural, this.MaterialName, "DispatchByRange", this.DispatchByRange);
+                Log.Debug(this, "LogSettings", this.VehicleNamePlural, this.MaterialName, "CreateSpares", this.CreateSpares);
+                Log.Debug(this, "LogSettings", this.VehicleNamePlural, this.MaterialName, "ChecksPreset", (byte)this.ChecksPreset, this.ChecksPreset, GetBuildingCheckOrderName(this.ChecksPreset));
+                Log.Debug(this, "LogSettings", this.VehicleNamePlural, this.MaterialName, "ChecksParameters", String.Join(", ", this.ChecksParameters.Select(bc => bc.ToString()).ToArray()));
+                Log.Debug(this, "LogSettings", this.VehicleNamePlural, this.MaterialName, "ChecksCustom", this.ChecksCustomString);
+                Log.Debug(this, "LogSettings", this.VehicleNamePlural, this.MaterialName, "IgnoreRangeUseClosestBuildings", this.IgnoreRangeUseClosestBuildings);
+                Log.Debug(this, "LogSettings", this.VehicleNamePlural, this.MaterialName, "Patrol", this.Patrol);
+
+                if (this.CanRemoveFromGrid)
+                {
+                    Log.Debug(this, "LogSettings", this.VehicleNamePlural, this.MaterialName, "RemoveFromGrid", this.RemoveFromGrid);
+                }
+
+                if (this.CanLimitOpportunisticCollection)
+                {
+                    Log.Debug(this, "LogSettings", this.VehicleNamePlural, this.MaterialName, "LimitOportunisticCollection", this.LimitOpportunisticCollection);
+                }
+
+                if (this.UseMinimumAmountForDispatch)
+                {
+                    Log.Debug(this, "LogSettings", this.VehicleNamePlural, this.MaterialName, "MinimumAmountForDispatch", this.MinimumAmountForDispatch);
+                }
+
+                if (this.UseMinimumAmountForPatrol)
+                {
+                    Log.Debug(this, "LogSettings", this.VehicleNamePlural, this.MaterialName, "MinimumAmountForPatrol", this.MinimumAmountForPatrol);
+                }
+
+                if (this.CanAutoEmpty)
+                {
+                    Log.Debug(this, "LogSettings", this.VehicleNamePlural, this.MaterialName, "AutoEmpty", this.AutoEmpty);
+                    Log.Debug(this, "LogSettings", this.VehicleNamePlural, this.MaterialName, "AutoEmptyStartLevelPercent", this.AutoEmptyStartLevelPercent);
+                    Log.Debug(this, "LogSettings", this.VehicleNamePlural, this.MaterialName, "AutoEmptyStopLevelPercent", this.AutoEmptyStopLevelPercent);
                 }
             }
         }

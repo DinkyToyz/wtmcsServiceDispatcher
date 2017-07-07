@@ -1019,6 +1019,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     //    "Current dispatch strategy",
                     //    settings.ChecksParametersString);
 
+                    group.AddInformationalText("Note", "The custom dispatch strategy setting is a bit experimental.");
+
                     bool updatingCustomStrategy = false;
                     UITextField customStrategyTextField = null;
                     customStrategyTextField = (UITextField)group.AddTextfield(
@@ -1051,6 +1053,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                                 }
                             }
                         });
+
+                    customStrategyTextField.width = customStrategyTextField.width * 2;
                 }
 
                 if (Global.EnableDevExperiments)

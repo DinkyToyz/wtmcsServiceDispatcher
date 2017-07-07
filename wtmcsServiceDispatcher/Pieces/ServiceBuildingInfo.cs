@@ -875,6 +875,16 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     return (c < 0) ? -1 : 1;
                 }
 
+                // Check range.
+                if (x.CurrentTargetInRange && !y.CurrentTargetInRange)
+                {
+                    return -1;
+                }
+                else if (y.CurrentTargetInRange && !x.CurrentTargetInRange)
+                {
+                    return 1;
+                }
+
                 // Check district.
                 if (x.CurrentTargetInDistrict && !y.CurrentTargetInDistrict)
                 {
