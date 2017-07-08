@@ -546,27 +546,19 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     long weight = this.ProblemValue - this.ServiceProblemMagnitude;
                     this.ProblemWeight = (int)Math.Max(Math.Min(weight, int.MaxValue), 0L);
 
-                    if (Log.LogALot && Log.LogToFile)
-                    {
-                        ServiceProblemKeeper.DevLog("TargetBuildingProblemWeighting",
-                            Log.Data("TargetBuilding", this.BuildingId, BuildingHelper.GetBuildingName(this.BuildingId)),
-                            Log.Data("BuildingProblem", this.serviceProblemCountValue, this.serviceProblemSizeValue),
-                            Log.Data("Modifier", multiplier, this.ServiceProblemMagnitude, weight),
-                            Log.Data("Weight", this.ProblemValue, this.ProblemWeight, this.ProblemWeight - this.ProblemValue));
-                    }
+                    //if (Log.LogALot)
+                    //{
+                    //    ServiceProblemKeeper.DevLog("TargetBuildingProblemWeighting",
+                    //        Log.Data("TargetBuilding", this.BuildingId, BuildingHelper.GetBuildingName(this.BuildingId)),
+                    //        Log.Data("BuildingProblem", this.serviceProblemCountValue, this.serviceProblemSizeValue),
+                    //        Log.Data("Modifier", multiplier, this.ServiceProblemMagnitude, weight),
+                    //        Log.Data("Weight", this.ProblemValue, this.ProblemWeight, this.ProblemWeight - this.ProblemValue));
+                    //}
                 }
                 else
                 {
                     this.ServiceProblemMagnitude = 0;
                     this.ProblemWeight = this.ProblemValue;
-
-                    ////if (Log.LogALot && Log.LogToFile && Global.EnableDevExperiments)
-                    ////{
-                    ////    ServiceProblemKeeper.DevLog("TargetBuildingProblemWeighting",
-                    ////        Log.Data("TargetBuilding", this.BuildingId, BuildingHelper.GetBuildingName(this.BuildingId)),
-                    ////        Log.Data("BuildingProblem", this.ServiceProblemCount, this.ServiceProblemSize),
-                    ////        Log.Data("Weight", this.ProblemValue, this.ProblemWeight, 0));
-                    ////}
                 }
             }
 

@@ -252,11 +252,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                                 {
                                     if (compatibilityMode != Global.Settings.AssignmentCompatibilityMode)
                                     {
-                                        if (Log.LogALot || Library.IsDebugBuild)
-                                        {
-                                            Log.Debug(this, "CreateCompatibilityGroup", "Set", "AssigmentCompatibilityMode", value);
-                                        }
-
                                         Global.Settings.AssignmentCompatibilityMode = compatibilityMode;
                                         Global.Settings.Save();
                                     }
@@ -285,11 +280,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                                 {
                                     if (compatibilityMode != Global.Settings.CreationCompatibilityMode)
                                     {
-                                        if (Log.LogALot || Library.IsDebugBuild)
-                                        {
-                                            Log.Debug(this, "CreateCompatibilityGroup", "Set", "CreationCompatibilityMode", value);
-                                        }
-
                                         Global.Settings.CreationCompatibilityMode = compatibilityMode;
                                         Global.Settings.Save();
                                     }
@@ -318,11 +308,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                                     {
                                         if (allowance != Global.Settings.ReflectionAllowance)
                                         {
-                                            if (Log.LogALot || Library.IsDebugBuild)
-                                            {
-                                                Log.Debug(this, "CreateCompatibilityGroup", "Set", "ReflectionAllowance", value);
-                                            }
-
                                             Global.Settings.ReflectionAllowance = allowance;
                                             Global.ReInitializeHandlers();
                                             Global.Settings.Save();
@@ -906,22 +891,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     {
                         try
                         {
-                            if (Log.LogALot || Library.IsDebugBuild)
-                            {
-                                Log.Debug(this, "CreateServiceGroup", "Set", settings.VehicleNamePlural, "CreateSpares", value);
-                            }
-
                             foreach (ServiceDispatcherSettings.SpareVehiclesCreation option in Enum.GetValues(typeof(ServiceDispatcherSettings.SpareVehiclesCreation)))
                             {
                                 if ((byte)option == value)
                                 {
                                     if (settings.CreateSpares != option)
                                     {
-                                        if (Log.LogALot || Library.IsDebugBuild)
-                                        {
-                                            Log.Debug(this, "CreateServiceGroup", "Set", settings.VehicleNamePlural, "CreateSpares", value, option);
-                                        }
-
                                         settings.CreateSpares = option;
 
                                         if (dispatcher != null)
@@ -957,22 +932,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     {
                         try
                         {
-                            if (Log.LogALot || Library.IsDebugBuild)
-                            {
-                                Log.Debug(this, "CreateServiceGroup", "Set", settings.VehicleNamePlural, "ChecksPreset", value);
-                            }
-
                             foreach (ServiceDispatcherSettings.BuildingCheckOrder checks in Enum.GetValues(typeof(ServiceDispatcherSettings.BuildingCheckOrder)))
                             {
                                 if ((byte)checks == value)
                                 {
                                     if (settings.ChecksPreset != checks)
                                     {
-                                        if (Log.LogALot || Library.IsDebugBuild)
-                                        {
-                                            Log.Debug(this, "CreateServiceGroup", "Set", settings.VehicleNamePlural, "ChecksPreset", value, checks);
-                                        }
-
                                         try
                                         {
                                             settings.ChecksPreset = checks;
@@ -1229,11 +1194,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 this.targetBuildingChecks = new Dictionary<byte, string>();
                 foreach (ServiceDispatcherSettings.BuildingCheckOrder checks in Enum.GetValues(typeof(ServiceDispatcherSettings.BuildingCheckOrder)))
                 {
-                    if (Log.LogALot || Library.IsDebugBuild)
-                    {
-                        Log.Debug(this, "OnSettingsUI", "Init", "BuildingCheckOrder", (byte)checks, checks, Settings.GetBuildingCheckOrderName(checks));
-                    }
-
                     this.targetBuildingChecks.Add((byte)checks, Settings.GetBuildingCheckOrderName(checks));
                 }
             }

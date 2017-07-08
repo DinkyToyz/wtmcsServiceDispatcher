@@ -656,7 +656,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             {
                 this.CurrentTargetServiceProblemSize = Global.ServiceProblems.GetProblemSize(this.BuildingId, building.BuildingId);
 
-                if (Log.LogALot && Log.LogToFile && this.CurrentTargetServiceProblemSize > 0)
+                if (Log.LogALot && this.CurrentTargetServiceProblemSize > 0)
                 {
                     ServiceProblemKeeper.DevLog("SetServiceBuildingCurrentTargetInfo",
                             Log.Data("ServiceBuilding", this.BuildingId, BuildingHelper.GetBuildingName(this.BuildingId)),
@@ -767,11 +767,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             {
                 this.CapacityLevel = CapacityLevels.High;
             }
-
-            ////if (Log.LogALot && !this.CanReceive)
-            ////{
-            ////    Log.DevDebug(this, "Update", this.dispatcherType, this.BuildingId, this.BuildingName, building.m_flags, building.m_problems, this.CapacityFree, building.Info.m_buildingAI.IsFull(this.BuildingId, ref building));
-            ////}
         }
 
         /// <summary>

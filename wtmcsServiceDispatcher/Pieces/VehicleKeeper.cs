@@ -93,11 +93,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 for (int i = 0; i < vehicleIds.Length; i++)
                 {
-                    ////if (Log.LogALot && Log.LogToFile)
-                    ////{
-                    ////    Log.DevDebug(this, "HandleVehicles", "StuckVehicles", "Irresponsible", id);
-                    ////}
-
                     this.StuckVehicles.Remove(vehicleIds[i]);
                 }
             }
@@ -138,7 +133,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 {
                     uint length = (uint)Singleton<VehicleManager>.instance.m_vehicles.m_buffer.Length;
                     this.bucketFactor = length / (this.bucketMask + 1);
-                    Log.Debug(this, "Update", "bucketFactor", length, this.bucketMask, this.bucketFactor);
+                    //Log.DevDebug(this, "Update", "bucketFactor", length, this.bucketMask, this.bucketFactor);
 
                     this.bucketeer = new Bucketeer(this.bucketMask, this.bucketFactor);
                     this.bucket = this.bucketeer.GetEnd();
@@ -178,10 +173,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                     if (this.StuckVehicles != null && this.StuckVehicles.ContainsKey(id))
                     {
-                        if (Log.LogALot && Log.LogToFile)
-                        {
-                            Log.DevDebug(this, "HandleVehicles", "StuckVehicles", "Gone", id);
-                        }
+                        //if (Log.LogALot)
+                        //{
+                        //    Log.DevDebug(this, "HandleVehicles", "StuckVehicles", "Gone", id);
+                        //}
 
                         this.StuckVehicles.Remove(id);
                     }
@@ -218,7 +213,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         {
                             if (this.removedFromGrid.Contains(id))
                             {
-                                if (Log.LogToFile)
+                                if (Log.LogALot)
                                 {
                                     Log.Debug(this, "HandleVehicles", "Moving", id, vehicles[id].m_targetBuilding, vehicles[id].Info.name, VehicleHelper.GetVehicleName(id), vehicles[id].m_flags);
                                 }
@@ -231,7 +226,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         {
                             if (!this.removedFromGrid.Contains(id))
                             {
-                                if (Log.LogToFile)
+                                if (Log.LogALot)
                                 {
                                     Log.Debug(this, "HandleVehicles", "RemoveFromGrid", id, vehicles[id].m_targetBuilding, vehicles[id].Info.name, VehicleHelper.GetVehicleName(id), vehicles[id].m_flags);
                                 }
@@ -254,13 +249,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                             }
                             else
                             {
-                                if (Log.LogALot && Log.LogToFile)
+                                if (Log.LogALot)
                                 {
                                     Log.DevDebug(this, "HandleVehicles", "StuckVehicles", "New", id, vehicles[id].m_flags, vehicles[id].m_flags & StuckVehicleInfo.FlagsToCheck, ConfusionHelper.VehicleIsConfused(ref vehicles[id]));
-                                }
-                                else
-                                {
-                                    Log.Debug(this, "HandleVehicles", "StuckVehicles", "New", id);
                                 }
                                 stuckVehicle = new StuckVehicleInfo(id, ref vehicles[id]);
                                 this.StuckVehicles[id] = stuckVehicle;
@@ -268,7 +259,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                             if (stuckVehicle.HandleProblem())
                             {
-                                if (Log.LogALot && Log.LogToFile)
+                                if (Log.LogALot)
                                 {
                                     Log.DevDebug(this, "HandleVehicles", "StuckVehicles", "Handled", id);
                                 }
@@ -278,7 +269,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         }
                         else if (this.StuckVehicles.ContainsKey(id))
                         {
-                            if (Log.LogALot && Log.LogToFile)
+                            if (Log.LogALot)
                             {
                                 Log.DevDebug(this, "HandleVehicles", "StuckVehicles", "NoProblem", id, vehicles[id].m_flags, vehicles[id].m_flags & StuckVehicleInfo.FlagsToCheck, ConfusionHelper.VehicleIsConfused(ref vehicles[id]));
                             }

@@ -486,7 +486,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 {
                     uint length = (uint)Singleton<BuildingManager>.instance.m_buildings.m_buffer.Length;
                     this.bucketFactor = length / (this.bucketMask + 1);
-                    Log.Debug(this, "Update", "bucketFactor", length, this.bucketMask, this.bucketFactor);
+                    //Log.DevDebug(this, "Update", "bucketFactor", length, this.bucketMask, this.bucketFactor);
 
                     this.bucketeer = new Bucketeer(this.bucketMask, this.bucketFactor);
                     this.bucket = this.bucketeer.GetEnd();
@@ -862,11 +862,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         if (known)
                         {
                             delta = Global.SimulationTime - stamp;
-
-                            if (Log.LogALot && Log.LogToFile)
-                            {
-                                Log.DevDebug(this, "CategorizeBuildings", "Desolate Building", id, delta);
-                            }
                         }
                         else
                         {
@@ -877,7 +872,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                         if (delta >= Global.Settings.WreckingCrews.DelaySeconds)
                         {
-                            Log.Debug(this, "CategorizeBuildings", "Buldoze Building", id);
+                            Log.Debug(this, "CategorizeBuildings", "Bulldoze Building", id);
                             BulldozeHelper.BulldozeBuilding(id);
                         }
                     }

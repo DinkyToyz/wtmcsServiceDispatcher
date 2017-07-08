@@ -331,11 +331,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <exception cref="Exception">Loop counter too high.</exception>
         public static VehicleInfo StartTransfer(ushort serviceBuildingId, ref Building building, TransferManager.TransferReason material, ushort targetBuildingId, uint targetCitizenId, out ushort vehicleId)
         {
-            if (Log.LogALot && Log.LogToFile)
-            {
-                Log.DevDebug(typeof(BuildingHelper), "StartTransfer", serviceBuildingId, targetBuildingId, targetCitizenId, material);
-            }
-
             if (building.Info.m_buildingAI is HospitalAI && targetCitizenId == 0)
             {
                 return VehicleHelper.CreateServiceVehicle(serviceBuildingId, material, targetBuildingId, targetCitizenId, out vehicleId);
@@ -435,12 +430,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             if (waitingVehicleId != 0)
             {
                 vehicleId = waitingVehicleId;
-                Log.Debug(typeof(BuildingHelper), "StartTransfer", "Waiting Vehicle", serviceBuildingId, targetBuildingId, targetCitizenId, material, vehicleId, vehicles[vehicleId].m_flags);
+                //Log.DevDebug(typeof(BuildingHelper), "StartTransfer", "Waiting Vehicle", serviceBuildingId, targetBuildingId, targetCitizenId, material, vehicleId, vehicles[vehicleId].m_flags);
             }
             else if (newVehicleId != 0)
             {
                 vehicleId = newVehicleId;
-                Log.Debug(typeof(BuildingHelper), "StartTransfer", "Guess Vehicle", serviceBuildingId, targetBuildingId, targetCitizenId, material, vehicleId, vehicles[vehicleId].m_flags);
+                //Log.DevDebug(typeof(BuildingHelper), "StartTransfer", "Guess Vehicle", serviceBuildingId, targetBuildingId, targetCitizenId, material, vehicleId, vehicles[vehicleId].m_flags);
             }
             else
             {

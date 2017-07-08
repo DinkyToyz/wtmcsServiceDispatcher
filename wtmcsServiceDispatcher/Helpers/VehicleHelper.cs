@@ -239,10 +239,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 if (recall)
                 {
-                    if (Log.LogALot && Log.LogToFile)
-                    {
-                        Log.DevDebug(typeof(VehicleHelper), "DeAssign", "Recall", vehicleId, vehicle.m_targetBuilding, vehicle.m_flags);
-                    }
+                    //if (Log.LogALot)
+                    //{
+                    //    Log.DevDebug(typeof(VehicleHelper), "DeAssign", "Recall", vehicleId, vehicle.m_targetBuilding, vehicle.m_flags);
+                    //}
 
                     vehicle.m_waitCounter = byte.MaxValue - 1;
 
@@ -803,10 +803,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             try
             {
-                if (Log.LogALot && Log.LogToFile)
-                {
-                    Log.DevDebug(typeof(VehicleHelper), "SetTarget", vehicleId, targetBuildingId, targetCitizenId, vehicle.m_targetBuilding, vehicle.m_flags);
-                }
+                //if (Log.LogALot)
+                //{
+                //    Log.DevDebug(typeof(VehicleHelper), "SetTarget", vehicleId, targetBuildingId, targetCitizenId, vehicle.m_targetBuilding, vehicle.m_flags);
+                //}
 
                 if (targetCitizenId != 0)
                 {
@@ -829,10 +829,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 }
 
                 vehicle.Info.m_vehicleAI.SetTarget(vehicleId, ref vehicle, targetBuildingId);
-                if (Log.LogALot && Log.LogToFile)
-                {
-                    Log.DevDebug(typeof(VehicleHelper), "SetTarget", "Target Set", vehicleId, targetBuildingId, targetCitizenId, vehicle.m_targetBuilding, vehicle.m_flags, VehicleHelper.VehicleExists, VehicleHelper.VehicleAll);
-                }
+                //if (Log.LogALot)
+                //{
+                //    Log.DevDebug(typeof(VehicleHelper), "SetTarget", "Target Set", vehicleId, targetBuildingId, targetCitizenId, vehicle.m_targetBuilding, vehicle.m_flags, VehicleHelper.VehicleExists, VehicleHelper.VehicleAll);
+                //}
 
                 VehicleResult.Result resultValue = (targetBuildingId == 0) ? VehicleResult.Result.DeAssigned : VehicleResult.Result.Assigned;
 

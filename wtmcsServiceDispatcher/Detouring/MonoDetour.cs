@@ -222,10 +222,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 throw new NullReferenceException("Signature method not found");
             }
 
-            if (Log.LogALot)
-            {
-                Log.DevDebug(typeof(MonoDetour), "FindMethod", sourceClass, methodName, signatureClass, signatureMethodName, signatureMethod);
-            }
             return FindMethod(sourceClass, methodName, signatureMethod);
         }
 
@@ -320,18 +316,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             foreach (MethodInfo method in sourceClass.GetMethods(BindingFlags.Default | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance | BindingFlags.FlattenHierarchy))
             {
-                if (Log.LogALot)
-                {
-                    Log.DevDebug(typeof(MonoDetour), "FindMethod", "SearchMethods", methodName, method.Name);
-                }
-
                 if (method.Name == methodName)
                 {
-                    if (Log.LogALot)
-                    {
-                        Log.DevDebug(typeof(MonoDetour), "FindMethod", "CheckMethod", methodName, method.Name);
-                    }
-
                     if (ValidateSignatures(signatureMethod, method))
                     {
                         Log.DevDebug(typeof(MonoDetour), "FindMethod", "MethodFound", methodName, method.Name);
@@ -363,39 +349,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <returns>True on success.</returns>
         private static bool ValidateSignatures(MethodInfo method1, MethodInfo method2)
         {
-            if (Log.LogALot)
-            {
-                Log.DevDebug(typeof(MonoDetour), "ValidateSignatures", method1.Name, method2.Name, method1.DeclaringType, method2.DeclaringType, method1.ReflectedType, method2.ReflectedType);
-            }
-
             // Validate method info.
             if ((method1.ReturnType != method2.ReturnType) ||
                 (method1.IsGenericMethod != method2.IsGenericMethod) ||
                 ((method1.CallingConvention & ValidateCallingConventions) != (method2.CallingConvention & ValidateCallingConventions)))
             {
-                if (Log.LogALot)
-                {
-                    Log.DevDebug(
-                        typeof(MonoDetour),
-                        "ValidateSignatures",
-                        "Fail",
-                        "MethodInfo",
-                        method1.Name,
-                        method2.Name,
-                        method1.ReturnType,
-                        method2.ReturnType,
-                        method1.IsGenericMethod,
-                        method2.IsGenericMethod,
-                        method1.CallingConvention & ValidateCallingConventions,
-                        method2.CallingConvention & ValidateCallingConventions);
-                }
-
                 return false;
-            }
-
-            if (Log.LogALot)
-            {
-                Log.DevDebug(typeof(MonoDetour), "ValidateSignatures", "these", method1.CallingConvention & TheseCallingConventions, method2.CallingConvention & TheseCallingConventions);
             }
 
             // Get parameters.
@@ -423,68 +382,17 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             if (method1.ReturnParameter != null)
             {
-                if (Log.LogALot)
-                {
-                    Log.DevDebug(typeof(MonoDetour), "ValidateSignatures", "ReturnParameter", 1, method1.ReturnParameter);
-                }
-
                 params1.Add(method1.ReturnParameter);
             }
 
             if (method2.ReturnParameter != null)
             {
-                if (Log.LogALot)
-                {
-                    Log.DevDebug(typeof(MonoDetour), "ValidateSignatures", "ReturnParameter", 2, method2.ReturnParameter);
-                }
-
                 params2.Add(method2.ReturnParameter);
-            }
-
-            if (Log.LogALot)
-            {
-                StringBuilder paramStr1 = new StringBuilder();
-                for (int i = 0; i < params1.Count; i++)
-                {
-                    if (paramStr1.Length > 0)
-                    {
-                        paramStr1.Append(", ");
-                    }
-
-                    paramStr1.Append('#').Append(params1[i].Position.ToString()).Append(' ').Append(params1[i].Name).Append(' ').Append(params1[i].ParameterType.ToString());
-                }
-
-                StringBuilder paramStr2 = new StringBuilder();
-                for (int i = 0; i < params2.Count; i++)
-                {
-                    if (paramStr2.Length > 0)
-                    {
-                        paramStr2.Append(", ");
-                    }
-
-                    paramStr2.Append('#').Append(params2[i].Position.ToString()).Append(' ').Append(params2[i].Name).Append(' ').Append(params2[i].ParameterType.ToString());
-                }
-
-                Log.DevDebug(typeof(MonoDetour), "ValidateSignatures", "Params", 1, paramStr1);
-                Log.DevDebug(typeof(MonoDetour), "ValidateSignatures", "Params", 2, paramStr2);
             }
 
             // Validate parameter count.
             if (params1.Count != params2.Count)
             {
-                if (Log.LogALot)
-                {
-                    Log.DevDebug(
-                        typeof(MonoDetour),
-                        "ValidateSignatures",
-                        "Fail",
-                        "ParamCount",
-                        method1.Name,
-                        method2.Name,
-                        params1.Count,
-                        params2.Count);
-                }
-
                 return false;
             }
 
@@ -499,65 +407,18 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     (params1[i].IsOptional != params2[i].IsOptional) ||
                     ((params1[i].DefaultValue == null) != (params2[i].DefaultValue == null)))
                 {
-                    if (Log.LogALot)
-                    {
-                        Log.DevDebug(
-                            typeof(MonoDetour),
-                            "ValidateSignatures",
-                            "Fail",
-                            "ParamInfo",
-                            method1.Name,
-                            method2.Name,
-                            params1[i].IsOut,
-                            params2[i].IsOut,
-                            params1[i].IsRetval,
-                            params2[i].IsRetval,
-                            params1[i].IsIn,
-                            params2[i].IsIn,
-                            params1[i].IsLcid,
-                            params2[i].IsLcid,
-                            params1[i].IsOptional,
-                            params2[i].IsOptional,
-                            params1[i].DefaultValue == null,
-                            params2[i].DefaultValue == null);
-                    }
-
                     return false;
                 }
 
                 // Validate parameter type.
                 if (!CompatibleTypes(params1[i].ParameterType, params2[i].ParameterType))
                 {
-                    if (Log.LogALot)
-                    {
-                        Log.DevDebug(
-                            typeof(MonoDetour),
-                            "ValidateSignatures",
-                            "Fail",
-                            "ParamType",
-                            params1[i].ParameterType,
-                            params2[i].ParameterType);
-                    }
-
                     return false;
                 }
 
                 // Validate parameter default values.
                 if ((params1[i].DefaultValue != null) && (params1[i].DefaultValue.ToString() != params2[i].DefaultValue.ToString()))
                 {
-                    if (Log.LogALot)
-                    {
-                        Log.DevDebug(
-                            typeof(MonoDetour),
-                            "ValidateSignatures",
-                            "Fail",
-                            "DefaultValue",
-                            method1.Name,
-                            method2.Name,
-                            params1[i].DefaultValue.ToString(),
-                            params2[i].DefaultValue.ToString());
-                    }
-
                     return false;
                 }
 
@@ -565,17 +426,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 int pos1 = params1[i].Position + (params1[i].Position >= 0 ? pos1Add : 0);
                 if (pos1 != params2[i].Position)
                 {
-                    if (Log.LogALot)
-                    {
-                        Log.DevDebug(
-                            typeof(MonoDetour),
-                            "ValidateSignatures",
-                            "Fail",
-                            "ParamPos",
-                            pos1,
-                            params2[i].Position);
-                    }
-
                     return false;
                 }
             }
@@ -615,7 +465,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 throw new NullReferenceException("Target address not defined");
             }
 
-            Log.Debug(this, "PatchCallSite", callSite, targetAddress);
+            //Log.DevDebug(this, "PatchCallSite", callSite, targetAddress);
 
             unsafe
             {

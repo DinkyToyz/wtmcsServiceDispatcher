@@ -136,56 +136,26 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             {
                 try
                 {
-                    if (Log.LogALot)
-                    {
-                        Log.DevDebug(typeof(TransferManagerHelper), "CleanTransferOffers");
-                    }
-
                     TransferManager transferManager = Singleton<TransferManager>.instance;
 
                     // Get private data.
                     CheckInstance(transferManager);
 
-                    //TransferManager.TransferOffer[] outgoingOffers = GetOutgoingOffers(transferManager);
-                    //TransferManager.TransferOffer[] incomingOffers = GetIncomingOffers(transferManager);
-                    //ushort[] outgoingCount = GetOutgoingCount(transferManager);
-                    //ushort[] incomingCount = GetIncomingCount(transferManager);
-                    //int[] outgoingAmount = GetOutgoingAmount(transferManager);
-                    //int[] incomingAmount = GetIncomingAmount(transferManager);
-
                     // Clean for hearses.
                     if (Global.CleanHearseTransferOffers)
                     {
-                        if (Log.LogALot)
-                        {
-                            Log.DevDebug(typeof(TransferManagerHelper), "CleanTransferOffers", "TransferManager.TransferReason.Dead");
-                        }
-
-                        //CleanTransferOffers(outgoingOffers, incomingOffers, outgoingCount, incomingCount, outgoingAmount, incomingAmount, TransferManager.TransferReason.Dead);
                         CleanTransferOffers(TransferManager.TransferReason.Dead);
                     }
 
                     // Clean for garbage trucks.
                     if (Global.CleanGarbageTruckTransferOffers)
                     {
-                        if (Log.LogALot)
-                        {
-                            Log.DevDebug(typeof(TransferManagerHelper), "CleanTransferOffers", "TransferManager.TransferReason.Garbage");
-                        }
-
-                        //CleanTransferOffers(outgoingOffers, incomingOffers, outgoingCount, incomingCount, outgoingAmount, incomingAmount, TransferManager.TransferReason.Garbage);
                         CleanTransferOffers(TransferManager.TransferReason.Garbage);
                     }
 
                     // Clean for hearses.
                     if (Global.CleanAmbulanceTransferOffers)
                     {
-                        if (Log.LogALot)
-                        {
-                            Log.DevDebug(typeof(TransferManagerHelper), "CleanTransferOffers", "TransferManager.TransferReason.Sick");
-                        }
-
-                        //CleanTransferOffers(outgoingOffers, incomingOffers, outgoingCount, incomingCount, outgoingAmount, incomingAmount, TransferManager.TransferReason.Sick);
                         CleanTransferOffers(TransferManager.TransferReason.Sick);
                     }
                 }
@@ -448,18 +418,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <param name="material">The material.</param>
         private static void CleanTransferOffers(TransferManager.TransferReason material)
         {
-            if (Log.LogALot && Log.LogToFile && Global.EnableDevExperiments)
-            {
-                if (Global.Settings.BlockTransferManagerOffers)
-                {
-                    Detours.LogCounts(Detours.Methods.TransferManager_AddOutgoingOffer);
-                    Detours.LogCounts(Detours.Methods.TransferManager_AddIncomingOffer);
-                }
-
-                DebugListLog("Outgoing", outgoingOffersValue, outgoingCountValue, outgoingAmountValue, null, material);
-                DebugListLog("Incoming", incomingOffersValue, incomingCountValue, incomingAmountValue, null, material);
-            }
-
             // Zero counts.
             for (int priority = 0; priority < 8; priority++)
             {

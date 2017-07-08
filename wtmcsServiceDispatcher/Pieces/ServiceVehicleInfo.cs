@@ -44,11 +44,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             this.Target = targetBuildingId;
 
             this.Update(ref vehicle, freeToCollect, false, false);
-
-            ////if (Log.LogALot)
-            ////{
-            ////    Log.DevDebug(this, "ServiceVehicleInfo", vehicleId, vehicle.m_targetBuilding, this.Target, targetBuildingId);
-            ////}
         }
 
         /// <summary>

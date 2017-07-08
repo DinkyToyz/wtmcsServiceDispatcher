@@ -110,7 +110,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             if (!this.methodInfoInitialized)
             {
-                Log.Debug(this, "InitMethodInfo");
+                //Log.DevDebug(this, "InitMethodInfo");
                 try
                 {
                     this.methodInfo = MonoDetour.FindMethod(this.SourceClass, this.MethodName, this.GetType(), this.SignatureMethodName);

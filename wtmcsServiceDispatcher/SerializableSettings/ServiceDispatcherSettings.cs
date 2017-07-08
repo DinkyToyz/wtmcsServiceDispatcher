@@ -315,11 +315,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             Log.Debug(typeof(T), "Save", "Begin");
 
-            if (Log.LogALot || Library.IsDebugBuild)
-            {
-                settings.LogSettings();
-            }
-
             try
             {
                 string filePath = Path.GetDirectoryName(Path.GetFullPath(fileName));

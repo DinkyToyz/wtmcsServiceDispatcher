@@ -98,7 +98,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             try
             {
-                if (Log.LogALot && Log.LogToFile)
+                if (Log.LogALot)
                 {
                     Log.Debug(
                         this, "Add", problem, serviceBuildingId, targetBuildingId,
@@ -141,21 +141,21 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 this.ProblemSizes[key] = newValue;
                 this.TargetBuildingProblems[targetBuildingId] = newProblem;
 
-                if (Log.LogALot && Log.LogToFile)
-                {
-                    DevLog("Add",
-                        Log.Data("ServiceBuilding", serviceBuildingId, BuildingHelper.GetBuildingName(serviceBuildingId)),
-                        Log.Data("TargetBuilding", targetBuildingId, BuildingHelper.GetBuildingName(targetBuildingId)),
-                        Log.Data("Actions", (gotSize ? "Set" : "Add"), (gotProblem ? "Set" : "Add"), weight),
-                        "Problem", problem,
-                        "Key", key,
-                        "OldValue", oldValue,
-                        "OldCount", oldProblem.Count,
-                        "OldSize", oldProblem.Size,
-                        "NewValue", newValue,
-                        "NewCount", newProblem.Count,
-                        "NewSize", newProblem.Size);
-                }
+                //if (Log.LogALot)
+                //{
+                //    DevLog("Add",
+                //        Log.Data("ServiceBuilding", serviceBuildingId, BuildingHelper.GetBuildingName(serviceBuildingId)),
+                //        Log.Data("TargetBuilding", targetBuildingId, BuildingHelper.GetBuildingName(targetBuildingId)),
+                //        Log.Data("Actions", (gotSize ? "Set" : "Add"), (gotProblem ? "Set" : "Add"), weight),
+                //        "Problem", problem,
+                //        "Key", key,
+                //        "OldValue", oldValue,
+                //        "OldCount", oldProblem.Count,
+                //        "OldSize", oldProblem.Size,
+                //        "NewValue", newValue,
+                //        "NewCount", newProblem.Count,
+                //        "NewSize", newProblem.Size);
+                //}
             }
             catch (Exception ex)
             {
@@ -354,10 +354,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     return;
                 }
 
-                if (Log.LogALot && Log.LogToFile)
-                {
-                    Log.DevDebug(this, "Update", decrement);
-                }
+                //if (Log.LogALot)
+                //{
+                //    Log.DevDebug(this, "Update", decrement);
+                //}
 
                 foreach (KeyValuePair<uint, uint> size in this.ProblemSizes.ToArray())
                 {
@@ -369,26 +369,26 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     BuildingProblem newProblem;
                     uint newValue;
 
-                    bool sizeDec;
-                    bool problemDec;
+                    //bool sizeDec;
+                    //bool problemDec;
 
                     if (size.Value <= decrement)
                     {
                         newValue = 0;
-                        sizeDec = false;
+                        //sizeDec = false;
 
                         this.ProblemSizes.Remove(size.Key);
 
                         if (oldProblem.Count <= 1)
                         {
-                            problemDec = false;
+                            //problemDec = false;
                             newProblem = new BuildingProblem(0, 0);
 
                             this.TargetBuildingProblems.Remove(targetBuildingId);
                         }
                         else
                         {
-                            problemDec = true;
+                            //problemDec = true;
                             newProblem = new BuildingProblem((ushort)(oldProblem.Count - 1), (oldProblem.Size <= size.Value) ? 1 : oldProblem.Size - size.Value);
 
                             this.TargetBuildingProblems[targetBuildingId] = newProblem;
@@ -396,31 +396,31 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     }
                     else
                     {
-                        sizeDec = true;
+                        //sizeDec = true;
                         newValue = size.Value - decrement;
 
                         this.ProblemSizes[size.Key] = newValue;
 
-                        problemDec = true;
+                        //problemDec = true;
                         newProblem = new BuildingProblem(oldProblem.Count, (oldProblem.Size <= decrement) ? size.Value - decrement : oldProblem.Size - decrement);
 
                         this.TargetBuildingProblems[targetBuildingId] = newProblem;
                     }
 
-                    if (Log.LogALot && Log.LogToFile)
-                    {
-                        DevLog("Update",
-                            Log.Data("ServiceBuilding", serviceBuildingId, BuildingHelper.GetBuildingName(serviceBuildingId)),
-                            Log.Data("TargetBuilding", targetBuildingId, BuildingHelper.GetBuildingName(targetBuildingId)),
-                            Log.Data("Actions", (sizeDec ? "Decrement" : "Remove"), (problemDec ? "Decrement" : "Remove"), decrement),
-                            "Key", size.Key,
-                            "OldValue", size.Value,
-                            "OldCount", oldProblem.Count,
-                            "OldSize", oldProblem.Size,
-                            "NewValue", newValue,
-                            "NewCount", newProblem.Count,
-                            "NewSize", newProblem.Size);
-                    }
+                    //if (Log.LogALot)
+                    //{
+                    //    DevLog("Update",
+                    //        Log.Data("ServiceBuilding", serviceBuildingId, BuildingHelper.GetBuildingName(serviceBuildingId)),
+                    //        Log.Data("TargetBuilding", targetBuildingId, BuildingHelper.GetBuildingName(targetBuildingId)),
+                    //        Log.Data("Actions", (sizeDec ? "Decrement" : "Remove"), (problemDec ? "Decrement" : "Remove"), decrement),
+                    //        "Key", size.Key,
+                    //        "OldValue", size.Value,
+                    //        "OldCount", oldProblem.Count,
+                    //        "OldSize", oldProblem.Size,
+                    //        "NewValue", newValue,
+                    //        "NewCount", newProblem.Count,
+                    //        "NewSize", newProblem.Size);
+                    //}
                 }
             }
             catch (Exception ex)
