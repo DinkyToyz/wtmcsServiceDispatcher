@@ -10,11 +10,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
     internal class ServiceProblemKeeper
     {
         /// <summary>
-        /// Whether this functionality is broken.
-        /// </summary>
-        private bool broken = false;
-
-        /// <summary>
         /// The service problem size where difference is counted as important.
         /// </summary>
         public const ushort ProblemSizeImportant = 100;
@@ -23,6 +18,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// The default service problem weight.
         /// </summary>
         private readonly byte defaultWeight = 10;
+
+        /// <summary>
+        /// Whether this functionality is broken.
+        /// </summary>
+        private bool broken = false;
 
         /// <summary>
         /// The service problem sizes.
@@ -82,6 +82,21 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// The last update stamp.
         /// </summary>
         public uint LastUpdate { get; private set; }
+
+        /// <summary>
+        /// Log problem keeper development debug stuff.
+        /// </summary>
+        /// <param name="sourcBlock">The source block.</param>
+        /// <param name="data">The data.</param>
+        public static void DevLog(string sourcBlock, params object[] data)
+        {
+            if (!String.IsNullOrEmpty(sourcBlock))
+            {
+                sourcBlock = "[" + sourcBlock + "]";
+            }
+
+            Log.DevDebug(typeof(ServiceProblemKeeper), "DevLog", sourcBlock, Log.List(null, data));
+        }
 
         /// <summary>
         /// Notes a problem.
@@ -162,21 +177,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 this.broken = true;
                 Log.Error(this, "Add", ex);
             }
-        }
-
-        /// <summary>
-        /// Log problem keeper development debug stuff.
-        /// </summary>
-        /// <param name="sourcBlock">The source block.</param>
-        /// <param name="data">The data.</param>
-        public static void DevLog(string sourcBlock, params object[] data)
-        {
-            if (!String.IsNullOrEmpty(sourcBlock))
-            {
-                sourcBlock = "[" + sourcBlock + "]";
-            }
-
-            Log.DevDebug(typeof(ServiceProblemKeeper), "DevLog", sourcBlock, Log.List(null, data));
         }
 
         /// <summary>

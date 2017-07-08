@@ -19,11 +19,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public uint AutoEmptyStopLevelPercent = 5u;
 
         /// <summary>
-        /// The checks custom string error message;
-        /// </summary>
-        private string checksCustomStringError = null;
-
-        /// <summary>
         /// The create spares option.
         /// </summary>
         public ServiceDispatcherSettings.SpareVehiclesCreation CreateSpares = ServiceDispatcherSettings.SpareVehiclesCreation.WhenBuildingIsCloser;
@@ -72,6 +67,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// The remove from grid possible value.
         /// </summary>
         private bool? canRemoveFromGridValue = null;
+
+        /// <summary>
+        /// The checks custom string error message;
+        /// </summary>
+        private string checksCustomStringError = null;
 
         /// <summary>
         /// The checks preset settings value.

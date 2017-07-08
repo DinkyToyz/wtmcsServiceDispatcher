@@ -1,8 +1,8 @@
 ﻿using ColossalFramework;
 using System;
-using System.Reflection;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 
 namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 {
@@ -221,7 +221,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 if (allMaterials)
                 {
                     materials = new List<TransferManager.TransferReason>(
-                        ((IEnumerable < TransferManager.TransferReason > )Enum.GetValues(typeof(TransferManager.TransferReason)))
+                        ((IEnumerable<TransferManager.TransferReason>)Enum.GetValues(typeof(TransferManager.TransferReason)))
                         .Where(m => m != TransferManager.TransferReason.None));
                 }
                 else

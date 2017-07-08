@@ -673,7 +673,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             }
 
             float radius = float.NaN;
- 
+
             int materialMax = 0;
             int materialAmount = 0;
             int serviceVehicleCount = 0;

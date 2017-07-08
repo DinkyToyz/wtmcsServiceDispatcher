@@ -52,6 +52,16 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         private uint lastWantStamp = 0;
 
         /// <summary>
+        /// The service problem count value.
+        /// </summary>
+        private ushort serviceProblemCountValue;
+
+        /// <summary>
+        /// The service problem size value
+        /// </summary>
+        private uint serviceProblemSizeValue;
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="TargetBuildingInfo" /> class.
         /// </summary>
         /// <param name="buildingId">The building identifier.</param>
@@ -420,11 +430,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public ushort ServiceProblemCount => this.serviceProblemCountValue;
 
         /// <summary>
-        /// The service problem count value.
-        /// </summary>
-        private ushort serviceProblemCountValue;
-
-        /// <summary>
         /// Gets the service problem magnitude.
         /// </summary>
         /// <value>
@@ -439,11 +444,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// The size of the service problem.
         /// </value>
         public uint ServiceProblemSize => this.serviceProblemSizeValue;
-
-        /// <summary>
-        /// The service problem size value
-        /// </summary>
-        private uint serviceProblemSizeValue;
 
         /// <summary>
         /// Gets a value indicating whether the building is updated.

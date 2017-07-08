@@ -1006,7 +1006,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                                 {
                                     Log.DevDebug(this, "CollectVehicleData", "DeSpawned", serviceBuilding.BuildingId, vehicleId, collecting, loadSize, loadMax, loading, unavailable, busy, hasTarget, vehicleResult);
                                 }
-
                             }
 
                             // Update counts and assigned target status.
