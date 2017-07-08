@@ -9,290 +9,17 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
     /// <summary>
     /// Serializable settings class.
     /// </summary>
-    [Serializable]
     public class ServiceDispatcherSettings
     {
         /// <summary>
         /// The default assignment compatibility mode.
         /// </summary>
-        [NonSerialized]
         public const ServiceDispatcherSettings.ModCompatibilityMode DefaultAssignmentCompatibilityMode = ServiceDispatcherSettings.ModCompatibilityMode.UseInstanciatedClassMethods;
 
         /// <summary>
         /// The default creation compatibility mode.
         /// </summary>
-        [NonSerialized]
         public const ServiceDispatcherSettings.ModCompatibilityMode DefaultCreationCompatibilityMode = ServiceDispatcherSettings.ModCompatibilityMode.UseInstanciatedClassMethods;
-
-        /// <summary>
-        /// The SetTarget call compatibility mode.
-        /// </summary>
-        public ServiceDispatcherSettings.ModCompatibilityMode AssignmentCompatibilityMode = DefaultAssignmentCompatibilityMode;
-
-        /// <summary>
-        /// Automatic bulldoze of abandoned buildings.
-        /// </summary>
-        public bool AutoBulldozeBuildings = false;
-
-        /// <summary>
-        /// The automatic bulldoze buildings delay.
-        /// </summary>
-        public double AutoBulldozeBuildingsDelaySeconds = 5.0 * 60.0;
-
-        /// <summary>
-        /// Automatic cemetery emptying.
-        /// </summary>
-        public bool AutoEmptyCemeteries = false;
-
-        /// <summary>
-        /// The automatic empty cemetery start level percent.
-        /// </summary>
-        public uint AutoEmptyCemeteryStartLevelPercent = 95u;
-
-        /// <summary>
-        /// The automatic empty cemetery stop level percent.
-        /// </summary>
-        public uint AutoEmptyCemeteryStopLevelPercent = 5u;
-
-        /// <summary>
-        /// Automatic landfill emptying.
-        /// </summary>
-        public bool AutoEmptyLandfills = false;
-
-        /// <summary>
-        /// The automatic empty landfill start level percent.
-        /// </summary>
-        public uint AutoEmptyLandfillStartLevelPercent = 95u;
-
-        /// <summary>
-        /// The automatic empty landfill stop level percent.
-        /// </summary>
-        public uint AutoEmptyLandfillStopLevelPercent = 5u;
-
-        /// <summary>
-        /// Whether transfer manager offer blocking is allowed or not.
-        /// </summary>
-        public bool BlockTransferManagerOffers = true;
-
-        /// <summary>
-        /// The possible building checks.
-        /// </summary>
-        public BuildingCheckParameters[] BuildingChecksPossible = null;
-
-        /// <summary>
-        /// The possible building checks presets.
-        /// </summary>
-        public BuildingChecksPresetInfo[] BuildingChecksPresets = null;
-
-        /// <summary>
-        /// When to create spare ambulances.
-        /// </summary>
-        public SpareVehiclesCreation CreateSpareAmbulances = SpareVehiclesCreation.WhenBuildingIsCloser;
-
-        /// <summary>
-        /// When to create spare garbage trucks.
-        /// </summary>
-        public SpareVehiclesCreation CreateSpareGarbageTrucks = SpareVehiclesCreation.WhenBuildingIsCloser;
-
-        /// <summary>
-        /// When to create spare hearses.
-        /// </summary>
-        public SpareVehiclesCreation CreateSpareHearses = SpareVehiclesCreation.WhenBuildingIsCloser;
-
-        /// <summary>
-        /// The CreateVehicle call compatibility mode.
-        /// </summary>
-        public ServiceDispatcherSettings.ModCompatibilityMode CreationCompatibilityMode = DefaultCreationCompatibilityMode;
-
-        /// <summary>
-        /// The current dead people building checks.
-        /// </summary>
-        public BuildingCheckParameters[] DeathChecksCurrent = null;
-
-        /// <summary>
-        /// The custom hearse building checks.
-        /// </summary>
-        public BuildingCheckParameters[] DeathChecksCustom = null;
-
-        /// <summary>
-        /// The dead people building checks presets.
-        /// </summary>
-        public BuildingCheckOrder DeathChecksPreset = BuildingCheckOrder.InRange;
-
-        /// <summary>
-        /// Whether ambulances should be handled or not.
-        /// </summary>
-        public Boolean DispatchAmbulances = true;
-
-        /// <summary>
-        /// Whether ambulances dispatchers should care about districts or not.
-        /// </summary>
-        public bool DispatchAmbulancesByDistrict = false;
-
-        /// <summary>
-        /// Limit ambulances service buildings by range.
-        /// </summary>
-        public bool DispatchAmbulancesByRange = true;
-
-        /// <summary>
-        /// Whether the dispatch should be limited by district or not.
-        /// </summary>
-        public Boolean DispatchByDistrict = false;
-
-        /// <summary>
-        /// Limit service building range for target buildings without problems.
-        /// </summary>
-        public bool DispatchByRange = false;
-
-        /// <summary>
-        /// Whether garbage trucks should be handled or not.
-        /// </summary>
-        public Boolean DispatchGarbageTrucks = true;
-
-        /// <summary>
-        /// Whether garbage truck dispatchers should care about districts or not.
-        /// </summary>
-        public bool DispatchGarbageTrucksByDistrict = false;
-
-        /// <summary>
-        /// Limit garbage service buildings by range.
-        /// </summary>
-        public bool DispatchGarbageTrucksByRange = true;
-
-        /// <summary>
-        /// Whether hearses should be handled or not.
-        /// </summary>
-        public Boolean DispatchHearses = true;
-
-        /// <summary>
-        /// Whether hearse dispatchers should care about districts or not.
-        /// </summary>
-        public bool DispatchHearsesByDistrict = false;
-
-        /// <summary>
-        /// Limit hearse service buildings by range.
-        /// </summary>
-        public bool DispatchHearsesByRange = true;
-
-        /// <summary>
-        /// The current garbage building checks.
-        /// </summary>
-        public BuildingCheckParameters[] GarbageChecksCurrent = null;
-
-        /// <summary>
-        /// The custom garbage building checks.
-        /// </summary>
-        public BuildingCheckParameters[] GarbageChecksCustom = null;
-
-        /// <summary>
-        /// The dirty building checks presets.
-        /// </summary>
-        public BuildingCheckOrder GarbageChecksPreset = BuildingCheckOrder.InRange;
-
-        /// <summary>
-        /// Limit too the closest service buildings when igoring range for hearses.
-        /// </summary>
-        public byte IgnoreRangeUseClosestDeathCareBuilding = 0;
-
-        /// <summary>
-        /// Limit too the closest service buildings when igoring range fro garbage trucks.
-        /// </summary>
-        public byte IgnoreRangeUseClosestGarbageBuilding = 0;
-
-        /// <summary>
-        /// Limit too the closest service buildings when igoring range ambulances.
-        /// </summary>
-        public byte IgnoreRangeUseClosestHealthCareBuilding = 0;
-
-        /// <summary>
-        /// Limit opportunistic garbage collection.
-        /// </summary>
-        public bool LimitOpportunisticGarbageCollection = true;
-
-        /// <summary>
-        /// The minimum amount of garbage to dispatch a truck for.
-        /// </summary>
-        public ushort MinimumGarbageForDispatch = 1500;
-
-        /// <summary>
-        /// The minimum amount of garbage to direct a patrolling truck for.
-        /// </summary>
-        public ushort MinimumGarbageForPatrol = 200;
-
-        /// <summary>
-        /// Limit building ranges.
-        /// </summary>
-        public bool RangeLimit = true;
-
-        /// <summary>
-        /// The maximum range (when limiting building ranges).
-        /// </summary>
-        public float RangeMaximum = 10000000;
-
-        /// <summary>
-        /// The minimum range (when limiting building ranges).
-        /// </summary>
-        public float RangeMinimum = 10000;
-
-        /// <summary>
-        /// The range modifier.
-        /// </summary>
-        public float RangeModifier = 1.0f;
-
-        /// <summary>
-        /// Whether code overrides are allowed or not.
-        /// </summary>
-        public Allowance ReflectionAllowance = Allowance.Default;
-
-        /// <summary>
-        /// Whether stopped ambulances should be removed from grid or not.
-        /// </summary>
-        public bool RemoveAmbulancesFromGrid = false;
-
-        /// <summary>
-        /// Whether stopped garbage trucks should be removed from grid or not.
-        /// </summary>
-        public bool RemoveGarbageTrucksFromGrid = false;
-
-        /// <summary>
-        /// Whether stopped hearses should be removed from grid or not.
-        /// </summary>
-        public bool RemoveHearsesFromGrid = false;
-
-        /// <summary>
-        /// Automatic removal of stuck vehicles.
-        /// </summary>
-        public bool RemoveStuckVehicles = false;
-
-        /// <summary>
-        /// The automatic vehicle removal delay.
-        /// </summary>
-        public double RemoveStuckVehiclesDelaySeconds = 5.0 * 60.0;
-
-        /// <summary>
-        /// The save count.
-        /// </summary>
-        public uint SaveCount = 0;
-
-        /// <summary>
-        /// The current sick people building checks.
-        /// </summary>
-        public BuildingCheckParameters[] SickChecksCurrent = null;
-
-        /// <summary>
-        /// The custom ambulance building checks.
-        /// </summary>
-        public BuildingCheckParameters[] SickChecksCustom = null;
-
-        /// <summary>
-        /// The sick people building checks presets.
-        /// </summary>
-        public BuildingCheckOrder SickChecksPreset = BuildingCheckOrder.InRange;
-
-        /// <summary>
-        /// The settings version.
-        /// </summary>
-        public int Version = 0;
 
         /// <summary>
         /// Whether something is allowed or not.
@@ -450,6 +177,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Gets the current version.
+        /// </summary>
+        /// <value>
+        /// The current version.
+        /// </value>
+        public static int CurrentVersion => SerializableSettings.SettingsVersion0.CurrentVersion;
+
+        /// <summary>
         /// Gets the XML root.
         /// </summary>
         /// <value>
@@ -466,7 +201,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// </returns>
         public static Settings Load(string fileName)
         {
-            return Load<SerializableSettings.SettingsVersion0>(fileName);
+            Settings settings = Load<SerializableSettings.SettingsVersion0>(fileName) ?? new Settings();
+
+            if (Global.EnableDevExperiments)
+            {
+                TestSave<SerializableSettings.SettingsVersion5>(fileName, settings);
+            }
+
+            return settings;
         }
 
         /// <summary>
@@ -477,6 +219,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public static void Save(string fileName, Settings settings)
         {
             Save<SerializableSettings.SettingsVersion0>(fileName, settings);
+
+            if (Global.EnableDevExperiments)
+            {
+                TestSave<SerializableSettings.SettingsVersion5>(fileName, settings);
+            }
         }
 
         /// <summary>
@@ -553,7 +300,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             }
 
             Log.Debug(typeof(T), "Load", "End");
-            return new Settings();
+
+            return null;
         }
 
         /// <summary>
@@ -562,7 +310,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <typeparam name="T">The settings version type.</typeparam>
         /// <param name="fileName">Name of the file.</param>
         /// <param name="settings">The settings.</param>
-        internal static void Save<T>(string fileName, Settings settings) where T : class, SerializableSettings.ISerializableSettings, new()
+        internal static bool Save<T>(string fileName, Settings settings) where T : class, SerializableSettings.ISerializableSettings, new()
         {
             Log.Debug(typeof(T), "Save", "Begin");
 
@@ -591,13 +339,48 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     file.Flush();
                     file.Close();
                 }
+
+                return true;
             }
             catch (Exception ex)
             {
                 Log.Error(typeof(T), "Save", ex);
+
+                return false;
+            }
+            finally
+            {
+                Log.Debug(typeof(T), "Save", "End");
+            }
+        }
+
+        /// <summary>
+        /// Tests saving the settinsg as the specified version type.
+        /// </summary>
+        /// <typeparam name="T">The settings version type.</typeparam>
+        /// <param name="fileName">Name of the file.</param>
+        /// <param name="settings">The settings.</param>
+        private static void TestSave<T>(string fileName, Settings settings) where T : class, SerializableSettings.ISerializableSettings, new()
+        {
+            string fileNameBase = fileName + "." + typeof(T).Name + ".";
+
+            Settings testSets = Load<T>(fileName);
+            if (testSets != null)
+            {
+                Save<T>(fileNameBase + "0.xml", testSets);
             }
 
-            Log.Debug(typeof(T), "Save", "End");
+            Log.Debug(typeof(T), "TestSave", "Begin");
+
+            if (Save<T>(fileNameBase + "1.xml", settings))
+            {
+                testSets = Load<T>(fileNameBase + "1.xml");
+
+                if (testSets != null)
+                {
+                    Save<T>(fileNameBase + "2.xml", testSets);
+                }
+            }
         }
 
         /// <summary>

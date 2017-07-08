@@ -259,7 +259,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// </summary>
         /// <param name="dispatcherType">Type of the dispatcher.</param>
         /// <returns>The service settings.</returns>
-        public static Settings.StandardServiceSettings GetServiceSettings(Dispatcher.DispatcherTypes dispatcherType)
+        public static StandardServiceSettings GetServiceSettings(Dispatcher.DispatcherTypes dispatcherType)
         {
             switch (dispatcherType)
             {
@@ -324,7 +324,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                     Settings.LogSettings();
 
-                    if (Settings.LoadedVersion < Settings.Version)
+                    if (Settings.LoadedVersion < ServiceDispatcherSettings.CurrentVersion)
                     {
                         Settings.Save();
                     }

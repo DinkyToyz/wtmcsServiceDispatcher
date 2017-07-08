@@ -227,6 +227,18 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Logs the counts.
+        /// </summary>
+        /// <param name="method">The method.</param>
+        public static void LogCounts(Methods method)
+        {
+            if (methodsDetours != null && methodsDetours[method] != null)
+            {
+                methodsDetours[method].LogCounts();
+            }
+        }
+
+        /// <summary>
         /// Logs some information.
         /// </summary>
         public static void LogInfo()
@@ -240,18 +252,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         detour.LogInfo();
                     }
                 }
-            }
-        }
-
-        /// <summary>
-        /// Logs the counts.
-        /// </summary>
-        /// <param name="method">The method.</param>
-        public static void LogCounts(Methods method)
-        {
-            if (methodsDetours != null && methodsDetours[method] != null)
-            {
-                methodsDetours[method].LogCounts();
             }
         }
 

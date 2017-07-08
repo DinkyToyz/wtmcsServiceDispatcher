@@ -89,7 +89,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// The service settings.
         /// </summary>
-        private Settings.StandardServiceSettings serviceSettings = null;
+        private StandardServiceSettings serviceSettings = null;
 
         /// <summary>
         /// The target buildings.

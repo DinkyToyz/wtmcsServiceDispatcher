@@ -162,7 +162,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <param name="group">The group.</param>
         /// <param name="settings">The settings.</param>
         /// <param name="canService">If set to <c>true</c> this service can be enabled.</param>
-        private void AddHiddenServiceControls(UIHelperBase group, Settings.HiddenServiceSettings settings, bool canService)
+        private void AddHiddenServiceControls(UIHelperBase group, HiddenServiceSettings settings, bool canService)
         {
             if (canService)
             {
@@ -489,7 +489,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <returns>
         /// The group.
         /// </returns>
-        private UIHelperBase CreateEmptiableServiceBuildingGroup(UIHelperBase helper, Settings.StandardServiceSettings settings, bool canService)
+        private UIHelperBase CreateEmptiableServiceBuildingGroup(UIHelperBase helper, StandardServiceSettings settings, bool canService)
         {
             try
             {
@@ -769,7 +769,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <returns>
         /// The group.
         /// </returns>
-        private UIHelperBase CreateServiceGroup(UIHelperBase helper, Settings.StandardServiceSettings settings, Dispatcher dispatcher, bool canService)
+        private UIHelperBase CreateServiceGroup(UIHelperBase helper, StandardServiceSettings settings, Dispatcher dispatcher, bool canService)
         {
             try
             {
@@ -1026,7 +1026,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     customStrategyTextField = (UITextField)group.AddTextfield(
                         "Custom dispatch strategy",
                         settings.ChecksCustomString,
-                        value => {},
+                        value => { },
                         value =>
                         {
                             if (!updatingCustomStrategy)

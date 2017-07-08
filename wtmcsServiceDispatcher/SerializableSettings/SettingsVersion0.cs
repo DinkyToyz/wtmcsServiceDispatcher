@@ -281,6 +281,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
         public int Version = 0;
 
         /// <summary>
+        /// Gets the current version.
+        /// </summary>
+        /// <value>
+        /// The current version.
+        /// </value>
+        public static int CurrentVersion => 4;
+
+        /// <summary>
         /// Gets the loaded version.
         /// </summary>
         /// <value>
@@ -478,7 +486,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
             this.BuildingChecksPresets = (Enum.GetValues(typeof(ServiceDispatcherSettings.BuildingCheckOrder)) as ServiceDispatcherSettings.BuildingCheckOrder[]).Where(bco => bco != ServiceDispatcherSettings.BuildingCheckOrder.Custom).Select(bco => new ServiceDispatcherSettings.BuildingChecksPresetInfo(bco)).ToArray();
             this.BuildingChecksPossible = (Enum.GetValues(typeof(ServiceDispatcherSettings.BuildingCheckParameters)) as ServiceDispatcherSettings.BuildingCheckParameters[]).Where(bcp => bcp != ServiceDispatcherSettings.BuildingCheckParameters.Undefined).ToArray();
 
-            this.Version = settings.Version;
+            this.Version = CurrentVersion;
             this.SaveCount = settings.SaveCount;
         }
     }

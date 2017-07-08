@@ -11,249 +11,54 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
     public class SettingsVersion5 : ISerializableSettings
     {
         /// <summary>
-        /// The SetTarget call compatibility mode.
+        /// The standard ambulance service settings.
         /// </summary>
-        public ServiceDispatcherSettings.ModCompatibilityMode AssignmentCompatibilityMode = ServiceDispatcherSettings.DefaultAssignmentCompatibilityMode;
+        public StandardServiceConfig Ambulances = new StandardServiceConfig();
 
         /// <summary>
-        /// Automatic bulldoze of abandoned buildings.
+        /// The automatic bulldozee service settings.
         /// </summary>
-        public bool AutoBulldozeBuildings = false;
-
-        /// <summary>
-        /// The automatic bulldoze buildings delay.
-        /// </summary>
-        public double AutoBulldozeBuildingsDelaySeconds = 5.0 * 60.0;
+        public HiddenServiceConfig AutoBulldoze = new HiddenServiceConfig();
 
         /// <summary>
         /// Automatic cemetery emptying.
         /// </summary>
-        public bool AutoEmptyCemeteries = false;
-
-        /// <summary>
-        /// The automatic empty cemetery start level percent.
-        /// </summary>
-        public uint AutoEmptyCemeteryStartLevelPercent = 95u;
-
-        /// <summary>
-        /// The automatic empty cemetery stop level percent.
-        /// </summary>
-        public uint AutoEmptyCemeteryStopLevelPercent = 5u;
+        public AutoEmptyServiceConfig AutoEmptyCemeteries = new AutoEmptyServiceConfig();
 
         /// <summary>
         /// Automatic landfill emptying.
         /// </summary>
-        public bool AutoEmptyLandfills = false;
+        public AutoEmptyServiceConfig AutoEmptyLandfills = new AutoEmptyServiceConfig();
 
         /// <summary>
-        /// The automatic empty landfill start level percent.
+        /// The compatibility configuration.
         /// </summary>
-        public uint AutoEmptyLandfillStartLevelPercent = 95u;
+        public CompatibilityConfig Compatibility = new SettingsVersion5.CompatibilityConfig();
 
         /// <summary>
-        /// The automatic empty landfill stop level percent.
+        /// The standard garbage truck service settings.
         /// </summary>
-        public uint AutoEmptyLandfillStopLevelPercent = 5u;
+        public StandardServiceConfig GarbageTrucks = new StandardServiceConfig();
 
         /// <summary>
-        /// Whether transfer manager offer blocking is allowed or not.
+        /// The standard hearse service settings.
         /// </summary>
-        public bool BlockTransferManagerOffers = true;
+        public StandardServiceConfig Hearses = new StandardServiceConfig();
 
         /// <summary>
-        /// The possible building checks.
+        /// The information.
         /// </summary>
-        public ServiceDispatcherSettings.BuildingCheckParameters[] BuildingChecksPossible = null;
+        public Information Info = new Information();
 
         /// <summary>
-        /// The possible building checks presets.
+        /// The building range configuration.
         /// </summary>
-        public ServiceDispatcherSettings.BuildingChecksPresetInfo[] BuildingChecksPresets = null;
+        public RangeConfig Ranges = new RangeConfig();
 
         /// <summary>
-        /// When to create spare ambulances.
+        /// Automatic removal of stuck vehicles servic settings.
         /// </summary>
-        public ServiceDispatcherSettings.SpareVehiclesCreation CreateSpareAmbulances = ServiceDispatcherSettings.SpareVehiclesCreation.WhenBuildingIsCloser;
-
-        /// <summary>
-        /// When to create spare garbage trucks.
-        /// </summary>
-        public ServiceDispatcherSettings.SpareVehiclesCreation CreateSpareGarbageTrucks = ServiceDispatcherSettings.SpareVehiclesCreation.WhenBuildingIsCloser;
-
-        /// <summary>
-        /// When to create spare hearses.
-        /// </summary>
-        public ServiceDispatcherSettings.SpareVehiclesCreation CreateSpareHearses = ServiceDispatcherSettings.SpareVehiclesCreation.WhenBuildingIsCloser;
-
-        /// <summary>
-        /// The CreateVehicle call compatibility mode.
-        /// </summary>
-        public ServiceDispatcherSettings.ModCompatibilityMode CreationCompatibilityMode = ServiceDispatcherSettings.DefaultCreationCompatibilityMode;
-
-        /// <summary>
-        /// The current dead people building checks.
-        /// </summary>
-        public ServiceDispatcherSettings.BuildingCheckParameters[] DeathChecksCurrent = null;
-
-        /// <summary>
-        /// The custom hearse building checks.
-        /// </summary>
-        public ServiceDispatcherSettings.BuildingCheckParameters[] DeathChecksCustom = null;
-
-        /// <summary>
-        /// The dead people building checks presets.
-        /// </summary>
-        public ServiceDispatcherSettings.BuildingCheckOrder DeathChecksPreset = ServiceDispatcherSettings.BuildingCheckOrder.InRange;
-
-        /// <summary>
-        /// Whether ambulances should be handled or not.
-        /// </summary>
-        public Boolean DispatchAmbulances = true;
-
-        /// <summary>
-        /// Whether ambulances dispatchers should care about districts or not.
-        /// </summary>
-        public bool DispatchAmbulancesByDistrict = false;
-
-        /// <summary>
-        /// Limit ambulances service buildings by range.
-        /// </summary>
-        public bool DispatchAmbulancesByRange = true;
-
-        /// <summary>
-        /// Whether the dispatch should be limited by district or not.
-        /// </summary>
-        public Boolean DispatchByDistrict = false;
-
-        /// <summary>
-        /// Limit service building range for target buildings without problems.
-        /// </summary>
-        public bool DispatchByRange = false;
-
-        /// <summary>
-        /// Whether garbage trucks should be handled or not.
-        /// </summary>
-        public Boolean DispatchGarbageTrucks = true;
-
-        /// <summary>
-        /// Whether garbage truck dispatchers should care about districts or not.
-        /// </summary>
-        public bool DispatchGarbageTrucksByDistrict = false;
-
-        /// <summary>
-        /// Limit garbage service buildings by range.
-        /// </summary>
-        public bool DispatchGarbageTrucksByRange = true;
-
-        /// <summary>
-        /// Whether hearses should be handled or not.
-        /// </summary>
-        public Boolean DispatchHearses = true;
-
-        /// <summary>
-        /// Whether hearse dispatchers should care about districts or not.
-        /// </summary>
-        public bool DispatchHearsesByDistrict = false;
-
-        /// <summary>
-        /// Limit hearse service buildings by range.
-        /// </summary>
-        public bool DispatchHearsesByRange = true;
-
-        /// <summary>
-        /// The current garbage building checks.
-        /// </summary>
-        public ServiceDispatcherSettings.BuildingCheckParameters[] GarbageChecksCurrent = null;
-
-        /// <summary>
-        /// The custom garbage building checks.
-        /// </summary>
-        public ServiceDispatcherSettings.BuildingCheckParameters[] GarbageChecksCustom = null;
-
-        /// <summary>
-        /// The dirty building checks presets.
-        /// </summary>
-        public ServiceDispatcherSettings.BuildingCheckOrder GarbageChecksPreset = ServiceDispatcherSettings.BuildingCheckOrder.InRange;
-
-        /// <summary>
-        /// Limit too the closest service buildings when igoring range for hearses.
-        /// </summary>
-        public byte IgnoreRangeUseClosestDeathCareBuilding = 0;
-
-        /// <summary>
-        /// Limit too the closest service buildings when igoring range fro garbage trucks.
-        /// </summary>
-        public byte IgnoreRangeUseClosestGarbageBuilding = 0;
-
-        /// <summary>
-        /// Limit too the closest service buildings when igoring range ambulances.
-        /// </summary>
-        public byte IgnoreRangeUseClosestHealthCareBuilding = 0;
-
-        /// <summary>
-        /// Limit opportunistic garbage collection.
-        /// </summary>
-        public bool LimitOpportunisticGarbageCollection = true;
-
-        /// <summary>
-        /// The minimum amount of garbage to dispatch a truck for.
-        /// </summary>
-        public ushort MinimumGarbageForDispatch = 1500;
-
-        /// <summary>
-        /// The minimum amount of garbage to direct a patrolling truck for.
-        /// </summary>
-        public ushort MinimumGarbageForPatrol = 200;
-
-        /// <summary>
-        /// Limit building ranges.
-        /// </summary>
-        public bool RangeLimit = true;
-
-        /// <summary>
-        /// The maximum range (when limiting building ranges).
-        /// </summary>
-        public float RangeMaximum = 10000000;
-
-        /// <summary>
-        /// The minimum range (when limiting building ranges).
-        /// </summary>
-        public float RangeMinimum = 10000;
-
-        /// <summary>
-        /// The range modifier.
-        /// </summary>
-        public float RangeModifier = 1.0f;
-
-        /// <summary>
-        /// Whether code overrides are allowed or not.
-        /// </summary>
-        public ServiceDispatcherSettings.Allowance ReflectionAllowance = ServiceDispatcherSettings.Allowance.Default;
-
-        /// <summary>
-        /// Whether stopped ambulances should be removed from grid or not.
-        /// </summary>
-        public bool RemoveAmbulancesFromGrid = false;
-
-        /// <summary>
-        /// Whether stopped garbage trucks should be removed from grid or not.
-        /// </summary>
-        public bool RemoveGarbageTrucksFromGrid = false;
-
-        /// <summary>
-        /// Whether stopped hearses should be removed from grid or not.
-        /// </summary>
-        public bool RemoveHearsesFromGrid = false;
-
-        /// <summary>
-        /// Automatic removal of stuck vehicles.
-        /// </summary>
-        public bool RemoveStuckVehicles = false;
-
-        /// <summary>
-        /// The automatic vehicle removal delay.
-        /// </summary>
-        public double RemoveStuckVehiclesDelaySeconds = 5.0 * 60.0;
+        public HiddenServiceConfig RemoveStuckVehicles = new HiddenServiceConfig();
 
         /// <summary>
         /// The save count.
@@ -261,24 +66,17 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
         public uint SaveCount = 0;
 
         /// <summary>
-        /// The current sick people building checks.
-        /// </summary>
-        public ServiceDispatcherSettings.BuildingCheckParameters[] SickChecksCurrent = null;
-
-        /// <summary>
-        /// The custom ambulance building checks.
-        /// </summary>
-        public ServiceDispatcherSettings.BuildingCheckParameters[] SickChecksCustom = null;
-
-        /// <summary>
-        /// The sick people building checks presets.
-        /// </summary>
-        public ServiceDispatcherSettings.BuildingCheckOrder SickChecksPreset = ServiceDispatcherSettings.BuildingCheckOrder.InRange;
-
-        /// <summary>
         /// The settings version.
         /// </summary>
         public int Version = 0;
+
+        /// <summary>
+        /// Gets the current version.
+        /// </summary>
+        /// <value>
+        /// The current version.
+        /// </value>
+        public static int CurrentVersion => 5;
 
         /// <summary>
         /// Gets the loaded version.
@@ -317,55 +115,18 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
             settings.loadedVersion = this.Version;
             settings.SaveCount = this.SaveCount;
 
-            settings.RangeModifier = this.RangeModifier;
-            settings.RangeLimit = this.RangeLimit;
-            settings.RangeMaximum = this.RangeMaximum;
-            settings.RangeMinimum = this.RangeMinimum;
-            settings.ReflectionAllowance = this.ReflectionAllowance;
-            settings.BlockTransferManagerOffers = this.BlockTransferManagerOffers;
-            settings.AssignmentCompatibilityMode = this.AssignmentCompatibilityMode;
-            settings.CreationCompatibilityMode = this.CreationCompatibilityMode;
+            this.Compatibility.GetSettings(settings);
+            this.Ranges.GetSettings(settings);
 
-            settings.DeathCare.DispatchVehicles = this.DispatchHearses;
-            settings.DeathCare.DispatchByDistrict = this.DispatchHearsesByDistrict;
-            settings.DeathCare.DispatchByRange = this.DispatchHearsesByRange;
-            settings.DeathCare.CreateSpares = this.CreateSpareHearses;
-            settings.DeathCare.RemoveFromGrid = this.RemoveHearsesFromGrid;
-            settings.DeathCare.ChecksCustom = this.DeathChecksCustom;
-            settings.DeathCare.ChecksPreset = this.DeathChecksPreset;
-            settings.DeathCare.IgnoreRangeUseClosestBuildings = this.IgnoreRangeUseClosestDeathCareBuilding;
-            settings.DeathCare.AutoEmpty = this.AutoEmptyCemeteries;
-            settings.DeathCare.AutoEmptyStartLevelPercent = this.AutoEmptyCemeteryStartLevelPercent;
-            settings.DeathCare.AutoEmptyStopLevelPercent = this.AutoEmptyCemeteryStopLevelPercent;
+            this.Hearses.GetSettings(settings.DeathCare);
+            this.Ambulances.GetSettings(settings.HealthCare);
+            this.GarbageTrucks.GetSettings(settings.Garbage);
 
-            settings.HealthCare.DispatchVehicles = this.DispatchAmbulances;
-            settings.HealthCare.DispatchByDistrict = this.DispatchAmbulancesByDistrict;
-            settings.HealthCare.DispatchByRange = this.DispatchAmbulancesByRange;
-            settings.HealthCare.CreateSpares = this.CreateSpareAmbulances;
-            settings.HealthCare.RemoveFromGrid = this.RemoveAmbulancesFromGrid;
-            settings.HealthCare.ChecksCustom = this.SickChecksCustom;
-            settings.HealthCare.ChecksPreset = this.SickChecksPreset;
-            settings.HealthCare.IgnoreRangeUseClosestBuildings = this.IgnoreRangeUseClosestHealthCareBuilding;
+            this.AutoEmptyCemeteries.GetSettings(settings.DeathCare);
+            this.AutoEmptyLandfills.GetSettings(settings.Garbage);
 
-            settings.Garbage.DispatchVehicles = this.DispatchGarbageTrucks;
-            settings.Garbage.DispatchByDistrict = this.DispatchGarbageTrucksByDistrict;
-            settings.Garbage.DispatchByRange = this.DispatchGarbageTrucksByRange;
-            settings.Garbage.LimitOpportunisticCollection = this.LimitOpportunisticGarbageCollection;
-            settings.Garbage.CreateSpares = this.CreateSpareGarbageTrucks;
-            settings.Garbage.MinimumAmountForDispatch = this.MinimumGarbageForDispatch;
-            settings.Garbage.MinimumAmountForPatrol = this.MinimumGarbageForPatrol;
-            settings.Garbage.ChecksCustom = this.GarbageChecksCustom;
-            settings.Garbage.ChecksPreset = this.GarbageChecksPreset;
-            settings.Garbage.IgnoreRangeUseClosestBuildings = this.IgnoreRangeUseClosestGarbageBuilding;
-            settings.Garbage.AutoEmpty = this.AutoEmptyLandfills;
-            settings.Garbage.AutoEmptyStartLevelPercent = this.AutoEmptyLandfillStartLevelPercent;
-            settings.Garbage.AutoEmptyStopLevelPercent = this.AutoEmptyLandfillStopLevelPercent;
-
-            settings.WreckingCrews.DispatchVehicles = this.AutoBulldozeBuildings;
-            settings.WreckingCrews.DelaySeconds = this.AutoBulldozeBuildingsDelaySeconds;
-
-            settings.RecoveryCrews.DispatchVehicles = this.RemoveStuckVehicles;
-            settings.RecoveryCrews.DelaySeconds = this.RemoveStuckVehiclesDelaySeconds;
+            this.AutoBulldoze.GetSettings(settings.WreckingCrews);
+            this.RemoveStuckVehicles.GetSettings(settings.RecoveryCrews);
 
             settings.Initialize();
 
@@ -385,66 +146,340 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
         /// <param name="settings">The settings.</param>
         public void SetSettings(Settings settings)
         {
-            this.DispatchByDistrict = settings.DeathCare.DispatchByDistrict && settings.Garbage.DispatchByDistrict && settings.HealthCare.DispatchByDistrict;
-            this.DispatchByRange = settings.DeathCare.DispatchByRange || settings.Garbage.DispatchByRange || settings.HealthCare.DispatchByRange;
-            this.RangeModifier = settings.RangeModifier;
-            this.RangeLimit = settings.RangeLimit;
-            this.RangeMaximum = settings.RangeMaximum;
-            this.RangeMinimum = settings.RangeMinimum;
-            this.ReflectionAllowance = settings.ReflectionAllowance;
-            this.BlockTransferManagerOffers = settings.BlockTransferManagerOffers;
-            this.AssignmentCompatibilityMode = settings.AssignmentCompatibilityMode;
-            this.CreationCompatibilityMode = settings.CreationCompatibilityMode;
+            this.Compatibility.SetSettings(settings);
+            this.Ranges.SetSettings(settings);
 
-            this.DispatchHearses = settings.DeathCare.DispatchVehicles;
-            this.DispatchHearsesByDistrict = settings.DeathCare.DispatchByDistrict;
-            this.DispatchHearsesByRange = settings.DeathCare.DispatchByRange;
-            this.RemoveHearsesFromGrid = settings.DeathCare.RemoveFromGrid;
-            this.CreateSpareHearses = settings.DeathCare.CreateSpares;
-            this.DeathChecksPreset = settings.DeathCare.ChecksPreset;
-            this.DeathChecksCustom = settings.DeathCare.ChecksCustom;
-            this.DeathChecksCurrent = settings.DeathCare.ChecksParameters;
-            this.IgnoreRangeUseClosestDeathCareBuilding = settings.DeathCare.IgnoreRangeUseClosestBuildings;
-            this.AutoEmptyCemeteries = settings.DeathCare.AutoEmpty;
-            this.AutoEmptyCemeteryStartLevelPercent = settings.DeathCare.AutoEmptyStartLevelPercent;
-            this.AutoEmptyCemeteryStopLevelPercent = settings.DeathCare.AutoEmptyStopLevelPercent;
+            this.Hearses.SetSettings(settings.DeathCare);
+            this.Ambulances.SetSettings(settings.HealthCare);
+            this.GarbageTrucks.SetSettings(settings.Garbage);
 
-            this.DispatchAmbulances = settings.HealthCare.DispatchVehicles;
-            this.DispatchAmbulancesByDistrict = settings.HealthCare.DispatchByDistrict;
-            this.DispatchAmbulancesByRange = settings.HealthCare.DispatchByRange;
-            this.RemoveAmbulancesFromGrid = settings.HealthCare.RemoveFromGrid;
-            this.CreateSpareAmbulances = settings.HealthCare.CreateSpares;
-            this.SickChecksPreset = settings.HealthCare.ChecksPreset;
-            this.SickChecksCustom = settings.HealthCare.ChecksCustom;
-            this.SickChecksCurrent = settings.HealthCare.ChecksParameters;
-            this.IgnoreRangeUseClosestHealthCareBuilding = settings.HealthCare.IgnoreRangeUseClosestBuildings;
+            this.AutoEmptyCemeteries.SetSettings(settings.DeathCare);
+            this.AutoEmptyLandfills.SetSettings(settings.Garbage);
 
-            this.DispatchGarbageTrucks = settings.Garbage.DispatchVehicles;
-            this.DispatchGarbageTrucksByDistrict = settings.Garbage.DispatchByDistrict;
-            this.DispatchGarbageTrucksByRange = settings.Garbage.DispatchByRange;
-            this.LimitOpportunisticGarbageCollection = settings.Garbage.LimitOpportunisticCollection;
-            this.CreateSpareGarbageTrucks = settings.Garbage.CreateSpares;
-            this.MinimumGarbageForDispatch = settings.Garbage.MinimumAmountForDispatch;
-            this.MinimumGarbageForPatrol = settings.Garbage.MinimumAmountForPatrol;
-            this.GarbageChecksPreset = settings.Garbage.ChecksPreset;
-            this.GarbageChecksCustom = settings.Garbage.ChecksCustom;
-            this.GarbageChecksCurrent = settings.Garbage.ChecksParameters;
-            this.IgnoreRangeUseClosestGarbageBuilding = settings.Garbage.IgnoreRangeUseClosestBuildings;
-            this.AutoEmptyLandfills = settings.Garbage.AutoEmpty;
-            this.AutoEmptyLandfillStartLevelPercent = settings.Garbage.AutoEmptyStartLevelPercent;
-            this.AutoEmptyLandfillStopLevelPercent = settings.Garbage.AutoEmptyStopLevelPercent;
+            this.AutoBulldoze.SetSettings(settings.WreckingCrews);
+            this.RemoveStuckVehicles.SetSettings(settings.RecoveryCrews);
 
-            this.AutoBulldozeBuildings = settings.WreckingCrews.DispatchVehicles;
-            this.AutoBulldozeBuildingsDelaySeconds = settings.WreckingCrews.DelaySeconds;
+            this.Info.SetSettings(settings);
 
-            this.RemoveStuckVehicles = settings.RecoveryCrews.DispatchVehicles;
-            this.RemoveStuckVehiclesDelaySeconds = settings.RecoveryCrews.DelaySeconds;
-
-            this.BuildingChecksPresets = (Enum.GetValues(typeof(ServiceDispatcherSettings.BuildingCheckOrder)) as ServiceDispatcherSettings.BuildingCheckOrder[]).Where(bco => bco != ServiceDispatcherSettings.BuildingCheckOrder.Custom).Select(bco => new ServiceDispatcherSettings.BuildingChecksPresetInfo(bco)).ToArray();
-            this.BuildingChecksPossible = (Enum.GetValues(typeof(ServiceDispatcherSettings.BuildingCheckParameters)) as ServiceDispatcherSettings.BuildingCheckParameters[]).Where(bcp => bcp != ServiceDispatcherSettings.BuildingCheckParameters.Undefined).ToArray();
-
-            this.Version = settings.Version;
+            this.Version = CurrentVersion;
             this.SaveCount = settings.SaveCount;
+        }
+
+        /// <summary>
+        /// The auto-emptying service settings.
+        /// </summary>
+        [Serializable]
+        public class AutoEmptyServiceConfig
+        {
+            /// <summary>
+            /// The service is enabled.
+            /// </summary>
+            public bool Enabled = false;
+
+            /// <summary>
+            /// The automatic emptying start level.
+            /// </summary>
+            public uint StartLevelPercent = 95u;
+
+            /// <summary>
+            /// The automatic empty cemetery stop level.
+            /// </summary>
+            public uint StopLevelPercent = 5u;
+
+            /// <summary>
+            /// Gets the settings from the specified configuration.
+            /// </summary>
+            /// <param name="settings">The settings.</param>
+            internal void GetSettings(StandardServiceSettings settings)
+            {
+                settings.DispatchVehicles = this.Enabled;
+                settings.AutoEmptyStartLevelPercent = this.StartLevelPercent;
+                settings.AutoEmptyStopLevelPercent = this.StopLevelPercent;
+            }
+
+            /// <summary>
+            /// Sets the specified configuration for the values from the sepcified settings.
+            /// </summary>
+            /// <param name="settings">The settings.</param>
+            internal void SetSettings(StandardServiceSettings settings)
+            {
+                this.Enabled = settings.DispatchVehicles;
+                this.StartLevelPercent = settings.AutoEmptyStartLevelPercent;
+                this.StopLevelPercent = settings.AutoEmptyStopLevelPercent;
+            }
+        }
+
+        /// <summary>
+        /// The compatibiloty configuration settings.
+        /// </summary>
+        [Serializable]
+        public class CompatibilityConfig
+        {
+            /// <summary>
+            /// The SetTarget call compatibility mode.
+            /// </summary>
+            public ServiceDispatcherSettings.ModCompatibilityMode AssignmentCompatibilityMode = ServiceDispatcherSettings.DefaultAssignmentCompatibilityMode;
+
+            /// <summary>
+            /// Whether transfer manager offer blocking is allowed or not.
+            /// </summary>
+            public bool BlockTransferManagerOffers = true;
+
+            /// <summary>
+            /// The CreateVehicle call compatibility mode.
+            /// </summary>
+            public ServiceDispatcherSettings.ModCompatibilityMode CreationCompatibilityMode = ServiceDispatcherSettings.DefaultCreationCompatibilityMode;
+
+            /// <summary>
+            /// Whether code overrides are allowed or not.
+            /// </summary>
+            public ServiceDispatcherSettings.Allowance ReflectionAllowance = ServiceDispatcherSettings.Allowance.Default;
+
+            /// <summary>
+            /// Gets the settings from the specified configuration.
+            /// </summary>
+            /// <param name="settings">The settings.</param>
+            internal void GetSettings(Settings settings)
+            {
+                settings.ReflectionAllowance = this.ReflectionAllowance;
+                settings.BlockTransferManagerOffers = this.BlockTransferManagerOffers;
+                settings.AssignmentCompatibilityMode = this.AssignmentCompatibilityMode;
+                settings.CreationCompatibilityMode = this.CreationCompatibilityMode;
+            }
+
+            /// <summary>
+            /// Sets the specified configuration for the values from the specified settings.
+            /// </summary>
+            /// <param name="settings">The settings.</param>
+            internal void SetSettings(Settings settings)
+            {
+                this.ReflectionAllowance = settings.ReflectionAllowance;
+                this.BlockTransferManagerOffers = settings.BlockTransferManagerOffers;
+                this.AssignmentCompatibilityMode = settings.AssignmentCompatibilityMode;
+                this.CreationCompatibilityMode = settings.CreationCompatibilityMode;
+            }
+        }
+
+        /// <summary>
+        /// The hidden service settings.
+        /// </summary>
+        [Serializable]
+        public class HiddenServiceConfig
+        {
+            /// <summary>
+            /// The service delay in seconds;
+            /// </summary>
+            public double DelaySeconds = 5.0 * 60.0;
+
+            /// <summary>
+            /// The service is enabled.
+            /// </summary>
+            public bool Enabled = false;
+
+            /// <summary>
+            /// Gets the settings from the specified configuration.
+            /// </summary>
+            /// <param name="settings">The settings.</param>
+            internal void GetSettings(HiddenServiceSettings settings)
+            {
+                settings.DispatchVehicles = this.Enabled;
+                settings.DelaySeconds = this.DelaySeconds;
+            }
+
+            /// <summary>
+            /// Sets the specified configuration for the values from the sepcified settings.
+            /// </summary>
+            /// <param name="settings">The settings.</param>
+            internal void SetSettings(HiddenServiceSettings settings)
+            {
+                this.Enabled = settings.DispatchVehicles;
+                this.DelaySeconds = settings.DelaySeconds;
+            }
+        }
+
+        /// <summary>
+        /// The settings information.
+        /// </summary>
+        [Serializable]
+        public class Information
+        {
+            /// <summary>
+            /// The possible building checks.
+            /// </summary>
+            public ServiceDispatcherSettings.BuildingCheckParameters[] BuildingChecksPossible = (Enum.GetValues(typeof(ServiceDispatcherSettings.BuildingCheckParameters)) as ServiceDispatcherSettings.BuildingCheckParameters[]).Where(bcp => bcp != ServiceDispatcherSettings.BuildingCheckParameters.Undefined).ToArray();
+
+            /// <summary>
+            /// The possible building checks presets.
+            /// </summary>
+            public ServiceDispatcherSettings.BuildingChecksPresetInfo[] BuildingChecksPresets = (Enum.GetValues(typeof(ServiceDispatcherSettings.BuildingCheckOrder)) as ServiceDispatcherSettings.BuildingCheckOrder[]).Where(bco => bco != ServiceDispatcherSettings.BuildingCheckOrder.Custom).Select(bco => new ServiceDispatcherSettings.BuildingChecksPresetInfo(bco)).ToArray();
+
+            /// <summary>
+            /// Sets the specified information from the specified settings.
+            /// </summary>
+            /// <param name="settings">The settings.</param>
+            internal void SetSettings(Settings settings)
+            { }
+        }
+
+        /// <summary>
+        /// The range configuration settings.
+        /// </summary>
+        [Serializable]
+        public class RangeConfig
+        {
+            /// <summary>
+            /// Limit building ranges.
+            /// </summary>
+            public bool RangeLimit = true;
+
+            /// <summary>
+            /// The maximum range (when limiting building ranges).
+            /// </summary>
+            public float RangeMaximum = 10000000;
+
+            /// <summary>
+            /// The minimum range (when limiting building ranges).
+            /// </summary>
+            public float RangeMinimum = 10000;
+
+            /// <summary>
+            /// The range modifier.
+            /// </summary>
+            public float RangeModifier = 1.0f;
+
+            /// <summary>
+            /// Gets the settings from the specified configuration.
+            /// </summary>
+            /// <param name="settings">The settings.</param>
+            internal void GetSettings(Settings settings)
+            {
+                settings.RangeModifier = this.RangeModifier;
+                settings.RangeLimit = this.RangeLimit;
+                settings.RangeMaximum = this.RangeMaximum;
+                settings.RangeMinimum = this.RangeMinimum;
+            }
+
+            /// <summary>
+            /// Sets the specified configuration for the values from the specified settings.
+            /// </summary>
+            /// <param name="settings">The settings.</param>
+            internal void SetSettings(Settings settings)
+            {
+                this.RangeModifier = settings.RangeModifier;
+                this.RangeLimit = settings.RangeLimit;
+                this.RangeMaximum = settings.RangeMaximum;
+                this.RangeMinimum = settings.RangeMinimum;
+            }
+        }
+
+        /// <summary>
+        /// The standard service settings.
+        /// </summary>
+        [Serializable]
+        public class StandardServiceConfig
+        {
+            /// <summary>
+            /// The dead people building checks presets.
+            /// </summary>
+            public ServiceDispatcherSettings.BuildingCheckOrder ChecksPreset = ServiceDispatcherSettings.BuildingCheckOrder.InRange;
+
+            /// <summary>
+            /// When to create spare vehicles.
+            /// </summary>
+            public ServiceDispatcherSettings.SpareVehiclesCreation CreateSpareVehicles = ServiceDispatcherSettings.SpareVehiclesCreation.WhenBuildingIsCloser;
+
+            /// <summary>
+            /// The current dead people building checks.
+            /// </summary>
+            public ServiceDispatcherSettings.BuildingCheckParameters[] CurrentChecks = null;
+
+            /// <summary>
+            /// The custom hearse building checks.
+            /// </summary>
+            public ServiceDispatcherSettings.BuildingCheckParameters[] CustomChecks = null;
+
+            /// <summary>
+            /// Whether the dispatch should be limited by district or not.
+            /// </summary>
+            public Boolean DispatchByDistrict = false;
+
+            /// <summary>
+            /// Limit service building range for target buildings without problems.
+            /// </summary>
+            public bool DispatchByRange = false;
+
+            /// <summary>
+            /// The service is enabled.
+            /// </summary>
+            public bool Enabled = false;
+
+            /// <summary>
+            /// Limit too the closest service buildings when igoring range.
+            /// </summary>
+            public byte IgnoreRangeUseClosestBuilding = 0;
+
+            /// <summary>
+            /// Limit opportunistic collection.
+            /// </summary>
+            public bool LimitOpportunisticCollection = true;
+
+            /// <summary>
+            /// The minimum amount of something to dispatch a vehicle for.
+            /// </summary>
+            public ushort MinimumAmountForDispatch = 1500;
+
+            /// <summary>
+            /// The minimum amount of something to direct a patrolling vehicle for.
+            /// </summary>
+            public ushort MinimumGarbageForPatrol = 200;
+
+            /// <summary>
+            /// Whether stopped vehicles should be removed from grid or not.
+            /// </summary>
+            public bool RemoveVehiclesFromGrid = false;
+
+            /// <summary>
+            /// Gets the settings from the specified configuration.
+            /// </summary>
+            /// <param name="settings">The settings.</param>
+            internal void GetSettings(StandardServiceSettings settings)
+            {
+                settings.DispatchVehicles = this.Enabled;
+                settings.ChecksPreset = this.ChecksPreset;
+                settings.ChecksCustom = this.CustomChecks;
+                settings.CreateSpares = this.CreateSpareVehicles;
+                settings.DispatchByDistrict = this.DispatchByDistrict;
+                settings.DispatchByRange = this.DispatchByRange;
+                settings.IgnoreRangeUseClosestBuildings = this.IgnoreRangeUseClosestBuilding;
+
+                settings.RemoveFromGrid = settings.CanRemoveFromGrid && this.RemoveVehiclesFromGrid;
+                settings.LimitOpportunisticCollection = settings.CanLimitOpportunisticCollection && this.LimitOpportunisticCollection;
+
+                settings.MinimumAmountForDispatch = settings.UseMinimumAmountForDispatch ? this.MinimumAmountForDispatch : (ushort)0;
+                settings.MinimumAmountForPatrol = settings.UseMinimumAmountForPatrol ? this.MinimumGarbageForPatrol : (ushort)0;
+            }
+
+            /// <summary>
+            /// Sets the specified configuration for the values from the sepcified settings.
+            /// </summary>
+            /// <param name="settings">The settings.</param>
+            internal void SetSettings(StandardServiceSettings settings)
+            {
+                this.Enabled = settings.DispatchVehicles;
+                this.ChecksPreset = settings.ChecksPreset;
+                this.CurrentChecks = settings.ChecksParameters;
+                this.CustomChecks = settings.ChecksCustom;
+                this.CreateSpareVehicles = settings.CreateSpares;
+                this.DispatchByDistrict = settings.DispatchByDistrict;
+                this.DispatchByRange = settings.DispatchByRange;
+                this.IgnoreRangeUseClosestBuilding = settings.IgnoreRangeUseClosestBuildings;
+
+                this.RemoveVehiclesFromGrid = settings.CanRemoveFromGrid && settings.RemoveFromGrid;
+                this.LimitOpportunisticCollection = settings.CanLimitOpportunisticCollection && settings.LimitOpportunisticCollection;
+
+                this.MinimumAmountForDispatch = settings.UseMinimumAmountForDispatch ? settings.MinimumAmountForDispatch : (ushort)0;
+                this.MinimumGarbageForPatrol = settings.UseMinimumAmountForPatrol ? settings.MinimumAmountForPatrol : (ushort)0;
+            }
         }
     }
 }
