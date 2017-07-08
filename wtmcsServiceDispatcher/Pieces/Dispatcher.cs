@@ -472,13 +472,15 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             // Remove unusable buildings.
             if ((this.serviceSettings.DispatchByRange || this.serviceSettings.DispatchByDistrict) &&
-                ((Global.EnableDevExperiments && this.serviceSettings.IgnoreRangeUseClosestBuildings > 0) || !ignoreRange))
+                ((Global.EnableExperiments && this.serviceSettings.IgnoreRangeUseClosestBuildings > 0) || !ignoreRange))
             {
                 int buildingCountTotal = checkBuildings.Length;
 
                 if (ignoreRange)
                 {
                     List<ServiceBuildingInfo> checkServiceBuildings = checkBuildings.WhereToList(sb => sb.CurrentTargetInRange);
+                    int buildingCountInRange = checkServiceBuildings.Count;
+
                     checkServiceBuildings.AddRange(checkBuildings
                                                 .Where(sb => !sb.CurrentTargetInRange)
                                                 .OrderByTake(sb => sb.CurrentTargetDistance, this.serviceSettings.IgnoreRangeUseClosestBuildings));
@@ -488,7 +490,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                     if (Log.LogALot && Log.LogToFile)
                     {
-                        Log.DevDebug(this, "AssignVehicle", "UsableBuildings", checkBuildings.Length, buildingCountTotal, this.serviceSettings.IgnoreRangeUseClosestBuildings);
+                        Log.DevDebug(this, "AssignVehicle", "UsableBuildings", checkBuildings.Length, buildingCountTotal, buildingCountInRange, this.serviceSettings.IgnoreRangeUseClosestBuildings);
                     }
                 }
                 else
