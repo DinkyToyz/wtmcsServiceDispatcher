@@ -19,6 +19,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public uint AutoEmptyStopLevelPercent = 5u;
 
         /// <summary>
+        /// The checks custom string error message;
+        /// </summary>
+        private string checksCustomStringError = null;
+
+        /// <summary>
         /// The create spares option.
         /// </summary>
         public ServiceDispatcherSettings.SpareVehiclesCreation CreateSpares = ServiceDispatcherSettings.SpareVehiclesCreation.WhenBuildingIsCloser;
@@ -256,20 +261,25 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             }
             set
             {
-                if (value == null)
-                {
-                    this.ChecksCustom = null;
-                }
-                else if (value == String.Empty)
-                {
-                    this.ChecksCustom = new ServiceDispatcherSettings.BuildingCheckParameters[0];
-                }
-                else
-                {
-                    this.ChecksCustom = ServiceDispatcherSettings.BuildingChecksPresetInfo.ToArray(value);
-                }
+                this.ChecksCustom = ServiceDispatcherSettings.BuildingChecksPresetInfo.ToArray(value, out this.checksCustomStringError);
             }
         }
+
+        /// <summary>
+        /// Gets the custom checks string error message.
+        /// </summary>
+        /// <value>
+        /// The custom checks string error message.
+        /// </value>
+        public string ChecksCustomStringErrorMessage => this.checksCustomStringError;
+
+        /// <summary>
+        /// Gets a value indicating whether there were errors on custom checks string.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if the custom checks string had error; otherwise, <c>false</c>.
+        /// </value>
+        public bool ChecksCustomStringHadError => this.checksCustomStringError != null;
 
         /// <summary>
         /// Gets the building checks parameters.

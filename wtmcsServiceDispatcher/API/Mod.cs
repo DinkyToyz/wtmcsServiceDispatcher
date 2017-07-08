@@ -774,6 +774,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             try
             {
                 UIHelperBase group = helper.AddGroup(settings.VehicleNamePlural);
+                InformationalText currentStrategyInformationalText = null;
 
                 if (canService)
                 {
@@ -948,8 +949,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         }
                     });
 
-                //UILabel currentStrategyInformationalText = null;
-
                 group.AddDropdown(
                     settings.VehicleNameSingular + " dispatch strategy",
                     this.targetBuildingChecks.OrderBy(bco => bco.Key).Select(bco => bco.Value).ToArray(),
@@ -998,10 +997,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                                         Global.Settings.Save();
                                     }
 
-                                    //if (currentStrategyInformationalText != null)
-                                    //{
-                                    //    currentStrategyInformationalText.text = settings.ChecksParametersString;
-                                    //}
+                                    if (currentStrategyInformationalText != null)
+                                    {
+                                        currentStrategyInformationalText.Text = settings.ChecksParametersString;
+                                    }
 
                                     break;
                                 }
@@ -1013,77 +1012,59 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         }
                     });
 
+                //if (Global.EnableDevExperiments)
+                //{
+                //    currentStrategyInformationalText = group.AddInformationalText(
+                //        "Current dispatch strategy",
+                //        settings.ChecksParametersString);
+                //}
+
                 if (Global.EnableExperiments)
                 {
-                    //currentStrategyInformationalText = (UILabel)group.AddInformationalText(
-                    //    "Current dispatch strategy",
-                    //    settings.ChecksParametersString);
+                    bool updatingignoreRangeUseClosestBuildings = true;
+                    UITextField ignoreRangeUseClosestBuildingsTextField = null;
 
-                    group.AddInformationalText("Note", "The custom dispatch strategy setting is a bit experimental.");
-
-                    bool updatingCustomStrategy = false;
-                    UITextField customStrategyTextField = null;
-                    customStrategyTextField = (UITextField)group.AddTextfield(
-                        "Custom dispatch strategy",
-                        settings.ChecksCustomString,
+                    ignoreRangeUseClosestBuildingsTextField = (UITextField)group.AddTextfield(
+                        "Closest buildings to use when ignoring range",
+                        settings.IgnoreRangeUseClosestBuildings == 0 ? "" : settings.IgnoreRangeUseClosestBuildings.ToString(),
                         value => { },
                         value =>
                         {
-                            if (!updatingCustomStrategy)
+                            if (!updatingignoreRangeUseClosestBuildings)
                             {
                                 try
                                 {
-                                    updatingCustomStrategy = true;
+                                    updatingignoreRangeUseClosestBuildings = true;
 
-                                    settings.ChecksCustomString = value;
-                                    customStrategyTextField.text = settings.ChecksCustomString;
+                                    byte buildings;
+                                    if (String.IsNullOrEmpty(value) || !byte.TryParse(value, out buildings))
+                                    {
+                                        buildings = 0;
+                                    }
 
-                                    //if (currentStrategyInformationalText != null && settings.ChecksPreset == ServiceDispatcherSettings.BuildingCheckOrder.Custom)
-                                    //{
-                                    //    currentStrategyInformationalText.text = settings.ChecksParametersString;
-                                    //}
+                                    if (buildings != settings.IgnoreRangeUseClosestBuildings)
+                                    {
+                                        settings.IgnoreRangeUseClosestBuildings = buildings;
+                                        Global.Settings.Save();
+                                    }
+
+                                    if (settings.IgnoreRangeUseClosestBuildings == 0 && !String.IsNullOrEmpty(value))
+                                    {
+                                        ignoreRangeUseClosestBuildingsTextField.text = "";
+                                    }
                                 }
                                 catch (Exception ex)
                                 {
-                                    Log.Error(this, "CreateServiceGroup", ex, settings.VehicleNamePlural, "ChecksCustom", value);
+                                    Log.Error(this, "CreateServiceGroup", ex, settings.VehicleNamePlural, "IgnoreRangeUseClosestBuildings", value);
                                 }
                                 finally
                                 {
-                                    updatingCustomStrategy = false;
+                                    updatingignoreRangeUseClosestBuildings = false;
                                 }
                             }
                         });
 
-                    customStrategyTextField.width = customStrategyTextField.width * 2;
-                }
-
-                if (Global.EnableDevExperiments)
-                {
-                    UITextField ignoreRangeUseClosestBuildingsTextField = (UITextField)group.AddTextfield(
-                        "Closest buildings to use when ignoring range",
-                        settings.IgnoreRangeUseClosestBuildings == 0 ? "" : settings.IgnoreRangeUseClosestBuildings.ToString(),
-                        value =>
-                        {
-                        },
-                        value =>
-                        {
-                            try
-                            {
-                                if (String.IsNullOrEmpty(value))
-                                {
-                                    settings.IgnoreRangeUseClosestBuildings = 0;
-                                }
-                                else
-                                {
-                                    settings.IgnoreRangeUseClosestBuildings = byte.Parse(value);
-                                }
-                            }
-                            catch (Exception ex)
-                            {
-                                Log.Error(this, "CreateServiceGroup", ex, settings.VehicleNamePlural, "IgnoreRangeUseClosestBuildings", value);
-                            }
-                        });
-
+                    updatingignoreRangeUseClosestBuildings = false;
                     ignoreRangeUseClosestBuildingsTextField.numericalOnly = true;
                     ignoreRangeUseClosestBuildingsTextField.allowFloats = false;
                     ignoreRangeUseClosestBuildingsTextField.allowNegative = false;
@@ -1143,6 +1124,67 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                             }
                         });
                 }
+
+                bool updatingCustomStrategy = true;
+                InformationalText customStrategyWarningLabel = null;
+                UITextField customStrategyTextField = null;
+
+                customStrategyTextField = (UITextField)group.AddTextfield(
+                    "Custom dispatch strategy",
+                    settings.ChecksCustomString,
+                    value => { },
+                    value =>
+                    {
+                        if (!updatingCustomStrategy)
+                        {
+                            try
+                            {
+                                updatingCustomStrategy = true;
+
+                                string oldValue = settings.ChecksCustomString;
+                                settings.ChecksCustomString = value;
+
+                                if (oldValue != settings.ChecksCustomString)
+                                {
+                                    Global.Settings.Save();
+                                }
+
+                                if (settings.ChecksCustomStringHadError)
+                                {
+                                    customStrategyWarningLabel.Text = settings.ChecksCustomStringErrorMessage;
+                                    customStrategyWarningLabel.Show();
+                                    customStrategyWarningLabel.Enable();
+                                }
+                                else
+                                {
+                                    customStrategyWarningLabel.Disable();
+                                    customStrategyWarningLabel.Hide();
+                                    customStrategyWarningLabel.Text = "";
+                                    customStrategyTextField.text = settings.ChecksCustomString;
+                                }
+
+                                if (currentStrategyInformationalText != null && settings.ChecksPreset == ServiceDispatcherSettings.BuildingCheckOrder.Custom)
+                                {
+                                    currentStrategyInformationalText.Text = settings.ChecksParametersString;
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                Log.Error(this, "CreateServiceGroup", ex, settings.VehicleNamePlural, "ChecksCustom", value);
+                            }
+                            finally
+                            {
+                                updatingCustomStrategy = false;
+                            }
+                        }
+                    });
+
+                customStrategyWarningLabel = group.AddInformationalText("Warning", "");
+                customStrategyWarningLabel.Disable();
+                customStrategyWarningLabel.Hide();
+
+                updatingCustomStrategy = false;
+                customStrategyTextField.width = customStrategyTextField.width * 2;
 
                 return group;
             }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -429,35 +430,74 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 this.BuildingChecks = Settings.GetBuildingChecksParameters(this.Identifier);
             }
 
-            /// <summary>
-            /// Initializes a new instance of the <see cref="BuildingChecksPresetInfo"/> class.
-            /// </summary>
-            /// <param name="buildingChecks">The building checks.</param>
-            public BuildingChecksPresetInfo(string buildingChecks)
-            {
-                this.Identifier = ServiceDispatcherSettings.BuildingCheckOrder.Custom;
-                this.BuildingChecks = ToArray(buildingChecks);
-            }
+            ///// <summary>
+            ///// Initializes a new instance of the <see cref="BuildingChecksPresetInfo"/> class.
+            ///// </summary>
+            ///// <param name="buildingChecks">The building checks.</param>
+            //public BuildingChecksPresetInfo(string buildingChecks)
+            //{
+            //    this.Identifier = ServiceDispatcherSettings.BuildingCheckOrder.Custom;
+            //    this.BuildingChecks = ToArray(buildingChecks);
+            //}
 
             /// <summary>
             /// Converts string to building check array.
             /// </summary>
             /// <param name="buildingChecks">The building checks.</param>
-            /// <returns>The building checks in an array.</returns>
-            public static BuildingCheckParameters[] ToArray(string buildingChecks)
+            /// <param name="errors">The errors.</param>
+            /// <returns>
+            /// The building checks in an array.
+            /// </returns>
+            public static BuildingCheckParameters[] ToArray(string buildingChecks, out string errors)
             {
+                if (String.IsNullOrEmpty(buildingChecks))
+                {
+                    errors = "No checks! 1";
+                    return (buildingChecks == null) ? null : new BuildingCheckParameters[0];
+                }
+
+                StringBuilder errorString = new StringBuilder();
                 List<BuildingCheckParameters> checks = new List<BuildingCheckParameters>();
 
                 foreach (string check in buildingChecks.Split(',', ';', ':', '/', ' ', '\t', '\r', '\n'))
                 {
-                    string checkLow = check.ToLower();
-                    foreach (BuildingCheckParameters parameter in Enum.GetValues(typeof(BuildingCheckParameters)))
+                    if (!String.IsNullOrEmpty(check))
                     {
-                        if (parameter.ToString().ToLower() == checkLow)
+                        bool found = false;
+                        string checkLow = check.ToLower();
+
+                        foreach (BuildingCheckParameters parameter in Enum.GetValues(typeof(BuildingCheckParameters)))
                         {
-                            checks.Add(parameter);
+                            if (parameter.ToString().ToLower() == checkLow)
+                            {
+                                found = true;
+                                checks.Add(parameter);
+                            }
+                        }
+
+                        if (!found)
+                        {
+                            if (errorString.Length > 0)
+                            {
+                                errorString.Append(", ");
+                            }
+
+                            errorString.Append(check);
                         }
                     }
+                }
+
+                if (errorString.Length > 0)
+                {
+                    errors = errorString.Insert(0, "Bad checks: ").ToString();
+                }
+                else if (checks.Count == 0)
+                {
+                    errors = "No checks! 2";
+                }
+                else
+                {
+                    errors = null;
                 }
 
                 return checks.ToArray();
