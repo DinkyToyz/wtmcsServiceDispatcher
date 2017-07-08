@@ -12,17 +12,17 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// Returns distinct items in unchanged order.
         /// </summary>
-        /// <typeparam name="T">The item type.</typeparam>
+        /// <typeparam name="TSource">The item type.</typeparam>
         /// <param name="source">The enumerable items.</param>
         /// <returns>The distinct items.</returns>
-        public static IEnumerable<T> DistinctInOrder<T>(this List<T> source)
+        public static IEnumerable<TSource> DistinctInOrder<TSource>(this IList<TSource> source)
         {
             int count = source.Count;
-            HashSet<T> seen = new HashSet<T>();
+            HashSet<TSource> seen = new HashSet<TSource>();
 
             for (int i = 0; i < count; i++)
             {
-                T item = source[i];
+                TSource item = source[i];
 
                 if (!seen.Contains(item))
                 {
@@ -35,12 +35,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// Returns distinct items in unchanged order.
         /// </summary>
-        /// <typeparam name="T">The item type.</typeparam>
+        /// <typeparam name="TSource">The item type.</typeparam>
         /// <param name="source">The enumerable items.</param>
         /// <returns>The distinct items.</returns>
-        public static IEnumerable<T> DistinctInOrder<T>(this T[] source)
+        public static IEnumerable<TSource> DistinctInOrder<TSource>(this TSource[] source)
         {
-            HashSet<T> seen = new HashSet<T>();
+            HashSet<TSource> seen = new HashSet<TSource>();
 
             for (int i = 0; i < source.Length; i++)
             {
@@ -55,14 +55,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// Returns distinct items in unchanged order.
         /// </summary>
-        /// <typeparam name="T">The item type.</typeparam>
+        /// <typeparam name="TSource">The item type.</typeparam>
         /// <param name="source">The enumerable items.</param>
         /// <returns>The distinct items.</returns>
-        public static IEnumerable<T> DistinctInOrder<T>(this IEnumerable<T> source)
+        public static IEnumerable<TSource> DistinctInOrder<TSource>(this IEnumerable<TSource> source)
         {
-            HashSet<T> seen = new HashSet<T>();
+            HashSet<TSource> seen = new HashSet<TSource>();
 
-            foreach (T item in source)
+            foreach (TSource item in source)
             {
                 if (!seen.Contains(item))
                 {
@@ -75,14 +75,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// Sorts the elements of a sequence in ascending order according to a key and returns the last element of the sorted sequence, or a default value if the sequence contains no elements.
         /// </summary>
-        /// <typeparam name="T">The type of the elements.</typeparam>
+        /// <typeparam name="TSource">The type of the elements.</typeparam>
         /// <typeparam name="TKey">The type of the key.</typeparam>
         /// <param name="source">The source.</param>
         /// <param name="keySelector">The key selector.</param>
         /// <returns>
         /// default(T) if the source sequence is empty; otherwise, the last element.
         /// </returns>
-        public static T OrderByLastOrDefault<T, TKey>(this IEnumerable<T> source, Func<T, TKey> keySelector)
+        public static TSource OrderByLastOrDefault<TSource, TKey>(this IEnumerable<TSource> source, Func<TSource, TKey> keySelector)
         {
             return source.ToList().OrderByLastOrDefault(keySelector);
         }
@@ -90,19 +90,19 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// Sorts the elements of a sequence in ascending order according to a key and returns the last element of the sorted sequence, or a default value if the sequence contains no elements.
         /// </summary>
-        /// <typeparam name="T">The type of the elements.</typeparam>
+        /// <typeparam name="TSource">The type of the elements.</typeparam>
         /// <typeparam name="TKey">The type of the key.</typeparam>
         /// <param name="source">The source.</param>
         /// <param name="keySelector">The key selector.</param>
         /// <returns>
         /// default(T) if the source sequence is empty; otherwise, the last element.
         /// </returns>
-        public static T OrderByLastOrDefault<T, TKey>(this List<T> source, Func<T, TKey> keySelector)
+        public static TSource OrderByLastOrDefault<TSource, TKey>(this IList<TSource> source, Func<TSource, TKey> keySelector)
         {
             int count = source.Count;
             if (count < 1)
             {
-                return default(T);
+                return default(TSource);
             }
 
             if (count == 1)
@@ -110,7 +110,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 return source[0];
             }
 
-            T[] items = new T[count];
+            TSource[] items = new TSource[count];
             TKey[] keys = new TKey[count];
 
             for (int i = 0; i < count; i++)
@@ -127,18 +127,18 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// Sorts the elements of a sequence in place in ascending order according to a key and returns the last element of the sorted sequence, or a default value if the sequence contains no elements.
         /// </summary>
-        /// <typeparam name="T">The type of the elements.</typeparam>
+        /// <typeparam name="TSource">The type of the elements.</typeparam>
         /// <typeparam name="TKey">The type of the key.</typeparam>
         /// <param name="source">The source.</param>
         /// <param name="keySelector">The key selector.</param>
         /// <returns>
         /// default(T) if the source sequence is empty; otherwise, the last element.
         /// </returns>
-        public static T OrderByLastOrDefault<T, TKey>(this T[] source, Func<T, TKey> keySelector)
+        public static TSource OrderByLastOrDefault<TSource, TKey>(this TSource[] source, Func<TSource, TKey> keySelector)
         {
             if (source.Length < 1)
             {
-                return default(T);
+                return default(TSource);
             }
 
             if (source.Length == 1)
@@ -161,7 +161,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// Sorts the elements of a sequence in ascending order according to a key and returns a specified number if contiguous elements from the start of the sorted sequence.
         /// </summary>
-        /// <typeparam name="T">The type of the elements.</typeparam>
+        /// <typeparam name="TSource">The type of the elements.</typeparam>
         /// <typeparam name="TKey">The type of the key.</typeparam>
         /// <param name="source">The source.</param>
         /// <param name="keySelector">The key selector.</param>
@@ -169,7 +169,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <returns>
         /// The specified number of elements.
         /// </returns>
-        public static IEnumerable<T> OrderByTake<T, TKey>(this IEnumerable<T> source, Func<T, TKey> keySelector, int count)
+        public static IEnumerable<TSource> OrderByTake<TSource, TKey>(this IEnumerable<TSource> source, Func<TSource, TKey> keySelector, int count)
         {
             return source.ToList().OrderByTake(keySelector, count);
         }
@@ -177,7 +177,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// Sorts the elements of a sequence in ascending order according to a key and returns a specified number if contiguous elements from the start of the sorted sequence.
         /// </summary>
-        /// <typeparam name="T">The type of the elements.</typeparam>
+        /// <typeparam name="TSource">The type of the elements.</typeparam>
         /// <typeparam name="TKey">The type of the key.</typeparam>
         /// <param name="source">The source.</param>
         /// <param name="keySelector">The key selector.</param>
@@ -185,7 +185,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <returns>
         /// The specified number of elements.
         /// </returns>
-        public static IEnumerable<T> OrderByTake<T, TKey>(this List<T> source, Func<T, TKey> keySelector, int count)
+        public static IEnumerable<TSource> OrderByTake<TSource, TKey>(this IList<TSource> source, Func<TSource, TKey> keySelector, int count)
         {
             if (count < 1)
             {
@@ -204,7 +204,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 yield break;
             }
 
-            T[] items = new T[countSource];
+            TSource[] items = new TSource[countSource];
             TKey[] keys = new TKey[countSource];
 
             for (int i = 0; i < countSource; i++)
@@ -225,7 +225,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// Sorts the elements of a sequence in place in ascending order according to a key and returns a specified number if contiguous elements from the start of the sorted sequence.
         /// </summary>
-        /// <typeparam name="T">The type of the elements.</typeparam>
+        /// <typeparam name="TSource">The type of the elements.</typeparam>
         /// <typeparam name="TKey">The type of the key.</typeparam>
         /// <param name="source">The source.</param>
         /// <param name="keySelector">The key selector.</param>
@@ -233,7 +233,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <returns>
         /// The specified number of elements.
         /// </returns>
-        public static IEnumerable<T> OrderByTake<T, TKey>(this T[] source, Func<T, TKey> keySelector, int count)
+        public static IEnumerable<TSource> OrderByTake<TSource, TKey>(this TSource[] source, Func<TSource, TKey> keySelector, int count)
         {
             if (count < 1 || source.Length < 1)
             {
@@ -263,16 +263,16 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
-        /// Projects each element in a sequence into a new form and returns in an array if <typeparamref name="T"/>.
+        /// Projects each element in a sequence into a new form and returns in an array if <typeparamref name="TSource"/>.
         /// </summary>
-        /// <typeparam name="T">The type of the elements.</typeparam>
-        /// <typeparam name="TSelected">The type to project into.</typeparam>
+        /// <typeparam name="TSource">The type of the elements.</typeparam>
+        /// <typeparam name="TResult">The type to project into.</typeparam>
         /// <param name="source">The source.</param>
         /// <param name="selector">The selector.</param>
         /// <returns>The projected elements.</returns>
-        public static TSelected[] SelectToArray<T, TSelected>(this T[] source, Func<T, TSelected> selector)
+        public static TResult[] SelectToArray<TSource, TResult>(this TSource[] source, Func<TSource, TResult> selector)
         {
-            TSelected[] dest = new TSelected[source.Length];
+            TResult[] dest = new TResult[source.Length];
 
             for (int i = 0; i < source.Length; i++)
             {
@@ -283,17 +283,17 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
-        /// Projects each element in a sequence into a new form and returns in an array of <typeparamref name="T"/>.
+        /// Projects each element in a sequence into a new form and returns in an array of <typeparamref name="TSource"/>.
         /// </summary>
-        /// <typeparam name="T">The type of the elements.</typeparam>
-        /// <typeparam name="TSelected">The type to project into.</typeparam>
+        /// <typeparam name="TSource">The type of the elements.</typeparam>
+        /// <typeparam name="TResult">The type to project into.</typeparam>
         /// <param name="source">The source.</param>
         /// <param name="selector">The selector.</param>
         /// <returns>The projected elements.</returns>
-        public static TSelected[] SelectToArray<T, TSelected>(this List<T> source, Func<T, TSelected> selector)
+        public static TResult[] SelectToArray<TSource, TResult>(this IList<TSource> source, Func<TSource, TResult> selector)
         {
             int count = source.Count;
-            TSelected[] dest = new TSelected[count];
+            TResult[] dest = new TResult[count];
 
             for (int i = 0; i < count; i++)
             {
@@ -304,29 +304,29 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
-        /// Projects each element in a sequence into a new form and returns in an array of <typeparamref name="T"/>.
+        /// Projects each element in a sequence into a new form and returns in an array of <typeparamref name="TSource"/>.
         /// </summary>
-        /// <typeparam name="T">The type of the elements.</typeparam>
-        /// <typeparam name="TSelected">The type to project into.</typeparam>
+        /// <typeparam name="TSource">The type of the elements.</typeparam>
+        /// <typeparam name="TResult">The type to project into.</typeparam>
         /// <param name="source">The source.</param>
         /// <param name="selector">The selector.</param>
         /// <returns>The projected elements.</returns>
-        public static TSelected[] SelectToArray<T, TSelected>(this IEnumerable<T> source, Func<T, TSelected> selector)
+        public static TResult[] SelectToArray<TSource, TResult>(this IEnumerable<TSource> source, Func<TSource, TResult> selector)
         {
             return source.SelectToList(selector).ToArray();
         }
 
         /// <summary>
-        /// Projects each element in a sequence into a new form and returns in a List<typeparamref name="T"/>.
+        /// Projects each element in a sequence into a new form and returns in a List<typeparamref name="TSource"/>.
         /// </summary>
-        /// <typeparam name="T">The type of the elements.</typeparam>
-        /// <typeparam name="TSelected">The type to project into.</typeparam>
+        /// <typeparam name="TSource">The type of the elements.</typeparam>
+        /// <typeparam name="TResult">The type to project into.</typeparam>
         /// <param name="source">The source.</param>
         /// <param name="selector">The selector.</param>
         /// <returns>The projected elements.</returns>
-        public static List<TSelected> SelectToList<T, TSelected>(this T[] source, Func<T, TSelected> selector)
+        public static List<TResult> SelectToList<TSource, TResult>(this TSource[] source, Func<TSource, TResult> selector)
         {
-            List<TSelected> dest = new List<TSelected>(source.Length);
+            List<TResult> dest = new List<TResult>(source.Length);
 
             for (int i = 0; i < source.Length; i++)
             {
@@ -337,18 +337,18 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
-        /// Projects each element in a sequence into a new form and returns in a List<typeparamref name="T"/>.
+        /// Projects each element in a sequence into a new form and returns in a List<typeparamref name="TSource"/>.
         /// </summary>
-        /// <typeparam name="T">The type of the elements.</typeparam>
-        /// <typeparam name="TSelected">The type to project into.</typeparam>
+        /// <typeparam name="TSource">The type of the elements.</typeparam>
+        /// <typeparam name="TResult">The type to project into.</typeparam>
         /// <param name="source">The source.</param>
         /// <param name="selector">The selector.</param>
         /// <returns>The projected elements.</returns>
-        public static List<TSelected> SelectToList<T, TSelected>(this IEnumerable<T> source, Func<T, TSelected> selector)
+        public static List<TResult> SelectToList<TSource, TResult>(this IEnumerable<TSource> source, Func<TSource, TResult> selector)
         {
-            List<TSelected> dest = new List<TSelected>();
+            List<TResult> dest = new List<TResult>();
 
-            foreach (T item in source)
+            foreach (TSource item in source)
             {
                 dest.Add(selector(item));
             }
@@ -357,17 +357,17 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
-        /// Projects each element in a sequence into a new form and returns in a List<typeparamref name="T"/>.
+        /// Projects each element in a sequence into a new form and returns in a List<typeparamref name="TSource"/>.
         /// </summary>
-        /// <typeparam name="T">The type of the elements.</typeparam>
-        /// <typeparam name="TSelected">The type to project into.</typeparam>
+        /// <typeparam name="TSource">The type of the elements.</typeparam>
+        /// <typeparam name="TResult">The type to project into.</typeparam>
         /// <param name="source">The source.</param>
         /// <param name="selector">The selector.</param>
         /// <returns>The projected elements.</returns>
-        public static List<TSelected> SelectToList<T, TSelected>(this List<T> source, Func<T, TSelected> selector)
+        public static List<TResult> SelectToList<TSource, TResult>(this IList<TSource> source, Func<TSource, TResult> selector)
         {
             int count = source.Count;
-            List<TSelected> dest = new List<TSelected>(count);
+            List<TResult> dest = new List<TResult>(count);
 
             for (int i = 0; i < count; i++)
             {
@@ -378,47 +378,59 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
-        /// Projects each element in a sequence into a new form and filters the values based on a predicate.
+        /// Projects each element in a sequence into a new form.
         /// </summary>
-        /// <typeparam name="T">The type of the values.</typeparam>
-        /// <typeparam name="TSelected">The type to project into.</typeparam>
+        /// <typeparam name="TSource">The type of the elements.</typeparam>
+        /// <typeparam name="TResult">The type to project into.</typeparam>
         /// <param name="source">The source.</param>
         /// <param name="selector">The selector.</param>
-        /// <param name="predicate">The predicate.</param>
         /// <returns>
-        /// The projected and filtered sequence.
+        /// The projected elements.
         /// </returns>
-        public static IEnumerable<TSelected> SelectWhere<T, TSelected>(this T[] source, Func<T, TSelected> selector, Func<TSelected, bool> predicate)
+        public static IEnumerable<TResult> Select<TSource, TResult>(this TSource[] source, Func<TSource, TResult> selector)
         {
             for (int i = 0; i < source.Length; i++)
             {
-                TSelected item = selector(source[i]);
-
-                if (predicate(item))
-                {
-                    yield return item;
-                }
+                yield return selector(source[i]);
             }
         }
 
         /// <summary>
-        /// Projects each element in a sequence into a new form and filters the values based on a predicate.
+        /// Projects each element in a sequence into a new form.
         /// </summary>
-        /// <typeparam name="T">The type of the values.</typeparam>
-        /// <typeparam name="TSelected">The type to project into.</typeparam>
+        /// <typeparam name="TSource">The type of the elements.</typeparam>
+        /// <typeparam name="TResult">The type to project into.</typeparam>
         /// <param name="source">The source.</param>
         /// <param name="selector">The selector.</param>
-        /// <param name="predicate">The predicate.</param>
         /// <returns>
-        /// The projected and filtered sequence.
+        /// The projected elements.
         /// </returns>
-        public static IEnumerable<TSelected> SelectWhere<T, TSelected>(this List<T> source, Func<T, TSelected> selector, Func<TSelected, bool> predicate)
+        public static IEnumerable<TResult> Select<TSource, TResult>(this IList<TSource> source, Func<TSource, TResult> selector)
         {
             int count = source.Count;
 
             for (int i = 0; i < count; i++)
             {
-                TSelected item = selector(source[i]);
+                yield return selector(source[i]);
+            }
+        }
+
+        /// <summary>
+        /// Projects each element in a sequence into a new form and filters the values based on a predicate.
+        /// </summary>
+        /// <typeparam name="TSource">The type of the values.</typeparam>
+        /// <typeparam name="TResult">The type to project into.</typeparam>
+        /// <param name="source">The source.</param>
+        /// <param name="selector">The selector.</param>
+        /// <param name="predicate">The predicate.</param>
+        /// <returns>
+        /// The projected and filtered sequence.
+        /// </returns>
+        public static IEnumerable<TResult> SelectWhere<TSource, TResult>(this TSource[] source, Func<TSource, TResult> selector, Func<TResult, bool> predicate)
+        {
+            for (int i = 0; i < source.Length; i++)
+            {
+                TResult item = selector(source[i]);
 
                 if (predicate(item))
                 {
@@ -430,19 +442,45 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// Projects each element in a sequence into a new form and filters the values based on a predicate.
         /// </summary>
-        /// <typeparam name="T">The type of the values.</typeparam>
-        /// <typeparam name="TSelected">The type to project into.</typeparam>
+        /// <typeparam name="TSource">The type of the values.</typeparam>
+        /// <typeparam name="TResult">The type to project into.</typeparam>
         /// <param name="source">The source.</param>
         /// <param name="selector">The selector.</param>
         /// <param name="predicate">The predicate.</param>
         /// <returns>
         /// The projected and filtered sequence.
         /// </returns>
-        public static IEnumerable<TSelected> SelectWhere<T, TSelected>(this IEnumerable<T> source, Func<T, TSelected> selector, Func<TSelected, bool> predicate)
+        public static IEnumerable<TResult> SelectWhere<TSource, TResult>(this IList<TSource> source, Func<TSource, TResult> selector, Func<TResult, bool> predicate)
         {
-            foreach (T sourceItem in source)
+            int count = source.Count;
+
+            for (int i = 0; i < count; i++)
             {
-                TSelected destItem = selector(sourceItem);
+                TResult item = selector(source[i]);
+
+                if (predicate(item))
+                {
+                    yield return item;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Projects each element in a sequence into a new form and filters the values based on a predicate.
+        /// </summary>
+        /// <typeparam name="TSource">The type of the values.</typeparam>
+        /// <typeparam name="TResult">The type to project into.</typeparam>
+        /// <param name="source">The source.</param>
+        /// <param name="selector">The selector.</param>
+        /// <param name="predicate">The predicate.</param>
+        /// <returns>
+        /// The projected and filtered sequence.
+        /// </returns>
+        public static IEnumerable<TResult> SelectWhere<TSource, TResult>(this IEnumerable<TSource> source, Func<TSource, TResult> selector, Func<TResult, bool> predicate)
+        {
+            foreach (TSource sourceItem in source)
+            {
+                TResult destItem = selector(sourceItem);
 
                 if (predicate(destItem))
                 {
@@ -452,28 +490,28 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
-        /// Returns a specified number if contiguous elements from the start of the sequence and returns in an array of <typeparamref name="T"/>.
+        /// Returns a specified number if contiguous elements from the start of the sequence and returns in an array of <typeparamref name="TSource"/>.
         /// </summary>
-        /// <typeparam name="T">The type of the elements.</typeparam>
+        /// <typeparam name="TSource">The type of the elements.</typeparam>
         /// <param name="source">The source.</param>
         /// <param name="count">The count.</param>
         /// <returns>The specified number of elements.</returns>
-        public static T[] TakeToArray<T>(this IEnumerable<T> source, int count)
+        public static TSource[] TakeToArray<TSource>(this IEnumerable<TSource> source, int count)
         {
             return source.TakeToList(count).ToArray();
         }
 
         /// <summary>
-        /// Returns a specified number if contiguous elements from the start of the sequence and returns in an array of <typeparamref name="T"/>.
+        /// Returns a specified number if contiguous elements from the start of the sequence and returns in an array of <typeparamref name="TSource"/>.
         /// </summary>
-        /// <typeparam name="T">The type of the elements.</typeparam>
+        /// <typeparam name="TSource">The type of the elements.</typeparam>
         /// <param name="source">The source.</param>
         /// <param name="count">The count.</param>
         /// <returns>The specified number of elements.</returns>
-        public static T[] TakeToArray<T>(this List<T> source, int count)
+        public static TSource[] TakeToArray<TSource>(this IList<TSource> source, int count)
         {
             count = Math.Min(count, source.Count);
-            T[] array = new T[count];
+            TSource[] array = new TSource[count];
 
             for (int i = 0; i < count; i++)
             {
@@ -484,16 +522,16 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
-        /// Returns a specified number if contiguous elements from the start of the sequence and returns in an array of <typeparamref name="T"/>.
+        /// Returns a specified number if contiguous elements from the start of the sequence and returns in an array of <typeparamref name="TSource"/>.
         /// </summary>
-        /// <typeparam name="T">The type of the elements.</typeparam>
+        /// <typeparam name="TSource">The type of the elements.</typeparam>
         /// <param name="source">The source.</param>
         /// <param name="count">The count.</param>
         /// <returns>The specified number of elements.</returns>
-        public static T[] TakeToArray<T>(this T[] source, int count)
+        public static TSource[] TakeToArray<TSource>(this TSource[] source, int count)
         {
             count = Math.Min(count, source.Length);
-            T[] array = new T[count];
+            TSource[] array = new TSource[count];
 
             for (int i = 0; i < count; i++)
             {
@@ -504,18 +542,18 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
-        /// Returns a specified number if coniguous elements from the start of the sequence and returns in a List<typeparamref name="T"/>.
+        /// Returns a specified number if coniguous elements from the start of the sequence and returns in a List<typeparamref name="TSource"/>.
         /// </summary>
-        /// <typeparam name="T">The type of the elements.</typeparam>
+        /// <typeparam name="TSource">The type of the elements.</typeparam>
         /// <param name="source">The source.</param>
         /// <param name="count">The count.</param>
         /// <returns>The specified number of elements</returns>
-        public static List<T> TakeToList<T>(this IEnumerable<T> source, int count)
+        public static List<TSource> TakeToList<TSource>(this IEnumerable<TSource> source, int count)
         {
             int added = 0;
-            List<T> list = new List<T>(count);
+            List<TSource> list = new List<TSource>(count);
 
-            foreach (T item in source)
+            foreach (TSource item in source)
             {
                 list.Add(item);
 
@@ -530,16 +568,16 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
-        /// Returns a specified number if coniguous elements from the start of the sequence and returns in a List<typeparamref name="T"/>.
+        /// Returns a specified number if coniguous elements from the start of the sequence and returns in a List<typeparamref name="TSource"/>.
         /// </summary>
-        /// <typeparam name="T">The type of the elements.</typeparam>
+        /// <typeparam name="TSource">The type of the elements.</typeparam>
         /// <param name="source">The source.</param>
         /// <param name="count">The count.</param>
         /// <returns>The specified number of elements</returns>
-        public static List<T> TakeToList<T>(this List<T> source, int count)
+        public static List<TSource> TakeToList<TSource>(this IList<TSource> source, int count)
         {
             count = Math.Min(count, source.Count);
-            List<T> list = new List<T>(count);
+            List<TSource> list = new List<TSource>(count);
 
             for (int i = 0; i < count; i++)
             {
@@ -550,16 +588,16 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
-        /// Returns a specified number if coniguous elements from the start of the sequence and returns in a List<typeparamref name="T"/>.
+        /// Returns a specified number if coniguous elements from the start of the sequence and returns in a List<typeparamref name="TSource"/>.
         /// </summary>
-        /// <typeparam name="T">The type of the elements.</typeparam>
+        /// <typeparam name="TSource">The type of the elements.</typeparam>
         /// <param name="source">The source.</param>
         /// <param name="count">The count.</param>
         /// <returns>The specified number of elements</returns>
-        public static List<T> TakeToList<T>(this T[] source, int count)
+        public static List<TSource> TakeToList<TSource>(this TSource[] source, int count)
         {
             count = Math.Min(count, source.Length);
-            List<T> list = new List<T>(count);
+            List<TSource> list = new List<TSource>(count);
 
             for (int i = 0; i < count; i++)
             {
@@ -570,26 +608,26 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
-        /// Creates an array of <typeparamref name="T"/> from an array of <typeparamref name="T"/>.
+        /// Creates an array of <typeparamref name="TSource"/> from an array of <typeparamref name="TSource"/>.
         /// </summary>
-        /// <typeparam name="T">The type of the values.</typeparam>
+        /// <typeparam name="TSource">The type of the values.</typeparam>
         /// <param name="source">The source.</param>
         /// <returns>The list.</returns>
-        public static T[] ToArray<T>(this T[] source)
+        public static TSource[] ToArray<TSource>(this TSource[] source)
         {
-            return (T[])source.Clone();
+            return (TSource[])source.Clone();
         }
 
         /// <summary>
-        /// Creates an array of <typeparamref name="T"/> from a List<typeparamref name="T"/>.
+        /// Creates an array of <typeparamref name="TSource"/> from a List<typeparamref name="TSource"/>.
         /// </summary>
-        /// <typeparam name="T">The type of the values.</typeparam>
+        /// <typeparam name="TSource">The type of the values.</typeparam>
         /// <param name="source">The source.</param>
         /// <returns>The list.</returns>
-        public static T[] ToArray<T>(this List<T> source)
+        public static TSource[] ToArray<TSource>(this IList<TSource> source)
         {
             int count = source.Count;
-            T[] dest = new T[count];
+            TSource[] dest = new TSource[count];
 
             for (int i = 0; i < count; i++)
             {
@@ -600,14 +638,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
-        /// Creates a List<typeparamref name="T"/> from an array of <typeparamref name="T"/>.
+        /// Creates a List<typeparamref name="TSource"/> from an array of <typeparamref name="TSource"/>.
         /// </summary>
-        /// <typeparam name="T">The type of the values.</typeparam>
+        /// <typeparam name="TSource">The type of the values.</typeparam>
         /// <param name="source">The source.</param>
         /// <returns>The list.</returns>
-        public static List<T> ToList<T>(this T[] source)
+        public static List<TSource> ToList<TSource>(this TSource[] source)
         {
-            List<T> dest = new List<T>(source.Length);
+            List<TSource> dest = new List<TSource>(source.Length);
 
             for (int i = 0; i < source.Length; i++)
             {
@@ -618,15 +656,15 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
-        /// Creates a List<typeparamref name="T"/> from a List<typeparamref name="T"/>.
+        /// Creates a List<typeparamref name="TSource"/> from a List<typeparamref name="TSource"/>.
         /// </summary>
-        /// <typeparam name="T">The type of the values.</typeparam>
+        /// <typeparam name="TSource">The type of the values.</typeparam>
         /// <param name="source">The source.</param>
         /// <returns>The list.</returns>
-        public static List<T> ToList<T>(this List<T> source)
+        public static List<TSource> ToList<TSource>(this IList<TSource> source)
         {
             int count = source.Count;
-            List<T> dest = new List<T>(count);
+            List<TSource> dest = new List<TSource>(count);
 
             for (int i = 0; i < count; i++)
             {
@@ -639,11 +677,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// Filters a sequence of values based on a predicate.
         /// </summary>
-        /// <typeparam name="T">The type of the values.</typeparam>
+        /// <typeparam name="TSource">The type of the values.</typeparam>
         /// <param name="source">The source.</param>
         /// <param name="predicate">The predicate.</param>
         /// <returns>The filtered sequence.</returns>
-        public static IEnumerable<T> Where<T>(this T[] source, Func<T, bool> predicate)
+        public static IEnumerable<TSource> Where<TSource>(this TSource[] source, Func<TSource, bool> predicate)
         {
             for (int i = 0; i < source.Length; i++)
             {
@@ -657,17 +695,17 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// Filters a sequence of values based on a predicate.
         /// </summary>
-        /// <typeparam name="T">The type of the values.</typeparam>
+        /// <typeparam name="TSource">The type of the values.</typeparam>
         /// <param name="source">The source.</param>
         /// <param name="predicate">The predicate.</param>
         /// <returns>The filtered sequence.</returns>
-        public static IEnumerable<T> Where<T>(this List<T> source, Func<T, bool> predicate)
+        public static IEnumerable<TSource> Where<TSource>(this IList<TSource> source, Func<TSource, bool> predicate)
         {
             int count = source.Count;
 
             for (int i = 0; i < count; i++)
             {
-                T item = source[i];
+                TSource item = source[i];
 
                 if (predicate(item))
                 {
@@ -679,15 +717,15 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// Filters a sequence of values based on a predicate and projects each returned element into a new form.
         /// </summary>
-        /// <typeparam name="T">The type of the values.</typeparam>
-        /// <typeparam name="TSelected">The type to project into.</typeparam>
+        /// <typeparam name="TSource">The type of the values.</typeparam>
+        /// <typeparam name="TResult">The type to project into.</typeparam>
         /// <param name="source">The source.</param>
         /// <param name="predicate">The predicate.</param>
         /// <param name="selector">The selector.</param>
         /// <returns>
         /// The filtered and projected sequence.
         /// </returns>
-        public static IEnumerable<TSelected> WhereSelect<T, TSelected>(this T[] source, Func<T, bool> predicate, Func<T, TSelected> selector)
+        public static IEnumerable<TResult> WhereSelect<TSource, TResult>(this TSource[] source, Func<TSource, bool> predicate, Func<TSource, TResult> selector)
         {
             for (int i = 0; i < source.Length; i++)
             {
@@ -701,17 +739,17 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// Filters a sequence of values based on a predicate and projects each returned element into a new form.
         /// </summary>
-        /// <typeparam name="T">The type of the values.</typeparam>
-        /// <typeparam name="TSelected">The type to project into.</typeparam>
+        /// <typeparam name="TSource">The type of the values.</typeparam>
+        /// <typeparam name="TResult">The type to project into.</typeparam>
         /// <param name="source">The source.</param>
         /// <param name="predicate">The predicate.</param>
         /// <param name="selector">The selector.</param>
         /// <returns>
         /// The filtered and projected sequence.
         /// </returns>
-        public static IEnumerable<TSelected> WhereSelect<T, TSelected>(this IEnumerable<T> source, Func<T, bool> predicate, Func<T, TSelected> selector)
+        public static IEnumerable<TResult> WhereSelect<TSource, TResult>(this IEnumerable<TSource> source, Func<TSource, bool> predicate, Func<TSource, TResult> selector)
         {
-            foreach (T item in source)
+            foreach (TSource item in source)
             {
                 if (predicate(item))
                 {
@@ -723,21 +761,21 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// Filters a sequence of values based on a predicate and projects each returned element into a new form.
         /// </summary>
-        /// <typeparam name="T">The type of the values.</typeparam>
-        /// <typeparam name="TSelected">The type to project into.</typeparam>
+        /// <typeparam name="TSource">The type of the values.</typeparam>
+        /// <typeparam name="TResult">The type to project into.</typeparam>
         /// <param name="source">The source.</param>
         /// <param name="predicate">The predicate.</param>
         /// <param name="selector">The selector.</param>
         /// <returns>
         /// The filtered and projected sequence.
         /// </returns>
-        public static IEnumerable<TSelected> WhereSelect<T, TSelected>(this List<T> source, Func<T, bool> predicate, Func<T, TSelected> selector)
+        public static IEnumerable<TResult> WhereSelect<TSource, TResult>(this IList<TSource> source, Func<TSource, bool> predicate, Func<TSource, TResult> selector)
         {
             int count = source.Count;
 
             for (int i = 0; i < count; i++)
             {
-                T item = source[i];
+                TSource item = source[i];
 
                 if (predicate(item))
                 {
@@ -749,18 +787,18 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// Filters a sequence of values based on a predicate and computes the sum of the sequence of long values that are obtained by invoking a transform function on each element.
         /// </summary>
-        /// <typeparam name="T">The type of the values.</typeparam>
+        /// <typeparam name="TSource">The type of the values.</typeparam>
         /// <param name="source">The source.</param>
         /// <param name="predicate">The predicate.</param>
         /// <param name="selector">The selector.</param>
         /// <returns>
         /// The sum of the filtered and projected values from the sequence.
         /// </returns>
-        public static long WhereSum<T>(this IEnumerable<T> source, Func<T, bool> predicate, Func<T, long> selector)
+        public static long WhereSum<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate, Func<TSource, long> selector)
         {
             long sum = 0;
 
-            foreach (T item in source)
+            foreach (TSource item in source)
             {
                 if (predicate(item))
                 {
@@ -774,21 +812,21 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// Filters a sequence of values based on a predicate and computes the sum of the sequence of long values that are obtained by invoking a transform function on each element.
         /// </summary>
-        /// <typeparam name="T">The type of the values.</typeparam>
+        /// <typeparam name="TSource">The type of the values.</typeparam>
         /// <param name="source">The source.</param>
         /// <param name="predicate">The predicate.</param>
         /// <param name="selector">The selector.</param>
         /// <returns>
         /// The sum of the filtered and projected values from the sequence.
         /// </returns>
-        public static long WhereSum<T>(this List<T> source, Func<T, bool> predicate, Func<T, long> selector)
+        public static long WhereSum<TSource>(this IList<TSource> source, Func<TSource, bool> predicate, Func<TSource, long> selector)
         {
             int count = source.Count;
             long sum = 0;
 
             for (int i = 0; i < count; i++)
             {
-                T item = source[i];
+                TSource item = source[i];
 
                 if (predicate(item))
                 {
@@ -802,14 +840,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// Filters a sequence of values based on a predicate and computes the sum of the sequence of long values that are obtained by invoking a transform function on each element.
         /// </summary>
-        /// <typeparam name="T">The type of the values.</typeparam>
+        /// <typeparam name="TSource">The type of the values.</typeparam>
         /// <param name="source">The source.</param>
         /// <param name="predicate">The predicate.</param>
         /// <param name="selector">The selector.</param>
         /// <returns>
         /// The sum of the filtered and projected values from the sequence.
         /// </returns>
-        public static long WhereSum<T>(this T[] source, Func<T, bool> predicate, Func<T, long> selector)
+        public static long WhereSum<TSource>(this TSource[] source, Func<TSource, bool> predicate, Func<TSource, long> selector)
         {
             long sum = 0;
 
@@ -825,56 +863,56 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
-        /// Filters a sequence of values based on a predicate and returns elements in an array of <typeparamref name="T"/>.
+        /// Filters a sequence of values based on a predicate and returns elements in an array of <typeparamref name="TSource"/>.
         /// </summary>
-        /// <typeparam name="T">The type of the values.</typeparam>
+        /// <typeparam name="TSource">The type of the values.</typeparam>
         /// <param name="source">The source.</param>
         /// <param name="predicate">The predicate.</param>
         /// <returns>The filtered sequence.</returns>
-        public static T[] WhereToArray<T>(this List<T> source, Func<T, bool> predicate)
+        public static TSource[] WhereToArray<TSource>(this IList<TSource> source, Func<TSource, bool> predicate)
         {
             return source.WhereToList(predicate).ToArray();
         }
 
         /// <summary>
-        /// Filters a sequence of values based on a predicate and returns elements in an array of <typeparamref name="T"/>.
+        /// Filters a sequence of values based on a predicate and returns elements in an array of <typeparamref name="TSource"/>.
         /// </summary>
-        /// <typeparam name="T">The type of the values.</typeparam>
+        /// <typeparam name="TSource">The type of the values.</typeparam>
         /// <param name="source">The source.</param>
         /// <param name="predicate">The predicate.</param>
         /// <returns>The filtered sequence.</returns>
-        public static T[] WhereToArray<T>(this T[] source, Func<T, bool> predicate)
+        public static TSource[] WhereToArray<TSource>(this TSource[] source, Func<TSource, bool> predicate)
         {
             return source.WhereToList(predicate).ToArray();
         }
 
         /// <summary>
-        /// Filters a sequence of values based on a predicate and returns elements in an array of <typeparamref name="T"/>.
+        /// Filters a sequence of values based on a predicate and returns elements in an array of <typeparamref name="TSource"/>.
         /// </summary>
-        /// <typeparam name="T">The type of the values.</typeparam>
+        /// <typeparam name="TSource">The type of the values.</typeparam>
         /// <param name="source">The source.</param>
         /// <param name="predicate">The predicate.</param>
         /// <returns>The filtered sequence.</returns>
-        public static T[] WhereToArray<T>(this IEnumerable<T> source, Func<T, bool> predicate)
+        public static TSource[] WhereToArray<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate)
         {
             return source.WhereToList(predicate).ToArray();
         }
 
         /// <summary>
-        /// Filters a sequence of values based on a predicate and returns elements in a List<typeparamref name="T"/>.
+        /// Filters a sequence of values based on a predicate and returns elements in a List<typeparamref name="TSource"/>.
         /// </summary>
-        /// <typeparam name="T">The type of the values.</typeparam>
+        /// <typeparam name="TSource">The type of the values.</typeparam>
         /// <param name="source">The source.</param>
         /// <param name="predicate">The predicate.</param>
         /// <returns>The filtered sequence.</returns>
-        public static List<T> WhereToList<T>(this List<T> source, Func<T, bool> predicate)
+        public static List<TSource> WhereToList<TSource>(this IList<TSource> source, Func<TSource, bool> predicate)
         {
             int count = source.Count;
-            List<T> list = new List<T>(count);
+            List<TSource> list = new List<TSource>(count);
 
             for (int i = 0; i < count; i++)
             {
-                T item = source[i];
+                TSource item = source[i];
 
                 if (predicate(item))
                 {
@@ -886,15 +924,15 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
-        /// Filters a sequence of values based on a predicate and returns elements in a List<typeparamref name="T"/>.
+        /// Filters a sequence of values based on a predicate and returns elements in a List<typeparamref name="TSource"/>.
         /// </summary>
-        /// <typeparam name="T">The type of the values.</typeparam>
+        /// <typeparam name="TSource">The type of the values.</typeparam>
         /// <param name="source">The source.</param>
         /// <param name="predicate">The predicate.</param>
         /// <returns>The filtered sequence.</returns>
-        public static List<T> WhereToList<T>(this T[] source, Func<T, bool> predicate)
+        public static List<TSource> WhereToList<TSource>(this TSource[] source, Func<TSource, bool> predicate)
         {
-            List<T> list = new List<T>(source.Length);
+            List<TSource> list = new List<TSource>(source.Length);
 
             for (int i = 0; i < source.Length; i++)
             {
@@ -908,17 +946,17 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
-        /// Filters a sequence of values based on a predicate and returns elements in a List<typeparamref name="T"/>.
+        /// Filters a sequence of values based on a predicate and returns elements in a List<typeparamref name="TSource"/>.
         /// </summary>
-        /// <typeparam name="T">The type of the values.</typeparam>
+        /// <typeparam name="TSource">The type of the values.</typeparam>
         /// <param name="source">The source.</param>
         /// <param name="predicate">The predicate.</param>
         /// <returns>The filtered sequence.</returns>
-        public static List<T> WhereToList<T>(this IEnumerable<T> source, Func<T, bool> predicate)
+        public static List<TSource> WhereToList<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate)
         {
-            List<T> list = new List<T>();
+            List<TSource> list = new List<TSource>();
 
-            foreach (T item in source)
+            foreach (TSource item in source)
             {
                 if (predicate(item))
                 {

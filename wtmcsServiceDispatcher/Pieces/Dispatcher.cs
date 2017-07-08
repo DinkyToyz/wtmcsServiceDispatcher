@@ -1408,7 +1408,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             /// </returns>
             public static BuldingCheckParameters[] GetBuldingCheckParametersWithPatrol(ServiceDispatcherSettings.BuildingCheckParameters[] buildingCheckParameters)
             {
-                IList<BuldingCheckParameters> parameters = buildingCheckParameters.SelectToList(bcp => new BuldingCheckParameters(bcp));
+                List<BuldingCheckParameters> parameters = buildingCheckParameters.SelectToList(bcp => new BuldingCheckParameters(bcp));
                 parameters.Add(new BuldingCheckParameters(false, true, false, 0, false));
 
                 return parameters.ToArray();
