@@ -9,7 +9,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
     /// <summary>
     /// Mod settings.
     /// </summary>
-    internal class Settings
+    public class Settings
     {
         /// <summary>
         /// A bit above the maximum tested game version.
@@ -89,6 +89,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// The CreateVehicle call compatibility mode.
         /// </summary>
         public ServiceDispatcherSettings.ModCompatibilityMode CreationCompatibilityMode = ServiceDispatcherSettings.DefaultCreationCompatibilityMode;
+
+        /// <summary>
+        /// The settings version in the loaded file.
+        /// </summary>
+        public int? loadedVersion = null;
 
         /// <summary>
         /// Limit building ranges.
@@ -188,19 +193,23 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         };
 
         /// <summary>
-        /// The settings version in the loaded file.
+        /// Initializes a new instance of the <see cref="Settings" /> class.
         /// </summary>
-        private int? loadedVersion = null;
+        public Settings(bool initialize = true)
+        {
+            this.Initialize();
+        }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Settings"/> class.
         /// </summary>
         /// <param name="settings">The file settings.</param>
-        public Settings(ServiceDispatcherSettings settings = null)
+        public Settings(ServiceDispatcherSettings settings)
         {
             if (settings != null)
             {
                 this.loadedVersion = settings.Version;
+                this.SaveCount = settings.SaveCount;
 
                 this.RangeModifier = settings.RangeModifier;
                 this.RangeLimit = settings.RangeLimit;
@@ -253,15 +262,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 this.RecoveryCrews.DelaySeconds = settings.RemoveStuckVehiclesDelaySeconds;
             }
 
-            if (!Global.EnableExperiments && !Global.EnableDevExperiments)
-            {
-            }
-
-            if (!Global.EnableDevExperiments)
-            {
-            }
-
-            this.HealthCare.DispatchVehicles = false;
+            this.Initialize();
         }
 
         /// <summary>
@@ -517,8 +518,25 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// Loads settings from the specified file name.
         /// </summary>
         /// <param name="fileName">Name of the file.</param>
-        /// <returns>The settings.</returns>
+        /// <returns>
+        /// The settings.
+        /// </returns>
         public static Settings Load(string fileName = null)
+        {
+            if (fileName == null)
+            {
+                fileName = FilePathName;
+            }
+
+            return ServiceDispatcherSettings.Load(fileName);
+        }
+
+        /// <summary>
+        /// Loads settings from the specified file name.
+        /// </summary>
+        /// <param name="fileName">Name of the file.</param>
+        /// <returns>The settings.</returns>
+        public static Settings LoadLegacy(string fileName = null)
         {
             Log.Debug(typeof(Settings), "Load", "Begin");
 
@@ -579,6 +597,24 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                             Settings sets = new Settings(cfg);
 
+                            if (Global.EnableDevExperiments)
+                            {
+                                try
+                                {
+                                    ServiceDispatcherSettings.Save<SerializableSettings.SettingsVersion0>(fileName + ".Version0.1.xml", sets);
+                                    Settings sets0 = ServiceDispatcherSettings.Load<SerializableSettings.SettingsVersion0>(fileName + ".Version0.1.xml");
+                                    ServiceDispatcherSettings.Save<SerializableSettings.SettingsVersion0>(fileName + ".Version0.2.xml", sets0);
+
+                                    ServiceDispatcherSettings.Save<SerializableSettings.SettingsVersion5>(fileName + ".Version5.1.xml", sets);
+                                    Settings sets5 = ServiceDispatcherSettings.Load<SerializableSettings.SettingsVersion5>(fileName + ".Version5.1.xml");
+                                    ServiceDispatcherSettings.Save<SerializableSettings.SettingsVersion5>(fileName + ".Version5.2.xml", sets5);
+                                }
+                                catch (Exception ex)
+                                {
+                                    Log.Error(typeof(Settings), "Load", ex, "Version0");
+                                }
+                            }
+
                             Log.Debug(typeof(Settings), "Load", "End");
 
                             return sets;
@@ -604,6 +640,22 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public bool AllowReflection(uint minGameVersion = 0, uint maxGameVersion = uint.MaxValue)
         {
             return this.AllowanceCheck(this.ReflectionAllowance, minGameVersion, maxGameVersion);
+        }
+
+        /// <summary>
+        /// Initializes this instance.
+        /// </summary>
+        public void Initialize()
+        {
+            if (!Global.EnableExperiments && !Global.EnableDevExperiments)
+            {
+            }
+
+            if (!Global.EnableDevExperiments)
+            {
+            }
+
+            this.HealthCare.DispatchVehicles = false;
         }
 
         /// <summary>
@@ -648,6 +700,25 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <param name="fileName">Name of the file.</param>
         public void Save(string fileName = null)
         {
+            if (Log.LogALot || Library.IsDebugBuild)
+            {
+                this.LogSettings();
+            }
+
+            if (fileName == null)
+            {
+                fileName = FilePathName;
+            }
+
+            ServiceDispatcherSettings.Save(fileName, this);
+        }
+
+        /// <summary>
+        /// Saves settings to the specified file name.
+        /// </summary>
+        /// <param name="fileName">Name of the file.</param>
+        public void SaveLegacy(string fileName = null)
+        {
             Log.Debug(this, "Save", "Begin");
 
             if (Log.LogALot || Library.IsDebugBuild)
@@ -664,7 +735,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 if (Global.EnableDevExperiments)
                 {
-                    SerializableSettings.Version0.Save(fileName + ".Version0.xml", this);
+                    ServiceDispatcherSettings.Save<SerializableSettings.SettingsVersion0>(fileName + ".Version0.xml", this);
                 }
 
                 string filePath = Path.GetDirectoryName(Path.GetFullPath(fileName));
@@ -1366,6 +1437,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 }
             }
 
+            /// <summary>
+            /// Gets a value indicating whether opportunistic collection limit detouring is allowed.
+            /// </summary>
+            /// <value>
+            ///   <c>true</c> if opportunistic collection limit detouring is allowed; otherwise, <c>false</c>.
+            /// </value>
             public bool OpportunisticCollectionLimitDetourAllowed
             {
                 get
@@ -1474,7 +1551,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 Log.Debug(this, "LogSettings", this.VehicleNamePlural, this.MaterialName, "DispatchByRange", this.DispatchByRange);
                 Log.Debug(this, "LogSettings", this.VehicleNamePlural, this.MaterialName, "CreateSpares", this.CreateSpares);
                 Log.Debug(this, "LogSettings", this.VehicleNamePlural, this.MaterialName, "ChecksPreset", (byte)this.ChecksPreset, this.ChecksPreset, GetBuildingCheckOrderName(this.ChecksPreset));
-                Log.Debug(this, "LogSettings", this.VehicleNamePlural, this.MaterialName, "ChecksParameters", String.Join(", ", this.ChecksParameters.Select(bc => bc.ToString()).ToArray()));
+                Log.Debug(this, "LogSettings", this.VehicleNamePlural, this.MaterialName, "ChecksParameters", String.Join(", ", this.ChecksParameters.SelectToArray(bc => bc.ToString())));
                 Log.Debug(this, "LogSettings", this.VehicleNamePlural, this.MaterialName, "ChecksCustom", this.ChecksCustomString);
                 Log.Debug(this, "LogSettings", this.VehicleNamePlural, this.MaterialName, "IgnoreRangeUseClosestBuildings", this.IgnoreRangeUseClosestBuildings);
                 Log.Debug(this, "LogSettings", this.VehicleNamePlural, this.MaterialName, "Patrol", this.Patrol);

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Xml.Serialization;
 
@@ -12,15 +13,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
     public class ServiceDispatcherSettings
     {
         /// <summary>
-        /// Gets the XML root.
-        /// </summary>
-        /// <value>
-        /// The XML root.
-        /// </value>
-        public static XmlRootAttribute XmlRoot => new XmlRootAttribute("ServiceDispatcherSettings");
-
-        /// <summary>
-        /// The default assignment compatibility mode. 
+        /// The default assignment compatibility mode.
         /// </summary>
         [NonSerialized]
         public const ServiceDispatcherSettings.ModCompatibilityMode DefaultAssignmentCompatibilityMode = ServiceDispatcherSettings.ModCompatibilityMode.UseInstanciatedClassMethods;
@@ -454,6 +447,157 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             /// Create spare vehicles when service building is closer to target than all free vehicles.
             /// </summary>
             WhenBuildingIsCloser = 3
+        }
+
+        /// <summary>
+        /// Gets the XML root.
+        /// </summary>
+        /// <value>
+        /// The XML root.
+        /// </value>
+        public static XmlRootAttribute XmlRoot => new XmlRootAttribute("ServiceDispatcherSettings");
+
+        /// <summary>
+        /// Loads settings from the specified file name.
+        /// </summary>
+        /// <param name="fileName">Name of the file.</param>
+        /// <returns>
+        /// The settings.
+        /// </returns>
+        public static Settings Load(string fileName)
+        {
+            return Load<SerializableSettings.SettingsVersion0>(fileName);
+        }
+
+        /// <summary>
+        /// Saves settings to the specified file name.
+        /// </summary>
+        /// <param name="fileName">Name of the file.</param>
+        /// <param name="settings">The settings.</param>
+        public static void Save(string fileName, Settings settings)
+        {
+            Save<SerializableSettings.SettingsVersion0>(fileName, settings);
+        }
+
+        /// <summary>
+        /// Loads settings from the specified file name.
+        /// </summary>
+        /// <typeparam name="T">The settings version type.</typeparam>
+        /// <param name="fileName">Name of the file.</param>
+        /// <returns>
+        /// The settings.
+        /// </returns>
+        internal static Settings Load<T>(string fileName) where T : class, SerializableSettings.ISerializableSettings, new()
+        {
+            Log.Debug(typeof(T), "Load", "Begin");
+
+            try
+            {
+                if (File.Exists(fileName))
+                {
+                    Log.Info(typeof(T), "Load", fileName);
+
+                    using (FileStream file = File.OpenRead(fileName))
+                    {
+                        bool canTryPrevious = true;
+                        XmlSerializer ser = new XmlSerializer(typeof(T), ServiceDispatcherSettings.XmlRoot);
+
+                        try
+                        {
+                            T cfg = ser.Deserialize(file) as T;
+
+                            if (cfg == null)
+                            {
+                                throw new InvalidDataException("No data");
+                            }
+
+                            if (cfg.MinVersion > cfg.LoadedVersion)
+                            {
+                                throw new InvalidDataException("Data version too low: " + cfg.LoadedVersion.ToString() + " (" + cfg.MinVersion.ToString() + ")");
+                            }
+                            else if (cfg.MaxVersion < cfg.LoadedVersion)
+                            {
+                                canTryPrevious = false;
+                                throw new InvalidDataException("Data version too low: " + cfg.LoadedVersion.ToString() + " (" + cfg.MinVersion.ToString() + ")");
+                            }
+
+                            Log.Debug(typeof(T), "Load", "Loaded");
+
+                            cfg.Initialize();
+                            Settings sets = cfg.GetSettings();
+
+                            Log.Debug(typeof(T), "Load", "End");
+
+                            return sets;
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.Info(typeof(T), "Load", "Not loaded", fileName, ex.GetType(), ex.Message);
+
+                            if (canTryPrevious)
+                            {
+                                if (typeof(T) == typeof(SerializableSettings.SettingsVersion5))
+                                {
+                                    return Load<SerializableSettings.SettingsVersion0>(fileName);
+                                }
+                            }
+
+                            throw;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error(typeof(T), "Load", ex);
+            }
+
+            Log.Debug(typeof(T), "Load", "End");
+            return new Settings();
+        }
+
+        /// <summary>
+        /// Saves settings to the specified file name.
+        /// </summary>
+        /// <typeparam name="T">The settings version type.</typeparam>
+        /// <param name="fileName">Name of the file.</param>
+        /// <param name="settings">The settings.</param>
+        internal static void Save<T>(string fileName, Settings settings) where T : class, SerializableSettings.ISerializableSettings, new()
+        {
+            Log.Debug(typeof(T), "Save", "Begin");
+
+            if (Log.LogALot || Library.IsDebugBuild)
+            {
+                settings.LogSettings();
+            }
+
+            try
+            {
+                string filePath = Path.GetDirectoryName(Path.GetFullPath(fileName));
+                if (!Directory.Exists(filePath))
+                {
+                    Directory.CreateDirectory(filePath);
+                }
+
+                Log.Info(typeof(T), "Save", fileName);
+
+                using (FileStream file = File.Create(fileName))
+                {
+                    T cfg = new T();
+                    cfg.SetSettings(settings);
+
+                    XmlSerializer ser = new XmlSerializer(typeof(T), ServiceDispatcherSettings.XmlRoot);
+                    ser.Serialize(file, cfg);
+                    file.Flush();
+                    file.Close();
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error(typeof(T), "Save", ex);
+            }
+
+            Log.Debug(typeof(T), "Save", "End");
         }
 
         /// <summary>

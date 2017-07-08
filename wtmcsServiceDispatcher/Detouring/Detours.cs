@@ -6,7 +6,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
     /// <summary>
     /// Detour collection.
     /// </summary>
-    internal static class Detours
+    public static class Detours
     {
         /// <summary>
         /// A detour reinitialize is needed.
