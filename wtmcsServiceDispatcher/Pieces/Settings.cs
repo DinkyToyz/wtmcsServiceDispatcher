@@ -290,6 +290,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Gets a value indicating whether to automatically empty any buildings.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if automatically emptying any buildings; otherwise, <c>false</c>.
+        /// </value>
+        public bool AutoEmptyAnyBuildings => this.Garbage.AutoEmpty || this.DeathCare.AutoEmpty || this.HealthCare.AutoEmpty;
+
+        /// <summary>
         /// Gets the settings version in the loaded file.
         /// </summary>
         /// <value>

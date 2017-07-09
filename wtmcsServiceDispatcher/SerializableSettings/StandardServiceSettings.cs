@@ -339,7 +339,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             get
             {
-                return this.emptiableServiceBuildingNamePluralValue;
+                return this.emptiableServiceBuildingNamePluralValue ?? "Service buildings";
             }
 
             set
@@ -385,7 +385,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             get
             {
-                return this.materialNameValue;
+                return this.materialNameValue ?? "Material";
             }
 
             set

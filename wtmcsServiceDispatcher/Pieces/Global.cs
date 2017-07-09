@@ -352,7 +352,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             // Initialize dispatch objects.
             try
             {
-                if (Settings.DispatchAnyVehicles)
+                if (Settings.DispatchAnyVehicles || Settings.AutoEmptyAnyBuildings || Settings.WreckingCrews.DispatchVehicles)
                 {
                     // Initialize buildings.
                     if (Buildings == null)
@@ -363,7 +363,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     {
                         Buildings.ReInitialize();
                     }
+                }
 
+                if (Settings.DispatchAnyVehicles)
+                {
                     if (TargetBuildingInfoPriorityComparer == null)
                     {
                         TargetBuildingInfoPriorityComparer = new TargetBuildingInfo.PriorityComparer();
@@ -425,8 +428,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 }
 
                 // Initialize vehicle objects.
-                if (Settings.DeathCare.DispatchVehicles || Settings.Garbage.DispatchVehicles || Settings.HealthCare.DispatchVehicles ||
-                    Settings.DeathCare.RemoveFromGrid || Settings.HealthCare.RemoveFromGrid)
+                if (Settings.DispatchAnyVehicles || Settings.DeathCare.RemoveFromGrid || Settings.HealthCare.RemoveFromGrid || Settings.RecoveryCrews.DispatchVehicles)
                 {
                     if (Vehicles == null)
                     {

@@ -43,7 +43,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 }
                 else
                 {
-                    return null;
+                    return "Service vehicles";
                 }
             }
 
@@ -81,7 +81,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 }
                 else
                 {
-                    return null;
+                    return "Service vehicle";
                 }
             }
 

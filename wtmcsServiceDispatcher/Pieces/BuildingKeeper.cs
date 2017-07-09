@@ -959,6 +959,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             if (!Global.Settings.DeathCare.DispatchVehicles)
             {
+                this.HasDeadPeopleBuildingsToCheck = false;
                 this.DeadPeopleBuildings = null;
             }
             else if (constructing || this.DeadPeopleBuildings == null)
@@ -980,13 +981,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             if (!Global.Settings.DeathCare.DispatchVehicles && !Global.Settings.DeathCare.AutoEmpty)
             {
-                this.HasDeadPeopleBuildingsToCheck = false;
                 this.DeathCareBuildings = null;
             }
             else if (constructing || this.DeathCareBuildings == null)
             {
                 info.Add("DeathCareBuildings", "new");
-                this.HasDeadPeopleBuildingsToCheck = false;
                 this.DeathCareBuildings = new Dictionary<ushort, ServiceBuildingInfo>();
             }
 

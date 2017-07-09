@@ -118,7 +118,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     Global.ServiceProblems.Update();
                 }
 
-                if (Global.Settings.DispatchAnyVehicles)
+                if (Global.Settings.DispatchAnyVehicles || Global.Settings.AutoEmptyAnyBuildings)
                 {
                     // Do vehicle based stuff.
                     if (Global.Vehicles != null)
