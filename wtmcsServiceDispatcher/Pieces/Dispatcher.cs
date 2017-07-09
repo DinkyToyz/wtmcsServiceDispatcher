@@ -441,12 +441,20 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             }
 
             // Remove unusable buildings.
-            if ((this.serviceSettings.DispatchByRange || this.serviceSettings.DispatchByDistrict) &&
-                ((Global.EnableExperiments && this.serviceSettings.IgnoreRangeUseClosestBuildings > 0) || !ignoreRange))
+            if (this.serviceSettings.DispatchByRange || this.serviceSettings.DispatchByDistrict)
             {
                 int buildingCountTotal = checkBuildings.Length;
 
-                if (ignoreRange)
+                if (!ignoreRange)
+                {
+                    checkBuildings = checkBuildings.Where(sb => sb.CurrentTargetInRange).ToArray();
+
+                    if (checkBuildings.Length == 0)
+                    {
+                        return false;
+                    }
+                }
+                else if (Global.EnableExperiments && this.serviceSettings.IgnoreRangeUseClosestBuildings > 0)
                 {
                     List<ServiceBuildingInfo> checkServiceBuildings = checkBuildings.WhereToList(sb => sb.CurrentTargetInRange);
                     int buildingCountInRange = checkServiceBuildings.Count;
@@ -454,33 +462,22 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     checkServiceBuildings.AddRange(checkBuildings
                                                 .Where(sb => !sb.CurrentTargetInRange)
                                                 .OrderByTake(sb => sb.CurrentTargetDistance, this.serviceSettings.IgnoreRangeUseClosestBuildings));
-                    checkServiceBuildings.AddRange(new ServiceBuildingInfo[0]);
 
                     checkBuildings = checkServiceBuildings.ToArray();
 
-                    if (Log.LogALot)
+                    if (checkBuildings.Length == 0)
                     {
-                        Log.DevDebug(this, "AssignVehicle", "UsableBuildings", checkBuildings.Length, buildingCountTotal, buildingCountInRange, this.serviceSettings.IgnoreRangeUseClosestBuildings);
-                    }
-                }
-                else
-                {
-                    checkBuildings = checkBuildings.Where(sb => sb.CurrentTargetInRange).ToArray();
+                        if (Log.LogALot)
+                        {
+                            Log.DevDebug(this, "AssignVehicle", "FilterBuildings", "ClosestRange", "NoBuildings", checkBuildings.Length, buildingCountTotal, buildingCountInRange, this.serviceSettings.IgnoreRangeUseClosestBuildings);
+                        }
 
-                    if (Log.LogALot)
+                        return false;
+                    }
+                    else if (Log.LogALot)
                     {
-                        Log.DevDebug(this, "AssignVehicle", "UsableBuildings", checkBuildings.Length, buildingCountTotal);
+                        Log.DevDebug(this, "AssignVehicle", "FilterBuildings", "ClosestRange", "UsableBuildings", checkBuildings.Length, buildingCountTotal, buildingCountInRange, this.serviceSettings.IgnoreRangeUseClosestBuildings);
                     }
-                }
-
-                if (checkBuildings.Length == 0)
-                {
-                    if (Log.LogALot)
-                    {
-                        Log.DevDebug(this, "AssignVehicle", "NoBuildings");
-                    }
-
-                    return false;
                 }
             }
 
