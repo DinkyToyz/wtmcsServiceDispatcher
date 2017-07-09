@@ -53,7 +53,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
         /// <summary>
         /// The building range configuration.
         /// </summary>
-        public RangeConfig Ranges = new RangeConfig();
+        public DispatchConfig Dispatch = new DispatchConfig();
 
         /// <summary>
         /// Automatic removal of stuck vehicles servic settings.
@@ -116,7 +116,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
             settings.SaveCount = this.SaveCount;
 
             this.Compatibility.GetSettings(settings);
-            this.Ranges.GetSettings(settings);
+            this.Dispatch.GetSettings(settings);
 
             this.Hearses.GetSettings(settings.DeathCare);
             this.Ambulances.GetSettings(settings.HealthCare);
@@ -147,7 +147,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
         public void SetSettings(Settings settings)
         {
             this.Compatibility.SetSettings(settings);
-            this.Ranges.SetSettings(settings);
+            this.Dispatch.SetSettings(settings);
 
             this.Hearses.SetSettings(settings.DeathCare);
             this.Ambulances.SetSettings(settings.HealthCare);
@@ -325,7 +325,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
         /// The range configuration settings.
         /// </summary>
         [Serializable]
-        public class RangeConfig
+        public class DispatchConfig
         {
             /// <summary>
             /// Limit building ranges.
