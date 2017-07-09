@@ -61,6 +61,26 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Adds an extended slider to a UI helper.
+        /// </summary>
+        /// <param name="helper">The UI helper.</param>
+        /// <param name="text">The text label.</param>
+        /// <param name="min">The minimum value.</param>
+        /// <param name="max">The maximum value.</param>
+        /// <param name="step">The step size.</param>
+        /// <param name="defaultValue">The default value.</param>
+        /// <param name="allowFloats">If set to <c>true</c> allow non-integers.</param>
+        /// <param name="zeroIsEmpty">if set to <c>true</c> [zero is empty].</param>
+        /// <param name="eventCallback">The value changed event callback.</param>
+        /// <returns>
+        /// The extended slider.
+        /// </returns>
+        public static ExtendedSlider AddExtendedSlider(this UIHelperBase helper, string text, float min, float max, float step, float defaultValue, bool allowFloats, bool zeroIsEmpty, OnValueChanged eventCallback)
+        {
+            return new ExtendedSlider(helper, text, min, max, step, defaultValue, allowFloats, null, eventCallback);
+        }
+
+        /// <summary>
         /// Adds the informational text to the helper component.
         /// </summary>
         /// <param name="helper">The UI helper.</param>

@@ -986,54 +986,31 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 if (Global.EnableExperiments)
                 {
-                    bool updatingignoreRangeUseClosestBuildings = true;
-                    UITextField ignoreRangeUseClosestBuildingsTextField = null;
-
-                    ignoreRangeUseClosestBuildingsTextField = (UITextField)group.AddTextfield(
-                        "Closest buildings to use when ignoring range",
-                        settings.IgnoreRangeUseClosestBuildings == 0 ? "" : settings.IgnoreRangeUseClosestBuildings.ToString(),
-                        value => { },
+                    group.AddExtendedSlider(
+                        "Use closest services when ignoring range",
+                        0, 
+                        99,
+                        1,
+                        settings.IgnoreRangeUseClosestBuildings,
+                        false,
+                        true,
                         value =>
                         {
-                            if (!updatingignoreRangeUseClosestBuildings)
+                            try
                             {
-                                try
-                                {
-                                    updatingignoreRangeUseClosestBuildings = true;
+                                byte buildings = (byte)value;
 
-                                    byte buildings;
-                                    if (String.IsNullOrEmpty(value) || !byte.TryParse(value, out buildings))
-                                    {
-                                        buildings = 0;
-                                    }
-
-                                    if (buildings != settings.IgnoreRangeUseClosestBuildings)
-                                    {
-                                        settings.IgnoreRangeUseClosestBuildings = buildings;
-                                        Global.Settings.Save();
-                                    }
-
-                                    if (settings.IgnoreRangeUseClosestBuildings == 0 && !String.IsNullOrEmpty(value))
-                                    {
-                                        ignoreRangeUseClosestBuildingsTextField.text = "";
-                                    }
-                                }
-                                catch (Exception ex)
+                                if (buildings != settings.IgnoreRangeUseClosestBuildings)
                                 {
-                                    Log.Error(this, "CreateServiceGroup", ex, settings.VehicleNamePlural, "IgnoreRangeUseClosestBuildings", value);
-                                }
-                                finally
-                                {
-                                    updatingignoreRangeUseClosestBuildings = false;
+                                    settings.IgnoreRangeUseClosestBuildings = buildings;
+                                    Global.Settings.Save();
                                 }
                             }
+                            catch (Exception ex)
+                            {
+                                Log.Error(this, "CreateServiceGroup", ex, settings.VehicleNamePlural, "IgnoreRangeUseClosestBuildings", value);
+                            }
                         });
-
-                    updatingignoreRangeUseClosestBuildings = false;
-                    ignoreRangeUseClosestBuildingsTextField.numericalOnly = true;
-                    ignoreRangeUseClosestBuildingsTextField.allowFloats = false;
-                    ignoreRangeUseClosestBuildingsTextField.allowNegative = false;
-                    ignoreRangeUseClosestBuildingsTextField.maxLength = 2;
                 }
 
                 if (settings.UseMinimumAmountForPatrol)
@@ -1149,7 +1126,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 customStrategyWarningLabel.Hide();
 
                 updatingCustomStrategy = false;
-                customStrategyTextField.width = customStrategyTextField.width * 2;
+                customStrategyTextField.width *= 2;
 
                 return group;
             }

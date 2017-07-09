@@ -20,6 +20,16 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         private bool autoTextFormat = true;
 
         /// <summary>
+        /// The zero is represented by an empty string.
+        /// </summary>
+        private bool emptyZero = false;
+
+        /// <summary>
+        /// This instance is initialized.
+        /// </summary>
+        private bool isInitialized = false;
+
+        /// <summary>
         /// The values are updating and should not generate callbacks and sets.
         /// </summary>
         private bool isUpdating = false;
@@ -57,7 +67,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public ExtendedSlider(UIHelperBase helper, string text, float min, float max, float step, float defaultValue, OnValueChanged eventCallback)
         {
             bool allowFloats = min != Math.Truncate(min) || max != Math.Truncate(max) || step != Math.Truncate(step) || defaultValue != Math.Truncate(defaultValue);
-            this.Initialize(helper, text, min, max, step, defaultValue, allowFloats, null, eventCallback);
+            this.Initialize(helper, text, min, max, step, defaultValue, allowFloats, false, null, eventCallback);
         }
 
         /// <summary>
@@ -74,7 +84,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <param name="eventCallback">The value changed event callback.</param>
         public ExtendedSlider(UIHelperBase helper, string text, float min, float max, float step, float defaultValue, bool allowFloats, string textFormat, OnValueChanged eventCallback)
         {
-            this.Initialize(helper, text, min, max, step, defaultValue, allowFloats, textFormat, eventCallback);
+            this.Initialize(helper, text, min, max, step, defaultValue, allowFloats, false, textFormat, eventCallback);
         }
 
         /// <summary>
@@ -90,7 +100,24 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <param name="eventCallback">The value changed event callback.</param>
         public ExtendedSlider(UIHelperBase helper, string text, float min, float max, float step, float defaultValue, bool allowFloats, OnValueChanged eventCallback)
         {
-            this.Initialize(helper, text, min, max, step, defaultValue, allowFloats, null, eventCallback);
+            this.Initialize(helper, text, min, max, step, defaultValue, allowFloats, false, null, eventCallback);
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ExtendedSlider" /> class.
+        /// </summary>
+        /// <param name="helper">The UI helper.</param>
+        /// <param name="text">The text label.</param>
+        /// <param name="min">The minimum value.</param>
+        /// <param name="max">The maximum value.</param>
+        /// <param name="step">The step size.</param>
+        /// <param name="defaultValue">The default value.</param>
+        /// <param name="allowFloats">If set to <c>true</c> allow non-integers.</param>
+        /// <param name="zeroIsEmpty">if set to <c>true</c> zero is empty.</param>
+        /// <param name="eventCallback">The value changed event callback.</param>
+        public ExtendedSlider(UIHelperBase helper, string text, float min, float max, float step, float defaultValue, bool allowFloats, bool zeroIsEmpty, OnValueChanged eventCallback)
+        {
+            this.Initialize(helper, text, min, max, step, defaultValue, allowFloats, zeroIsEmpty, null, eventCallback);
         }
 
         /// <summary>
@@ -108,23 +135,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             set
             {
-                this.allowFloats = value;
-                if (this.textField != null)
-                {
-                    this.textField.allowFloats = value;
-                }
+                this.SetAllowFloats(value);
 
-                if (this.autoTextFormat)
-                {
-                    if (value)
+                this.Update(() =>
                     {
-                        this.textFormat = "F2";
-                    }
-                    else
-                    {
-                        this.textFormat = "F0";
-                    }
-                }
+                        this.textField.text = this.FormatText();
+                    });
             }
         }
 
@@ -138,21 +154,32 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             get
             {
+                if (!this.isInitialized)
+                {
+                    throw new InvalidOperationException("Control is not initialized");
+                }
+
                 return this.FormatText(this.slider.value);
             }
 
             set
             {
-                try
+                if (!this.isInitialized)
                 {
-                    this.isUpdating = true;
-
-                    float number = this.ParseText(value, true);
-                    this.slider.value = number;
+                    throw new InvalidOperationException("Control is not initialized");
                 }
-                finally
+
+                bool updated = this.Update(() =>
+                    {
+                        float number = this.ParseText(value, true);
+
+                        this.slider.value = number;
+                        this.textField.text = this.FormatText(number);
+                    });
+
+                if (!updated)
                 {
-                    this.isUpdating = false;
+                    throw new InvalidOperationException("Cannot set text while control is updating");
                 }
             }
         }
@@ -196,6 +223,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             set
             {
                 this.SetTextFormat(this.AllowFloats, value);
+
+                this.Update(() =>
+                {
+                    this.textField.text = this.FormatText();
+                });
             }
         }
 
@@ -209,15 +241,23 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             get
             {
+                if (!this.isInitialized)
+                {
+                    throw new InvalidOperationException("Control is not initialized");
+                }
+
                 return this.slider.value;
             }
 
             set
             {
-                try
+                if (!this.isInitialized)
                 {
-                    this.isUpdating = true;
+                    throw new InvalidOperationException("Control is not initialized");
+                }
 
+                bool updated = this.Update(() =>
+                {
                     if (value > this.slider.maxValue)
                     {
                         value = this.slider.maxValue;
@@ -234,11 +274,35 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                     this.slider.value = value;
                     this.textField.text = this.FormatText(value);
-                }
-                finally
+                });
+
+                if (!updated)
                 {
-                    this.isUpdating = false;
+                    throw new InvalidOperationException("Cannot set value while control is updating");
                 }
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether zero is represented by an empty string.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if zero is an empty string; otherwise, <c>false</c>.
+        /// </value>
+        public bool ZeroIsEmpty
+        {
+            get => this.emptyZero;
+            set
+            {
+                this.emptyZero = value;
+
+                this.Update(() =>
+                    {
+                        if (this.slider.value == 0.0f)
+                        {
+                            this.textField.text = this.FormatText();
+                        }
+                    });
             }
         }
 
@@ -249,7 +313,40 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <returns>The formatted value.</returns>
         private string FormatText(float value)
         {
-            return value.ToString(this.textFormat);
+            return (this.emptyZero && value == 0.0f) ? "" : value.ToString(this.textFormat);
+        }
+
+        /// <summary>
+        /// Formats the value as text.
+        /// </summary>
+        /// <returns>
+        /// The formatted value.
+        /// </returns>
+        private string FormatText()
+        {
+            return this.FormatText(this.slider.value);
+        }
+
+        /// <summary>
+        /// Gets the maximum length of the text.
+        /// </summary>
+        /// <param name="min">The minimum.</param>
+        /// <param name="max">The maximum.</param>
+        /// <param name="allowFloats">if set to <c>true</c> [allow floats].</param>
+        /// <returns>The maximum length of the text.</returns>
+        private int GetMaxTextLength(float min, float max, bool allowFloats)
+        {
+            int maxLen;
+            if (allowFloats)
+            {
+                maxLen = Math.Max(Math.Max(max.ToString("G17").Length, min.ToString("G17").Length), 18);
+            }
+            else
+            {
+                maxLen = Math.Max(((long)Math.Truncate(max)).ToString().Length, ((long)Math.Truncate(min)).ToString().Length);
+            }
+
+            return Math.Max(Math.Max(this.FormatText(min).Length, this.FormatText(max).Length), maxLen);
         }
 
         /// <summary>
@@ -282,11 +379,13 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <param name="step">The step size.</param>
         /// <param name="defaultValue">The default value.</param>
         /// <param name="allowFloats">If set to <c>true</c> allow non-integers.</param>
+        /// <param name="emptyZero">if set to <c>true</c> empty zero.</param>
         /// <param name="textFormat">The text format.</param>
         /// <param name="eventCallback">The value changed event callback.</param>
-        private void Initialize(UIHelperBase helper, string text, float min, float max, float step, float defaultValue, bool allowFloats, string textFormat, OnValueChanged eventCallback)
+        private void Initialize(UIHelperBase helper, string text, float min, float max, float step, float defaultValue, bool allowFloats, bool emptyZero, string textFormat, OnValueChanged eventCallback)
         {
             this.SetTextFormat(allowFloats, textFormat);
+            this.emptyZero = emptyZero;
 
             this.slider = helper.AddSlider(
                 text,
@@ -296,21 +395,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 defaultValue,
                 value =>
                 {
-                    if (!this.isUpdating)
+                    this.Update(() =>
                     {
-                        try
-                        {
-                            this.isUpdating = true;
-
-                            this.textField.text = this.FormatText(value);
-
-                            eventCallback(value);
-                        }
-                        finally
-                        {
-                            this.isUpdating = false;
-                        }
-                    }
+                        this.textField.text = this.FormatText(value);
+                        eventCallback(value);
+                    });
                 }) as UISlider;
 
             this.textField = helper.AddTextfield(
@@ -318,58 +407,56 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 this.FormatText(defaultValue),
                 value =>
                 {
-                    if (submitOnFocusLost && !this.isUpdating)
+                    if (this.submitOnFocusLost)
                     {
-                        try
+                        this.Update(() =>
                         {
-                            this.isUpdating = true;
-
                             float number = this.ParseText(value, false);
+
                             if (number != this.slider.value)
                             {
                                 this.slider.value = number;
                             }
-                        }
-                        finally
-                        {
-                            this.isUpdating = false;
-                        }
+                        });
                     }
                 },
                 value =>
                 {
-                    if (!this.isUpdating)
+                    this.Update(() =>
                     {
-                        try
-                        {
-                            this.isUpdating = true;
+                        float number = this.ParseText(value, false);
 
-                            float number = this.ParseText(value, false);
-                            if (number != slider.value)
-                            {
-                                this.slider.value = number;
-                                this.textField.text = this.FormatText(number);
-
-                                eventCallback(number);
-                            }
-                        }
-                        finally
+                        if (number != slider.value)
                         {
-                            this.isUpdating = false;
+                            this.slider.value = number;
+                            this.textField.text = this.FormatText(number);
+
+                            eventCallback(number);
                         }
-                    }
+                    });
                 }) as UITextField;
+
+            UIComponent sliderParent = this.slider.parent;
+            UILabel sliderLabel = sliderParent.Find<UILabel>("Label");
+            if (sliderLabel != null)
+            {
+                sliderLabel.width *= 2;
+            }
 
             this.textField.numericalOnly = true;
             this.textField.allowFloats = this.AllowFloats;
             this.textField.allowNegative = min < 0;
             this.textField.submitOnFocusLost = this.submitOnFocusLost;
+            this.textField.maxLength = this.GetMaxTextLength(min, max, allowFloats);
+
             this.textField.eventVisibilityChanged += (component, value) =>
             {
                 this.HideTextFieldLabel();
             };
 
             this.HideTextFieldLabel();
+
+            this.isInitialized = true;
         }
 
         /// <summary>
@@ -378,9 +465,24 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <param name="parent">The parent.</param>
         /// <param name="label">The label.</param>
         /// <param name="hint">A hint.</param>
-        private void LogTextFieldDbg(UIComponent parent, UILabel label, string hint)
+        private void TextFieldDebugLog(UIComponent parent, UILabel label, string hint)
         {
-            Log.DevDebug(this, "LogTextFieldDbg", hint, label.text, parent.position, parent.size, label.position, label.size, this.textField.position, this.textField.size);
+            Log.DevDebug(this, "TextFieldDebugLog", hint, label.text, parent.position, parent.size, label.position, label.size, this.textField.position, this.textField.size);
+        }
+
+        private void DevDebugLog()
+        {
+            Log.DevDebug(this, "DevDebugLog", this.isInitialized, this.isUpdating, this.submitOnFocusLost, this.autoTextFormat, this.allowFloats, this.emptyZero, this.textFormat);
+
+            if (this.slider != null)
+            {
+                Log.DevDebug(this, "DevDebugLog", "Slider", slider.enabled, slider.canFocus, slider.minValue, slider.maxValue, slider.stepSize, slider.value);
+            }
+
+            if (this.textField != null)
+            {
+                Log.DevDebug(this, "DevDebugLog", "TextField", textField.enabled, textField.canFocus, textField.numericalOnly, textField.allowFloats, textField.allowNegative, textField.maxLength, textField.text);
+            }
         }
 
         /// <summary>
@@ -409,7 +511,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             if (!this.AllowFloats)
             {
-                if (value != Math.Truncate(value))
+                if (throwOnError && value != Math.Truncate(value))
                 {
                     throw new ArgumentException("Text is not a valid integer");
                 }
@@ -430,6 +532,36 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Sets the allow floats value and formats.
+        /// </summary>
+        /// <param name="allowFloats">if set to <c>true</c> allow floats.</param>
+        private void SetAllowFloats(bool allowFloats)
+        {
+            this.allowFloats = allowFloats;
+            if (this.autoTextFormat)
+            {
+                if (allowFloats)
+                {
+                    this.textFormat = "F2";
+                }
+                else
+                {
+                    this.textFormat = "F0";
+                }
+            }
+
+            if (this.textField != null)
+            {
+                this.textField.allowFloats = allowFloats;
+
+                if (this.slider != null)
+                {
+                    this.textField.maxLength = this.GetMaxTextLength(this.slider.minValue, this.slider.maxValue, allowFloats);
+                }
+            }
+        }
+
+        /// <summary>
         /// Sets the text format.
         /// </summary>
         /// <param name="allowFloats">If set to <c>true</c> allow non-integers.</param>
@@ -446,7 +578,48 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 this.autoTextFormat = true;
             }
 
-            this.AllowFloats = allowFloats;
+            this.SetAllowFloats(allowFloats);
+        }
+
+        /// <summary>
+        /// Updates this instance using the specified updater.
+        /// </summary>
+        /// <param name="updater">The updater.</param>
+        /// <returns>True unless control is already updating, or not yet initialized.</returns>
+        private bool Update(Action updater)
+        {
+            if (!this.isInitialized)
+            {
+                return false;
+            }
+
+            bool updated = false;
+            try
+            {
+                lock (this)
+                {
+                    if (this.isUpdating)
+                    {
+                        return false;
+                    }
+
+                    updated = true;
+                    this.isUpdating = true;
+                }
+
+                updater();
+                return true;
+            }
+            finally
+            {
+                if (updated)
+                {
+                    lock (this)
+                    {
+                        this.isUpdating = false;
+                    }
+                }
+            }
         }
     }
 }
