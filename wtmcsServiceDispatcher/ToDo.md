@@ -3,10 +3,10 @@
 - Override TransferManager.AddIncomingOffer and TransferManager.AddOutgoingOffer?
 - Remember problematic targets and delay next assigment to such target, so that it does not ceate a problem for the whole city.
 - Make a simple textbox for adding comma separated custom strategy.
+- New stragety option: Make it so IgnoreRange only ignores range for the n closest buildings.
 
 # Doing
 - Ambulance services.
-- New stragety option: Make it so IgnoreRange only ignores range for the n closest buildings.
 
 # Dox etc
 

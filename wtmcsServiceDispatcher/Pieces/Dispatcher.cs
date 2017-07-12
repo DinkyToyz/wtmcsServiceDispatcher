@@ -449,7 +449,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 //buildingFilter = "CurrentTargetCanDispatch & CurrentTargetInRange";
                 //buildingCountUsableInRange = checkBuildings.Length;
             }
-            else if (Global.EnableExperiments && this.serviceSettings.IgnoreRangeUseClosestBuildings > 0)
+            else if (this.serviceSettings.IgnoreRangeUseClosestBuildings > 0)
             {
                 // All buildings in range than can dispatch.
                 List<ServiceBuildingInfo> checkServiceBuildings = this.serviceBuildings.Values.WhereToList(sb => sb.CurrentTargetCanDispatch && sb.CurrentTargetInRange);

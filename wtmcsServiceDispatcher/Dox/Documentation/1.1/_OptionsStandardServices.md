@@ -15,7 +15,7 @@
   Choose the dispatch strategy to use for these vehicles.
   See [Dispatch Strategies](OptionsStandardServices.html#DispatchStrategies).
 
-- **Use closest services when ignoring range**:
+- **Closest services to use when ignoring range**:
   Only uses the specified number of service buildings closest to the target building when ignoring whether buildings are in range or not.  
   
 - **Custom dispatch strategy**

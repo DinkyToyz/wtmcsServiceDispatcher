@@ -984,34 +984,31 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 //        settings.ChecksParametersString);
                 //}
 
-                if (Global.EnableExperiments)
-                {
-                    group.AddExtendedSlider(
-                        "Use closest services when ignoring range",
-                        0, 
-                        99,
-                        1,
-                        settings.IgnoreRangeUseClosestBuildings,
-                        false,
-                        true,
-                        value =>
+                group.AddExtendedSlider(
+                    "Closest services to use when ignoring range",
+                    0,
+                    99,
+                    1,
+                    settings.IgnoreRangeUseClosestBuildings,
+                    false,
+                    true,
+                    value =>
+                    {
+                        try
                         {
-                            try
-                            {
-                                byte buildings = (byte)value;
+                            byte buildings = (byte)value;
 
-                                if (buildings != settings.IgnoreRangeUseClosestBuildings)
-                                {
-                                    settings.IgnoreRangeUseClosestBuildings = buildings;
-                                    Global.Settings.Save();
-                                }
-                            }
-                            catch (Exception ex)
+                            if (buildings != settings.IgnoreRangeUseClosestBuildings)
                             {
-                                Log.Error(this, "CreateServiceGroup", ex, settings.VehicleNamePlural, "IgnoreRangeUseClosestBuildings", value);
+                                settings.IgnoreRangeUseClosestBuildings = buildings;
+                                Global.Settings.Save();
                             }
-                        });
-                }
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.Error(this, "CreateServiceGroup", ex, settings.VehicleNamePlural, "IgnoreRangeUseClosestBuildings", value);
+                        }
+                    });
 
                 if (settings.UseMinimumAmountForPatrol)
                 {
