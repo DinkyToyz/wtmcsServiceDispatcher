@@ -5,7 +5,7 @@ using WhatThe.Mods.CitiesSkylines.ServiceDispatcher;
 namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
 {
     /// <summary>
-    /// Serializable settings class, version 0-4.
+    /// Serializable settings class, version 0-5.
     /// </summary>
     [Serializable]
     public class SettingsVersion0 : ISerializableSettings
@@ -286,7 +286,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
         /// <value>
         /// The current version.
         /// </value>
-        public static int CurrentVersion => 4;
+        public static int CurrentVersion => 5;
 
         /// <summary>
         /// Gets the loaded version.
@@ -302,7 +302,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
         /// <value>
         /// The maximum version.
         /// </value>
-        public int MaxVersion => 4;
+        public int MaxVersion => 5;
 
         /// <summary>
         /// Gets the minimum version.
@@ -380,43 +380,62 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
             return settings;
         }
 
+        private ServiceDispatcherSettings.SpareVehiclesCreation FixBrokenSpareVehiclesCreation(ServiceDispatcherSettings.SpareVehiclesCreation loadedSpareVehiclesCreation)
+        {
+            // Make the best of it, as we can't really make it right...
+            switch(loadedSpareVehiclesCreation)
+            {
+                case ServiceDispatcherSettings.SpareVehiclesCreation.Never: return ServiceDispatcherSettings.SpareVehiclesCreation.WhenNoFree;
+                case ServiceDispatcherSettings.SpareVehiclesCreation.WhenNoFree: return ServiceDispatcherSettings.SpareVehiclesCreation.WhenBuildingIsCloser;
+                case ServiceDispatcherSettings.SpareVehiclesCreation.WhenBuildingIsCloser: return ServiceDispatcherSettings.SpareVehiclesCreation.WhenBuildingIsCloser;
+                default: return ServiceDispatcherSettings.SpareVehiclesCreation.WhenNoFree;
+            }
+        }
+
         /// <summary>
         /// Initializes the settings.
         /// </summary>
         public void Initialize()
         {
-            if (this.Version < 4)
+            if (this.Version < 5)
             {
-                this.AssignmentCompatibilityMode = ServiceDispatcherSettings.DefaultAssignmentCompatibilityMode;
-                this.CreationCompatibilityMode = ServiceDispatcherSettings.DefaultCreationCompatibilityMode;
+                this.CreateSpareAmbulances = FixBrokenSpareVehiclesCreation(this.CreateSpareAmbulances);
+                this.CreateSpareGarbageTrucks = FixBrokenSpareVehiclesCreation(this.CreateSpareGarbageTrucks);
+                this.CreateSpareHearses = FixBrokenSpareVehiclesCreation(this.CreateSpareHearses);
 
-                if (this.Version < 3)
+                if (this.Version < 4)
                 {
-                    if (this.Version < 2)
-                    {
-                        this.DispatchHearsesByDistrict = this.DispatchByDistrict;
-                        this.DispatchHearsesByRange = this.DispatchByRange;
-                        this.DispatchGarbageTrucksByDistrict = this.DispatchByDistrict;
-                        this.DispatchGarbageTrucksByRange = this.DispatchByRange;
-                        this.DispatchAmbulancesByDistrict = this.DispatchByDistrict;
-                        this.DispatchAmbulancesByRange = this.DispatchByRange;
-                    }
+                    this.AssignmentCompatibilityMode = ServiceDispatcherSettings.DefaultAssignmentCompatibilityMode;
+                    this.CreationCompatibilityMode = ServiceDispatcherSettings.DefaultCreationCompatibilityMode;
 
-                    if (this.MinimumGarbageForDispatch >= 2000)
+                    if (this.Version < 3)
                     {
-                        this.MinimumGarbageForPatrol = 200;
-                    }
-                    else if (this.MinimumGarbageForDispatch >= 300)
-                    {
-                        this.MinimumGarbageForPatrol = 150;
-                    }
-                    else if (this.MinimumGarbageForDispatch >= 100)
-                    {
-                        this.MinimumGarbageForPatrol = 100;
-                    }
-                    else
-                    {
-                        this.MinimumGarbageForPatrol = this.MinimumGarbageForDispatch;
+                        if (this.Version < 2)
+                        {
+                            this.DispatchHearsesByDistrict = this.DispatchByDistrict;
+                            this.DispatchHearsesByRange = this.DispatchByRange;
+                            this.DispatchGarbageTrucksByDistrict = this.DispatchByDistrict;
+                            this.DispatchGarbageTrucksByRange = this.DispatchByRange;
+                            this.DispatchAmbulancesByDistrict = this.DispatchByDistrict;
+                            this.DispatchAmbulancesByRange = this.DispatchByRange;
+                        }
+
+                        if (this.MinimumGarbageForDispatch >= 2000)
+                        {
+                            this.MinimumGarbageForPatrol = 200;
+                        }
+                        else if (this.MinimumGarbageForDispatch >= 300)
+                        {
+                            this.MinimumGarbageForPatrol = 150;
+                        }
+                        else if (this.MinimumGarbageForDispatch >= 100)
+                        {
+                            this.MinimumGarbageForPatrol = 100;
+                        }
+                        else
+                        {
+                            this.MinimumGarbageForPatrol = this.MinimumGarbageForDispatch;
+                        }
                     }
                 }
             }

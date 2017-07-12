@@ -5,10 +5,10 @@ using WhatThe.Mods.CitiesSkylines.ServiceDispatcher;
 namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
 {
     /// <summary>
-    /// Serializable settings class, version 5.
+    /// Serializable settings class, version 6.
     /// </summary>
     [Serializable]
-    public class SettingsVersion5 : ISerializableSettings
+    public class SettingsVersion6 : ISerializableSettings
     {
         /// <summary>
         /// The standard ambulance service settings.
@@ -33,7 +33,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
         /// <summary>
         /// The compatibility configuration.
         /// </summary>
-        public CompatibilityConfig Compatibility = new SettingsVersion5.CompatibilityConfig();
+        public CompatibilityConfig Compatibility = new SettingsVersion6.CompatibilityConfig();
 
         /// <summary>
         /// The standard garbage truck service settings.
@@ -76,7 +76,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
         /// <value>
         /// The current version.
         /// </value>
-        public static int CurrentVersion => 5;
+        public static int CurrentVersion => 6;
 
         /// <summary>
         /// Gets the loaded version.
@@ -92,7 +92,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
         /// <value>
         /// The maximum version.
         /// </value>
-        public int MaxVersion => 5;
+        public int MaxVersion => 6;
 
         /// <summary>
         /// Gets the minimum version.
@@ -100,7 +100,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
         /// <value>
         /// The minimum version.
         /// </value>
-        public int MinVersion => 5;
+        public int MinVersion => 6;
 
         /// <summary>
         /// Gets the settings.

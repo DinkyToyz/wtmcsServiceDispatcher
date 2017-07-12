@@ -164,17 +164,17 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             /// <summary>
             /// Never create spare vehicles.
             /// </summary>
-            Never = 1,
+            Never = 0,
 
             /// <summary>
             /// Create spare vehicles when service building has no free vehicles.
             /// </summary>
-            WhenNoFree = 2,
+            WhenNoFree = 1,
 
             /// <summary>
             /// Create spare vehicles when service building is closer to target than all free vehicles.
             /// </summary>
-            WhenBuildingIsCloser = 3
+            WhenBuildingIsCloser = 2
         }
 
         /// <summary>
@@ -206,7 +206,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             if (Global.EnableDevExperiments)
             {
-                TestSave<SerializableSettings.SettingsVersion5>(fileName, settings);
+                TestSave<SerializableSettings.SettingsVersion6>(fileName, settings);
             }
 
             return settings;
@@ -223,7 +223,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             if (Global.EnableDevExperiments)
             {
-                TestSave<SerializableSettings.SettingsVersion5>(fileName, settings);
+                TestSave<SerializableSettings.SettingsVersion6>(fileName, settings);
             }
         }
 
@@ -266,7 +266,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                             else if (cfg.MaxVersion < cfg.LoadedVersion)
                             {
                                 canTryPrevious = false;
-                                throw new InvalidDataException("Data version too low: " + cfg.LoadedVersion.ToString() + " (" + cfg.MinVersion.ToString() + ")");
+                                throw new InvalidDataException("Data version too high: " + cfg.LoadedVersion.ToString() + " (" + cfg.MinVersion.ToString() + ")");
                             }
 
                             Log.Debug(typeof(T), "Load", "Loaded");
@@ -284,7 +284,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                             if (canTryPrevious)
                             {
-                                if (typeof(T) == typeof(SerializableSettings.SettingsVersion5))
+                                if (typeof(T) == typeof(SerializableSettings.SettingsVersion6))
                                 {
                                     return Load<SerializableSettings.SettingsVersion0>(fileName);
                                 }
@@ -321,6 +321,18 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 if (!Directory.Exists(filePath))
                 {
                     Directory.CreateDirectory(filePath);
+                }
+
+                if (File.Exists(fileName))
+                {
+                    try
+                    {
+                        File.Copy(fileName, fileName + ".bak", true);
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error(typeof(T), "Save", ex, "Copy to .bak failed");
+                    }
                 }
 
                 Log.Info(typeof(T), "Save", fileName);

@@ -1085,6 +1085,18 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                                 if (oldValue != settings.ChecksCustomString)
                                 {
+                                    if (settings.ChecksPreset == ServiceDispatcherSettings.BuildingCheckOrder.Custom && dispatcher != null)
+                                    {
+                                        try
+                                        {
+                                            dispatcher.ReInitialize();
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            Log.Error(this, "CreateServiceGroup", ex, settings.ChecksCustomString, "ChecksCustom", "ReInitializeDispatcher");
+                                        }
+                                    }
+
                                     Global.Settings.Save();
                                 }
 
