@@ -183,7 +183,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <value>
         /// The current version.
         /// </value>
-        public static int CurrentVersion => SerializableSettings.SettingsVersion0.CurrentVersion;
+        public static int CurrentVersion => SerializableSettings.SettingsVersion6.CurrentVersion;
 
         /// <summary>
         /// Gets the XML root.
@@ -202,12 +202,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// </returns>
         public static Settings Load(string fileName)
         {
-            Settings settings = Load<SerializableSettings.SettingsVersion0>(fileName) ?? new Settings();
+            Settings settings = Load<SerializableSettings.SettingsVersion6>(fileName) ?? new Settings();
 
-            if (Global.EnableDevExperiments)
-            {
-                TestSave<SerializableSettings.SettingsVersion6>(fileName, settings);
-            }
+            //if (Global.EnableDevExperiments)
+            //{
+            //    TestSave<SerializableSettings.SettingsVersion6>(fileName, settings);
+            //}
 
             return settings;
         }
@@ -219,12 +219,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <param name="settings">The settings.</param>
         public static void Save(string fileName, Settings settings)
         {
-            Save<SerializableSettings.SettingsVersion0>(fileName, settings);
+            Save<SerializableSettings.SettingsVersion6>(fileName, settings);
 
-            if (Global.EnableDevExperiments)
-            {
-                TestSave<SerializableSettings.SettingsVersion6>(fileName, settings);
-            }
+            //if (Global.EnableDevExperiments)
+            //{
+            //    TestSave<SerializableSettings.SettingsVersion6>(fileName, settings);
+            //}
         }
 
         /// <summary>

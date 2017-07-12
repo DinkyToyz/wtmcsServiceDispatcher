@@ -116,7 +116,7 @@
     <Compile Include="SerializableSettings\ISerializableSettings.cs" />
     <Compile Include="SerializableSettings\ServiceSettings.cs" />
     <Compile Include="SerializableSettings\SettingsVersion0.cs" />
-    <Compile Include="SerializableSettings\SettingsVersion5.cs" />
+    <Compile Include="SerializableSettings\SettingsVersion6.cs" />
     <Compile Include="SerializableSettings\StandardServiceSettings.cs" />
     <Compile Include="UI\ExtendedSlider.cs" />
     <Compile Include="UI\InformationalText.cs" />
