@@ -421,8 +421,66 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             // Created new vehicle.
             bool createdVehicle;
 
+            ServiceBuildingInfo[] checkBuildings;
+            //int buildingCountTotal = this.serviceBuildings.Count;
+            //int buildingCountUsableInRange;
+            //string buildingFilter;
+
+            // Set target info on service buildings.
+            foreach (ServiceBuildingInfo serviceBuilding in this.serviceBuildings.Values)
+            {
+                serviceBuilding.SetCurrentTargetInfo(targetBuilding, canCreateSpares);
+            }
+
             // Get usable buildings.
-            ServiceBuildingInfo[] checkBuildings = this.serviceBuildings.Values.WhereToArray(sb => sb.CanReceive && (sb.VehiclesFree > 0 || (canCreateSpares && sb.VehiclesSpare > 0)));
+            if (!this.serviceSettings.DispatchByRange && !this.serviceSettings.DispatchByDistrict)
+            {
+                // All buildings than can dispatch.
+                checkBuildings = this.serviceBuildings.Values.WhereToArray(sb => sb.CurrentTargetCanDispatch);
+
+                //buildingFilter = "CurrentTargetCanDispatch";
+                //buildingCountUsableInRange = checkBuildings.Length;
+            }
+            else if (!ignoreRange)
+            {
+                // All buildings in range than can dispatch.
+                checkBuildings = this.serviceBuildings.Values.WhereToArray(sb => sb.CurrentTargetCanDispatch && sb.CurrentTargetInRange);
+
+                //buildingFilter = "CurrentTargetCanDispatch & CurrentTargetInRange";
+                //buildingCountUsableInRange = checkBuildings.Length;
+            }
+            else if (Global.EnableExperiments && this.serviceSettings.IgnoreRangeUseClosestBuildings > 0)
+            {
+                // All buildings in range than can dispatch.
+                List<ServiceBuildingInfo> checkServiceBuildings = this.serviceBuildings.Values.WhereToList(sb => sb.CurrentTargetCanDispatch && sb.CurrentTargetInRange);
+
+                //buildingFilter = "(CurrentTargetCanDispatch & CurrentTargetInRange), (!CurrentTargetInRange[" + this.serviceSettings.IgnoreRangeUseClosestBuildings.ToString() + "] & sb.CurrentTargetCanDispatch)";
+                //buildingCountUsableInRange = checkServiceBuildings.Count;
+
+                // Closest buildings out of range, if they can dispatch.
+                checkServiceBuildings.AddRange(this.serviceBuildings.Values
+                                            .Where(sb => !sb.CurrentTargetInRange)
+                                            .OrderByTake(sb => sb.CurrentTargetDistance, this.serviceSettings.IgnoreRangeUseClosestBuildings)
+                                            .Where(sb => sb.CurrentTargetCanDispatch));
+
+                checkBuildings = checkServiceBuildings.ToArray();
+            }
+            else
+            {
+                // All buildings than can dispatch.
+                checkBuildings = this.serviceBuildings.Values.WhereToArray(sb => sb.CurrentTargetCanDispatch);
+
+                //buildingFilter = "CurrentTargetCanDispatch";
+                //buildingCountUsableInRange = checkBuildings.Length;
+            }
+
+            //if (Log.LogALot)
+            //{
+            //    Log.DevDebug(this, "AssignVehicle", "UsableBuildings", buildingFilter,
+            //        this.serviceSettings.DispatchByRange, this.serviceSettings.DispatchByDistrict, ignoreRange,
+            //        this.serviceSettings.IgnoreRangeUseClosestBuildings,
+            //        buildingCountTotal, buildingCountUsableInRange, checkBuildings.Length);
+            //}
 
             if (checkBuildings.Length == 0)
             {
@@ -432,53 +490,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 }
 
                 return false;
-            }
-
-            // Set target info on service buildings.
-            foreach (ServiceBuildingInfo serviceBuilding in checkBuildings)
-            {
-                serviceBuilding.SetCurrentTargetInfo(targetBuilding);
-            }
-
-            // Remove unusable buildings.
-            if (this.serviceSettings.DispatchByRange || this.serviceSettings.DispatchByDistrict)
-            {
-                int buildingCountTotal = checkBuildings.Length;
-
-                if (!ignoreRange)
-                {
-                    checkBuildings = checkBuildings.Where(sb => sb.CurrentTargetInRange).ToArray();
-
-                    if (checkBuildings.Length == 0)
-                    {
-                        return false;
-                    }
-                }
-                else if (Global.EnableExperiments && this.serviceSettings.IgnoreRangeUseClosestBuildings > 0)
-                {
-                    List<ServiceBuildingInfo> checkServiceBuildings = checkBuildings.WhereToList(sb => sb.CurrentTargetInRange);
-                    int buildingCountInRange = checkServiceBuildings.Count;
-
-                    checkServiceBuildings.AddRange(checkBuildings
-                                                .Where(sb => !sb.CurrentTargetInRange)
-                                                .OrderByTake(sb => sb.CurrentTargetDistance, this.serviceSettings.IgnoreRangeUseClosestBuildings));
-
-                    checkBuildings = checkServiceBuildings.ToArray();
-
-                    if (checkBuildings.Length == 0)
-                    {
-                        if (Log.LogALot)
-                        {
-                            Log.DevDebug(this, "AssignVehicle", "FilterBuildings", "ClosestRange", "NoBuildings", checkBuildings.Length, buildingCountTotal, buildingCountInRange, this.serviceSettings.IgnoreRangeUseClosestBuildings);
-                        }
-
-                        return false;
-                    }
-                    else if (Log.LogALot)
-                    {
-                        Log.DevDebug(this, "AssignVehicle", "FilterBuildings", "ClosestRange", "UsableBuildings", checkBuildings.Length, buildingCountTotal, buildingCountInRange, this.serviceSettings.IgnoreRangeUseClosestBuildings);
-                    }
-                }
             }
 
             // Sort buildings in usability order.
@@ -515,7 +526,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 // Loop through service buildings in priority order and assign a vehicle to the target.
                 foreach (ServiceBuildingInfo serviceBuilding in checkBuildings)
                 {
-                    if (tries > 0 && !(serviceBuilding.CanReceive && (serviceBuilding.VehiclesFree > 0 || (canCreateSpares && serviceBuilding.VehiclesSpare > 0))))
+                    if (tries > 0 && !serviceBuilding.CurrentTargetCanDispatch)
                     {
                         continue;
                     }
@@ -724,26 +735,22 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     }
 
                     // A free vehicle was found, assign it to the target.
+                    if (!foundVehicleBuilding.SetVehicleTarget(foundVehicleId, targetBuilding.BuildingId, this.TransferType))
                     {
-                        Vehicle[] vehicles = Singleton<VehicleManager>.instance.m_vehicles.m_buffer;
-
-                        if (!foundVehicleBuilding.Vehicles[foundVehicleId].SetTarget(targetBuilding.BuildingId, ref vehicles[foundVehicleId], (TransferManager.TransferReason)this.TransferType))
+                        // The vehicle failed to find a path to the target.
+                        if (Log.LogToFile)
                         {
-                            // The vehicle failed to find a path to the target.
-                            if (Log.LogToFile)
-                            {
-                                Log.Debug("AssignVehicle", "SetTarget", "Failed", targetBuilding.BuildingId, foundVehicleBuilding.BuildingId, foundVehicleBuilding.VehiclesSpare, foundVehicleId, foundVehicleDistance, vehicles[foundVehicleId].m_flags);
-                            }
-
-                            if (Global.ServiceProblems != null)
-                            {
-                                Global.ServiceProblems.Add(ServiceProblemKeeper.ServiceProblem.PathNotFound, targetBuilding.BuildingId, foundVehicleBuilding.BuildingId);
-                            }
-
-                            lostVehicles.Add(foundVehicleId);
-
-                            continue;
+                            Log.Debug(this, "AssignVehicle", "SetTarget", "Failed", targetBuilding.BuildingId, foundVehicleBuilding.BuildingId, foundVehicleBuilding.VehiclesSpare, foundVehicleId, foundVehicleDistance);
                         }
+
+                        if (Global.ServiceProblems != null)
+                        {
+                            Global.ServiceProblems.Add(ServiceProblemKeeper.ServiceProblem.PathNotFound, targetBuilding.BuildingId, foundVehicleBuilding.BuildingId);
+                        }
+
+                        lostVehicles.Add(foundVehicleId);
+
+                        continue;
                     }
 
                     this.freeVehicles--;

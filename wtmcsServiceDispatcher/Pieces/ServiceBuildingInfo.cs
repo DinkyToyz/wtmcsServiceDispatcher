@@ -41,9 +41,19 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         private StandardServiceSettings serviceSettings = null;
 
         /// <summary>
+        /// The free vehicles count.
+        /// </summary>
+        private int vehiclesFree = 0;
+
+        /// <summary>
         /// The vehicle in use count.
         /// </summary>
         private int vehiclesMade = 0;
+
+        /// <summary>
+        /// The spare vehicles count.
+        /// </summary>
+        private int vehiclesSpare = 0;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ServiceBuildingInfo" /> class.
@@ -61,7 +71,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             this.CurrentTargetServiceProblemSize = 0;
             this.Range = 0;
             this.Vehicles = new Dictionary<ushort, ServiceVehicleInfo>();
-            this.VehiclesFree = 0;
             this.dispatcherType = dispatcherType;
             this.IsAutoEmptying = false;
 
@@ -231,6 +240,30 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// The capacity level.
         /// </value>
         public float CapacityPercent
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// Gets a value indicating whether this instance can dispatch.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if this instance can dispatch; otherwise, <c>false</c>.
+        /// </value>
+        public bool CurrentTargetCanCreateSpares
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// Gets a value indicating whether this instance can dispatch.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if this instance can dispatch; otherwise, <c>false</c>.
+        /// </value>
+        public bool CurrentTargetCanDispatch
         {
             get;
             private set;
@@ -440,8 +473,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// </summary>
         public int VehiclesFree
         {
-            get;
-            set;
+            get => this.vehiclesFree;
+            set
+            {
+                this.vehiclesFree = value;
+                this.UpdateTargetInfo();
+            }
         }
 
         /// <summary>
@@ -460,18 +497,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             set
             {
                 this.vehiclesMade = value;
-                this.VehiclesSpare = this.VehiclesTotal - this.vehiclesMade;
+                this.vehiclesSpare = this.VehiclesTotal - this.vehiclesMade;
             }
         }
 
         /// <summary>
         /// Gets the spare vehicles count.
         /// </summary>
-        public int VehiclesSpare
-        {
-            get;
-            private set;
-        }
+        public int VehiclesSpare => this.vehiclesSpare;
 
         /// <summary>
         /// Gets the total vehicles count.
@@ -590,7 +623,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// </returns>
         public ushort CreateVehicle(byte transferType, ushort targetBuildingId = 0, uint targetCitizenId = 0)
         {
-            if (this.VehiclesSpare < 1)
+            if (this.vehiclesSpare < 1)
             {
                 return 0;
             }
@@ -601,13 +634,15 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 return 0;
             }
 
-            this.VehiclesSpare--;
-            this.VehiclesMade++;
+            this.vehiclesSpare--;
+            this.vehiclesMade++;
 
             if (targetBuildingId == 0)
             {
-                this.VehiclesFree++;
+                this.vehiclesFree++;
             }
+
+            this.UpdateTargetInfo();
 
             this.Vehicles[serviceVehicle.VehicleId] = serviceVehicle;
 
@@ -626,44 +661,83 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// Sets the target information.
         /// </summary>
         /// <param name="building">The building.</param>
-        public void SetCurrentTargetInfo(TargetBuildingInfo building)
+        /// <param name="canCreateSpares">if set to <c>true</c> service can create spare vehicles.</param>
+        public void SetCurrentTargetInfo(TargetBuildingInfo building, bool canCreateSpares)
         {
             if (this.lastUpdate != Global.CurrentFrame)
             {
                 this.Update(ref Singleton<BuildingManager>.instance.m_buildings.m_buffer[this.BuildingId], true);
             }
 
-            this.CurrentTargetDistance = (this.Position - building.Position).sqrMagnitude;
+            this.CurrentTargetCanCreateSpares = canCreateSpares;
+            this.UpdateTargetInfo();
 
-            if (this.serviceSettings.DispatchByDistrict)
+            if (this.CurrentTargetCanDispatch)
             {
-                this.CurrentTargetInDistrict = building.District == this.District;
-            }
-            else
-            {
-                this.CurrentTargetInDistrict = false;
-            }
+                this.CurrentTargetDistance = (this.Position - building.Position).sqrMagnitude;
 
-            this.CurrentTargetInRange = this.CurrentTargetInDistrict || (this.serviceSettings.DispatchByRange && this.CurrentTargetDistance < this.Range) || (!this.serviceSettings.DispatchByDistrict && !this.serviceSettings.DispatchByRange);
-
-            this.CurrentTargetCapacityOverflow = (this.CapacityFree >= building.ProblemSize) ? 0 : building.ProblemSize - this.CapacityFree;
-
-            if (Global.ServiceProblems == null)
-            {
-                this.CurrentTargetServiceProblemSize = 0;
-            }
-            else
-            {
-                this.CurrentTargetServiceProblemSize = Global.ServiceProblems.GetProblemSize(this.BuildingId, building.BuildingId);
-
-                if (Log.LogALot && this.CurrentTargetServiceProblemSize > 0)
+                if (this.serviceSettings.DispatchByDistrict)
                 {
-                    ServiceProblemKeeper.DevLog("SetServiceBuildingCurrentTargetInfo",
-                            Log.Data("ServiceBuilding", this.BuildingId, BuildingHelper.GetBuildingName(this.BuildingId)),
-                            Log.Data("TargetBuilding", building.BuildingId, BuildingHelper.GetBuildingName(building.BuildingId)),
-                            "ProblemSize", this.CurrentTargetServiceProblemSize);
+                    this.CurrentTargetInDistrict = building.District == this.District;
+                }
+                else
+                {
+                    this.CurrentTargetInDistrict = false;
+                }
+
+                this.CurrentTargetInRange = this.CurrentTargetInDistrict || (this.serviceSettings.DispatchByRange && this.CurrentTargetDistance < this.Range) || (!this.serviceSettings.DispatchByDistrict && !this.serviceSettings.DispatchByRange);
+
+                this.CurrentTargetCapacityOverflow = (this.CapacityFree >= building.ProblemSize) ? 0 : building.ProblemSize - this.CapacityFree;
+
+                if (Global.ServiceProblems == null)
+                {
+                    this.CurrentTargetServiceProblemSize = 0;
+                }
+                else
+                {
+                    this.CurrentTargetServiceProblemSize = Global.ServiceProblems.GetProblemSize(this.BuildingId, building.BuildingId);
+
+                    if (Log.LogALot && this.CurrentTargetServiceProblemSize > 0)
+                    {
+                        ServiceProblemKeeper.DevLog("SetServiceBuildingCurrentTargetInfo",
+                                Log.Data("ServiceBuilding", this.BuildingId, BuildingHelper.GetBuildingName(this.BuildingId)),
+                                Log.Data("TargetBuilding", building.BuildingId, BuildingHelper.GetBuildingName(building.BuildingId)),
+                                "ProblemSize", this.CurrentTargetServiceProblemSize);
+                    }
                 }
             }
+        }
+
+        /// <summary>
+        /// Sets the vehicle target.
+        /// </summary>
+        /// <param name="vehicleId">The vehicle identifier.</param>
+        /// <param name="targetBuildingId">The target building identifier.</param>
+        /// <param name="transferType">Type of the transfer.</param>
+        /// <returns>The result.</returns>
+        public VehicleResult SetVehicleTarget(ushort vehicleId, ushort targetBuildingId, byte transferType)
+        {
+            Vehicle[] vehicles = Singleton<VehicleManager>.instance.m_vehicles.m_buffer;
+
+            VehicleResult result = this.Vehicles[vehicleId].SetTarget(targetBuildingId, ref vehicles[vehicleId], (TransferManager.TransferReason)transferType);
+
+            if (!result)
+            {
+                if (Log.LogALot)
+                {
+                    Log.Debug(this, "SetVehicleTarget", result, this.BuildingId, vehicleId, targetBuildingId, vehicles[vehicleId].m_flags);
+                }
+
+                if (result.DeSpawned)
+                {
+                    this.vehiclesFree--;
+                    this.vehiclesMade--;
+                    this.vehiclesSpare++;
+                    this.UpdateTargetInfo();
+                }
+            }
+
+            return result;
         }
 
         /// <summary>
@@ -844,6 +918,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         private void SetEmptying(ref Building building, bool emptying)
         {
             building.Info.m_buildingAI.SetEmptying(this.BuildingId, ref building, emptying);
+        }
+
+        private void UpdateTargetInfo()
+        {
+            this.CurrentTargetCanDispatch = this.CanReceive && (this.vehiclesFree > 0 || (this.CurrentTargetCanCreateSpares && this.vehiclesSpare > 0));
         }
 
         /// <summary>
