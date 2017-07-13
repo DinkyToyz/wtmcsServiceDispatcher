@@ -559,7 +559,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             List<KeyValuePair<string, TargetBuildingInfo>> targetBuildings = null;
             List<KeyValuePair<string, ServiceBuildingInfo>> serviceBuildings = null;
 
-            if (verbose && Global.Buildings != null)
+            if (verbose && Global.DispatchServices != null)
             {
                 //if (serviceBuilding == null)
                 //{
@@ -574,44 +574,26 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 targetBuildings = new List<KeyValuePair<string, TargetBuildingInfo>>();
                 serviceBuildings = new List<KeyValuePair<string, ServiceBuildingInfo>>();
 
-                if (serviceBuilding == null)
+                bool getServiceBuilding = serviceBuilding == null;
+                bool getTargetBuilding = targetBuilding == null;
+
+                ServiceBuildingInfo extraServiceBuilding;
+                TargetBuildingInfo extraTargetBuilding;
+
+                if (getServiceBuilding || getTargetBuilding)
                 {
-                    if (Global.Buildings.GarbageBuildings != null && Global.Buildings.GarbageBuildings.TryGetValue(buildingId, out serviceBuilding))
+                    foreach (IDispatchService service in Global.DispatchServices.Services)
                     {
-                        serviceBuildings.Add(new KeyValuePair<string, ServiceBuildingInfo>("GB", serviceBuilding));
+                        if (getServiceBuilding && service.ServiceBuildings != null && service.ServiceBuildings.TryGetValue(buildingId, out extraServiceBuilding))
+                        {
+                            serviceBuildings.Add(new KeyValuePair<string, ServiceBuildingInfo>(service.ServiceLogFix, extraServiceBuilding));
+                        }
+
+                        if (getTargetBuilding && service.TargetBuildings != null && service.TargetBuildings.TryGetValue(buildingId, out extraTargetBuilding))
+                        {
+                            targetBuildings.Add(new KeyValuePair<string, TargetBuildingInfo>(service.TargetLogFix, extraTargetBuilding));
+                        }
                     }
-
-                    if (Global.Buildings.DeathCareBuildings != null && Global.Buildings.DeathCareBuildings.TryGetValue(buildingId, out serviceBuilding))
-                    {
-                        serviceBuildings.Add(new KeyValuePair<string, ServiceBuildingInfo>("DCB", serviceBuilding));
-                    }
-
-                    if (Global.Buildings.HealthCareBuildings != null && Global.Buildings.HealthCareBuildings.TryGetValue(buildingId, out serviceBuilding))
-                    {
-                        serviceBuildings.Add(new KeyValuePair<string, ServiceBuildingInfo>("HCB", serviceBuilding));
-                    }
-
-                    serviceBuilding = null;
-                }
-
-                if (targetBuilding == null)
-                {
-                    if (Global.Buildings.DeadPeopleBuildings != null && Global.Buildings.DeadPeopleBuildings.TryGetValue(buildingId, out targetBuilding))
-                    {
-                        targetBuildings.Add(new KeyValuePair<string, TargetBuildingInfo>("DPB", targetBuilding));
-                    }
-
-                    if (Global.Buildings.DirtyBuildings != null && Global.Buildings.DirtyBuildings.TryGetValue(buildingId, out targetBuilding))
-                    {
-                        targetBuildings.Add(new KeyValuePair<string, TargetBuildingInfo>("DB", targetBuilding));
-                    }
-
-                    if (Global.Buildings.SickPeopleBuildings != null && Global.Buildings.SickPeopleBuildings.TryGetValue(buildingId, out targetBuilding))
-                    {
-                        targetBuildings.Add(new KeyValuePair<string, TargetBuildingInfo>("SPB", targetBuilding));
-                    }
-
-                    targetBuilding = null;
                 }
             }
 

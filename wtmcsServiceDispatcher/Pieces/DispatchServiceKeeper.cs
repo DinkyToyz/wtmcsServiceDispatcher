@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ColossalFramework;
+using System;
 using System.Collections.Generic;
 
 namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
@@ -8,14 +9,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
     /// </summary>
     internal interface IDispatchService
     {
-        /// <summary>
-        /// Gets the type of the dispatcher.
-        /// </summary>
-        /// <value>
-        /// The type of the dispatcher.
-        /// </value>
-        Dispatcher.DispatcherTypes DispatcherType { get; }
-
         /// <summary>
         /// Gets a value indicating whether to empty automatically.
         /// </summary>
@@ -38,6 +31,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// The buiildings in need of emptying change.
         /// </summary>
         List<ServiceBuildingInfo> BuildingsInNeedOfEmptyingChange { get; }
+
+        /// <summary>
+        /// Gets the type of the dispatcher.
+        /// </summary>
+        /// <value>
+        /// The type of the dispatcher.
+        /// </value>
+        Dispatcher.DispatcherTypes DispatcherType { get; }
 
         /// <summary>
         /// Gets a value indicating whether to dispatch vehicles.
@@ -69,6 +70,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         string ServiceCategory { get; }
 
         /// <summary>
+        /// Gets the service log pre/suffix.
+        /// </summary>
+        /// <value>
+        /// The service log pre/suffix.
+        /// </value>
+        string ServiceLogFix { get; }
+
+        /// <summary>
         /// Gets the target buildings.
         /// </summary>
         Dictionary<ushort, TargetBuildingInfo> TargetBuildings { get; }
@@ -82,21 +91,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         string TargetCategory { get; }
 
         /// <summary>
-        /// Gets the service building.
+        /// Gets the target log pre/suffix.
         /// </summary>
-        /// <param name="buildingId">The building identifier.</param>
-        /// <returns>A service building with the id, or null.</returns>
-        ServiceBuildingInfo GetServiceBuilding(ushort buildingId);
-
-        /// <summary>
-        /// Gets the target building demand.
-        /// </summary>
-        /// <param name="buildingId">The building identifier.</param>
-        /// <param name="building">The building.</param>
-        /// <returns>
-        /// The demand.
-        /// </returns>
-        TargetBuildingInfo.ServiceDemand GetTargetBuildingDemand(ushort buildingId, ref Building building);
+        /// <value>
+        /// The target log pre/suffix.
+        /// </value>
+        string TargetLogFix { get; }
 
         /// <summary>
         /// Checks if removal of target building should be delayed.
@@ -116,7 +116,27 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <returns>
         ///   <c>true</c> if the specified building is a service building; otherwise, <c>false</c>.
         /// </returns>
-        bool IsServiceBuilding(ushort buildingId, ref Building building);
+        bool DispatchFromBuilding(ushort buildingId, ref Building building);
+
+        /// <summary>
+        /// Determines whether the specified building is a a building this service is willing to dispatch to.
+        /// </summary>
+        /// <param name="buildingId">The building identifier.</param>
+        /// <param name="building">The building.</param>
+        /// <returns>
+        ///   <c>true</c> if the specified building can be dispatched to; otherwise, <c>false</c>.
+        /// </returns>
+        bool DispatchToBuilding(ushort buildingId, ref Building building);
+
+        /// <summary>
+        /// Gets the target building demand.
+        /// </summary>
+        /// <param name="buildingId">The building identifier.</param>
+        /// <param name="building">The building.</param>
+        /// <returns>
+        /// The demand.
+        /// </returns>
+        TargetBuildingInfo.ServiceDemand GetTargetBuildingDemand(ushort buildingId, ref Building building);
 
         /// <summary>
         /// Re-initialize the part.
@@ -127,12 +147,28 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
     /// <summary>
     /// Keeps track of dispatch services.
     /// </summary>
-    internal class DispatchServiceKeeper
+    internal class DispatchServiceKeeper : IHandlerPart
     {
         /// <summary>
         /// The services.
         /// </summary>
-        private IDispatchService[] Services = new IDispatchService[(int)Dispatcher.DispatcherTypes.None];
+        private IDispatchService[] services = new IDispatchService[(int)Dispatcher.DispatcherTypes.None];
+
+        /// <summary>
+        /// Gets the dispatching services.
+        /// </summary>
+        /// <value>
+        /// The dispatching services.
+        /// </value>
+        public IEnumerable<IDispatchService> DispatchingServices => this.services.Where(s => s != null && s.DispatchVehicles && s.ServiceBuildings != null && s.TargetBuildings != null);
+
+        /// <summary>
+        /// Gets the services.
+        /// </summary>
+        /// <value>
+        /// The services.
+        /// </value>
+        public IEnumerable<IDispatchService> Services => this.services.Where(s => s != null && (s.ServiceBuildings != null || s.TargetBuildings != null));
 
         /// <summary>
         /// Gets the <see cref="IDispatchService"/> with the specified dispatcher type.
@@ -142,37 +178,233 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// </value>
         /// <param name="DispatcherType">Type of the dispatcher.</param>
         /// <returns>The <see cref="IDispatchService"/>.</returns>
-        public IDispatchService this[Dispatcher.DispatcherTypes DispatcherType] => this.Services[(int)DispatcherType];
+        public IDispatchService this[Dispatcher.DispatcherTypes DispatcherType] => this.services[(int)DispatcherType];
 
-        private void Initialize<T>(bool constructing, Dispatcher.DispatcherTypes dispatcherType, bool dispatchVehicles, bool autoEmpty) where T : IDispatchService, new()
+        /// <summary>
+        /// Categorizes the building.
+        /// </summary>
+        /// <param name="buildingId">The building identifier.</param>
+        /// <param name="building">The building.</param>
+        public void CategorizeBuilding(ushort buildingId, ref Building building)
         {
-            if (dispatchVehicles || autoEmpty)
+            for (int i = 0; i < this.services.Length; i++)
             {
-                if (constructing || this.Services[(int)Dispatcher.DispatcherTypes.HearseDispatcher] == null)
+                if (this.services[i] != null && (this.services[i].DispatchVehicles || this.services[i].AutoEmpty))
                 {
-                    this.Services[(int)Dispatcher.DispatcherTypes.HearseDispatcher] = new T();
+                    // Check if service building.
+                    if (this.services[i].DispatchFromBuilding(buildingId, ref building))
+                    {
+                        ServiceBuildingInfo serviceBuilding;
+
+                        if (!this.services[i].ServiceBuildings.TryGetValue(buildingId, out serviceBuilding))
+                        {
+                            serviceBuilding = new ServiceBuildingInfo(buildingId, ref building, this.services[i].DispatcherType);
+                            Log.Debug(this, "CategorizeBuilding", "Add", this.services[i].ServiceCategory, buildingId, building.Info.name, serviceBuilding.BuildingName, serviceBuilding.Range, serviceBuilding.District);
+
+                            this.services[i].ServiceBuildings[buildingId] = serviceBuilding;
+                        }
+                        else
+                        {
+                            serviceBuilding.Update(ref building);
+                        }
+
+                        if (this.services[i].AutoEmpty && (serviceBuilding.NeedsEmptying || serviceBuilding.EmptyingIsDone))
+                        {
+                            this.services[i].BuildingsInNeedOfEmptyingChange.Add(serviceBuilding);
+                        }
+                    }
+                    else if (this.services[i].ServiceBuildings.ContainsKey(buildingId))
+                    {
+                        Log.Debug(this, "CategorizeBuilding", "Del", this.services[i].ServiceCategory, buildingId);
+
+                        this.services[i].ServiceBuildings.Remove(buildingId);
+                    }
+
+                    // Check if target building.
+                    if (this.services[i].DispatchVehicles)
+                    {
+                        TargetBuildingInfo.ServiceDemand demand = this.services[i].GetTargetBuildingDemand(buildingId, ref building);
+
+                        if (demand != TargetBuildingInfo.ServiceDemand.None && this.services[i].DispatchToBuilding(buildingId, ref building))
+                        {
+                            if (!this.services[i].TargetBuildings.ContainsKey(buildingId))
+                            {
+                                TargetBuildingInfo targetBuilding = new TargetBuildingInfo(buildingId, ref building, this.services[i].DispatcherType, demand);
+
+                                if (Log.LogToFile)
+                                {
+                                    Log.Debug(this, "CategorizeBuilding", "Add", this.services[i].TargetCategory, buildingId, building.Info.name, targetBuilding.BuildingName, targetBuilding.ProblemValue, targetBuilding.HasProblem, targetBuilding.District);
+                                }
+
+                                this.services[i].TargetBuildings[buildingId] = targetBuilding;
+                                this.services[i].HasTargetBuildingsToCheck = true;
+                            }
+                            else
+                            {
+                                this.services[i].TargetBuildings[buildingId].Update(ref building, demand);
+                                this.services[i].HasTargetBuildingsToCheck = this.services[i].HasTargetBuildingsToCheck || this.services[i].TargetBuildings[buildingId].CheckThis;
+                            }
+                        }
+                        else if (this.services[i].TargetBuildings.ContainsKey(buildingId))
+                        {
+                            if (this.services[i].DelayTargetBuildingRemoval(buildingId, ref building))
+                            {
+                                this.services[i].TargetBuildings[buildingId].Update(ref building, TargetBuildingInfo.ServiceDemand.None);
+                            }
+                            else
+                            {
+                                if (Log.LogToFile)
+                                {
+                                    Log.Debug(this, "CategorizeBuilding", "Del", this.services[i].TargetCategory, buildingId);
+                                }
+
+                                this.services[i].TargetBuildings.Remove(buildingId);
+                            }
+                        }
+                    }
                 }
-                else
-                {
-                    this.Services[(int)Dispatcher.DispatcherTypes.HearseDispatcher].ReInitialize();
-                }
-            }
-            else
-            {
-                this.Services[(int)Dispatcher.DispatcherTypes.HearseDispatcher] = null;
             }
         }
 
+        public void CategorizeFinish()
+        {
+            for (int i = 0; i < this.services.Length; i++)
+            {
+                if (this.services[i] != null && this.services[i].AutoEmpty && this.services[i].BuildingsInNeedOfEmptyingChange.Count > 0)
+                {
+                    this.services[i].BuildingsCanEmptyOther = 0;
+                    this.services[i].BuildingsEmptying = 0;
+
+                    foreach (ServiceBuildingInfo building in this.services[i].ServiceBuildings.Values)
+                    {
+                        if (building.IsAutoEmptying)
+                        {
+                            this.services[i].BuildingsEmptying++;
+                        }
+
+                        if (building.CanEmptyOther)
+                        {
+                            this.services[i].BuildingsCanEmptyOther++;
+                        }
+                    }
+
+                    foreach (ServiceBuildingInfo building in this.services[i].ServiceBuildings.Values)
+                    {
+                        if (building.EmptyingIsDone)
+                        {
+                            building.AutoEmptyStop();
+                            this.services[i].BuildingsEmptying--;
+                        }
+                        else if (building.NeedsEmptying && this.services[i].BuildingsCanEmptyOther > this.services[i].BuildingsEmptying)
+                        {
+                            building.AutoEmptyStart();
+                            this.services[i].BuildingsEmptying++;
+                        }
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Prepare for categorization.
+        /// </summary>
+        public void CategorizePrepare()
+        {
+            for (int i = 0; i < this.services.Length; i++)
+            {
+                if (this.services[i] != null && this.services[i].AutoEmpty)
+                {
+                    this.services[i].BuildingsInNeedOfEmptyingChange.Clear();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Logs a list of service building info for debug use.
+        /// </summary>
+        public void DebugListLogBuildings()
+        {
+            try
+            {
+                for (int i = 0; i < this.services.Length; i++)
+                {
+                    if (this.services[i] != null)
+                    {
+                        if (this.services[i].TargetBuildings != null)
+                        {
+                            BuildingHelper.DebugListLog(this.services[i].TargetBuildings.Values);
+                        }
+
+                        if (this.services[i].ServiceBuildings != null)
+                        {
+                            BuildingHelper.DebugListLog(this.services[i].ServiceBuildings.Values);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error(this, "DebugListLogBuildings", ex);
+            }
+        }
+
+        /// <summary>
+        /// Gets the building categories for a building.
+        /// </summary>
+        /// <param name="buildingId">The building identifier.</param>
+        /// <returns>The categories in which the building has been categorized.</returns>
+        public IEnumerable<string> GetCategories(ushort buildingId)
+        {
+            for (int i = 0; i < this.services.Length; i++)
+            {
+                if (this.services[i] != null)
+                {
+                    if (this.services[i].ServiceBuildings != null && this.services[i].ServiceBuildings.ContainsKey(buildingId))
+                    {
+                        yield return this.services[i].ServiceCategory;
+                    }
+
+                    if (this.services[i].TargetBuildings != null && this.services[i].TargetBuildings.ContainsKey(buildingId))
+                    {
+                        yield return this.services[i].TargetCategory;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets the service building.
+        /// </summary>
+        /// <param name="buildingId">The building identifier.</param>
+        /// <returns>A service building with the id, or null.</returns>
+        public ServiceBuildingInfo GetServiceBuilding(ushort buildingId)
+        {
+            ServiceBuildingInfo building;
+
+            for (int i = 0; i < this.services.Length; i++)
+            {
+                if (this.services[i] != null & this.services[i].ServiceBuildings != null && this.services[i].ServiceBuildings.TryGetValue(buildingId, out building))
+                {
+                    return building;
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Initializes the data lists.
+        /// </summary>
+        /// <param name="constructing">If set to <c>true</c> object is being constructed.</param>
         public void Initialize(bool constructing)
         {
             Log.Debug(this, "Initialize", constructing);
 
             this.Initialize<DispatchService.DeathCare>(
-                constructing, 
-                Dispatcher.DispatcherTypes.HearseDispatcher, 
-                Global.Settings.DeathCare.DispatchVehicles, 
+                constructing,
+                Dispatcher.DispatcherTypes.HearseDispatcher,
+                Global.Settings.DeathCare.DispatchVehicles,
                 Global.Settings.DeathCare.AutoEmpty);
-
 
             this.Initialize<DispatchService.Garbage>(
                 constructing,
@@ -185,6 +417,117 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 Dispatcher.DispatcherTypes.AmbulanceDispatcher,
                 Global.Settings.HealthCare.DispatchVehicles,
                 Global.Settings.HealthCare.AutoEmpty);
+        }
+
+        /// <summary>
+        /// Re-initialize the part.
+        /// </summary>
+        public void ReInitialize()
+        {
+            this.Initialize(false);
+        }
+
+        /// <summary>
+        /// Remove categorized buidling.
+        /// </summary>
+        /// <param name="buildingId">The building identifier.</param>
+        public void UnCategorizeBuilding(ushort buildingId)
+        {
+            for (int i = 0; i < this.services.Length; i++)
+            {
+                if (this.services[i] != null)
+                {
+                    if (this.services[i].ServiceBuildings != null && this.services[i].ServiceBuildings.ContainsKey(buildingId))
+                    {
+                        this.services[i].ServiceBuildings.Remove(buildingId);
+                        Log.Debug(this, "CategorizeBuildings", "Rem", this.services[i].ServiceCategory, buildingId);
+                    }
+
+                    if (this.services[i].TargetBuildings != null && this.services[i].TargetBuildings.ContainsKey(buildingId))
+                    {
+                        this.services[i].TargetBuildings.Remove(buildingId);
+                        Log.Debug(this, "CategorizeBuildings", "Rem", this.services[i].TargetCategory, buildingId);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Update all buildings.
+        /// </summary>
+        public void UpdateAllBuildings()
+        {
+            Building[] buildings = Singleton<BuildingManager>.instance.m_buildings.m_buffer;
+            DistrictManager districtManager = null;
+            if (Global.Settings.DispatchAnyByDistrict)
+            {
+                districtManager = Singleton<DistrictManager>.instance;
+            }
+
+            for (int i = 0; i < this.services.Length; i++)
+            {
+                if (this.services[i] != null)
+                {
+                    if (this.services[i].ServiceBuildings != null)
+                    {
+                        foreach (ServiceBuildingInfo building in this.services[i].ServiceBuildings.Values)
+                        {
+                            building.ReInitialize();
+                            building.UpdateValues(ref buildings[building.BuildingId], true);
+                        }
+                    }
+
+                    if (this.services[i].TargetBuildings != null)
+                    {
+                        foreach (TargetBuildingInfo building in this.services[i].TargetBuildings.Values)
+                        {
+                            building.ReInitialize();
+                            building.UpdateValues(ref buildings[building.BuildingId], true);
+                        }
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Prepare for updating.
+        /// </summary>
+        public void UpdatePrepare()
+        {
+            for (int i = 0; i < this.services.Length; i++)
+            {
+                if (this.services[i] != null)
+                {
+                    this.services[i].HasTargetBuildingsToCheck = false;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Initializes a dispatch service.
+        /// </summary>
+        /// <typeparam name="T">The service type.</typeparam>
+        /// <param name="constructing">If set to <c>true</c> object is being constructed.</param>
+        /// <param name="dispatcherType">Type of the dispatcher.</param>
+        /// <param name="dispatchVehicles">if set to <c>true</c> the service should dispatch vehicles.</param>
+        /// <param name="autoEmpty">if set to <c>true</c> the service should empty automatically.</param>
+        private void Initialize<T>(bool constructing, Dispatcher.DispatcherTypes dispatcherType, bool dispatchVehicles, bool autoEmpty) where T : IDispatchService, new()
+        {
+            if (dispatchVehicles || autoEmpty)
+            {
+                if (constructing || this.services[(int)dispatcherType] == null)
+                {
+                    this.services[(int)dispatcherType] = new T();
+                }
+                else
+                {
+                    this.services[(int)dispatcherType].ReInitialize();
+                }
+            }
+            else
+            {
+                this.services[(int)dispatcherType] = null;
+            }
         }
 
         /// <summary>
@@ -237,23 +580,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             /// Gets the target buildings.
             /// </summary>
             public Dictionary<ushort, TargetBuildingInfo> TargetBuildings { get; private set; }
-
-            /// <summary>
-            /// Gets the service building.
-            /// </summary>
-            /// <param name="buildingId">The building identifier.</param>
-            /// <returns>A service building with the id, or null.</returns>
-            public ServiceBuildingInfo GetServiceBuilding(ushort buildingId)
-            {
-                ServiceBuildingInfo building;
-
-                if (this.ServiceBuildings != null && this.ServiceBuildings.TryGetValue(buildingId, out building))
-                {
-                    return building;
-                }
-
-                return null;
-            }
 
             /// <summary>
             /// Initializes the data lists.
@@ -309,6 +635,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         this.ServiceBuildings = new Dictionary<ushort, ServiceBuildingInfo>();
                     }
                 }
+
+                Log.Debug(this, "Initialize", info);
             }
 
             /// <summary>
@@ -335,6 +663,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 public bool AutoEmpty => Global.Settings.DeathCare.AutoEmpty;
 
                 /// <summary>
+                /// Gets the type of the dispatcher.
+                /// </summary>
+                /// <value>
+                /// The type of the dispatcher.
+                /// </value>
+                public Dispatcher.DispatcherTypes DispatcherType => Dispatcher.DispatcherTypes.HearseDispatcher;
+
+                /// <summary>
                 /// Gets a value indicating whether to dispatch vehicles.
                 /// </summary>
                 /// <value>
@@ -351,6 +687,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 public string ServiceCategory => "DeathCare";
 
                 /// <summary>
+                /// Gets the service log pre/suffix.
+                /// </summary>
+                /// <value>
+                /// The service log pre/suffix.
+                /// </value>
+                public string ServiceLogFix => "SBDC";
+
+                /// <summary>
                 /// Gets the target category.
                 /// </summary>
                 /// <value>
@@ -359,12 +703,51 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 public string TargetCategory => "DeadPeople";
 
                 /// <summary>
-                /// Gets the type of the dispatcher.
+                /// Gets the target log pre/suffix.
                 /// </summary>
                 /// <value>
-                /// The type of the dispatcher.
+                /// The target log pre/suffix.
                 /// </value>
-                public Dispatcher.DispatcherTypes DispatcherType => Dispatcher.DispatcherTypes.HearseDispatcher;
+                public string TargetLogFix => "TBDP";
+
+                /// <summary>
+                /// Checks if removal of target building should be delayed.
+                /// </summary>
+                /// <param name="buildingId">The building identifier.</param>
+                /// <param name="building">The building.</param>
+                /// <returns>
+                /// True if target buidling should not yet be removed.
+                /// </returns>
+                public bool DelayTargetBuildingRemoval(ushort buildingId, ref Building building)
+                {
+                    return this.TargetBuildings[buildingId].WantedService;
+                }
+
+                /// <summary>
+                /// Determines whether the specified building is a service building for this service.
+                /// </summary>
+                /// <param name="buildingId">The building identifier.</param>
+                /// <param name="building">The building.</param>
+                /// <returns>
+                ///   <c>true</c> if the specified building is a service building; otherwise, <c>false</c>.
+                /// </returns>
+                public bool DispatchFromBuilding(ushort buildingId, ref Building building)
+                {
+                    return building.Info.m_buildingAI is CemeteryAI;
+                }
+
+                /// <summary>
+                /// Determines whether the specified building is a a building this service is willing to dispatch to.
+                /// </summary>
+                /// <param name="buildingId">The building identifier.</param>
+                /// <param name="building">The building.</param>
+                /// <returns>
+                ///   <c>true</c> if the specified building can be dispatched to; otherwise, <c>false</c>.
+                /// </returns>
+                public bool DispatchToBuilding(ushort buildingId, ref Building building)
+                {
+                    return true;
+                }
 
                 /// <summary>
                 /// Gets the target building demand.
@@ -380,37 +763,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 }
 
                 /// <summary>
-                /// Determines whether the specified building is a service building for this service.
-                /// </summary>
-                /// <param name="buildingId">The building identifier.</param>
-                /// <param name="building">The building.</param>
-                /// <returns>
-                ///   <c>true</c> if the specified building is a service building; otherwise, <c>false</c>.
-                /// </returns>
-                public bool IsServiceBuilding(ushort buildingId, ref Building building)
-                {
-                    return building.Info.m_buildingAI is CemeteryAI;
-                }
-
-                /// <summary>
                 /// Re-initialize the part.
                 /// </summary>
                 public void ReInitialize()
                 {
                     this.Initialize(false, this.DispatchVehicles, this.AutoEmpty);
-                }
-
-                /// <summary>
-                /// Checks if removal of target building should be delayed.
-                /// </summary>
-                /// <param name="buildingId">The building identifier.</param>
-                /// <param name="building">The building.</param>
-                /// <returns>
-                /// True if target buidling should not yet be removed.
-                /// </returns>
-                public bool DelayTargetBuildingRemoval(ushort buildingId, ref Building building)
-                {
-                    return false;
                 }
             }
 
@@ -438,6 +795,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 public bool AutoEmpty => Global.Settings.Garbage.AutoEmpty;
 
                 /// <summary>
+                /// Gets the type of the dispatcher.
+                /// </summary>
+                /// <value>
+                /// The type of the dispatcher.
+                /// </value>
+                public Dispatcher.DispatcherTypes DispatcherType => Dispatcher.DispatcherTypes.GarbageTruckDispatcher;
+
+                /// <summary>
                 /// Gets a value indicating whether to dispatch vehicles.
                 /// </summary>
                 /// <value>
@@ -454,6 +819,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 public string ServiceCategory => "Garbage";
 
                 /// <summary>
+                /// Gets the service log pre/suffix.
+                /// </summary>
+                /// <value>
+                /// The service log pre/suffix.
+                /// </value>
+                public string ServiceLogFix => "SBG";
+
+                /// <summary>
                 /// Gets the target category.
                 /// </summary>
                 /// <value>
@@ -462,12 +835,51 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 public string TargetCategory => "Dirty";
 
                 /// <summary>
-                /// Gets the type of the dispatcher.
+                /// Gets the target log pre/suffix.
                 /// </summary>
                 /// <value>
-                /// The type of the dispatcher.
+                /// The target log pre/suffix.
                 /// </value>
-                public Dispatcher.DispatcherTypes DispatcherType => Dispatcher.DispatcherTypes.GarbageTruckDispatcher;
+                public string TargetLogFix => "TBD";
+
+                /// <summary>
+                /// Checks if removal of target building should be delayed.
+                /// </summary>
+                /// <param name="buildingId">The building identifier.</param>
+                /// <param name="building">The building.</param>
+                /// <returns>
+                /// True if target buidling should not yet be removed.
+                /// </returns>
+                public bool DelayTargetBuildingRemoval(ushort buildingId, ref Building building)
+                {
+                    return this.TargetBuildings[buildingId].WantedService;
+                }
+
+                /// <summary>
+                /// Determines whether the specified building is a service building for this service.
+                /// </summary>
+                /// <param name="buildingId">The building identifier.</param>
+                /// <param name="building">The building.</param>
+                /// <returns>
+                ///   <c>true</c> if the specified building is a service building; otherwise, <c>false</c>.
+                /// </returns>
+                public bool DispatchFromBuilding(ushort buildingId, ref Building building)
+                {
+                    return building.Info.m_buildingAI is LandfillSiteAI;
+                }
+
+                /// <summary>
+                /// Determines whether the specified building is a a building this service is willing to dispatch to.
+                /// </summary>
+                /// <param name="buildingId">The building identifier.</param>
+                /// <param name="building">The building.</param>
+                /// <returns>
+                ///   <c>true</c> if the specified building can be dispatched to; otherwise, <c>false</c>.
+                /// </returns>
+                public bool DispatchToBuilding(ushort buildingId, ref Building building)
+                {
+                    return !(building.Info.m_buildingAI is LandfillSiteAI);
+                }
 
                 /// <summary>
                 /// Gets the target building demand.
@@ -494,37 +906,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 }
 
                 /// <summary>
-                /// Determines whether the specified building is a service building for this service.
-                /// </summary>
-                /// <param name="buildingId">The building identifier.</param>
-                /// <param name="building">The building.</param>
-                /// <returns>
-                ///   <c>true</c> if the specified building is a service building; otherwise, <c>false</c>.
-                /// </returns>
-                public bool IsServiceBuilding(ushort buildingId, ref Building building)
-                {
-                    return building.Info.m_buildingAI is LandfillSiteAI;
-                }
-
-                /// <summary>
                 /// Re-initialize the part.
                 /// </summary>
                 public void ReInitialize()
                 {
                     this.Initialize(false, this.DispatchVehicles, this.AutoEmpty);
-                }
-
-                /// <summary>
-                /// Checks if removal of target building should be delayed.
-                /// </summary>
-                /// <param name="buildingId">The building identifier.</param>
-                /// <param name="building">The building.</param>
-                /// <returns>
-                /// True if target buidling should not yet be removed.
-                /// </returns>
-                public bool DelayTargetBuildingRemoval(ushort buildingId, ref Building building)
-                {
-                    return false;
                 }
             }
 
@@ -552,6 +938,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 public bool AutoEmpty => Global.Settings.HealthCare.AutoEmpty;
 
                 /// <summary>
+                /// Gets the type of the dispatcher.
+                /// </summary>
+                /// <value>
+                /// The type of the dispatcher.
+                /// </value>
+                public Dispatcher.DispatcherTypes DispatcherType => Dispatcher.DispatcherTypes.AmbulanceDispatcher;
+
+                /// <summary>
                 /// Gets a value indicating whether to dispatch vehicles.
                 /// </summary>
                 /// <value>
@@ -568,6 +962,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 public string ServiceCategory => "HealthCare";
 
                 /// <summary>
+                /// Gets the service log pre/suffix.
+                /// </summary>
+                /// <value>
+                /// The service log pre/suffix.
+                /// </value>
+                public string ServiceLogFix => "SBHC";
+
+                /// <summary>
                 /// Gets the target category.
                 /// </summary>
                 /// <value>
@@ -576,12 +978,54 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 public string TargetCategory => "SickPeople";
 
                 /// <summary>
-                /// Gets the type of the dispatcher.
+                /// Gets the target log pre/suffix.
                 /// </summary>
                 /// <value>
-                /// The type of the dispatcher.
+                /// The target log pre/suffix.
                 /// </value>
-                public Dispatcher.DispatcherTypes DispatcherType => Dispatcher.DispatcherTypes.AmbulanceDispatcher;
+                public string TargetLogFix => "TBSP";
+
+                /// <summary>
+                /// Checks if removal of target building should be delayed.
+                /// </summary>
+                /// <param name="buildingId">The building identifier.</param>
+                /// <param name="building">The building.</param>
+                /// <returns>
+                /// True if target buidling should not yet be removed.
+                /// </returns>
+                public bool DelayTargetBuildingRemoval(ushort buildingId, ref Building building)
+                {
+                    return ((building.m_garbageBuffer > 10 &&
+                            (building.m_garbageBuffer >= Global.Settings.Garbage.MinimumAmountForDispatch / 10 ||
+                             building.m_garbageBuffer >= Global.Settings.Garbage.MinimumAmountForPatrol / 2)) ||
+                            this.TargetBuildings[buildingId].WantedService);
+                }
+
+                /// <summary>
+                /// Determines whether the specified building is a service building for this service.
+                /// </summary>
+                /// <param name="buildingId">The building identifier.</param>
+                /// <param name="building">The building.</param>
+                /// <returns>
+                ///   <c>true</c> if the specified building is a service building; otherwise, <c>false</c>.
+                /// </returns>
+                public bool DispatchFromBuilding(ushort buildingId, ref Building building)
+                {
+                    return building.Info.m_buildingAI is HospitalAI;
+                }
+
+                /// <summary>
+                /// Determines whether the specified building is a a building this service is willing to dispatch to.
+                /// </summary>
+                /// <param name="buildingId">The building identifier.</param>
+                /// <param name="building">The building.</param>
+                /// <returns>
+                ///   <c>true</c> if the specified building can be dispatched to; otherwise, <c>false</c>.
+                /// </returns>
+                public bool DispatchToBuilding(ushort buildingId, ref Building building)
+                {
+                    return true;
+                }
 
                 /// <summary>
                 /// Gets the target building demand.
@@ -608,40 +1052,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 }
 
                 /// <summary>
-                /// Determines whether the specified building is a service building for this service.
-                /// </summary>
-                /// <param name="buildingId">The building identifier.</param>
-                /// <param name="building">The building.</param>
-                /// <returns>
-                ///   <c>true</c> if the specified building is a service building; otherwise, <c>false</c>.
-                /// </returns>
-                public bool IsServiceBuilding(ushort buildingId, ref Building building)
-                {
-                    return building.Info.m_buildingAI is HospitalAI;
-                }
-
-                /// <summary>
                 /// Re-initialize the part.
                 /// </summary>
                 public void ReInitialize()
                 {
                     this.Initialize(false, this.DispatchVehicles, this.AutoEmpty);
-                }
-
-                /// <summary>
-                /// Checks if removal of target building should be delayed.
-                /// </summary>
-                /// <param name="buildingId">The building identifier.</param>
-                /// <param name="building">The building.</param>
-                /// <returns>
-                /// True if target buidling should not yet be removed.
-                /// </returns>
-                public bool DelayTargetBuildingRemoval(ushort buildingId, ref Building building)
-                {
-                    return ((building.m_garbageBuffer > 10 &&
-                            (building.m_garbageBuffer >= Global.Settings.Garbage.MinimumAmountForDispatch / 10 ||
-                             building.m_garbageBuffer >= Global.Settings.Garbage.MinimumAmountForPatrol / 2)) ||
-                            this.TargetBuildings[buildingId].WantedService);
                 }
             }
         }

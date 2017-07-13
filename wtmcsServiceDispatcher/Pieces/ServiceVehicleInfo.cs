@@ -274,9 +274,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 // Unassign the vehicle.
                 ushort serviceBuildingId = vehicle.m_sourceBuilding;
                 VehicleResult result = VehicleHelper.DeAssign(this.VehicleId, ref vehicle);
-                if (result.DeSpawned)
+                if (result.DeSpawned && Global.DispatchServices != null)
                 {
-                    ServiceBuildingInfo building = Global.Buildings.GetServiceBuilding(serviceBuildingId);
+                    ServiceBuildingInfo building = Global.DispatchServices.GetServiceBuilding(serviceBuildingId);
                     if (building != null)
                     {
                         building.Vehicles.Remove(this.VehicleId);

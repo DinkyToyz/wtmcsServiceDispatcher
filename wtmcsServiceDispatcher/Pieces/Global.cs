@@ -103,6 +103,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public static uint CurrentFrame = 0u;
 
         /// <summary>
+        /// The dispatch services.
+        /// </summary>
+        public static DispatchServiceKeeper DispatchServices = null;
+
+        /// <summary>
         /// Indicates whether development experiments are enabled.
         /// </summary>
         public static bool EnableDevExperiments = FileSystem.Exists(".enable.experiments.dev");
@@ -172,7 +177,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             get
             {
-                return Global.Settings.HealthCare.DispatchVehicles && Global.Settings.HealthCare.CreateSpares != ServiceDispatcherSettings.SpareVehiclesCreation.Never;
+                return Settings.HealthCare.DispatchVehicles && Settings.HealthCare.CreateSpares != ServiceDispatcherSettings.SpareVehiclesCreation.Never;
             }
         }
 
@@ -186,7 +191,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             get
             {
-                return Global.Settings.Garbage.DispatchVehicles && Global.Settings.Garbage.CreateSpares != ServiceDispatcherSettings.SpareVehiclesCreation.Never;
+                return Settings.Garbage.DispatchVehicles && Settings.Garbage.CreateSpares != ServiceDispatcherSettings.SpareVehiclesCreation.Never;
             }
         }
 
@@ -200,7 +205,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             get
             {
-                return Global.Settings.DeathCare.DispatchVehicles && Global.Settings.DeathCare.CreateSpares != ServiceDispatcherSettings.SpareVehiclesCreation.Never;
+                return Settings.DeathCare.DispatchVehicles && Settings.DeathCare.CreateSpares != ServiceDispatcherSettings.SpareVehiclesCreation.Never;
             }
         }
 
@@ -214,9 +219,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             get
             {
-                return (Global.Settings.DeathCare.DispatchVehicles && Global.Settings.DeathCare.CreateSpares != ServiceDispatcherSettings.SpareVehiclesCreation.Never) ||
-                       (Global.Settings.Garbage.DispatchVehicles && Global.Settings.Garbage.CreateSpares != ServiceDispatcherSettings.SpareVehiclesCreation.Never) ||
-                       (Global.Settings.HealthCare.DispatchVehicles && Global.Settings.HealthCare.CreateSpares != ServiceDispatcherSettings.SpareVehiclesCreation.Never);
+                return (Settings.DeathCare.DispatchVehicles && Settings.DeathCare.CreateSpares != ServiceDispatcherSettings.SpareVehiclesCreation.Never) ||
+                       (Settings.Garbage.DispatchVehicles && Settings.Garbage.CreateSpares != ServiceDispatcherSettings.SpareVehiclesCreation.Never) ||
+                       (Settings.HealthCare.DispatchVehicles && Settings.HealthCare.CreateSpares != ServiceDispatcherSettings.SpareVehiclesCreation.Never);
             }
         }
 
@@ -244,14 +249,15 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// </summary>
         public static void DisposeHandlers()
         {
-            Global.GarbageTruckDispatcher = null;
-            Global.HearseDispatcher = null;
-            Global.AmbulanceDispatcher = null;
-            Global.ServiceBuildingInfoPriorityComparer = null;
-            Global.TargetBuildingInfoPriorityComparer = null;
-            Global.Buildings = null;
-            Global.Vehicles = null;
-            Global.ServiceProblems = null;
+            GarbageTruckDispatcher = null;
+            HearseDispatcher = null;
+            AmbulanceDispatcher = null;
+            ServiceBuildingInfoPriorityComparer = null;
+            TargetBuildingInfoPriorityComparer = null;
+            Buildings = null;
+            Vehicles = null;
+            ServiceProblems = null;
+            DispatchServices = null;
         }
 
         /// <summary>
@@ -264,13 +270,13 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             switch (dispatcherType)
             {
                 case Dispatcher.DispatcherTypes.GarbageTruckDispatcher:
-                    return Global.Settings.Garbage;
+                    return Settings.Garbage;
 
                 case Dispatcher.DispatcherTypes.HearseDispatcher:
-                    return Global.Settings.DeathCare;
+                    return Settings.DeathCare;
 
                 case Dispatcher.DispatcherTypes.AmbulanceDispatcher:
-                    return Global.Settings.HealthCare;
+                    return Settings.HealthCare;
 
                 case Dispatcher.DispatcherTypes.None:
                     throw new ArgumentNullException("Dispathcher type 'None' can not have settings");
@@ -352,6 +358,22 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             // Initialize dispatch objects.
             try
             {
+                if (Settings.DispatchAnyVehicles || Settings.AutoEmptyAnyBuildings)
+                {
+                    if (DispatchServices == null)
+                    {
+                        DispatchServices = new DispatchServiceKeeper();
+                    }
+                    else
+                    {
+                        DispatchServices.ReInitialize();
+                    }
+                }
+                else
+                {
+                    DispatchServices = null;
+                }
+
                 if (Settings.DispatchAnyVehicles || Settings.AutoEmptyAnyBuildings || Settings.WreckingCrews.DispatchVehicles)
                 {
                     // Initialize buildings.
@@ -363,6 +385,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     {
                         Buildings.ReInitialize();
                     }
+                }
+                else
+                {
+                    Buildings = null;
                 }
 
                 if (Settings.DispatchAnyVehicles)
@@ -389,6 +415,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                             HearseDispatcher.ReInitialize();
                         }
                     }
+                    else
+                    {
+                        HearseDispatcher = null;
+                    }
 
                     // Initialize garbage truck objects.
                     if (Settings.Garbage.DispatchVehicles)
@@ -401,6 +431,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         {
                             GarbageTruckDispatcher.ReInitialize();
                         }
+                    }
+                    else
+                    {
+                        GarbageTruckDispatcher = null;
                     }
 
                     // Initialize ambulance objects.
@@ -415,6 +449,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                             AmbulanceDispatcher.ReInitialize();
                         }
                     }
+                    else
+                    {
+                        AmbulanceDispatcher = null;
+                    }
 
                     // Initialize problem keeper.
                     if (ServiceProblems == null)
@@ -425,6 +463,15 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     {
                         ServiceProblems.ReInitialize();
                     }
+                }
+                else
+                {
+                    ServiceProblems = null;
+                    HearseDispatcher = null;
+                    GarbageTruckDispatcher = null;
+                    AmbulanceDispatcher = null;
+                    TargetBuildingInfoPriorityComparer = null;
+                    ServiceBuildingInfoPriorityComparer = null;
                 }
 
                 // Initialize vehicle objects.
@@ -439,27 +486,16 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         Vehicles.ReInitialize();
                     }
                 }
+                else
+                {
+                    Vehicles = null;
+                }
 
                 BuildingUpdateNeeded = true;
             }
             catch (Exception ex)
             {
                 Log.Error(typeof(Global), "ReInitializeHandlers", ex);
-            }
-        }
-
-        /// <summary>
-        /// Re-initializes the hearse dispatcher.
-        /// </summary>
-        public static void ReInitializeHearseDispatcher()
-        {
-            try
-            {
-                HearseDispatcher.ReInitialize();
-            }
-            catch (Exception ex)
-            {
-                Log.Error(typeof(Global), "ReInitializeHearseDispatcher", ex);
             }
         }
 
@@ -509,23 +545,28 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     {
                         Log.Debug(typeof(Global), "LogDebugLists", "Running");
 
-                        if (Global.Buildings != null)
+                        if (DispatchServices != null)
                         {
-                            Global.Buildings.DebugListLogBuildings();
+                            DispatchServices.DebugListLogBuildings();
                         }
 
-                        if (Global.Vehicles != null)
+                        if (Buildings != null)
                         {
-                            Global.Vehicles.DebugListLogVehicles();
+                            Buildings.DebugListLogBuildings();
+                        }
+
+                        if (Vehicles != null)
+                        {
+                            Vehicles.DebugListLogVehicles();
                         }
 
                         TransferManagerHelper.DebugListLog();
                         flush = true;
                     }
 
-                    if (Global.ServiceProblems != null)
+                    if (ServiceProblems != null)
                     {
-                        Global.ServiceProblems.DebugListLogServiceProblems();
+                        ServiceProblems.DebugListLogServiceProblems();
                         flush = true;
                     }
                 }

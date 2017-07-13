@@ -116,25 +116,33 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public enum DispatcherTypes
         {
             /// <summary>
-            /// Not a dispatcher.
-            /// </summary>
-            None = 0,
-
-            /// <summary>
             /// Dispatches hearses.
             /// </summary>
-            HearseDispatcher = 1,
+            HearseDispatcher = 0,
 
             /// <summary>
             /// Dispatches garbage trucks.
             /// </summary>
-            GarbageTruckDispatcher = 2,
+            GarbageTruckDispatcher = 1,
 
             /// <summary>
             /// Dispatches ambulances.
             /// </summary>
-            AmbulanceDispatcher = 3
+            AmbulanceDispatcher = 2,
+
+            /// <summary>
+            /// Not a dispatcher.
+            /// </summary>
+            None = 3
         }
+
+        /// <summary>
+        /// Gets a value indicating whether this service has target buildings.
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if this service has target buildings; otherwise, <c>false</c>.
+        /// </value>
+        protected bool HasTargetBuildings => Global.DispatchServices[this.DispatcherType].HasTargetBuildingsToCheck;
 
         /// <summary>
         /// Gets or sets the type of the transfer.
@@ -146,33 +154,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             get;
             protected set;
-        }
-
-        /// <summary>
-        /// Gets a value indicating whether this service has target buildings.
-        /// </summary>
-        /// <value>
-        /// <c>true</c> if this service has target buildings; otherwise, <c>false</c>.
-        /// </value>
-        protected bool HasTargetBuildings
-        {
-            get
-            {
-                switch (this.DispatcherType)
-                {
-                    case DispatcherTypes.HearseDispatcher:
-                        return Global.Buildings.HasDeadPeopleBuildingsToCheck;
-
-                    case DispatcherTypes.GarbageTruckDispatcher:
-                        return Global.Buildings.HasDirtyBuildingsToCheck;
-
-                    case DispatcherTypes.AmbulanceDispatcher:
-                        return Global.Buildings.HasSickPeopleBuildingsToCheck;
-
-                    default:
-                        return false;
-                }
-            }
         }
 
         /// <summary>
@@ -1131,41 +1112,26 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             switch (this.DispatcherType)
             {
                 case DispatcherTypes.HearseDispatcher:
-                    if (constructing)
-                    {
-                        this.TransferType = (byte)TransferManager.TransferReason.Dead;
-                        this.serviceBuildings = Global.Buildings.DeathCareBuildings;
-                        this.targetBuildings = Global.Buildings.DeadPeopleBuildings;
-                    }
-
+                    this.TransferType = (byte)TransferManager.TransferReason.Dead;
                     this.serviceSettings = Global.Settings.DeathCare;
                     break;
 
                 case DispatcherTypes.GarbageTruckDispatcher:
-                    if (constructing)
-                    {
-                        this.TransferType = (byte)TransferManager.TransferReason.Garbage;
-                        this.serviceBuildings = Global.Buildings.GarbageBuildings;
-                        this.targetBuildings = Global.Buildings.DirtyBuildings;
-                    }
-
+                    this.TransferType = (byte)TransferManager.TransferReason.Garbage;
                     this.serviceSettings = Global.Settings.DeathCare;
                     break;
 
                 case DispatcherTypes.AmbulanceDispatcher:
-                    if (constructing)
-                    {
-                        this.TransferType = (byte)TransferManager.TransferReason.Sick;
-                        this.serviceBuildings = Global.Buildings.HealthCareBuildings;
-                        this.targetBuildings = Global.Buildings.SickPeopleBuildings;
-                    }
-
+                    this.TransferType = (byte)TransferManager.TransferReason.Sick;
                     this.serviceSettings = Global.Settings.HealthCare;
                     break;
 
                 default:
                     throw new Exception("Bad dispatcher type");
             }
+
+            this.serviceBuildings = Global.DispatchServices[this.DispatcherType].ServiceBuildings;
+            this.targetBuildings = Global.DispatchServices[this.DispatcherType].TargetBuildings;
 
             if (this.serviceSettings.Patrol)
             {
