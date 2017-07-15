@@ -27,6 +27,7 @@
 - Citizens?
 - Ambulances: only emergency if citizen is sick enough?
 - If (Singleton<UnlockManager>.instance.Unlocked(ItemClass.Service.HealthCare))
+- Being able to have separate settings on global level, map, district and specific building (where only global is required) would be nice.
 - Find path to building for better range check?
 
 # Notes
