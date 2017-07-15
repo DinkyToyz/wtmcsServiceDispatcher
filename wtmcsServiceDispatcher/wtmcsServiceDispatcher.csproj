@@ -147,6 +147,7 @@
     <Compile Include="Pieces\VehicleKeeper.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Build\CopyCurrentDocs.cmd" />
     <None Include="Dox\Central Services Dispatcher.xcf" />
     <None Include="Build\PostBuild.cmd" />
     <None Include="Dox\ReadMe.head.md" />
@@ -165,8 +166,7 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>"$(ProjectDir)Build\PostBuild.cmd" 512341354 $(SolutionName) $(TargetFileName) $(Configuration)
-</PostBuildEvent>
+    <PostBuildEvent>"$(ProjectDir)Build\PostBuild.cmd" 512341354 $(SolutionName) $(TargetFileName) $(Configuration)</PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
     <PreBuildEvent>c:\Applications\bin\PreBuildStamper.exe "$(ProjectDir)\Build\PreBuildStamps.cs"</PreBuildEvent>
