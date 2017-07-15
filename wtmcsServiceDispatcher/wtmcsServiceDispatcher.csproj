@@ -106,6 +106,7 @@
     <Compile Include="Detouring\Detours.cs" />
     <Compile Include="Helpers\DistrictHelper.cs" />
     <Compile Include="Detours\GarbageTruckAIShouldReturnToSourceDetour.cs" />
+    <Compile Include="Pieces\DispatchService.cs" />
     <Compile Include="Pieces\IHandlerPart.cs" />
     <Compile Include="Pieces\Dispatcher.cs" />
     <Compile Include="Pieces\DispatchServiceKeeper.cs" />

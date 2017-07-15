@@ -103,16 +103,15 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <value>
         /// <c>true</c> if the vehicle is the dispatcher's responsibility; otherwise, <c>false</c>.
         /// </value>
-        public bool DispatchersResponsibility
-        {
-            get
-            {
-                return Global.Settings.RecoveryCrews.DispatchVehicles ||
-                       (Global.Settings.DeathCare.DispatchVehicles && Global.HearseDispatcher != null && this.dispatcherType == Dispatcher.DispatcherTypes.HearseDispatcher) ||
-                       (Global.Settings.Garbage.DispatchVehicles && Global.GarbageTruckDispatcher != null && this.dispatcherType == Dispatcher.DispatcherTypes.GarbageTruckDispatcher) ||
-                       (Global.Settings.HealthCare.DispatchVehicles && Global.AmbulanceDispatcher != null && this.dispatcherType == Dispatcher.DispatcherTypes.AmbulanceDispatcher);
-            }
-        }
+        public bool DispatchersResponsibility => CheckDispatchersResponsibility(this.dispatcherType);
+
+        /// <summary>
+        /// Gets a value indicating whether the vehicle is the crew's responsibility.
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if the vehicle is the crew's responsibility; otherwise, <c>false</c>.
+        /// </value>
+        public bool RecoveryCrewsResponsibility => CheckRecoveryCrewsResponsibility(this.dispatcherType);
 
         /// <summary>
         /// Gets the amount of frames during which the vehicle has had a check flag.
@@ -185,6 +184,28 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Gets a value indicating whether the vehicle type is the dispatcher's responsibility.
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if the vehicle type is the dispatcher's responsibility; otherwise, <c>false</c>.
+        /// </value>
+        public static bool CheckDispatchersResponsibility(Dispatcher.DispatcherTypes dispatcherType)
+        {
+            return Global.DispatchServices != null && Global.DispatchServices.IsDispatching(dispatcherType);
+        }
+
+        /// <summary>
+        /// Gets a value indicating whether the vehicle type is the crew's responsibility.
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if the vehicle is the crew's responsibility; otherwise, <c>false</c>.
+        /// </value>
+        public static bool CheckRecoveryCrewsResponsibility(Dispatcher.DispatcherTypes dispatcherType)
+        {
+            return Global.Settings.RecoveryCrews.DispatchVehicles || CheckDispatchersResponsibility(dispatcherType);
+        }
+
+        /// <summary>
         /// Determines whether the specified vehicle has a problem.
         /// </summary>
         /// <param name="vehicleId">The vehicle identifier.</param>
@@ -215,10 +236,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             }
 
             // Only check vehicles we dispatch unless told to check other vehicles as well.
-            if (!(Global.Settings.RecoveryCrews.DispatchVehicles ||
-                  (Global.Settings.DeathCare.DispatchVehicles && Global.HearseDispatcher != null && vehicle.Info.m_vehicleAI is HearseAI) ||
-                  (Global.Settings.Garbage.DispatchVehicles && Global.GarbageTruckDispatcher != null && vehicle.Info.m_vehicleAI is GarbageTruckAI) ||
-                  (Global.Settings.HealthCare.DispatchVehicles && Global.AmbulanceDispatcher != null && vehicle.Info.m_vehicleAI is AmbulanceAI)))
+            if (!CheckRecoveryCrewsResponsibility(Dispatcher.GetDispatcherType(ref vehicle)))
             {
                 return false;
             }
@@ -287,10 +305,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 }
             }
 
-            if (this.ConfusedDeAssignedForFrames > Global.DeAssignConfusedDelay &&
-                ((Global.Settings.DeathCare.DispatchVehicles && Global.HearseDispatcher != null && this.dispatcherType == Dispatcher.DispatcherTypes.HearseDispatcher) ||
-                 (Global.Settings.Garbage.DispatchVehicles && Global.GarbageTruckDispatcher != null && this.dispatcherType == Dispatcher.DispatcherTypes.GarbageTruckDispatcher) ||
-                 (Global.Settings.HealthCare.DispatchVehicles && Global.AmbulanceDispatcher != null && this.dispatcherType == Dispatcher.DispatcherTypes.HearseDispatcher)))
+            if (this.ConfusedDeAssignedForFrames > Global.DeAssignConfusedDelay && this.DispatchersResponsibility)
             {
                 try
                 {
@@ -443,7 +458,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             }
 
             info.Add("Dispatcher", this.dispatcherType);
-            info.Add("Responsible", this.DispatchersResponsibility);
+            info.Add("Responsible", this.RecoveryCrewsResponsibility);
         }
 
         /// <summary>
@@ -453,7 +468,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             if (Global.DispatchServices != null)
             {
-                foreach (IDispatchService service in Global.DispatchServices.DispatchingServices)
+                foreach (DispatchService service in Global.DispatchServices.DispatchingServices)
                 {
                     foreach (ServiceBuildingInfo serviceBuilding in service.ServiceBuildings.Values)
                     {
@@ -500,7 +515,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             if (Global.DispatchServices != null)
             {
-                foreach (IDispatchService service in Global.DispatchServices.DispatchingServices)
+                foreach (DispatchService service in Global.DispatchServices.DispatchingServices)
                 {
                     foreach (ServiceBuildingInfo serviceBuilding in service.ServiceBuildings.Values)
                     {

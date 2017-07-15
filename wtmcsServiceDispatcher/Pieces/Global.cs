@@ -83,11 +83,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public const uint TargetLingerDelay = 240u;
 
         /// <summary>
-        /// The ambulance dispatcher.
-        /// </summary>
-        public static Dispatcher AmbulanceDispatcher = null;
-
-        /// <summary>
         /// The buildings.
         /// </summary>
         public static BuildingKeeper Buildings = null;
@@ -116,16 +111,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// Indicates whether experiments are enabled.
         /// </summary>
         public static bool EnableExperiments = FileSystem.Exists(".enable.experiments");
-
-        /// <summary>
-        /// The garbage truck dispatcher.
-        /// </summary>
-        public static Dispatcher GarbageTruckDispatcher = null;
-
-        /// <summary>
-        /// The hearse dispatcher.
-        /// </summary>
-        public static Dispatcher HearseDispatcher = null;
 
         /// <summary>
         /// A level is loaded.
@@ -249,9 +234,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// </summary>
         public static void DisposeHandlers()
         {
-            GarbageTruckDispatcher = null;
-            HearseDispatcher = null;
-            AmbulanceDispatcher = null;
             ServiceBuildingInfoPriorityComparer = null;
             TargetBuildingInfoPriorityComparer = null;
             Buildings = null;
@@ -403,57 +385,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         ServiceBuildingInfoPriorityComparer = new ServiceBuildingInfo.PriorityComparer();
                     }
 
-                    // Initialize hearse objects.
-                    if (Settings.DeathCare.DispatchVehicles)
-                    {
-                        if (HearseDispatcher == null)
-                        {
-                            HearseDispatcher = new Dispatcher(Dispatcher.DispatcherTypes.HearseDispatcher);
-                        }
-                        else
-                        {
-                            HearseDispatcher.ReInitialize();
-                        }
-                    }
-                    else
-                    {
-                        HearseDispatcher = null;
-                    }
-
-                    // Initialize garbage truck objects.
-                    if (Settings.Garbage.DispatchVehicles)
-                    {
-                        if (GarbageTruckDispatcher == null)
-                        {
-                            GarbageTruckDispatcher = new Dispatcher(Dispatcher.DispatcherTypes.GarbageTruckDispatcher);
-                        }
-                        else
-                        {
-                            GarbageTruckDispatcher.ReInitialize();
-                        }
-                    }
-                    else
-                    {
-                        GarbageTruckDispatcher = null;
-                    }
-
-                    // Initialize ambulance objects.
-                    if (Settings.HealthCare.DispatchVehicles)
-                    {
-                        if (AmbulanceDispatcher == null)
-                        {
-                            AmbulanceDispatcher = new Dispatcher(Dispatcher.DispatcherTypes.AmbulanceDispatcher);
-                        }
-                        else
-                        {
-                            AmbulanceDispatcher.ReInitialize();
-                        }
-                    }
-                    else
-                    {
-                        AmbulanceDispatcher = null;
-                    }
-
                     // Initialize problem keeper.
                     if (ServiceProblems == null)
                     {
@@ -467,9 +398,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 else
                 {
                     ServiceProblems = null;
-                    HearseDispatcher = null;
-                    GarbageTruckDispatcher = null;
-                    AmbulanceDispatcher = null;
                     TargetBuildingInfoPriorityComparer = null;
                     ServiceBuildingInfoPriorityComparer = null;
                 }

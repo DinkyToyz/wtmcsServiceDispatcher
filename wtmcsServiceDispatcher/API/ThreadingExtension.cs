@@ -133,22 +133,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         // Update buildings.
                         Global.Buildings.Update();
 
-                        // Dispatch hearses.
-                        if (Global.Settings.DeathCare.DispatchVehicles && Global.HearseDispatcher != null)
+                        if (Global.DispatchServices != null)
                         {
-                            Global.HearseDispatcher.Dispatch();
-                        }
-
-                        // Dispatch garbage trucks;
-                        if (Global.Settings.Garbage.DispatchVehicles && Global.GarbageTruckDispatcher != null)
-                        {
-                            Global.GarbageTruckDispatcher.Dispatch();
-                        }
-
-                        // Dispatch ambulances.
-                        if (Global.Settings.HealthCare.DispatchVehicles && Global.AmbulanceDispatcher != null)
-                        {
-                            Global.AmbulanceDispatcher.Dispatch();
+                            Global.DispatchServices.Dispatch();
                         }
                     }
 

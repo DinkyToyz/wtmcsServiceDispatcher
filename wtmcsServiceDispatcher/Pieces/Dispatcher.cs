@@ -72,6 +72,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         private BuldingCheckParameters[] buildingChecks;
 
         /// <summary>
+        /// The dispatch service.
+        /// </summary>
+        private DispatchService dispatchService = null;
+
+        /// <summary>
         /// The free vehicle count.
         /// </summary>
         private int freeVehicles = 0;
@@ -99,11 +104,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// Initializes a new instance of the <see cref="Dispatcher" /> class.
         /// </summary>
-        /// <param name="dispatcherType">Type of the dispatcher.</param>
+        /// <param name="dispatchService">The dispatch service.</param>
         /// <exception cref="System.Exception">Bad dispatcher type.</exception>
-        public Dispatcher(DispatcherTypes dispatcherType)
+        public Dispatcher(DispatchService dispatchService)
         {
-            this.DispatcherType = dispatcherType;
+            this.DispatcherType = dispatchService.DispatcherType;
+            this.dispatchService = dispatchService;
 
             this.Initialize(true);
 
@@ -142,7 +148,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <value>
         /// <c>true</c> if this service has target buildings; otherwise, <c>false</c>.
         /// </value>
-        protected bool HasTargetBuildings => Global.DispatchServices[this.DispatcherType].HasTargetBuildingsToCheck;
+        protected bool HasTargetBuildings => this.dispatchService.HasTargetBuildingsToCheck;
 
         /// <summary>
         /// Gets or sets the type of the transfer.
@@ -1130,8 +1136,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     throw new Exception("Bad dispatcher type");
             }
 
-            this.serviceBuildings = Global.DispatchServices[this.DispatcherType].ServiceBuildings;
-            this.targetBuildings = Global.DispatchServices[this.DispatcherType].TargetBuildings;
+            this.serviceBuildings = this.dispatchService.ServiceBuildings;
+            this.targetBuildings = this.dispatchService.TargetBuildings;
 
             if (this.serviceSettings.Patrol)
             {

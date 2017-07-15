@@ -582,7 +582,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 if (getServiceBuilding || getTargetBuilding)
                 {
-                    foreach (IDispatchService service in Global.DispatchServices.Services)
+                    foreach (DispatchService service in Global.DispatchServices.EnabledServices)
                     {
                         if (getServiceBuilding && service.ServiceBuildings != null && service.ServiceBuildings.TryGetValue(buildingId, out extraServiceBuilding))
                         {

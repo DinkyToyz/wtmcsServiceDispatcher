@@ -89,7 +89,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             // Forget stuck vehicles that are no longer the dispatcher's responcibility.
             if (this.StuckVehicles != null && !Global.Settings.RecoveryCrews.DispatchVehicles)
             {
-                ushort[] vehicleIds = this.StuckVehicles.WhereSelect(kvp => !kvp.Value.DispatchersResponsibility, kvp => kvp.Key).ToArray();
+                ushort[] vehicleIds = this.StuckVehicles.WhereSelect(kvp => !kvp.Value.RecoveryCrewsResponsibility, kvp => kvp.Key).ToArray();
 
                 for (int i = 0; i < vehicleIds.Length; i++)
                 {
@@ -189,19 +189,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         (vehicles[id].m_flags & VehicleHelper.VehicleUnavailable) == ~VehicleHelper.VehicleAll &&
                         vehicles[id].m_targetBuilding != vehicles[id].m_sourceBuilding && (buildings[vehicles[id].m_sourceBuilding].m_flags & Building.Flags.Downgrading) == Building.Flags.None)
                     {
-                        if (Global.Settings.DeathCare.DispatchVehicles && Global.HearseDispatcher != null && vehicles[id].m_transferType == Global.HearseDispatcher.TransferType)
+                        if (Global.DispatchServices != null)
                         {
-                            Global.HearseDispatcher.CheckVehicleTarget(id, ref vehicles[id]);
-                        }
-
-                        if (Global.Settings.Garbage.DispatchVehicles && Global.GarbageTruckDispatcher != null && vehicles[id].m_transferType == Global.GarbageTruckDispatcher.TransferType)
-                        {
-                            Global.GarbageTruckDispatcher.CheckVehicleTarget(id, ref vehicles[id]);
-                        }
-
-                        if (Global.Settings.HealthCare.DispatchVehicles && Global.AmbulanceDispatcher != null && vehicles[id].m_transferType == Global.AmbulanceDispatcher.TransferType)
-                        {
-                            Global.AmbulanceDispatcher.CheckVehicleTarget(id, ref vehicles[id]);
+                            Global.DispatchServices.CheckVehicleTarget(id, ref vehicles[id]);
                         }
                     }
 

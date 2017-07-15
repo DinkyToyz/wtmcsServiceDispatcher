@@ -119,13 +119,13 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 UIHelperBase dispatchGroup = this.CreateDispatchGroup(helper);
 
                 // Add hearse group.
-                UIHelperBase hearseGroup = this.CreateServiceGroup(helper, Global.Settings.DeathCare, Global.HearseDispatcher, true);
+                UIHelperBase hearseGroup = this.CreateServiceGroup(helper, Dispatcher.DispatcherTypes.HearseDispatcher, true);
 
                 // Add cemetery group.
                 UIHelperBase cemeteryGroup = this.CreateEmptiableServiceBuildingGroup(helper, Global.Settings.DeathCare, true);
 
                 // Add garbage group.
-                UIHelperBase garbageGroup = this.CreateServiceGroup(helper, Global.Settings.Garbage, Global.GarbageTruckDispatcher, true);
+                UIHelperBase garbageGroup = this.CreateServiceGroup(helper, Dispatcher.DispatcherTypes.GarbageTruckDispatcher, true);
 
                 // Add landfill group.
                 UIHelperBase landfillGroup = this.CreateEmptiableServiceBuildingGroup(helper, Global.Settings.Garbage, true);
@@ -133,7 +133,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 // Add ambulance group.
                 if (Global.EnableDevExperiments || Global.Settings.HealthCare.DispatchVehicles)
                 {
-                    UIHelperBase ambulanceGroup = this.CreateServiceGroup(helper, Global.Settings.HealthCare, Global.AmbulanceDispatcher, true);
+                    UIHelperBase ambulanceGroup = this.CreateServiceGroup(helper, Dispatcher.DispatcherTypes.AmbulanceDispatcher, true);
                 }
 
                 // Add bulldoze and recovery group.
@@ -748,16 +748,36 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// Creates the service group.
         /// </summary>
         /// <param name="helper">The helper.</param>
-        /// <param name="settings">The settings.</param>
-        /// <param name="dispatcher">The dispatcher.</param>
+        /// <param name="dispatcherType">Type of the dispatcher.</param>
         /// <param name="canService">If set to <c>true</c> this service can be enabled.</param>
         /// <returns>
         /// The group.
         /// </returns>
-        private UIHelperBase CreateServiceGroup(UIHelperBase helper, StandardServiceSettings settings, Dispatcher dispatcher, bool canService)
+        private UIHelperBase CreateServiceGroup(UIHelperBase helper, Dispatcher.DispatcherTypes dispatcherType, bool canService)
         {
+            StandardServiceSettings settings = null;
+            Dispatcher dispatcher = null;
+
             try
             {
+                switch (dispatcherType)
+                {
+                    case Dispatcher.DispatcherTypes.HearseDispatcher:
+                        settings = Global.Settings.DeathCare;
+                        dispatcher = (Global.DispatchServices == null) ? null : Global.DispatchServices[dispatcherType].Dispatcher;
+                        break;
+
+                    case Dispatcher.DispatcherTypes.GarbageTruckDispatcher:
+                        settings = Global.Settings.Garbage;
+                        dispatcher = (Global.DispatchServices == null) ? null : Global.DispatchServices[dispatcherType].Dispatcher;
+                        break;
+
+                    case Dispatcher.DispatcherTypes.AmbulanceDispatcher:
+                        settings = Global.Settings.HealthCare;
+                        dispatcher = (Global.DispatchServices == null) ? null : Global.DispatchServices[dispatcherType].Dispatcher;
+                        break;
+                }
+
                 UIHelperBase group = helper.AddGroup(settings.VehicleNamePlural);
                 InformationalText currentStrategyInformationalText = null;
 
@@ -1141,7 +1161,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             }
             catch (Exception ex)
             {
-                Log.Error(this, "CreateServiceGroup", ex, settings.EmptiableServiceBuildingNamePlural);
+                Log.Error(this, "CreateServiceGroup", ex, (settings == null) ? null : settings.EmptiableServiceBuildingNamePlural);
                 return null;
             }
         }
