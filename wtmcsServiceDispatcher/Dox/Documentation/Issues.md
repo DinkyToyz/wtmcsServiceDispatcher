@@ -1,8 +1,7 @@
 ---
 title: Known Issues
-hide_for_current: true
-navigation_menu: I000020
+sort_order: 750
 ---
-_See also: [Incompatibilities](Incompatibilities.html) and [Errors & Logging](ErrorsLogging.html)_
+_See also: [Incompatibilities](Incompatibilities.html) and [Errors & Logging](Files.html#Logs)_
 
-{% capture Issues %}{% include_relative {{ site.current_version }}/_Issues.md %}{% endcapture %}{{ Issues | markdownify }}
+{% capture Issues %}{% include_relative _Issues.md %}{% endcapture %}{{ Issues | markdownify }}
