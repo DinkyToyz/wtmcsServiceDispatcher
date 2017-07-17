@@ -119,13 +119,13 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 UIHelperBase dispatchGroup = this.CreateDispatchGroup(helper);
 
                 // Add hearse group.
-                UIHelperBase hearseGroup = this.CreateServiceGroup(helper, Dispatcher.DispatcherTypes.HearseDispatcher, true);
+                UIHelperBase hearseGroup = this.CreateServiceGroup(helper, ServiceHelper.ServiceType.HearseDispatcher, true);
 
                 // Add cemetery group.
                 UIHelperBase cemeteryGroup = this.CreateEmptiableServiceBuildingGroup(helper, Global.Settings.DeathCare, true);
 
                 // Add garbage group.
-                UIHelperBase garbageGroup = this.CreateServiceGroup(helper, Dispatcher.DispatcherTypes.GarbageTruckDispatcher, true);
+                UIHelperBase garbageGroup = this.CreateServiceGroup(helper, ServiceHelper.ServiceType.GarbageTruckDispatcher, true);
 
                 // Add landfill group.
                 UIHelperBase landfillGroup = this.CreateEmptiableServiceBuildingGroup(helper, Global.Settings.Garbage, true);
@@ -133,7 +133,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 // Add ambulance group.
                 if (Global.EnableDevExperiments || Global.Settings.HealthCare.DispatchVehicles)
                 {
-                    UIHelperBase ambulanceGroup = this.CreateServiceGroup(helper, Dispatcher.DispatcherTypes.AmbulanceDispatcher, true);
+                    UIHelperBase ambulanceGroup = this.CreateServiceGroup(helper, ServiceHelper.ServiceType.AmbulanceDispatcher, true);
                 }
 
                 // Add bulldoze and recovery group.
@@ -240,7 +240,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 group.AddDropdown(
                     "Assigment compatibility mode",
-                    this.modCompatibilityModes.OrderBy(a => a.Key).Select(compatibilityMode => compatibilityMode.Value).ToArray(),
+                    this.modCompatibilityModes.OrderBy(a => a.Key).SelectToArray(compatibilityMode => compatibilityMode.Value),
                     (int)Global.Settings.AssignmentCompatibilityMode,
                     value =>
                     {
@@ -268,7 +268,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 group.AddDropdown(
                     "Creation compatibility mode",
-                    this.modCompatibilityModes.OrderBy(a => a.Key).Select(compatibilityMode => compatibilityMode.Value).ToArray(),
+                    this.modCompatibilityModes.OrderBy(a => a.Key).SelectToArray(compatibilityMode => compatibilityMode.Value),
                     (int)Global.Settings.CreationCompatibilityMode,
                     value =>
                     {
@@ -296,7 +296,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 group.AddDropdown(
                         "Allow Code Overrides",
-                        this.allowances.OrderBy(a => a.Key).Select(allowances => allowances.Value).ToArray(),
+                        this.allowances.OrderBy(a => a.Key).SelectToArray(allowances => allowances.Value),
                         (int)Global.Settings.ReflectionAllowance,
                         value =>
                         {
@@ -748,33 +748,33 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// Creates the service group.
         /// </summary>
         /// <param name="helper">The helper.</param>
-        /// <param name="dispatcherType">Type of the dispatcher.</param>
+        /// <param name="serviceType">Type of the dispatcher.</param>
         /// <param name="canService">If set to <c>true</c> this service can be enabled.</param>
         /// <returns>
         /// The group.
         /// </returns>
-        private UIHelperBase CreateServiceGroup(UIHelperBase helper, Dispatcher.DispatcherTypes dispatcherType, bool canService)
+        private UIHelperBase CreateServiceGroup(UIHelperBase helper, ServiceHelper.ServiceType serviceType, bool canService)
         {
             StandardServiceSettings settings = null;
             DispatchService service = null;
 
             try
             {
-                switch (dispatcherType)
+                switch (serviceType)
                 {
-                    case Dispatcher.DispatcherTypes.HearseDispatcher:
+                    case ServiceHelper.ServiceType.HearseDispatcher:
                         settings = Global.Settings.DeathCare;
-                        service = (Global.DispatchServices == null) ? null : Global.DispatchServices[dispatcherType];
+                        service = (Global.Services == null) ? null : Global.Services[serviceType];
                         break;
 
-                    case Dispatcher.DispatcherTypes.GarbageTruckDispatcher:
+                    case ServiceHelper.ServiceType.GarbageTruckDispatcher:
                         settings = Global.Settings.Garbage;
-                        service = (Global.DispatchServices == null) ? null : Global.DispatchServices[dispatcherType];
+                        service = (Global.Services == null) ? null : Global.Services[serviceType];
                         break;
 
-                    case Dispatcher.DispatcherTypes.AmbulanceDispatcher:
+                    case ServiceHelper.ServiceType.AmbulanceDispatcher:
                         settings = Global.Settings.HealthCare;
-                        service = (Global.DispatchServices == null) ? null : Global.DispatchServices[dispatcherType];
+                        service = (Global.Services == null) ? null : Global.Services[serviceType];
                         break;
                 }
 
@@ -905,7 +905,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 group.AddDropdown(
                     "Send out spare " + settings.VehicleNamePlural.ToLower() + " when",
-                    this.vehicleCreationOptions.OrderBy(vco => vco.Key).Select(vco => vco.Value).ToArray(),
+                    this.vehicleCreationOptions.OrderBy(vco => vco.Key).SelectToArray(vco => vco.Value),
                     (int)settings.CreateSpares,
                     value =>
                     {
@@ -931,6 +931,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                                             }
                                         }
 
+                                        Global.VehicleUpdateNeeded = true;
+
                                         Global.Settings.Save();
                                     }
 
@@ -946,7 +948,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 group.AddDropdown(
                     settings.VehicleNameSingular + " dispatch strategy",
-                    this.targetBuildingChecks.OrderBy(bco => bco.Key).Select(bco => bco.Value).ToArray(),
+                    this.targetBuildingChecks.OrderBy(bco => bco.Key).SelectToArray(bco => bco.Value),
                     (int)settings.ChecksPreset,
                     value =>
                     {

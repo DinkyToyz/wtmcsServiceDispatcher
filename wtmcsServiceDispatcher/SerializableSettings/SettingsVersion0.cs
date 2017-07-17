@@ -502,8 +502,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
             this.RemoveStuckVehicles = settings.RecoveryCrews.DispatchVehicles;
             this.RemoveStuckVehiclesDelaySeconds = settings.RecoveryCrews.DelaySeconds;
 
-            this.BuildingChecksPresets = (Enum.GetValues(typeof(ServiceDispatcherSettings.BuildingCheckOrder)) as ServiceDispatcherSettings.BuildingCheckOrder[]).Where(bco => bco != ServiceDispatcherSettings.BuildingCheckOrder.Custom).Select(bco => new ServiceDispatcherSettings.BuildingChecksPresetInfo(bco)).ToArray();
-            this.BuildingChecksPossible = (Enum.GetValues(typeof(ServiceDispatcherSettings.BuildingCheckParameters)) as ServiceDispatcherSettings.BuildingCheckParameters[]).Where(bcp => bcp != ServiceDispatcherSettings.BuildingCheckParameters.Undefined).ToArray();
+            this.BuildingChecksPresets = (Enum.GetValues(typeof(ServiceDispatcherSettings.BuildingCheckOrder)) as ServiceDispatcherSettings.BuildingCheckOrder[]).WhereSelectToArray(bco => bco != ServiceDispatcherSettings.BuildingCheckOrder.Custom, bco => new ServiceDispatcherSettings.BuildingChecksPresetInfo(bco));
+            this.BuildingChecksPossible = (Enum.GetValues(typeof(ServiceDispatcherSettings.BuildingCheckParameters)) as ServiceDispatcherSettings.BuildingCheckParameters[]).WhereToArray(bcp => bcp != ServiceDispatcherSettings.BuildingCheckParameters.Undefined);
 
             this.Version = CurrentVersion;
             this.SaveCount = settings.SaveCount;

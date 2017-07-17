@@ -100,6 +100,7 @@
     <Compile Include="Helpers\ObjectHelpers\TaxiHelper.cs" />
     <Compile Include="Helpers\ObjectHelpers\TouristHelper.cs" />
     <Compile Include="Helpers\ObjectHelpers\TramHelper.cs" />
+    <Compile Include="Helpers\ServiceHelper.cs" />
     <Compile Include="Helpers\TransportLineHelper.cs" />
     <Compile Include="Helpers\VehicleResult.cs" />
     <Compile Include="Pieces\BuildingKeeper.cs" />

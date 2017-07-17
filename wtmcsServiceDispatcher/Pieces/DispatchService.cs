@@ -11,9 +11,17 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
     internal abstract class DispatchService : IBuildingService
     {
         /// <summary>
+        /// Gets a value indicating whether this dispatcher creates vehicles.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if the dispatcher creates vehicles; otherwise, <c>false</c>.
+        /// </value>
+        public bool CreatesVehicles => this.IsDispatching && this.Settings.CreateSpares != ServiceDispatcherSettings.SpareVehiclesCreation.Never;
+
+        /// <summary>
         /// The dispatcher type.
         /// </summary>
-        public readonly Dispatcher.DispatcherTypes DispatcherType;
+        public readonly ServiceHelper.ServiceType ServiceType;
 
         /// <summary>
         /// Gets the settings.
@@ -27,6 +35,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// The transfer type.
         /// </summary>
         public readonly byte TransferType;
+
+        /// <summary>
+        /// Gets the transfer reason.
+        /// </summary>
+        /// <value>
+        /// The transfer reason.
+        /// </value>
+        public TransferManager.TransferReason TransferReason => (TransferManager.TransferReason)this.TransferType;
 
         /// <summary>
         /// The buiildings in need of emptying change.
@@ -51,13 +67,13 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// Initializes a new instance of the <see cref="DispatchService" /> class.
         /// </summary>
-        /// <param name="dispatcherType">Type of the dispatcher.</param>
+        /// <param name="serviceType">Type of the dispatcher.</param>
         /// <param name="transferType">Type of the transfer.</param>
         /// <param name="settings">The settings.</param>
-        public DispatchService(Dispatcher.DispatcherTypes dispatcherType, byte transferType, StandardServiceSettings settings)
+        public DispatchService(ServiceHelper.ServiceType serviceType, byte transferType, StandardServiceSettings settings)
         {
             this.Settings = settings;
-            this.DispatcherType = dispatcherType;
+            this.ServiceType = serviceType;
             this.TransferType = transferType;
 
             this.HasTargetBuildingsToCheck = false;
@@ -183,7 +199,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 if (!this.serviceBuildings.TryGetValue(buildingId, out serviceBuilding))
                 {
-                    serviceBuilding = new ServiceBuildingInfo(buildingId, ref building, this.DispatcherType);
+                    serviceBuilding = new ServiceBuildingInfo(buildingId, ref building, this.ServiceType);
                     Log.Debug(this, "CategorizeBuilding", "Add", this.ServiceCategory, buildingId, building.Info.name, serviceBuilding.BuildingName, serviceBuilding.Range, serviceBuilding.District);
 
                     this.serviceBuildings[buildingId] = serviceBuilding;
@@ -214,7 +230,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 {
                     if (!this.targetBuildings.ContainsKey(buildingId))
                     {
-                        TargetBuildingInfo targetBuilding = new TargetBuildingInfo(buildingId, ref building, this.DispatcherType, demand);
+                        TargetBuildingInfo targetBuilding = new TargetBuildingInfo(buildingId, ref building, this.ServiceType, demand);
 
                         if (Log.LogToFile)
                         {
@@ -248,6 +264,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 }
             }
         }
+
+        /// <summary>
+        /// Finish the update.
+        /// </summary>
+        public void UpdateFinish()
+        { }
 
         /// <summary>
         /// Finish the categorization.
@@ -294,12 +316,18 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
-        /// Prepare for categorization.
+        /// Prepare for update.
         /// </summary>
-        public void CategorizePrepare()
+        public void UpdatePrepare()
         {
             this.HasTargetBuildingsToCheck = false;
         }
+
+        /// <summary>
+        /// Prepare for categorization.
+        /// </summary>
+        public void CategorizePrepare()
+        { }
 
         /// <summary>
         /// Checks the vehicle target.
@@ -514,6 +542,26 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Update all vehicles.
+        /// </summary>
+        public void UpdateAllVehicles()
+        {
+            Vehicle[] vehicles = Singleton<VehicleManager>.instance.m_vehicles.m_buffer;
+
+            if (this.serviceBuildings != null)
+            {
+                foreach (ServiceBuildingInfo building in this.serviceBuildings.Values)
+                {
+                    foreach (ServiceVehicleInfo vehicle in building.Vehicles.Values)
+                    {
+                        vehicle.ReInitialize();
+                        vehicle.UpdateValues(ref vehicles[vehicle.VehicleId], true);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
         /// Checks if removal of target building should be delayed.
         /// </summary>
         /// <param name="buildingId">The building identifier.</param>
@@ -635,7 +683,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             /// <summary>
             /// Initializes a new instance of the <see cref="DeathCare"/> class.
             /// </summary>
-            public DeathCare() : base(Dispatcher.DispatcherTypes.HearseDispatcher, (byte)TransferManager.TransferReason.Dead, Global.Settings.DeathCare)
+            public DeathCare() : base(ServiceHelper.ServiceType.HearseDispatcher, (byte)TransferManager.TransferReason.Dead, Global.Settings.DeathCare)
             { }
 
             /// <summary>
@@ -706,7 +754,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             /// <summary>
             /// Initializes a new instance of the <see cref="DeathCare"/> class.
             /// </summary>
-            public Garbage() : base(Dispatcher.DispatcherTypes.GarbageTruckDispatcher, (byte)TransferManager.TransferReason.Garbage, Global.Settings.Garbage)
+            public Garbage() : base(ServiceHelper.ServiceType.GarbageTruckDispatcher, (byte)TransferManager.TransferReason.Garbage, Global.Settings.Garbage)
             { }
 
             /// <summary>
@@ -817,7 +865,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             /// <summary>
             /// Initializes a new instance of the <see cref="DeathCare"/> class.
             /// </summary>
-            public HealthCare() : base(Dispatcher.DispatcherTypes.AmbulanceDispatcher, (byte)TransferManager.TransferReason.Sick, Global.Settings.HealthCare)
+            public HealthCare() : base(ServiceHelper.ServiceType.AmbulanceDispatcher, (byte)TransferManager.TransferReason.Sick, Global.Settings.HealthCare)
             { }
 
             /// <summary>

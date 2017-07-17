@@ -74,9 +74,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             List<string> categories = new List<string>();
 
-            if (Global.DispatchServices != null)
+            if (Global.Services != null)
             {
-                categories.AddRange(Global.DispatchServices.GetCategories(buildingId));
+                categories.AddRange(Global.Services.GetCategories(buildingId));
             }
 
             if (this.DesolateBuildings != null && this.DesolateBuildings.ContainsKey(buildingId))
@@ -101,9 +101,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <exception cref="System.Exception">Update bucket loop counter too high.</exception>
         public void Update()
         {
-            if (Global.DispatchServices != null)
+            if (Global.Services != null)
             {
-                Global.DispatchServices.CategorizePrepare();
+                Global.Services.UpdatePrepare();
             }
 
             // First update?
@@ -142,15 +142,15 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 this.CategorizeBuildings();
             }
 
-            if (Global.BuildingUpdateNeeded && Global.DispatchServices != null)
+            if (Global.BuildingUpdateNeeded && Global.Services != null)
             {
-                Global.DispatchServices.UpdateAllBuildings();
+                Global.Services.UpdateAllBuildings();
                 Global.BuildingUpdateNeeded = false;
             }
 
-            if (Global.DispatchServices != null)
+            if (Global.Services != null)
             {
-                Global.DispatchServices.CategorizeFinish();
+                Global.Services.UpdateFinish();
             }
         }
 
@@ -169,6 +169,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <param name="lastBuildingId">The last building identifier.</param>
         private void CategorizeBuildings(ushort firstBuildingId, int lastBuildingId)
         {
+            if (Global.Services != null)
+            {
+                Global.Services.CategorizePrepare();
+            }
+
             Building[] buildings = Singleton<BuildingManager>.instance.m_buildings.m_buffer;
 
             bool desolateBuilding;
@@ -188,15 +193,15 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 }
 
                 // Handle buildings needing services.
-                if (Global.DispatchServices != null)
+                if (Global.Services != null)
                 {
                     if (usableBuilding)
                     {
-                        Global.DispatchServices.CategorizeBuilding(id, ref buildings[id]);
+                        Global.Services.CategorizeBuilding(id, ref buildings[id]);
                     }
                     else
                     {
-                        Global.DispatchServices.UnCategorizeBuilding(id);
+                        Global.Services.UnCategorizeBuilding(id);
                     }
                 }
 
@@ -234,6 +239,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     }
                 }
             }
+
+            if (Global.Services != null)
+            {
+                Global.Services.CategorizeFinish();
+            }
         }
 
         /// <summary>
@@ -262,28 +272,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             }
 
             Log.Debug(this, "Initialize", info);
-        }
-
-        /// <summary>
-        /// Updates the building values.
-        /// </summary>
-        /// <typeparam name="T">The building class type.</typeparam>
-        /// <param name="infoBuildings">The buildings.</param>
-        private void UpdateValues<T>(IEnumerable<T> infoBuildings) where T : IBuildingInfo
-        {
-            Building[] buildings = Singleton<BuildingManager>.instance.m_buildings.m_buffer;
-
-            DistrictManager districtManager = null;
-            if (Global.Settings.DispatchAnyByDistrict)
-            {
-                districtManager = Singleton<DistrictManager>.instance;
-            }
-
-            foreach (T building in infoBuildings)
-            {
-                building.ReInitialize();
-                building.UpdateValues(ref buildings[building.BuildingId], true);
-            }
         }
     }
 }

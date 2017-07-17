@@ -13,7 +13,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// The dispatcher type.
         /// </summary>
-        private Dispatcher.DispatcherTypes dispatcherType = Dispatcher.DispatcherTypes.None;
+        private ServiceHelper.ServiceType serviceType = ServiceHelper.ServiceType.None;
 
         /// <summary>
         /// The last capacity update stamp.
@@ -60,8 +60,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// </summary>
         /// <param name="buildingId">The building identifier.</param>
         /// <param name="building">The building.</param>
-        /// <param name="dispatcherType">Type of the dispatcher.</param>
-        public ServiceBuildingInfo(ushort buildingId, ref Building building, Dispatcher.DispatcherTypes dispatcherType)
+        /// <param name="serviceType">Type of the dispatcher.</param>
+        public ServiceBuildingInfo(ushort buildingId, ref Building building, ServiceHelper.ServiceType serviceType)
         {
             this.BuildingId = buildingId;
             this.CurrentTargetDistance = float.PositiveInfinity;
@@ -71,7 +71,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             this.CurrentTargetServiceProblemSize = 0;
             this.Range = 0;
             this.Vehicles = new Dictionary<ushort, ServiceVehicleInfo>();
-            this.dispatcherType = dispatcherType;
+            this.serviceType = serviceType;
             this.IsAutoEmptying = false;
 
             this.Initialize();
@@ -628,7 +628,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 return 0;
             }
 
-            ServiceVehicleInfo serviceVehicle = ServiceVehicleInfo.Create(this, (TransferManager.TransferReason)transferType, this.dispatcherType, targetBuildingId, targetCitizenId);
+            ServiceVehicleInfo serviceVehicle = ServiceVehicleInfo.Create(this, (TransferManager.TransferReason)transferType, this.serviceType, targetBuildingId, targetCitizenId);
             if (serviceVehicle == null)
             {
                 return 0;
@@ -894,20 +894,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// </summary>
         private void Initialize()
         {
-            switch (this.dispatcherType)
-            {
-                case Dispatcher.DispatcherTypes.HearseDispatcher:
-                    this.serviceSettings = Global.Settings.DeathCare;
-                    break;
-
-                case Dispatcher.DispatcherTypes.GarbageTruckDispatcher:
-                    this.serviceSettings = Global.Settings.Garbage;
-                    break;
-
-                case Dispatcher.DispatcherTypes.AmbulanceDispatcher:
-                    this.serviceSettings = Global.Settings.HealthCare;
-                    break;
-            }
+            this.serviceSettings = Global.GetServiceSettings(this.serviceType);
         }
 
         /// <summary>

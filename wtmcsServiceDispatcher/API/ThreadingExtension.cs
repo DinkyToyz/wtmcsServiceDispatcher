@@ -133,18 +133,15 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         // Update buildings.
                         Global.Buildings.Update();
 
-                        if (Global.DispatchServices != null)
+                        if (Global.Services != null)
                         {
-                            Global.DispatchServices.Dispatch();
+                            Global.Services.Dispatch();
                         }
                     }
 
                     if (Global.TransferOffersCleaningNeeded || Global.CurrentFrame - this.lastTransferOffersClean > Global.CleanTransferOffersDelay)
                     {
-                        if (Global.CleanTransferOffers)
-                        {
-                            TransferManagerHelper.CleanTransferOffers();
-                        }
+                        TransferManagerHelper.CleanTransferOffers();
 
                         this.lastTransferOffersClean = Global.CurrentFrame;
                         Global.TransferOffersCleaningNeeded = false;

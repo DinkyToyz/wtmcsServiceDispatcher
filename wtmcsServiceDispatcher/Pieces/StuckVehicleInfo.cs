@@ -57,7 +57,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// The dispatcher type.
         /// </summary>
-        private Dispatcher.DispatcherTypes dispatcherType = Dispatcher.DispatcherTypes.None;
+        private ServiceHelper.ServiceType serviceType = ServiceHelper.ServiceType.None;
 
         /// <summary>
         /// The vehicle is broken.
@@ -92,7 +92,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public StuckVehicleInfo(ushort vehicleId, ref Vehicle vehicle)
         {
             this.vehicleId = vehicleId;
-            this.dispatcherType = Dispatcher.GetDispatcherType(ref vehicle);
+            this.serviceType = ServiceHelper.GetServiceType(ref vehicle);
 
             this.Update(ref vehicle);
         }
@@ -103,7 +103,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <value>
         /// <c>true</c> if the vehicle is the dispatcher's responsibility; otherwise, <c>false</c>.
         /// </value>
-        public bool DispatchersResponsibility => CheckDispatchersResponsibility(this.dispatcherType);
+        public bool DispatchersResponsibility => CheckDispatchersResponsibility(this.serviceType);
 
         /// <summary>
         /// Gets a value indicating whether the vehicle is the crew's responsibility.
@@ -111,7 +111,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <value>
         /// <c>true</c> if the vehicle is the crew's responsibility; otherwise, <c>false</c>.
         /// </value>
-        public bool RecoveryCrewsResponsibility => CheckRecoveryCrewsResponsibility(this.dispatcherType);
+        public bool RecoveryCrewsResponsibility => CheckRecoveryCrewsResponsibility(this.serviceType);
 
         /// <summary>
         /// Gets the amount of frames during which the vehicle has had a check flag.
@@ -189,9 +189,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <value>
         /// <c>true</c> if the vehicle type is the dispatcher's responsibility; otherwise, <c>false</c>.
         /// </value>
-        public static bool CheckDispatchersResponsibility(Dispatcher.DispatcherTypes dispatcherType)
+        public static bool CheckDispatchersResponsibility(ServiceHelper.ServiceType serviceType)
         {
-            return Global.DispatchServices != null && Global.DispatchServices.IsDispatching(dispatcherType);
+            return Global.Services != null && Global.Services.IsDispatching(serviceType);
         }
 
         /// <summary>
@@ -200,9 +200,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <value>
         /// <c>true</c> if the vehicle is the crew's responsibility; otherwise, <c>false</c>.
         /// </value>
-        public static bool CheckRecoveryCrewsResponsibility(Dispatcher.DispatcherTypes dispatcherType)
+        public static bool CheckRecoveryCrewsResponsibility(ServiceHelper.ServiceType serviceType)
         {
-            return Global.Settings.RecoveryCrews.DispatchVehicles || CheckDispatchersResponsibility(dispatcherType);
+            return Global.Settings.RecoveryCrews.DispatchVehicles || CheckDispatchersResponsibility(serviceType);
         }
 
         /// <summary>
@@ -236,7 +236,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             }
 
             // Only check vehicles we dispatch unless told to check other vehicles as well.
-            if (!CheckRecoveryCrewsResponsibility(Dispatcher.GetDispatcherType(ref vehicle)))
+            if (!CheckRecoveryCrewsResponsibility(ServiceHelper.GetServiceType(ref vehicle)))
             {
                 return false;
             }
@@ -457,7 +457,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 info.Add("Flagged", this.checkFlags, this.CheckFlaggedForSeconds, this.CheckFlaggedForFrames);
             }
 
-            info.Add("Dispatcher", this.dispatcherType);
+            info.Add("Dispatcher", this.serviceType);
             info.Add("Responsible", this.RecoveryCrewsResponsibility);
         }
 
@@ -466,9 +466,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// </summary>
         private void DeAssign()
         {
-            if (Global.DispatchServices != null)
+            if (Global.Services != null)
             {
-                foreach (DispatchService service in Global.DispatchServices.DispatchingServices)
+                foreach (DispatchService service in Global.Services.DispatchingServices)
                 {
                     foreach (ServiceBuildingInfo serviceBuilding in service.ServiceBuildings)
                     {
@@ -501,7 +501,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             {
                 if (Log.LogALot)
                 {
-                    Log.DevDebug(this, "DeAssign", this.dispatcherType, this.vehicleId);
+                    Log.DevDebug(this, "DeAssign", this.serviceType, this.vehicleId);
                 }
 
                 VehicleHelper.DeAssign(this.vehicleId);
@@ -513,9 +513,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// </summary>
         private void DeSpawn()
         {
-            if (Global.DispatchServices != null)
+            if (Global.Services != null)
             {
-                foreach (DispatchService service in Global.DispatchServices.DispatchingServices)
+                foreach (DispatchService service in Global.Services.DispatchingServices)
                 {
                     foreach (ServiceBuildingInfo serviceBuilding in service.ServiceBuildings)
                     {

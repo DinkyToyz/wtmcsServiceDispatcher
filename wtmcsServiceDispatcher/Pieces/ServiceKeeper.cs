@@ -1,5 +1,4 @@
-﻿using ColossalFramework;
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
@@ -15,39 +14,25 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         private DispatchService[] services = null;
 
         /// <summary>
-        /// The dispatcher types.
+        /// Gets a value indicating whether any dispatcher creates vehicles.
         /// </summary>
-        public enum ServiceTypes
+        /// <value>
+        ///   <c>true</c> if any dispatcher creates vehicles; otherwise, <c>false</c>.
+        /// </value>
+        public bool AnyDispatcherCreatesVehicles
         {
-            /// <summary>
-            /// Dispatches hearses.
-            /// </summary>
-            HearseDispatcher = 0,
+            get
+            {
+                for (int i = 0; i < this.services.Length; i++)
+                {
+                    if (this.services[i] != null && this.services[i].CreatesVehicles)
+                    {
+                        return true;
+                    }
+                }
 
-            /// <summary>
-            /// Dispatches garbage trucks.
-            /// </summary>
-            GarbageTruckDispatcher = 1,
-
-            /// <summary>
-            /// Dispatches ambulances.
-            /// </summary>
-            AmbulanceDispatcher = 2,
-
-            /// <summary>
-            /// Dispatches wrecking crews.
-            /// </summary>
-            WreckingCrewDispatcher = 3,
-
-            /// <summary>
-            /// Dispatches recovery crews.
-            /// </summary>
-            RecoveryCrewDispatcher = 4,
-
-            /// <summary>
-            /// Not a dispatcher.
-            /// </summary>
-            None = 3
+                return false;
+            }
         }
 
         /// <summary>
@@ -67,14 +52,22 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public IEnumerable<DispatchService> EnabledServices => this.services.Where(s => s != null && s.Enabled);
 
         /// <summary>
+        /// Gets the transfer reasons for which a dispatcher creates vehicles.
+        /// </summary>
+        /// <value>
+        /// The transfer reasons for which a dispatcher cerates vehicles.
+        /// </value>
+        public TransferManager.TransferReason[] TransferReasonsDispatcherCreatesVehiclesFor => this.services.WhereSelectToArray(s => s != null && s.CreatesVehicles, s => s.TransferReason);
+
+        /// <summary>
         /// Gets the <see cref="DispatchService"/> with the specified dispatcher type.
         /// </summary>
         /// <value>
         /// The <see cref="DispatchService"/>.
         /// </value>
-        /// <param name="DispatcherType">Type of the dispatcher.</param>
+        /// <param name="serviceType">Type of the dispatcher.</param>
         /// <returns>The <see cref="DispatchService"/>.</returns>
-        public DispatchService this[Dispatcher.DispatcherTypes DispatcherType] => this.services[(int)DispatcherType];
+        public DispatchService this[ServiceHelper.ServiceType serviceType] => this.services[(int)serviceType];
 
         /// <summary>
         /// Categorizes the building.
@@ -172,6 +165,28 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Checks whether a dispatcher creates vehicles for a service.
+        /// </summary>
+        /// <param name="serviceType">Type of the service.</param>
+        /// <returns>True if vehicles are cerated by a dispatcher.</returns>
+        public bool DispatcherCreatesVehicles(ServiceHelper.ServiceType serviceType)
+        {
+            return this.services[(int)serviceType] != null && this.services[(int)serviceType].CreatesVehicles;
+        }
+
+        /// <summary>
+        /// Checks whether a dispatcher creates vehicles for a transfer reason.
+        /// </summary>
+        /// <param name="transferReason">The transfer reason.</param>
+        /// <returns>
+        /// True if vehicles are cerated by a dispatcher.
+        /// </returns>
+        public bool DispatcherCreatesVehicles(TransferManager.TransferReason transferReason)
+        {
+            return this.DispatcherCreatesVehicles(ServiceHelper.GetServiceType(transferReason));
+        }
+
+        /// <summary>
         /// Gets the building categories for a building.
         /// </summary>
         /// <param name="buildingId">The building identifier.</param>
@@ -242,13 +257,13 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// Determines whether the specified disapatcher service is dispatching.
         /// </summary>
-        /// <param name="dispatcherType">Type of the dispatcher.</param>
+        /// <param name="serviceType">Type of the dispatcher.</param>
         /// <returns>
         ///   <c>true</c> if the specified dispatcher service is dispatching; otherwise, <c>false</c>.
         /// </returns>
-        public bool IsDispatching(Dispatcher.DispatcherTypes dispatcherType)
+        public bool IsDispatching(ServiceHelper.ServiceType serviceType)
         {
-            return this.services[(int)dispatcherType] != null && this.services[(int)dispatcherType].IsDispatching;
+            return this.services[(int)serviceType] != null && this.services[(int)serviceType].IsDispatching;
         }
 
         /// <summary>
@@ -279,18 +294,53 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// </summary>
         public void UpdateAllBuildings()
         {
-            Building[] buildings = Singleton<BuildingManager>.instance.m_buildings.m_buffer;
-            DistrictManager districtManager = null;
-            if (Global.Settings.DispatchAnyByDistrict)
-            {
-                districtManager = Singleton<DistrictManager>.instance;
-            }
-
             for (int i = 0; i < this.services.Length; i++)
             {
                 if (this.services[i] != null && this.services[i].Enabled)
                 {
                     this.services[i].UpdateAllBuildings();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Update all vehciles.
+        /// </summary>
+        public void UpdateAllVehicles()
+        {
+            for (int i = 0; i < this.services.Length; i++)
+            {
+                if (this.services[i] != null && this.services[i].Enabled)
+                {
+                    this.services[i].UpdateAllVehicles();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Finish the update.
+        /// </summary>
+        public void UpdateFinish()
+        {
+            for (int i = 0; i < this.services.Length; i++)
+            {
+                if (this.services[i] != null && this.services[i].Enabled)
+                {
+                    this.services[i].UpdateFinish();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Prepare for update.
+        /// </summary>
+        public void UpdatePrepare()
+        {
+            for (int i = 0; i < this.services.Length; i++)
+            {
+                if (this.services[i] != null)
+                {
+                    this.services[i].UpdatePrepare();
                 }
             }
         }

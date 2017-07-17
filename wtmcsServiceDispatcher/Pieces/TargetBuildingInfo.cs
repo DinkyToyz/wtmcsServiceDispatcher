@@ -24,7 +24,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// The dispatcher type.
         /// </summary>
-        private Dispatcher.DispatcherTypes dispatcherType = Dispatcher.DispatcherTypes.None;
+        private ServiceHelper.ServiceType serviceType = ServiceHelper.ServiceType.None;
 
         /// <summary>
         /// The last check stamp.
@@ -66,14 +66,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// </summary>
         /// <param name="buildingId">The building identifier.</param>
         /// <param name="building">The building.</param>
-        /// <param name="dispatcherType">Type of the dispatcher.</param>
+        /// <param name="serviceType">Type of the dispatcher.</param>
         /// <param name="demand">The demand.</param>
-        public TargetBuildingInfo(ushort buildingId, ref Building building, Dispatcher.DispatcherTypes dispatcherType, ServiceDemand demand)
+        public TargetBuildingInfo(ushort buildingId, ref Building building, ServiceHelper.ServiceType serviceType, ServiceDemand demand)
         {
             this.BuildingId = buildingId;
-            this.dispatcherType = dispatcherType;
+            this.serviceType = serviceType;
 
-            if (this.dispatcherType == Dispatcher.DispatcherTypes.AmbulanceDispatcher)
+            if (this.serviceType == ServiceHelper.ServiceType.AmbulanceDispatcher)
             {
                 this.citizens = new Dictionary<uint, TargetCitizenInfo>();
             }
@@ -501,21 +501,21 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             Notification.Problem problemToCheck;
 
-            switch (this.dispatcherType)
+            switch (this.serviceType)
             {
-                case Dispatcher.DispatcherTypes.HearseDispatcher:
+                case ServiceHelper.ServiceType.HearseDispatcher:
                     this.UpdateCitizens(ref building);
                     this.ProblemValue = ((ushort)building.m_deathProblemTimer << 8);
                     problemToCheck = Notification.Problem.Death;
                     break;
 
-                case Dispatcher.DispatcherTypes.GarbageTruckDispatcher:
+                case ServiceHelper.ServiceType.GarbageTruckDispatcher:
                     this.ProblemValue = building.m_garbageBuffer;
                     this.ProblemSize = building.m_garbageBuffer;
                     problemToCheck = Notification.Problem.Garbage;
                     break;
 
-                case Dispatcher.DispatcherTypes.AmbulanceDispatcher:
+                case ServiceHelper.ServiceType.AmbulanceDispatcher:
                     this.UpdateCitizens(ref building);
                     this.ProblemValue = (ushort)building.m_healthProblemTimer << 8;
                     problemToCheck = BuildingHelper.HealthProblems;
@@ -632,8 +632,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     if (citizenId != 0)
                     {
                         Citizen citizen = citizenManager.m_citizens.m_buffer[citizenId];
-                        if (((this.dispatcherType == Dispatcher.DispatcherTypes.HearseDispatcher && citizen.Dead) ||
-                             (this.dispatcherType == Dispatcher.DispatcherTypes.AmbulanceDispatcher && citizen.Sick)) &&
+                        if (((this.serviceType == ServiceHelper.ServiceType.HearseDispatcher && citizen.Dead) ||
+                             (this.serviceType == ServiceHelper.ServiceType.AmbulanceDispatcher && citizen.Sick)) &&
                             citizen.GetBuildingByLocation() == this.BuildingId)
                         {
                             size++;
@@ -643,7 +643,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                                 TargetCitizenInfo citizenInfo;
                                 if (this.citizens.TryGetValue(citizenId, out citizenInfo))
                                 {
-                                    citizenInfo.Update(ref citizen, this.dispatcherType);
+                                    citizenInfo.Update(ref citizen, this.serviceType);
                                     if (citizenInfo.VehicleId == 0)
                                     {
                                         unassigned++;
@@ -655,7 +655,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                                 }
                                 else
                                 {
-                                    this.citizens[citizenId] = new TargetCitizenInfo(citizenId, ref citizen, this.dispatcherType);
+                                    this.citizens[citizenId] = new TargetCitizenInfo(citizenId, ref citizen, this.serviceType);
                                     unassigned++;
                                 }
                             }
@@ -748,13 +748,13 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             /// </summary>
             /// <param name="citizenId">The citizen identifier.</param>
             /// <param name="citizen">The citizen.</param>
-            /// <param name="dispatcherType">Type of the dispatcher.</param>
-            public TargetCitizenInfo(uint citizenId, ref Citizen citizen, Dispatcher.DispatcherTypes dispatcherType)
+            /// <param name="serviceType">Type of the dispatcher.</param>
+            public TargetCitizenInfo(uint citizenId, ref Citizen citizen, ServiceHelper.ServiceType serviceType)
             {
                 this.CitizenId = citizenId;
                 this.VehicleId = 0;
 
-                this.Update(ref citizen, dispatcherType);
+                this.Update(ref citizen, serviceType);
             }
 
             /// <summary>
@@ -786,10 +786,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             /// Updates the specified citizen.
             /// </summary>
             /// <param name="citizen">The citizen.</param>
-            /// <param name="dispatcherType">Type of the dispatcher.</param>
-            public void Update(ref Citizen citizen, Dispatcher.DispatcherTypes dispatcherType)
+            /// <param name="serviceType">Type of the dispatcher.</param>
+            public void Update(ref Citizen citizen, ServiceHelper.ServiceType serviceType)
             {
-                if (dispatcherType == Dispatcher.DispatcherTypes.AmbulanceDispatcher)
+                if (serviceType == ServiceHelper.ServiceType.AmbulanceDispatcher)
                 {
                     this.ProblemSize = ((int)citizen.m_health) << 8;
                 }

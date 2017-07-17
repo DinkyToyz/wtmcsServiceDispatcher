@@ -521,7 +521,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             {
                 return buildingChecks == null
                     ? ""
-                    : String.Join(", ", buildingChecks.WhereSelect(c => c != BuildingCheckParameters.Undefined, c => c.ToString()).ToArray());
+                    : String.Join(", ", buildingChecks.WhereSelectToArray(c => c != BuildingCheckParameters.Undefined, c => c.ToString()));
             }
 
             /// <summary>

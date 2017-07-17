@@ -117,9 +117,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             Calls++;
 
-            if ((material == TransferManager.TransferReason.Dead && Global.CleanHearseTransferOffers) ||
-                (material == TransferManager.TransferReason.Garbage && Global.CleanGarbageTruckTransferOffers) ||
-                (material == TransferManager.TransferReason.Sick && Global.CleanAmbulanceTransferOffers))
+            if (Global.Services != null && Global.Services.DispatcherCreatesVehicles(material))
             {
                 Blocked++;
                 return;

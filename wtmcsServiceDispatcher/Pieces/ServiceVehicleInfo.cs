@@ -9,6 +9,31 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
     internal class ServiceVehicleInfo
     {
         /// <summary>
+        /// Gets a value indicating whether vehicle with wrong target should linger before deassign.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if lingering vehicles with wrong target; otherwise, <c>false</c>.
+        /// </value>
+        protected bool lingerWrongTargets;
+
+        /// <summary>
+        /// Initializes this instance.
+        /// </summary>
+        private void Initialize()
+        {
+            StandardServiceSettings settings = Global.GetServiceSettings(this.serviceType);
+            this.lingerWrongTargets = settings.CreateSpares == ServiceDispatcherSettings.SpareVehiclesCreation.Never;
+        }
+
+        /// <summary>
+        /// Reinitializes this instance.
+        /// </summary>
+        public void ReInitialize()
+        {
+            this.Initialize();
+        }
+
+        /// <summary>
         /// The last confused check stamp.
         /// </summary>
         private uint confusedStamp = 0;
@@ -16,7 +41,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// The dispatcher type.
         /// </summary>
-        private Dispatcher.DispatcherTypes dispatcherType = Dispatcher.DispatcherTypes.None;
+        private ServiceHelper.ServiceType serviceType = ServiceHelper.ServiceType.None;
 
         /// <summary>
         /// The vehicle is confused.
@@ -34,14 +59,16 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <param name="vehicleId">The vehicle identifier.</param>
         /// <param name="vehicle">The vehicle.</param>
         /// <param name="freeToCollect">If set to <c>true</c> the vehicle is free.</param>
-        /// <param name="dispatcherType">Type of the dispatcher.</param>
+        /// <param name="serviceType">Type of the dispatcher.</param>
         /// <param name="targetBuildingId">The target building identifier.</param>
-        public ServiceVehicleInfo(ushort vehicleId, ref Vehicle vehicle, bool freeToCollect, Dispatcher.DispatcherTypes dispatcherType, ushort targetBuildingId = 0)
+        public ServiceVehicleInfo(ushort vehicleId, ref Vehicle vehicle, bool freeToCollect, ServiceHelper.ServiceType serviceType, ushort targetBuildingId = 0)
         {
             this.VehicleId = vehicleId;
-            this.dispatcherType = dispatcherType;
+            this.serviceType = serviceType;
             this.LastAssigned = 0;
             this.Target = targetBuildingId;
+
+            this.Initialize();
 
             this.Update(ref vehicle, freeToCollect, false, false);
         }
@@ -175,33 +202,17 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
-        /// Gets a value indicating whether vehicle with wrong target should linger before deassign.
-        /// </summary>
-        /// <value>
-        ///   <c>true</c> if lingering vehicles with wrong target; otherwise, <c>false</c>.
-        /// </value>
-        protected bool LingerWrongTargets => this.ServiceSettings.CreateSpares == ServiceDispatcherSettings.SpareVehiclesCreation.Never;
-
-        /// <summary>
-        /// Gets the service settings.
-        /// </summary>
-        /// <value>
-        /// The service settings.
-        /// </value>
-        protected StandardServiceSettings ServiceSettings => Global.GetServiceSettings(this.dispatcherType);
-
-        /// <summary>
         /// Creates the specified service building.
         /// </summary>
         /// <param name="serviceBuilding">The service building.</param>
         /// <param name="material">The material.</param>
-        /// <param name="dispatcherType">Type of the dispatcher.</param>
+        /// <param name="serviceType">Type of the dispatcher.</param>
         /// <param name="targetBuildingId">The target building identifier.</param>
         /// <param name="targetCitizenId">The target citizen identifier.</param>
         /// <returns>
         /// The service vehicle.
         /// </returns>
-        public static ServiceVehicleInfo Create(ServiceBuildingInfo serviceBuilding, TransferManager.TransferReason material, Dispatcher.DispatcherTypes dispatcherType, ushort targetBuildingId, uint targetCitizenId)
+        public static ServiceVehicleInfo Create(ServiceBuildingInfo serviceBuilding, TransferManager.TransferReason material, ServiceHelper.ServiceType serviceType, ushort targetBuildingId, uint targetCitizenId)
         {
             ushort vehicleId = 0;
             VehicleInfo info = null;
@@ -222,7 +233,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             VehicleManager manager = Singleton<VehicleManager>.instance;
 
-            return new ServiceVehicleInfo(vehicleId, ref manager.m_vehicles.m_buffer[vehicleId], targetBuildingId == 0, dispatcherType, targetBuildingId);
+            return new ServiceVehicleInfo(vehicleId, ref manager.m_vehicles.m_buffer[vehicleId], targetBuildingId == 0, serviceType, targetBuildingId);
         }
 
         /// <summary>
@@ -254,7 +265,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 return new VehicleResult(vehicle.m_targetBuilding == 0 && this.Target == 0);
             }
 
-            if (force || Global.CurrentFrame - this.LastAssigned > Global.TargetLingerDelay || (vehicle.m_targetBuilding != this.Target && !this.LingerWrongTargets))
+            if (force || Global.CurrentFrame - this.LastAssigned > Global.TargetLingerDelay || (vehicle.m_targetBuilding != this.Target && !this.lingerWrongTargets))
             {
                 this.lastDeAssignStamp = Global.CurrentFrame;
 
@@ -274,9 +285,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 // Unassign the vehicle.
                 ushort serviceBuildingId = vehicle.m_sourceBuilding;
                 VehicleResult result = VehicleHelper.DeAssign(this.VehicleId, ref vehicle);
-                if (result.DeSpawned && Global.DispatchServices != null)
+                if (result.DeSpawned && Global.Services != null)
                 {
-                    ServiceBuildingInfo building = Global.DispatchServices.GetServiceBuilding(serviceBuildingId);
+                    ServiceBuildingInfo building = Global.Services.GetServiceBuilding(serviceBuildingId);
                     if (building != null)
                     {
                         building.Vehicles.Remove(this.VehicleId);
@@ -344,6 +355,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             VehicleResult result = true;
 
+            this.UpdateValues(ref vehicle);
+
             if (this.LastSeen != Global.CurrentFrame)
             {
                 if (updateValues)
@@ -360,7 +373,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 {
                     if (Log.LogALot)
                     {
-                        Log.DevDebug(this, "Update", this.dispatcherType, "CheckAssignment", "DeAssign", this.VehicleId, vehicle.m_targetBuilding, vehicle.m_flags);
+                        Log.DevDebug(this, "Update", this.serviceType, "CheckAssignment", "DeAssign", this.VehicleId, vehicle.m_targetBuilding, vehicle.m_flags);
                     }
 
                     result = this.DeAssign(ref vehicle, false, "Update");
@@ -381,6 +394,17 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             }
 
             return result;
+        }
+
+        /// <summary>
+        /// Updates the slower values.
+        /// </summary>
+        /// <param name="vehicle">The vehicle.</param>
+        /// <param name="ignoreInterval">if set to <c>true</c> ignore time interval.</param>
+        /// <returns>True if updated.</returns>
+        public bool UpdateValues(ref Vehicle vehicle, bool ignoreInterval = false)
+        {
+            return false;
         }
     }
 }

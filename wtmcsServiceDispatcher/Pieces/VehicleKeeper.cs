@@ -89,7 +89,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             // Forget stuck vehicles that are no longer the dispatcher's responcibility.
             if (this.StuckVehicles != null && !Global.Settings.RecoveryCrews.DispatchVehicles)
             {
-                ushort[] vehicleIds = this.StuckVehicles.WhereSelect(kvp => !kvp.Value.RecoveryCrewsResponsibility, kvp => kvp.Key).ToArray();
+                ushort[] vehicleIds = this.StuckVehicles.WhereSelectToArray(kvp => !kvp.Value.RecoveryCrewsResponsibility, kvp => kvp.Key);
 
                 for (int i = 0; i < vehicleIds.Length; i++)
                 {
@@ -141,6 +141,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 this.HandleVehicles();
             }
+
+            if (Global.VehicleUpdateNeeded && Global.Services != null)
+            {
+                Global.Services.UpdateAllBuildings();
+                Global.VehicleUpdateNeeded = false;
+            }
         }
 
         /// <summary>
@@ -189,9 +195,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         (vehicles[id].m_flags & VehicleHelper.VehicleUnavailable) == ~VehicleHelper.VehicleAll &&
                         vehicles[id].m_targetBuilding != vehicles[id].m_sourceBuilding && (buildings[vehicles[id].m_sourceBuilding].m_flags & Building.Flags.Downgrading) == Building.Flags.None)
                     {
-                        if (Global.DispatchServices != null)
+                        if (Global.Services != null)
                         {
-                            Global.DispatchServices.CheckVehicleTarget(id, ref vehicles[id]);
+                            Global.Services.CheckVehicleTarget(id, ref vehicles[id]);
                         }
                     }
 

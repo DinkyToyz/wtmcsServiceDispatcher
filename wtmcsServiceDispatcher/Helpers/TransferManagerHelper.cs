@@ -132,37 +132,30 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// </summary>
         public static void CleanTransferOffers()
         {
-            if (!error && Global.Settings.AllowReflection(cleanTransferOffersMinGameVersion, cleanTransferOffersMaxGameVersion))
+            if (!error && Global.Settings.AllowReflection(cleanTransferOffersMinGameVersion, cleanTransferOffersMaxGameVersion) && Global.Services != null)
             {
-                try
+                TransferManager.TransferReason[] reasons = Global.Services.TransferReasonsDispatcherCreatesVehiclesFor;
+
+                if (reasons.Length > 0)
                 {
-                    TransferManager transferManager = Singleton<TransferManager>.instance;
-
-                    // Get private data.
-                    CheckInstance(transferManager);
-
-                    // Clean for hearses.
-                    if (Global.CleanHearseTransferOffers)
+                    try
                     {
-                        CleanTransferOffers(TransferManager.TransferReason.Dead);
-                    }
+                        TransferManager transferManager = Singleton<TransferManager>.instance;
 
-                    // Clean for garbage trucks.
-                    if (Global.CleanGarbageTruckTransferOffers)
-                    {
-                        CleanTransferOffers(TransferManager.TransferReason.Garbage);
-                    }
+                        // Get private data.
+                        CheckInstance(transferManager);
 
-                    // Clean for hearses.
-                    if (Global.CleanAmbulanceTransferOffers)
-                    {
-                        CleanTransferOffers(TransferManager.TransferReason.Sick);
+                        // Clean for services.
+                        foreach (TransferManager.TransferReason reason in reasons)
+                        {
+                            CleanTransferOffers(reason);
+                        }
                     }
-                }
-                catch (Exception ex)
-                {
-                    error = true;
-                    Log.Error(typeof(TransferManagerHelper), "CleanTransferOffers", ex);
+                    catch (Exception ex)
+                    {
+                        error = true;
+                        Log.Error(typeof(TransferManagerHelper), "CleanTransferOffers", ex);
+                    }
                 }
             }
         }

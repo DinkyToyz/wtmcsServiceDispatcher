@@ -69,7 +69,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// The dispatch service.
         /// </summary>
-        private DispatchService dispatchService = null;
+        private readonly DispatchService dispatchService = null;
 
         /// <summary>
         /// The free vehicle count.
@@ -96,31 +96,31 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             Log.Debug(this, "Constructed");
         }
 
-        /// <summary>
-        /// The dispatcher types.
-        /// </summary>
-        public enum DispatcherTypes
-        {
-            /// <summary>
-            /// Dispatches hearses.
-            /// </summary>
-            HearseDispatcher = 0,
+        ///// <summary>
+        ///// The dispatcher types.
+        ///// </summary>
+        //public enum DispatcherTypes
+        //{
+        //    /// <summary>
+        //    /// Dispatches hearses.
+        //    /// </summary>
+        //    HearseDispatcher = 0,
 
-            /// <summary>
-            /// Dispatches garbage trucks.
-            /// </summary>
-            GarbageTruckDispatcher = 1,
+        //    /// <summary>
+        //    /// Dispatches garbage trucks.
+        //    /// </summary>
+        //    GarbageTruckDispatcher = 1,
 
-            /// <summary>
-            /// Dispatches ambulances.
-            /// </summary>
-            AmbulanceDispatcher = 2,
+        //    /// <summary>
+        //    /// Dispatches ambulances.
+        //    /// </summary>
+        //    AmbulanceDispatcher = 2,
 
-            /// <summary>
-            /// Not a dispatcher.
-            /// </summary>
-            None = 3
-        }
+        //    /// <summary>
+        //    /// Not a dispatcher.
+        //    /// </summary>
+        //    None = 3
+        //}
 
         /// <summary>
         /// Gets a value indicating whether this service has target buildings.
@@ -144,36 +144,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <value>
         /// The type of the transfer.
         /// </value>
-        public byte TransferType
-        {
-            get;
-            private set;
-        }
-
-        /// <summary>
-        /// Gets the type of the dispatcher.
-        /// </summary>
-        /// <param name="vehicle">The vehicle.</param>
-        /// <returns>The type of the dispatcher.</returns>
-        public static DispatcherTypes GetDispatcherType(ref Vehicle vehicle)
-        {
-            if (vehicle.Info.m_vehicleAI is HearseAI)
-            {
-                return Dispatcher.DispatcherTypes.HearseDispatcher;
-            }
-            else if (vehicle.Info.m_vehicleAI is GarbageTruckAI)
-            {
-                return Dispatcher.DispatcherTypes.GarbageTruckDispatcher;
-            }
-            else if (vehicle.Info.m_vehicleAI is AmbulanceAI)
-            {
-                return Dispatcher.DispatcherTypes.AmbulanceDispatcher;
-            }
-            else
-            {
-                return Dispatcher.DispatcherTypes.None;
-            }
-        }
+        public readonly byte TransferType;
 
         /// <summary>
         /// Checks the vehicle target.
@@ -920,7 +891,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                                 if (!vehicleResult.DeSpawned)
                                 {
-                                    serviceVehicle = new ServiceVehicleInfo(vehicleId, ref vehicles[vehicleId], canCollect && !hasTarget && !busy && !unavailable, this.dispatchService.DispatcherType);
+                                    serviceVehicle = new ServiceVehicleInfo(vehicleId, ref vehicles[vehicleId], canCollect && !hasTarget && !busy && !unavailable, this.dispatchService.ServiceType);
                                     if (Log.LogALot)
                                     {
                                         Log.DevDebug(this, "CollectVehicleData", "AddVehicle", serviceBuilding.BuildingId, vehicleId, vehicles[vehicleId].Info.name, serviceVehicle.VehicleName, serviceVehicle.FreeToCollect, collecting, vehicles[vehicleId].m_flags, loadSize, loadMax, loading, unavailable, busy, hasTarget, vehicles[vehicleId].m_targetBuilding, vehicleResult);
@@ -975,7 +946,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 }
 
                 // Remove old vehicles.
-                KeyValuePair<ushort, ushort>[] removeVehicles = serviceBuilding.Vehicles.Values.WhereSelect(v => v.LastSeen != Global.CurrentFrame, v => new KeyValuePair<ushort, ushort>(v.VehicleId, v.Target)).ToArray();
+                KeyValuePair<ushort, ushort>[] removeVehicles = serviceBuilding.Vehicles.Values.WhereSelectToArray(v => v.LastSeen != Global.CurrentFrame, v => new KeyValuePair<ushort, ushort>(v.VehicleId, v.Target));
                 foreach (KeyValuePair<ushort, ushort> vehicle in removeVehicles)
                 {
                     if (vehicles[vehicle.Key].Info == null ||
@@ -1018,7 +989,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             }
 
             // Remove old target assigments.
-            ushort[] removeTargets = this.assignedTargets.WhereSelect(at => at.Value != Global.CurrentFrame, at => at.Key).ToArray();
+            ushort[] removeTargets = this.assignedTargets.WhereSelectToArray(at => at.Value != Global.CurrentFrame, at => at.Key);
             foreach (ushort id in removeTargets)
             {
                 if (Log.LogALot)
@@ -1233,7 +1204,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             /// </returns>
             public static BuldingCheckParameters[] GetBuldingCheckParameters(ServiceDispatcherSettings.BuildingCheckParameters[] buildingCheckParameters)
             {
-                //return buildingCheckParameters.Select(bcp => new BuldingCheckParameters(bcp)).ToArray();
                 return buildingCheckParameters.SelectToArray(bcp => new BuldingCheckParameters(bcp));
             }
 

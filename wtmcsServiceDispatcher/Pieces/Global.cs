@@ -93,6 +93,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public static bool BuildingUpdateNeeded = false;
 
         /// <summary>
+        /// A global vehicle update is needed.
+        /// </summary>
+        public static bool VehicleUpdateNeeded = false;
+
+        /// <summary>
         /// The current frame.
         /// </summary>
         public static uint CurrentFrame = 0u;
@@ -100,7 +105,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// The dispatch services.
         /// </summary>
-        public static DispatchServiceKeeper DispatchServices = null;
+        public static DispatchServiceKeeper Services = null;
 
         /// <summary>
         /// Indicates whether development experiments are enabled.
@@ -153,64 +158,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public static VehicleKeeper Vehicles = null;
 
         /// <summary>
-        /// Gets a value indicating whether to clean ambulance service offers.
-        /// </summary>
-        /// <value>
-        ///   <c>True</c> if ambulance service offers should be cleaned; otherwise, <c>false</c>.
-        /// </value>
-        public static bool CleanAmbulanceTransferOffers
-        {
-            get
-            {
-                return Settings.HealthCare.DispatchVehicles && Settings.HealthCare.CreateSpares != ServiceDispatcherSettings.SpareVehiclesCreation.Never;
-            }
-        }
-
-        /// <summary>
-        /// Gets a value indicating whether to clean garbage truck service offers.
-        /// </summary>
-        /// <value>
-        ///   <c>True</c> if garbage truck service offers should be cleaned; otherwise, <c>false</c>.
-        /// </value>
-        public static bool CleanGarbageTruckTransferOffers
-        {
-            get
-            {
-                return Settings.Garbage.DispatchVehicles && Settings.Garbage.CreateSpares != ServiceDispatcherSettings.SpareVehiclesCreation.Never;
-            }
-        }
-
-        /// <summary>
-        /// Gets a value indicating whether to clean hearse service offers.
-        /// </summary>
-        /// <value>
-        ///   <c>True</c> if hearse service offers should be cleaned; otherwise, <c>false</c>.
-        /// </value>
-        public static bool CleanHearseTransferOffers
-        {
-            get
-            {
-                return Settings.DeathCare.DispatchVehicles && Settings.DeathCare.CreateSpares != ServiceDispatcherSettings.SpareVehiclesCreation.Never;
-            }
-        }
-
-        /// <summary>
-        /// Gets a value indicating whether to clean service offers.
-        /// </summary>
-        /// <value>
-        ///   <c>True</c> if service offers should be cleaned; otherwise, <c>false</c>.
-        /// </value>
-        public static bool CleanTransferOffers
-        {
-            get
-            {
-                return (Settings.DeathCare.DispatchVehicles && Settings.DeathCare.CreateSpares != ServiceDispatcherSettings.SpareVehiclesCreation.Never) ||
-                       (Settings.Garbage.DispatchVehicles && Settings.Garbage.CreateSpares != ServiceDispatcherSettings.SpareVehiclesCreation.Never) ||
-                       (Settings.HealthCare.DispatchVehicles && Settings.HealthCare.CreateSpares != ServiceDispatcherSettings.SpareVehiclesCreation.Never);
-            }
-        }
-
-        /// <summary>
         /// De-initializes the mod.
         /// </summary>
         public static void DeInitialize()
@@ -239,32 +186,32 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             Buildings = null;
             Vehicles = null;
             ServiceProblems = null;
-            DispatchServices = null;
+            Services = null;
         }
 
         /// <summary>
         /// Gets the service settings.
         /// </summary>
-        /// <param name="dispatcherType">Type of the dispatcher.</param>
+        /// <param name="serviceType">Type of the dispatcher.</param>
         /// <returns>The service settings.</returns>
-        public static StandardServiceSettings GetServiceSettings(Dispatcher.DispatcherTypes dispatcherType)
+        public static StandardServiceSettings GetServiceSettings(ServiceHelper.ServiceType serviceType)
         {
-            switch (dispatcherType)
+            switch (serviceType)
             {
-                case Dispatcher.DispatcherTypes.GarbageTruckDispatcher:
+                case ServiceHelper.ServiceType.GarbageTruckDispatcher:
                     return Settings.Garbage;
 
-                case Dispatcher.DispatcherTypes.HearseDispatcher:
+                case ServiceHelper.ServiceType.HearseDispatcher:
                     return Settings.DeathCare;
 
-                case Dispatcher.DispatcherTypes.AmbulanceDispatcher:
+                case ServiceHelper.ServiceType.AmbulanceDispatcher:
                     return Settings.HealthCare;
 
-                case Dispatcher.DispatcherTypes.None:
+                case ServiceHelper.ServiceType.None:
                     throw new ArgumentNullException("Dispathcher type 'None' can not have settings");
 
                 default:
-                    throw new ArgumentException("No settings for dispatcher type: " + dispatcherType.ToString());
+                    throw new ArgumentException("No settings for dispatcher type: " + serviceType.ToString());
             }
         }
 
@@ -342,18 +289,18 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             {
                 if (Settings.DispatchAnyVehicles || Settings.AutoEmptyAnyBuildings)
                 {
-                    if (DispatchServices == null)
+                    if (Services == null)
                     {
-                        DispatchServices = new DispatchServiceKeeper();
+                        Services = new DispatchServiceKeeper();
                     }
                     else
                     {
-                        DispatchServices.ReInitialize();
+                        Services.ReInitialize();
                     }
                 }
                 else
                 {
-                    DispatchServices = null;
+                    Services = null;
                 }
 
                 if (Settings.DispatchAnyVehicles || Settings.AutoEmptyAnyBuildings || Settings.WreckingCrews.DispatchVehicles)
@@ -420,6 +367,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 }
 
                 BuildingUpdateNeeded = true;
+                VehicleUpdateNeeded = true;
             }
             catch (Exception ex)
             {
@@ -473,9 +421,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     {
                         Log.Debug(typeof(Global), "LogDebugLists", "Running");
 
-                        if (DispatchServices != null)
+                        if (Services != null)
                         {
-                            DispatchServices.DebugListLogBuildings();
+                            Services.DebugListLogBuildings();
                         }
 
                         if (Buildings != null)

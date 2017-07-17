@@ -91,6 +91,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// Prepare for categorization.
         /// </summary>
-        void CategorizePrepare();
+        void UpdatePrepare();
     }
 }

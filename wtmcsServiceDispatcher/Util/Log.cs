@@ -454,13 +454,13 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     {
                         msg.Append('<').Append(((Type)sourceObject).Name);
                     }
-                    else if (sourceObject is Dispatcher && ((Dispatcher)sourceObject).Service.DispatcherType != Dispatcher.DispatcherTypes.None)
+                    else if (sourceObject is Dispatcher && ((Dispatcher)sourceObject).Service.ServiceType != ServiceHelper.ServiceType.None)
                     {
-                        msg.Append('<').Append(((Dispatcher)sourceObject).Service.DispatcherType.ToString());
+                        msg.Append('<').Append(((Dispatcher)sourceObject).Service.ServiceType.ToString());
                     }
-                    else if (sourceObject is DispatchService && ((DispatchService)sourceObject).DispatcherType != Dispatcher.DispatcherTypes.None)
+                    else if (sourceObject is DispatchService && ((DispatchService)sourceObject).ServiceType != ServiceHelper.ServiceType.None)
                     {
-                        msg.Append('<').Append(((Dispatcher)sourceObject).Service.DispatcherType.ToString() + "Service");
+                        msg.Append('<').Append(((Dispatcher)sourceObject).Service.ServiceType.ToString() + "Service");
                     }
                     else
                     {
@@ -639,8 +639,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             return String.Join(
                 ", ",
                 ((IList<SteamHelper.DLC>)Enum.GetValues(typeof(SteamHelper.DLC)))
-                .WhereSelect(dlc => dlc != SteamHelper.DLC.None && SteamHelper.IsDLCOwned(dlc), dlc => dlc.ToString())
-                .ToArray());
+                .WhereSelectToArray(dlc => dlc != SteamHelper.DLC.None && SteamHelper.IsDLCOwned(dlc), dlc => dlc.ToString()));
         }
 
         /// <summary>
@@ -650,7 +649,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <returns>A comma separated list of mod names.</returns>
         private static string GetModString(bool enabled)
         {
-            return String.Join(", ", Singleton<PluginManager>.instance.GetPluginsInfo().WhereSelect(pi => pi.isEnabled, pi => pi.name).ToArray());
+            return String.Join(", ", Singleton<PluginManager>.instance.GetPluginsInfo().WhereSelectToArray(pi => pi.isEnabled, pi => pi.name));
         }
 
         /// <summary>

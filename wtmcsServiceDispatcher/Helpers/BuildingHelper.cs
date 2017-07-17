@@ -166,7 +166,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 using (StreamWriter dumpFile = new StreamWriter(FileSystem.FilePathName(".Buildings.txt"), false))
                 {
-                    dumpFile.Write(String.Join(Environment.NewLine, buildingList.OrderBy(bi => bi.Key).Select(bi => bi.Value).ToArray()).ConformNewlines());
+                    dumpFile.Write(String.Join(Environment.NewLine, buildingList.OrderBy(bi => bi.Key).SelectToArray(bi => bi.Value)).ConformNewlines());
                     dumpFile.WriteLine();
                     dumpFile.Close();
                 }
@@ -571,7 +571,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             List<KeyValuePair<string, TargetBuildingInfo>> targetBuildings = null;
             List<KeyValuePair<string, ServiceBuildingInfo>> serviceBuildings = null;
 
-            if (verbose && Global.DispatchServices != null)
+            if (verbose && Global.Services != null)
             {
                 //if (serviceBuilding == null)
                 //{
@@ -594,7 +594,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 if (getServiceBuilding || getTargetBuilding)
                 {
-                    foreach (DispatchService service in Global.DispatchServices.EnabledServices)
+                    foreach (DispatchService service in Global.Services.EnabledServices)
                     {
                         if (getServiceBuilding && service.TryGetServiceBuilding(buildingId, out extraServiceBuilding))
                         {
