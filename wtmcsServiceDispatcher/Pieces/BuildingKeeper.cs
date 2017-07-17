@@ -101,10 +101,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <exception cref="System.Exception">Update bucket loop counter too high.</exception>
         public void Update()
         {
-            // Get and categorize buildings.
             if (Global.DispatchServices != null)
             {
-                Global.DispatchServices.UpdatePrepare();
+                Global.DispatchServices.CategorizePrepare();
             }
 
             // First update?
@@ -146,8 +145,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             if (Global.BuildingUpdateNeeded && Global.DispatchServices != null)
             {
                 Global.DispatchServices.UpdateAllBuildings();
-
                 Global.BuildingUpdateNeeded = false;
+            }
+
+            if (Global.DispatchServices != null)
+            {
+                Global.DispatchServices.CategorizeFinish();
             }
         }
 
@@ -170,11 +173,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             bool desolateBuilding;
             bool usableBuilding;
-
-            if (Global.DispatchServices != null)
-            {
-                Global.DispatchServices.CategorizePrepare();
-            }
 
             for (ushort id = firstBuildingId; id < lastBuildingId; id++)
             {
@@ -235,11 +233,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         Log.Debug(this, "CategorizeBuildings", "Not Desolate Building", id);
                     }
                 }
-            }
-
-            if (Global.DispatchServices != null)
-            {
-                Global.DispatchServices.CategorizeFinish();
             }
         }
 

@@ -268,7 +268,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 for (ushort id = 0; id < vehicles.Length; id++)
                 {
-                    DebugListLog(vehicles, buildings, id);
+                    DebugListLog(vehicles, buildings, id, null);
                 }
             }
             catch (Exception ex)
@@ -281,8 +281,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// Logs a list of vehicle info for debug use.
         /// </summary>
         /// <param name="building">The building.</param>
+        /// <param name="category">The category.</param>
+        /// <exception cref="Exception">Loop counter too high</exception>
         /// <exception cref="System.Exception">Loop counter too high.</exception>
-        public static void DebugListLog(ServiceBuildingInfo building)
+        public static void DebugListLog(ServiceBuildingInfo building, string category)
         {
             try
             {
@@ -293,7 +295,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 ushort id = building.FirstOwnVehicleId;
                 while (id != 0)
                 {
-                    DebugListLog(vehicles, buildings, id);
+                    DebugListLog(vehicles, buildings, id, null);
 
                     id = vehicles[id].m_nextOwnVehicle;
                     if (id == building.FirstOwnVehicleId)
@@ -325,7 +327,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             foreach (ushort id in vehicleIds)
             {
-                DebugListLog(vehicles, buildings, id);
+                DebugListLog(vehicles, buildings, id, null);
             }
         }
 
@@ -338,7 +340,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             Vehicle[] vehicles = Singleton<VehicleManager>.instance.m_vehicles.m_buffer;
             Building[] buildings = Singleton<BuildingManager>.instance.m_buildings.m_buffer;
 
-            DebugListLog(vehicles, buildings, vehicleId);
+            DebugListLog(vehicles, buildings, vehicleId, null);
         }
 
         /// <summary>
@@ -352,7 +354,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             foreach (ServiceVehicleInfo vehicle in serviceVehicles)
             {
-                DebugListLog(vehicles, buildings, vehicle.VehicleId);
+                DebugListLog(vehicles, buildings, vehicle.VehicleId, null);
             }
         }
 
@@ -383,7 +385,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     if ((vehicles[id].m_flags & VehicleHelper.VehicleAll) != ~VehicleHelper.VehicleAll && vehicles[id].m_leadingVehicle == 0)
                     {
                         listed.Add(id);
-                        vehicleList.Add(DebugInfoMsg(vehicles, buildings, id, true).ToString());
+                        vehicleList.Add(DebugInfoMsg(vehicles, buildings, id, null, true).ToString());
 
                         if (vehicles[id].m_trailingVehicle != 0)
                         {
@@ -395,7 +397,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                                 if (!listed.Contains(trailerId))
                                 {
                                     listed.Add(trailerId);
-                                    vehicleList.Add(DebugInfoMsg(vehicles, buildings, trailerId, true).ToString());
+                                    vehicleList.Add(DebugInfoMsg(vehicles, buildings, trailerId, null, true).ToString());
                                 }
 
                                 trailerId = vehicles[trailerId].m_trailingVehicle;
@@ -410,7 +412,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     if (!listed.Contains(id) && (vehicles[id].m_flags & VehicleHelper.VehicleAll) != ~VehicleHelper.VehicleAll)
                     {
                         listed.Add(id);
-                        vehicleList.Add(DebugInfoMsg(vehicles, buildings, id, true).ToString());
+                        vehicleList.Add(DebugInfoMsg(vehicles, buildings, id, null, true).ToString());
                     }
                 }
 
@@ -519,11 +521,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <param name="vehicles">The vehicles.</param>
         /// <param name="buildings">The buildings.</param>
         /// <param name="vehicleId">The vehicle identifier.</param>
+        /// <param name="category">The category.</param>
         /// <param name="verbose">If set to <c>true</c> include more information.</param>
         /// <returns>
         /// Vehicle information.
         /// </returns>
-        private static Log.InfoList DebugInfoMsg(Vehicle[] vehicles, Building[] buildings, ushort vehicleId, bool verbose = false)
+        private static Log.InfoList DebugInfoMsg(Vehicle[] vehicles, Building[] buildings, ushort vehicleId, string category, bool verbose = false)
         {
             Log.InfoList info = new Log.InfoList();
 
@@ -535,6 +538,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             string name;
 
             info.Add("VehicleId", vehicleId);
+
+            if (category != null)
+            {
+                info.Add("C", category);
+            }
 
             if (verbose)
             {
@@ -782,12 +790,13 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <param name="vehicles">The vehicles.</param>
         /// <param name="buildings">The buildings.</param>
         /// <param name="vehicleId">The vehicle identifier.</param>
-        private static void DebugListLog(Vehicle[] vehicles, Building[] buildings, ushort vehicleId)
+        /// <param name="category">The category.</param>
+        private static void DebugListLog(Vehicle[] vehicles, Building[] buildings, ushort vehicleId, string category)
         {
             if (vehicles[vehicleId].Info != null && (vehicles[vehicleId].m_flags & VehicleHelper.VehicleExists) != ~VehicleHelper.VehicleAll &&
                 (vehicles[vehicleId].Info.m_vehicleAI is HearseAI || vehicles[vehicleId].Info.m_vehicleAI is GarbageTruckAI || vehicles[vehicleId].Info.m_vehicleAI is AmbulanceAI))
             {
-                Log.DevDebug(typeof(VehicleKeeper), "DebugListLog", DebugInfoMsg(vehicles, buildings, vehicleId).ToString());
+                Log.DevDebug(typeof(VehicleKeeper), "DebugListLog", DebugInfoMsg(vehicles, buildings, vehicleId, null).ToString());
             }
         }
 

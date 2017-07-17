@@ -109,7 +109,8 @@
     <Compile Include="Pieces\DispatchService.cs" />
     <Compile Include="Pieces\IHandlerPart.cs" />
     <Compile Include="Pieces\Dispatcher.cs" />
-    <Compile Include="Pieces\DispatchServiceKeeper.cs" />
+    <Compile Include="Pieces\IService.cs" />
+    <Compile Include="Pieces\ServiceKeeper.cs" />
     <Compile Include="Pieces\ServiceProblemKeeper.cs" />
     <Compile Include="SerializableSettings\ServiceDispatcherSettings.cs" />
     <Compile Include="Pieces\StuckVehicleInfo.cs" />

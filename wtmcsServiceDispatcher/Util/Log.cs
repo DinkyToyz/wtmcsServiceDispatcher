@@ -454,9 +454,13 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     {
                         msg.Append('<').Append(((Type)sourceObject).Name);
                     }
-                    else if (sourceObject is Dispatcher && ((Dispatcher)sourceObject).DispatcherType != Dispatcher.DispatcherTypes.None)
+                    else if (sourceObject is Dispatcher && ((Dispatcher)sourceObject).Service.DispatcherType != Dispatcher.DispatcherTypes.None)
                     {
-                        msg.Append('<').Append(((Dispatcher)sourceObject).DispatcherType.ToString());
+                        msg.Append('<').Append(((Dispatcher)sourceObject).Service.DispatcherType.ToString());
+                    }
+                    else if (sourceObject is DispatchService && ((DispatchService)sourceObject).DispatcherType != Dispatcher.DispatcherTypes.None)
+                    {
+                        msg.Append('<').Append(((Dispatcher)sourceObject).Service.DispatcherType.ToString() + "Service");
                     }
                     else
                     {

@@ -756,7 +756,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         private UIHelperBase CreateServiceGroup(UIHelperBase helper, Dispatcher.DispatcherTypes dispatcherType, bool canService)
         {
             StandardServiceSettings settings = null;
-            Dispatcher dispatcher = null;
+            DispatchService service = null;
 
             try
             {
@@ -764,17 +764,17 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 {
                     case Dispatcher.DispatcherTypes.HearseDispatcher:
                         settings = Global.Settings.DeathCare;
-                        dispatcher = (Global.DispatchServices == null) ? null : Global.DispatchServices[dispatcherType].Dispatcher;
+                        service = (Global.DispatchServices == null) ? null : Global.DispatchServices[dispatcherType];
                         break;
 
                     case Dispatcher.DispatcherTypes.GarbageTruckDispatcher:
                         settings = Global.Settings.Garbage;
-                        dispatcher = (Global.DispatchServices == null) ? null : Global.DispatchServices[dispatcherType].Dispatcher;
+                        service = (Global.DispatchServices == null) ? null : Global.DispatchServices[dispatcherType];
                         break;
 
                     case Dispatcher.DispatcherTypes.AmbulanceDispatcher:
                         settings = Global.Settings.HealthCare;
-                        dispatcher = (Global.DispatchServices == null) ? null : Global.DispatchServices[dispatcherType].Dispatcher;
+                        service = (Global.DispatchServices == null) ? null : Global.DispatchServices[dispatcherType];
                         break;
                 }
 
@@ -919,11 +919,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                                     {
                                         settings.CreateSpares = option;
 
-                                        if (dispatcher != null)
+                                        if (service != null)
                                         {
                                             try
                                             {
-                                                dispatcher.ReInitialize();
+                                                service.ReinitializeDispatcher();
                                             }
                                             catch (Exception ex)
                                             {
@@ -967,11 +967,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                                             Log.Error(this, "OnSettingsUI", ex, "Set", "DeathChecksPreset", checks);
                                         }
 
-                                        if (dispatcher != null)
+                                        if (service != null)
                                         {
                                             try
                                             {
-                                                dispatcher.ReInitialize();
+                                                service.ReinitializeDispatcher();
                                             }
                                             catch (Exception ex)
                                             {
@@ -1105,11 +1105,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                                 if (oldValue != settings.ChecksCustomString)
                                 {
-                                    if (settings.ChecksPreset == ServiceDispatcherSettings.BuildingCheckOrder.Custom && dispatcher != null)
+                                    if (settings.ChecksPreset == ServiceDispatcherSettings.BuildingCheckOrder.Custom && service != null)
                                     {
                                         try
                                         {
-                                            dispatcher.ReInitialize();
+                                            service.ReinitializeDispatcher();
                                         }
                                         catch (Exception ex)
                                         {

@@ -470,7 +470,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             {
                 foreach (DispatchService service in Global.DispatchServices.DispatchingServices)
                 {
-                    foreach (ServiceBuildingInfo serviceBuilding in service.ServiceBuildings.Values)
+                    foreach (ServiceBuildingInfo serviceBuilding in service.ServiceBuildings)
                     {
                         ServiceVehicleInfo serviceVehicle;
 
@@ -478,7 +478,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         {
                             TargetBuildingInfo targetBuilding;
 
-                            if (service.TargetBuildings.TryGetValue(serviceVehicle.Target, out targetBuilding))
+                            if (service.TryGetTargetBuilding(serviceVehicle.Target, out targetBuilding))
                             {
                                 targetBuilding.Handled = false;
                             }
@@ -517,7 +517,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             {
                 foreach (DispatchService service in Global.DispatchServices.DispatchingServices)
                 {
-                    foreach (ServiceBuildingInfo serviceBuilding in service.ServiceBuildings.Values)
+                    foreach (ServiceBuildingInfo serviceBuilding in service.ServiceBuildings)
                     {
                         ServiceVehicleInfo serviceVehicle;
 
@@ -525,7 +525,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         {
                             TargetBuildingInfo targetBuilding;
 
-                            if (service.TargetBuildings.TryGetValue(serviceVehicle.Target, out targetBuilding))
+                            if (service.TryGetTargetBuilding(serviceVehicle.Target, out targetBuilding))
                             {
                                 targetBuilding.Handled = false;
                             }
