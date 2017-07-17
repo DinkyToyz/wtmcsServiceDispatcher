@@ -1077,12 +1077,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             Building[] buildings = Singleton<BuildingManager>.instance.m_buildings.m_buffer;
 
-            DistrictManager districtManager = null;
-            if (Global.Settings.DispatchAnyByDistrict)
-            {
-                districtManager = Singleton<DistrictManager>.instance;
-            }
-
             foreach (T building in infoBuildings)
             {
                 building.ReInitialize();
