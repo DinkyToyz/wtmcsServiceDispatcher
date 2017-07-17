@@ -458,7 +458,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     {
                         msg.Append('<').Append(((Dispatcher)sourceObject).Service.ServiceType.ToString());
                     }
-                    else if (sourceObject is DispatchService && ((DispatchService)sourceObject).ServiceType != ServiceHelper.ServiceType.None)
+                    else if (sourceObject is Services.IService && ((Services.IService)sourceObject).ServiceType != ServiceHelper.ServiceType.None)
                     {
                         msg.Append('<').Append(((Dispatcher)sourceObject).Service.ServiceType.ToString() + "Service");
                     }

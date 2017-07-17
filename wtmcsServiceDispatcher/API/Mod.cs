@@ -756,7 +756,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         private UIHelperBase CreateServiceGroup(UIHelperBase helper, ServiceHelper.ServiceType serviceType, bool canService)
         {
             StandardServiceSettings settings = null;
-            DispatchService service = null;
+            Services.IService service = null;
 
             try
             {

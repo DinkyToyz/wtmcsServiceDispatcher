@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Linq;
-using WhatThe.Mods.CitiesSkylines.ServiceDispatcher;
 
 namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
 {
@@ -380,18 +378,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
             return settings;
         }
 
-        private ServiceDispatcherSettings.SpareVehiclesCreation FixBrokenSpareVehiclesCreation(ServiceDispatcherSettings.SpareVehiclesCreation loadedSpareVehiclesCreation)
-        {
-            // Make the best of it, as we can't really make it right...
-            switch(loadedSpareVehiclesCreation)
-            {
-                case ServiceDispatcherSettings.SpareVehiclesCreation.Never: return ServiceDispatcherSettings.SpareVehiclesCreation.WhenNoFree;
-                case ServiceDispatcherSettings.SpareVehiclesCreation.WhenNoFree: return ServiceDispatcherSettings.SpareVehiclesCreation.WhenBuildingIsCloser;
-                case ServiceDispatcherSettings.SpareVehiclesCreation.WhenBuildingIsCloser: return ServiceDispatcherSettings.SpareVehiclesCreation.WhenBuildingIsCloser;
-                default: return ServiceDispatcherSettings.SpareVehiclesCreation.WhenNoFree;
-            }
-        }
-
         /// <summary>
         /// Initializes the settings.
         /// </summary>
@@ -507,6 +493,18 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
 
             this.Version = CurrentVersion;
             this.SaveCount = settings.SaveCount;
+        }
+
+        private ServiceDispatcherSettings.SpareVehiclesCreation FixBrokenSpareVehiclesCreation(ServiceDispatcherSettings.SpareVehiclesCreation loadedSpareVehiclesCreation)
+        {
+            // Make the best of it, as we can't really make it right...
+            switch (loadedSpareVehiclesCreation)
+            {
+                case ServiceDispatcherSettings.SpareVehiclesCreation.Never: return ServiceDispatcherSettings.SpareVehiclesCreation.WhenNoFree;
+                case ServiceDispatcherSettings.SpareVehiclesCreation.WhenNoFree: return ServiceDispatcherSettings.SpareVehiclesCreation.WhenBuildingIsCloser;
+                case ServiceDispatcherSettings.SpareVehiclesCreation.WhenBuildingIsCloser: return ServiceDispatcherSettings.SpareVehiclesCreation.WhenBuildingIsCloser;
+                default: return ServiceDispatcherSettings.SpareVehiclesCreation.WhenNoFree;
+            }
         }
     }
 }

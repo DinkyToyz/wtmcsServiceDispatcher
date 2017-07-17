@@ -37,6 +37,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public static readonly ushort ProblemTimerModifier = 48;
 
         /// <summary>
+        /// Gets or sets the type of the transfer.
+        /// </summary>
+        /// <value>
+        /// The type of the transfer.
+        /// </value>
+        public readonly byte TransferType;
+
+        /// <summary>
         /// The decent capacity proportion.
         /// </summary>
         private static readonly float CapacityProportionDecent = 0.5f;
@@ -57,6 +65,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         private static readonly float CapacityUsedOk = 0.9f;
 
         /// <summary>
+        /// The dispatch service.
+        /// </summary>
+        private readonly Services.DispatchService dispatchService = null;
+
+        /// <summary>
         /// The assigned targets.
         /// </summary>
         private Dictionary<ushort, uint> assignedTargets = new Dictionary<ushort, uint>();
@@ -65,11 +78,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// The building check parameters.
         /// </summary>
         private BuldingCheckParameters[] buildingChecks;
-
-        /// <summary>
-        /// The dispatch service.
-        /// </summary>
-        private readonly DispatchService dispatchService = null;
 
         /// <summary>
         /// The free vehicle count.
@@ -86,7 +94,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// </summary>
         /// <param name="dispatchService">The dispatch service.</param>
         /// <exception cref="System.Exception">Bad dispatcher type.</exception>
-        public Dispatcher(DispatchService dispatchService)
+        public Dispatcher(Services.DispatchService dispatchService)
         {
             this.TransferType = dispatchService.TransferType;
             this.dispatchService = dispatchService;
@@ -136,15 +144,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <value>
         /// The service.
         /// </value>
-        public DispatchService Service => this.dispatchService;
-
-        /// <summary>
-        /// Gets or sets the type of the transfer.
-        /// </summary>
-        /// <value>
-        /// The type of the transfer.
-        /// </value>
-        public readonly byte TransferType;
+        public Services.DispatchService Service => this.dispatchService;
 
         /// <summary>
         /// Checks the vehicle target.

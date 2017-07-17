@@ -39,52 +39,20 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
-        /// Gets the desolate buildings.
-        /// </summary>
-        public Dictionary<ushort, Double> DesolateBuildings
-        {
-            get;
-            private set;
-        }
-
-        /// <summary>
-        /// Logs a list of service building info for debug use.
-        /// </summary>
-        public void DebugListLogBuildings()
-        {
-            try
-            {
-                if (this.DesolateBuildings != null)
-                {
-                    BuildingHelper.DebugListLog(this.DesolateBuildings, "DesolateBuildings");
-                }
-            }
-            catch (Exception ex)
-            {
-                Log.Error(this, "DebugListLogBuildings", ex);
-            }
-        }
-
-        /// <summary>
         /// Gets the buidling categories for a building.
         /// </summary>
         /// <param name="buildingId">The building identifier.</param>
         /// <returns>The categories in which the buidling has been categorized.</returns>
         public IEnumerable<string> GetCategories(ushort buildingId)
         {
-            List<string> categories = new List<string>();
-
             if (Global.Services != null)
             {
-                categories.AddRange(Global.Services.GetCategories(buildingId));
+                return Global.Services.GetCategories(buildingId);
             }
-
-            if (this.DesolateBuildings != null && this.DesolateBuildings.ContainsKey(buildingId))
+            else
             {
-                categories.Add("Desolate");
+                return new string[0];
             }
-
-            return categories;
         }
 
         /// <summary>
@@ -103,7 +71,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             if (Global.Services != null)
             {
-                Global.Services.UpdatePrepare();
+                Global.Services.UpdateBuildingsPrepare();
             }
 
             // First update?
@@ -142,15 +110,19 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 this.CategorizeBuildings();
             }
 
-            if (Global.BuildingUpdateNeeded && Global.Services != null)
+            if (Global.BuildingUpdateNeeded)
             {
-                Global.Services.UpdateAllBuildings();
+                if (Global.Services != null)
+                {
+                    Global.Services.UpdateAllBuildings();
+                }
+
                 Global.BuildingUpdateNeeded = false;
             }
 
             if (Global.Services != null)
             {
-                Global.Services.UpdateFinish();
+                Global.Services.UpdateBuildingsFinish();
             }
         }
 
@@ -169,81 +141,23 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <param name="lastBuildingId">The last building identifier.</param>
         private void CategorizeBuildings(ushort firstBuildingId, int lastBuildingId)
         {
-            if (Global.Services != null)
-            {
-                Global.Services.CategorizePrepare();
-            }
-
             Building[] buildings = Singleton<BuildingManager>.instance.m_buildings.m_buffer;
 
-            bool desolateBuilding;
-            bool usableBuilding;
+            Global.Services.CheckBuildingsPrepare();
 
             for (ushort id = firstBuildingId; id < lastBuildingId; id++)
             {
                 if (buildings[id].Info == null)
                 {
-                    usableBuilding = false;
-                    desolateBuilding = false;
+                    Global.Services.RemoveBuilding(id);
                 }
                 else
                 {
-                    desolateBuilding = (buildings[id].m_flags & (Building.Flags.Abandoned | Building.Flags.BurnedDown)) != Building.Flags.None;
-                    usableBuilding = (buildings[id].m_flags & Building.Flags.Created) == Building.Flags.Created && (buildings[id].m_flags & (Building.Flags.Abandoned | Building.Flags.BurnedDown | Building.Flags.Deleted | Building.Flags.Hidden)) == Building.Flags.None;
-                }
-
-                // Handle buildings needing services.
-                if (Global.Services != null)
-                {
-                    if (usableBuilding)
-                    {
-                        Global.Services.CategorizeBuilding(id, ref buildings[id]);
-                    }
-                    else
-                    {
-                        Global.Services.UnCategorizeBuilding(id);
-                    }
-                }
-
-                // Handle abandonded and burned down buildings.
-                if (this.DesolateBuildings != null)
-                {
-                    double stamp;
-                    bool known = this.DesolateBuildings.TryGetValue(id, out stamp);
-
-                    if (desolateBuilding)
-                    {
-                        double delta;
-
-                        if (known)
-                        {
-                            delta = Global.SimulationTime - stamp;
-                        }
-                        else
-                        {
-                            delta = 0.0;
-                            this.DesolateBuildings[id] = Global.SimulationTime;
-                            Log.Debug(this, "CategorizeBuildings", "Desolate Building", id);
-                        }
-
-                        if (delta >= Global.Settings.WreckingCrews.DelaySeconds)
-                        {
-                            Log.Debug(this, "CategorizeBuildings", "Bulldoze Building", id);
-                            BulldozeHelper.BulldozeBuilding(id);
-                        }
-                    }
-                    else if (known)
-                    {
-                        this.DesolateBuildings.Remove(id);
-                        Log.Debug(this, "CategorizeBuildings", "Not Desolate Building", id);
-                    }
+                    Global.Services.CategorizeBuilding(id, ref buildings[id]);
                 }
             }
 
-            if (Global.Services != null)
-            {
-                Global.Services.CategorizeFinish();
-            }
+            Global.Services.CheckBuildingsFinish();
         }
 
         /// <summary>
@@ -251,27 +165,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// </summary>
         /// <param name="constructing">If set to <c>true</c> object is being constructed.</param>
         private void Initialize(bool constructing)
-        {
-            Log.InfoList info = new Log.InfoList();
-            info.Add("constructing", constructing);
-
-            info.Add("AutoBulldozeBuildings", Global.Settings.WreckingCrews.DispatchVehicles);
-            info.Add("CanBulldoze", BulldozeHelper.CanBulldoze);
-
-            if (Global.Settings.WreckingCrews.DispatchVehicles && BulldozeHelper.CanBulldoze)
-            {
-                if (this.DesolateBuildings == null)
-                {
-                    info.Add("Desolate", "new");
-                    this.DesolateBuildings = new Dictionary<ushort, double>();
-                }
-            }
-            else
-            {
-                this.DesolateBuildings = null;
-            }
-
-            Log.Debug(this, "Initialize", info);
-        }
+        { }
     }
 }

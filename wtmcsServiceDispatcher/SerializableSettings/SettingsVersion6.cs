@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Linq;
-using WhatThe.Mods.CitiesSkylines.ServiceDispatcher;
 
 namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
 {
@@ -36,6 +34,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
         public CompatibilityConfig Compatibility = new SettingsVersion6.CompatibilityConfig();
 
         /// <summary>
+        /// The building range configuration.
+        /// </summary>
+        public DispatchConfig Dispatch = new DispatchConfig();
+
+        /// <summary>
         /// The standard garbage truck service settings.
         /// </summary>
         public StandardServiceConfig GarbageTrucks = new StandardServiceConfig();
@@ -49,11 +52,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
         /// The information.
         /// </summary>
         public Information Info = new Information();
-
-        /// <summary>
-        /// The building range configuration.
-        /// </summary>
-        public DispatchConfig Dispatch = new DispatchConfig();
 
         /// <summary>
         /// Automatic removal of stuck vehicles servic settings.
@@ -261,6 +259,57 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
         }
 
         /// <summary>
+        /// The range configuration settings.
+        /// </summary>
+        [Serializable]
+        public class DispatchConfig
+        {
+            /// <summary>
+            /// Limit building ranges.
+            /// </summary>
+            public bool RangeLimit = true;
+
+            /// <summary>
+            /// The maximum range (when limiting building ranges).
+            /// </summary>
+            public float RangeMaximum = 10000000;
+
+            /// <summary>
+            /// The minimum range (when limiting building ranges).
+            /// </summary>
+            public float RangeMinimum = 10000;
+
+            /// <summary>
+            /// The range modifier.
+            /// </summary>
+            public float RangeModifier = 1.0f;
+
+            /// <summary>
+            /// Gets the settings from the specified configuration.
+            /// </summary>
+            /// <param name="settings">The settings.</param>
+            internal void GetSettings(Settings settings)
+            {
+                settings.RangeModifier = this.RangeModifier;
+                settings.RangeLimit = this.RangeLimit;
+                settings.RangeMaximum = this.RangeMaximum;
+                settings.RangeMinimum = this.RangeMinimum;
+            }
+
+            /// <summary>
+            /// Sets the specified configuration for the values from the specified settings.
+            /// </summary>
+            /// <param name="settings">The settings.</param>
+            internal void SetSettings(Settings settings)
+            {
+                this.RangeModifier = settings.RangeModifier;
+                this.RangeLimit = settings.RangeLimit;
+                this.RangeMaximum = settings.RangeMaximum;
+                this.RangeMinimum = settings.RangeMinimum;
+            }
+        }
+
+        /// <summary>
         /// The hidden service settings.
         /// </summary>
         [Serializable]
@@ -319,57 +368,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
             /// <param name="settings">The settings.</param>
             internal void SetSettings(Settings settings)
             { }
-        }
-
-        /// <summary>
-        /// The range configuration settings.
-        /// </summary>
-        [Serializable]
-        public class DispatchConfig
-        {
-            /// <summary>
-            /// Limit building ranges.
-            /// </summary>
-            public bool RangeLimit = true;
-
-            /// <summary>
-            /// The maximum range (when limiting building ranges).
-            /// </summary>
-            public float RangeMaximum = 10000000;
-
-            /// <summary>
-            /// The minimum range (when limiting building ranges).
-            /// </summary>
-            public float RangeMinimum = 10000;
-
-            /// <summary>
-            /// The range modifier.
-            /// </summary>
-            public float RangeModifier = 1.0f;
-
-            /// <summary>
-            /// Gets the settings from the specified configuration.
-            /// </summary>
-            /// <param name="settings">The settings.</param>
-            internal void GetSettings(Settings settings)
-            {
-                settings.RangeModifier = this.RangeModifier;
-                settings.RangeLimit = this.RangeLimit;
-                settings.RangeMaximum = this.RangeMaximum;
-                settings.RangeMinimum = this.RangeMinimum;
-            }
-
-            /// <summary>
-            /// Sets the specified configuration for the values from the specified settings.
-            /// </summary>
-            /// <param name="settings">The settings.</param>
-            internal void SetSettings(Settings settings)
-            {
-                this.RangeModifier = settings.RangeModifier;
-                this.RangeLimit = settings.RangeLimit;
-                this.RangeMaximum = settings.RangeMaximum;
-                this.RangeMinimum = settings.RangeMinimum;
-            }
         }
 
         /// <summary>

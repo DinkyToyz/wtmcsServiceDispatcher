@@ -11,11 +11,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
     internal class ServiceBuildingInfo : IBuildingInfo
     {
         /// <summary>
-        /// The dispatcher type.
-        /// </summary>
-        private ServiceHelper.ServiceType serviceType = ServiceHelper.ServiceType.None;
-
-        /// <summary>
         /// The last capacity update stamp.
         /// </summary>
         private uint lastCapacityUpdate = 0;
@@ -39,6 +34,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// The service settings.
         /// </summary>
         private StandardServiceSettings serviceSettings = null;
+
+        /// <summary>
+        /// The dispatcher type.
+        /// </summary>
+        private ServiceHelper.ServiceType serviceType = ServiceHelper.ServiceType.None;
 
         /// <summary>
         /// The free vehicles count.

@@ -30,7 +30,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// Gets the CS building information.
         /// </summary>
         /// <value>
-        /// The building CS information.
+        /// The CS building information.
         /// </value>
         BuildingInfo BuildingInfo
         {

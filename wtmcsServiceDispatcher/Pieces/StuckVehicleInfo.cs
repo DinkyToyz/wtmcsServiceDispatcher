@@ -7,7 +7,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
     /// <summary>
     /// Stuck vehicle information holder.
     /// </summary>
-    internal class StuckVehicleInfo
+    internal class StuckVehicleInfo : IVehicleInfo
     {
         /// <summary>
         /// The flags to check.
@@ -55,11 +55,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         private double confusedSinceTime = 0.0;
 
         /// <summary>
-        /// The dispatcher type.
-        /// </summary>
-        private ServiceHelper.ServiceType serviceType = ServiceHelper.ServiceType.None;
-
-        /// <summary>
         /// The vehicle is broken.
         /// </summary>
         private bool isBroken = false;
@@ -73,6 +68,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// The last de-assign time stamp.
         /// </summary>
         private uint lastDeAssignStamp = 0u;
+
+        /// <summary>
+        /// The dispatcher type.
+        /// </summary>
+        private ServiceHelper.ServiceType serviceType = ServiceHelper.ServiceType.None;
 
         /// <summary>
         /// The target building identifier.
@@ -112,6 +112,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <c>true</c> if the vehicle is the crew's responsibility; otherwise, <c>false</c>.
         /// </value>
         public bool RecoveryCrewsResponsibility => CheckRecoveryCrewsResponsibility(this.serviceType);
+
+        /// <summary>
+        /// Gets the vehicle identifier.
+        /// </summary>
+        /// <value>
+        /// The vehicle identifier.
+        /// </value>
+        public ushort VehicleId => this.vehicleId;
 
         /// <summary>
         /// Gets the amount of frames during which the vehicle has had a check flag.
@@ -424,6 +432,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <param name="complete">If set to <c>true</c> add complete information.</param>
         private void AddDebugInfoData(Log.InfoList info, bool complete)
         {
+            info.Add("VehicleInfo", "Stuck");
+
             if (complete)
             {
                 info.Add("VehicleId", this.vehicleId);
@@ -468,7 +478,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             if (Global.Services != null)
             {
-                foreach (DispatchService service in Global.Services.DispatchingServices)
+                foreach (Services.IService service in Global.Services.DispatchingServices)
                 {
                     foreach (ServiceBuildingInfo serviceBuilding in service.ServiceBuildings)
                     {
@@ -515,7 +525,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             if (Global.Services != null)
             {
-                foreach (DispatchService service in Global.Services.DispatchingServices)
+                foreach (Services.IService service in Global.Services.DispatchingServices)
                 {
                     foreach (ServiceBuildingInfo serviceBuilding in service.ServiceBuildings)
                     {

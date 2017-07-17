@@ -22,11 +22,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         private Dictionary<uint, TargetCitizenInfo> citizens = null;
 
         /// <summary>
-        /// The dispatcher type.
-        /// </summary>
-        private ServiceHelper.ServiceType serviceType = ServiceHelper.ServiceType.None;
-
-        /// <summary>
         /// The last check stamp.
         /// </summary>
         private uint lastCheck = 0;
@@ -60,6 +55,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// The service problem size value
         /// </summary>
         private uint serviceProblemSizeValue;
+
+        /// <summary>
+        /// The dispatcher type.
+        /// </summary>
+        private ServiceHelper.ServiceType serviceType = ServiceHelper.ServiceType.None;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="TargetBuildingInfo" /> class.

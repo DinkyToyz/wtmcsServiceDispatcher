@@ -93,19 +93,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public static bool BuildingUpdateNeeded = false;
 
         /// <summary>
-        /// A global vehicle update is needed.
-        /// </summary>
-        public static bool VehicleUpdateNeeded = false;
-
-        /// <summary>
         /// The current frame.
         /// </summary>
         public static uint CurrentFrame = 0u;
-
-        /// <summary>
-        /// The dispatch services.
-        /// </summary>
-        public static DispatchServiceKeeper Services = null;
 
         /// <summary>
         /// Indicates whether development experiments are enabled.
@@ -133,6 +123,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public static ServiceProblemKeeper ServiceProblems = null;
 
         /// <summary>
+        /// The dispatch services.
+        /// </summary>
+        public static ServiceKeeper Services = null;
+
+        /// <summary>
         /// The settings.
         /// </summary>
         public static Settings Settings = null;
@@ -156,6 +151,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// The vehicles.
         /// </summary>
         public static VehicleKeeper Vehicles = null;
+
+        /// <summary>
+        /// A global vehicle update is needed.
+        /// </summary>
+        public static bool VehicleUpdateNeeded = false;
 
         /// <summary>
         /// De-initializes the mod.
@@ -291,7 +291,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 {
                     if (Services == null)
                     {
-                        Services = new DispatchServiceKeeper();
+                        Services = new ServiceKeeper();
                     }
                     else
                     {
@@ -423,17 +423,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                         if (Services != null)
                         {
-                            Services.DebugListLogBuildings();
-                        }
-
-                        if (Buildings != null)
-                        {
-                            Buildings.DebugListLogBuildings();
-                        }
-
-                        if (Vehicles != null)
-                        {
-                            Vehicles.DebugListLogVehicles();
+                            Services.DebugListLog();
                         }
 
                         TransferManagerHelper.DebugListLog();

@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
+﻿namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 {
     /// <summary>
     /// Service stuff.
@@ -11,13 +6,54 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
     internal class ServiceHelper
     {
         /// <summary>
+        /// The service types.
+        /// </summary>
+        public enum ServiceType
+        {
+            /// <summary>
+            /// Dispatches hearses.
+            /// </summary>
+            HearseDispatcher = 0,
+
+            /// <summary>
+            /// Dispatches garbage trucks.
+            /// </summary>
+            GarbageTruckDispatcher = 1,
+
+            /// <summary>
+            /// Dispatches ambulances.
+            /// </summary>
+            AmbulanceDispatcher = 2,
+
+            /// <summary>
+            /// Dispatches wrecking crews.
+            /// </summary>
+            BulldozerDispatcher = 3,
+
+            /// <summary>
+            /// Dispatches recovery crews.
+            /// </summary>
+            RecoveryCrewDispatcher = 4,
+
+            /// <summary>
+            /// Removes vehicles from grid.
+            /// </summary>
+            Unblocker = 5,
+
+            /// <summary>
+            /// Not a dispatcher.
+            /// </summary>
+            None = 6
+        }
+
+        /// <summary>
         /// Gets the type of the service.
         /// </summary>
         /// <param name="transferReason">The transfer reason.</param>
         /// <returns>The service type.</returns>
         public static ServiceType GetServiceType(TransferManager.TransferReason transferReason)
         {
-            switch(transferReason)
+            switch (transferReason)
             {
                 case TransferManager.TransferReason.Dead:
                     return ServiceType.HearseDispatcher;
@@ -56,42 +92,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             {
                 return ServiceType.None;
             }
-        }
-
-        /// <summary>
-        /// The service types.
-        /// </summary>
-        public enum ServiceType
-        {
-            /// <summary>
-            /// Dispatches hearses.
-            /// </summary>
-            HearseDispatcher = 0,
-
-            /// <summary>
-            /// Dispatches garbage trucks.
-            /// </summary>
-            GarbageTruckDispatcher = 1,
-
-            /// <summary>
-            /// Dispatches ambulances.
-            /// </summary>
-            AmbulanceDispatcher = 2,
-
-            /// <summary>
-            /// Dispatches wrecking crews.
-            /// </summary>
-            WreckingCrewDispatcher = 3,
-
-            /// <summary>
-            /// Dispatches recovery crews.
-            /// </summary>
-            RecoveryCrewDispatcher = 4,
-
-            /// <summary>
-            /// Not a dispatcher.
-            /// </summary>
-            None = 3
         }
     }
 }

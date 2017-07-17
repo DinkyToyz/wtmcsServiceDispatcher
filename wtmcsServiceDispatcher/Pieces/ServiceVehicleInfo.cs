@@ -6,7 +6,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
     /// <summary>
     /// Info about a service vehicle.
     /// </summary>
-    internal class ServiceVehicleInfo
+    internal class ServiceVehicleInfo : IVehicleInfo
     {
         /// <summary>
         /// Gets a value indicating whether vehicle with wrong target should linger before deassign.
@@ -17,31 +17,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         protected bool lingerWrongTargets;
 
         /// <summary>
-        /// Initializes this instance.
-        /// </summary>
-        private void Initialize()
-        {
-            StandardServiceSettings settings = Global.GetServiceSettings(this.serviceType);
-            this.lingerWrongTargets = settings.CreateSpares == ServiceDispatcherSettings.SpareVehiclesCreation.Never;
-        }
-
-        /// <summary>
-        /// Reinitializes this instance.
-        /// </summary>
-        public void ReInitialize()
-        {
-            this.Initialize();
-        }
-
-        /// <summary>
         /// The last confused check stamp.
         /// </summary>
         private uint confusedStamp = 0;
-
-        /// <summary>
-        /// The dispatcher type.
-        /// </summary>
-        private ServiceHelper.ServiceType serviceType = ServiceHelper.ServiceType.None;
 
         /// <summary>
         /// The vehicle is confused.
@@ -52,6 +30,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// The last target de-assign time stamp.
         /// </summary>
         private uint lastDeAssignStamp = 0;
+
+        /// <summary>
+        /// The dispatcher type.
+        /// </summary>
+        private ServiceHelper.ServiceType serviceType = ServiceHelper.ServiceType.None;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ServiceVehicleInfo" /> class.
@@ -237,6 +220,15 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Adds debug information data to information list.
+        /// </summary>
+        /// <param name="info">The information list.</param>
+        public void AddDebugInfoData(Log.InfoList info)
+        {
+            info.Add("VehicleInfo", "Blocking");
+        }
+
+        /// <summary>
         /// De-assign target from vehicle.
         /// </summary>
         /// <param name="force">If set to <c>true</c> force de-assignment.</param>
@@ -298,6 +290,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             }
 
             return new VehicleResult(vehicle.m_targetBuilding == 0 && this.Target == 0);
+        }
+
+        /// <summary>
+        /// Reinitializes this instance.
+        /// </summary>
+        public void ReInitialize()
+        {
+            this.Initialize();
         }
 
         /// <summary>
@@ -405,6 +405,15 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public bool UpdateValues(ref Vehicle vehicle, bool ignoreInterval = false)
         {
             return false;
+        }
+
+        /// <summary>
+        /// Initializes this instance.
+        /// </summary>
+        private void Initialize()
+        {
+            StandardServiceSettings settings = Global.GetServiceSettings(this.serviceType);
+            this.lingerWrongTargets = settings.CreateSpares == ServiceDispatcherSettings.SpareVehiclesCreation.Never;
         }
     }
 }

@@ -320,14 +320,15 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// Logs a list of vehicle info for debug use.
         /// </summary>
         /// <param name="vehicleIds">The vehicle ids.</param>
-        public static void DebugListLog(IEnumerable<ushort> vehicleIds)
+        /// <param name="category">The category.</param>
+        public static void DebugListLog(IEnumerable<ushort> vehicleIds, string category)
         {
             Vehicle[] vehicles = Singleton<VehicleManager>.instance.m_vehicles.m_buffer;
             Building[] buildings = Singleton<BuildingManager>.instance.m_buildings.m_buffer;
 
             foreach (ushort id in vehicleIds)
             {
-                DebugListLog(vehicles, buildings, id, null);
+                DebugListLog(vehicles, buildings, id, category);
             }
         }
 
@@ -752,22 +753,18 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     info.Add("Error", "Position");
                 }
 
-                if (Global.Vehicles != null)
+                if (Global.Services != null)
                 {
                     try
                     {
-                        if (Global.Vehicles.StuckVehicles != null)
+                        foreach (IVehicleInfo iVehicle in Global.Services.GetVehicleInfo(vehicleId))
                         {
-                            StuckVehicleInfo stuckVehicle;
-                            if (Global.Vehicles.StuckVehicles.TryGetValue(vehicleId, out stuckVehicle))
-                            {
-                                stuckVehicle.AddDebugInfoData(info);
-                            }
+                            iVehicle.AddDebugInfoData(info);
                         }
                     }
-                    catch
+                    catch (Exception ex)
                     {
-                        info.Add("Error", "Stuck");
+                        info.Add("Error", ex);
                     }
                 }
             }

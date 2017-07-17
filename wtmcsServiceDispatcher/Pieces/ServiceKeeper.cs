@@ -6,12 +6,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
     /// <summary>
     /// Keeps track of dispatch services.
     /// </summary>
-    internal class DispatchServiceKeeper : IHandlerPart
+    internal class ServiceKeeper : IHandlerPart
     {
         /// <summary>
         /// The services.
         /// </summary>
-        private DispatchService[] services = null;
+        private Services.IService[] services = null;
 
         /// <summary>
         /// Gets a value indicating whether any dispatcher creates vehicles.
@@ -41,7 +41,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <value>
         /// The dispatching services.
         /// </value>
-        public IEnumerable<DispatchService> DispatchingServices => this.services.Where(s => s != null && s.IsDispatching);
+        public IEnumerable<Services.IService> DispatchingServices => this.services.Where(s => s != null && s.IsDispatching);
 
         /// <summary>
         /// Gets the services.
@@ -49,7 +49,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <value>
         /// The services.
         /// </value>
-        public IEnumerable<DispatchService> EnabledServices => this.services.Where(s => s != null && s.Enabled);
+        public IEnumerable<Services.IService> EnabledServices => this.services.Where(s => s != null && s.Enabled);
 
         /// <summary>
         /// Gets the transfer reasons for which a dispatcher creates vehicles.
@@ -60,14 +60,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public TransferManager.TransferReason[] TransferReasonsDispatcherCreatesVehiclesFor => this.services.WhereSelectToArray(s => s != null && s.CreatesVehicles, s => s.TransferReason);
 
         /// <summary>
-        /// Gets the <see cref="DispatchService"/> with the specified dispatcher type.
+        /// Gets the <see cref="Services.IService"/> with the specified dispatcher type.
         /// </summary>
         /// <value>
-        /// The <see cref="DispatchService"/>.
+        /// The <see cref="Services.IService"/>.
         /// </value>
         /// <param name="serviceType">Type of the dispatcher.</param>
-        /// <returns>The <see cref="DispatchService"/>.</returns>
-        public DispatchService this[ServiceHelper.ServiceType serviceType] => this.services[(int)serviceType];
+        /// <returns>The <see cref="Services.IService"/>.</returns>
+        public Services.IService this[ServiceHelper.ServiceType serviceType] => this.services[(int)serviceType];
 
         /// <summary>
         /// Categorizes the building.
@@ -76,11 +76,20 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <param name="building">The building.</param>
         public void CategorizeBuilding(ushort buildingId, ref Building building)
         {
+            bool usableBuilding = (building.m_flags & Building.Flags.Created) == Building.Flags.Created && (building.m_flags & (Building.Flags.Abandoned | Building.Flags.BurnedDown | Building.Flags.Deleted | Building.Flags.Hidden)) == Building.Flags.None;
+
             for (int i = 0; i < this.services.Length; i++)
             {
-                if (this.services[i] != null && this.services[i].Enabled)
+                if (this.services[i] != null && this.services[i].HasBuildings)
                 {
-                    this.services[i].CategorizeBuilding(buildingId, ref building);
+                    if (this.services[i].RemoveUnusableBuildings)
+                    {
+                        this.services[i].RemoveBuilding(buildingId);
+                    }
+                    else
+                    {
+                        this.services[i].CheckBuilding(buildingId, ref building);
+                    }
                 }
             }
         }
@@ -88,13 +97,13 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// Finish the categorization.
         /// </summary>
-        public void CategorizeFinish()
+        public void CheckBuildingsFinish()
         {
             for (int i = 0; i < this.services.Length; i++)
             {
-                if (this.services[i] != null && this.services[i].Enabled)
+                if (this.services[i] != null && this.services[i].HasBuildings)
                 {
-                    this.services[i].CategorizeFinish();
+                    this.services[i].CheckBuildingsFinish();
                 }
             }
         }
@@ -102,13 +111,29 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// Prepare for categorization.
         /// </summary>
-        public void CategorizePrepare()
+        public void CheckBuildingsPrepare()
         {
             for (int i = 0; i < this.services.Length; i++)
             {
-                if (this.services[i] != null)
+                if (this.services[i] != null && this.services[i].HasBuildings)
                 {
-                    this.services[i].CategorizePrepare();
+                    this.services[i].CheckBuildingsPrepare();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Checks the vehicle.
+        /// </summary>
+        /// <param name="vehicleId">The vehicle identifier.</param>
+        /// <param name="vehicle">The vehicle.</param>
+        public void CheckVehicle(ushort vehicleId, ref Vehicle vehicle)
+        {
+            for (int i = 0; i < this.services.Length; i++)
+            {
+                if (this.services[i] != null && this.services[i].HasVehicles)
+                {
+                    this.services[i].CheckVehicle(vehicleId, ref vehicle);
                 }
             }
         }
@@ -130,7 +155,16 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
-        /// Logs a list of service building info for debug use.
+        /// Logs a list of building and vehicle info for debug use.
+        /// </summary>
+        public void DebugListLog()
+        {
+            this.DebugListLogBuildings();
+            this.DebugListLogVehicles();
+        }
+
+        /// <summary>
+        /// Logs a list of building info for debug use.
         /// </summary>
         public void DebugListLogBuildings()
         {
@@ -138,7 +172,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             {
                 for (int i = 0; i < this.services.Length; i++)
                 {
-                    if (this.services[i] != null)
+                    if (this.services[i] != null && this.services[i].HasBuildings)
                     {
                         this.services[i].DebugListLogBuildings();
                     }
@@ -147,6 +181,27 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             catch (Exception ex)
             {
                 Log.Error(this, "DebugListLogBuildings", ex);
+            }
+        }
+
+        /// <summary>
+        /// Logs a list of vehicle info for debug use.
+        /// </summary>
+        public void DebugListLogVehicles()
+        {
+            try
+            {
+                for (int i = 0; i < this.services.Length; i++)
+                {
+                    if (this.services[i] != null && this.services[i].HasVehicles)
+                    {
+                        this.services[i].DebugListLogVehicles();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error(this, "DebugListLogVehicles", ex);
             }
         }
 
@@ -195,7 +250,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             for (int i = 0; i < this.services.Length; i++)
             {
-                if (this.services[i] != null)
+                if (this.services[i] != null && this.services[i].HasBuildings)
                 {
                     foreach (string category in this.services[i].GetCategories(buildingId))
                     {
@@ -216,13 +271,32 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             for (int i = 0; i < this.services.Length; i++)
             {
-                if (this.services[i] != null & this.services[i].TryGetServiceBuilding(buildingId, out building))
+                if (this.services[i] != null && this.services[i].HasBuildings && this.services[i].TryGetServiceBuilding(buildingId, out building))
                 {
                     return building;
                 }
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// Gets the service building.
+        /// </summary>
+        /// <param name="vehicleId">The vehicle identifier.</param>
+        /// <returns>
+        /// True if building found.
+        /// </returns>
+        public IEnumerable<IVehicleInfo> GetVehicleInfo(ushort vehicleId)
+        {
+            for (int i = 0; i < this.services.Length; i++)
+            {
+                IVehicleInfo vehicle;
+                if (this.services[i] != null && this.services[i].HasVehicles && this.services[i].TryGetVehicle(vehicleId, out vehicle))
+                {
+                    yield return vehicle;
+                }
+            }
         }
 
         /// <summary>
@@ -235,16 +309,45 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             if (constructing || this.services == null)
             {
-                this.services = new DispatchService[]
-                   {
-                        new DispatchService.DeathCare(),
-                        new DispatchService.Garbage(),
-                        (Global.EnableDevExperiments ? new DispatchService.HealthCare() : null)
-                   };
+                this.services = new Services.IService[(int)ServiceHelper.ServiceType.None];
+
+                foreach (ServiceHelper.ServiceType serviceType in Enum.GetValues(typeof(ServiceHelper.ServiceType)))
+                {
+                    switch (serviceType)
+                    {
+                        case ServiceHelper.ServiceType.HearseDispatcher:
+                            this.services[(int)serviceType] = new Services.DeathCare();
+                            break;
+
+                        case ServiceHelper.ServiceType.GarbageTruckDispatcher:
+                            this.services[(int)serviceType] = new Services.Garbage();
+                            break;
+
+                        case ServiceHelper.ServiceType.AmbulanceDispatcher:
+                            this.services[(int)serviceType] = new Services.HealthCare();
+                            break;
+
+                        case ServiceHelper.ServiceType.BulldozerDispatcher:
+                            this.services[(int)serviceType] = new Services.WreckingCrews();
+                            break;
+
+                        case ServiceHelper.ServiceType.RecoveryCrewDispatcher:
+                            this.services[(int)serviceType] = new Services.RecoveryCrews();
+                            break;
+
+                        case ServiceHelper.ServiceType.Unblocker:
+                            this.services[(int)serviceType] = new Services.Unblocker();
+                            break;
+
+                        default:
+                            this.services[(int)serviceType] = null;
+                            break;
+                    }
+                }
             }
             else
             {
-                foreach (DispatchService service in this.services)
+                foreach (Services.IService service in this.services)
                 {
                     if (service != null)
                     {
@@ -278,13 +381,28 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// Remove categorized buidling.
         /// </summary>
         /// <param name="buildingId">The building identifier.</param>
-        public void UnCategorizeBuilding(ushort buildingId)
+        public void RemoveBuilding(ushort buildingId)
         {
             for (int i = 0; i < this.services.Length; i++)
             {
-                if (this.services[i] != null)
+                if (this.services[i] != null && this.services[i].HasBuildings)
                 {
-                    this.UnCategorizeBuilding(buildingId);
+                    this.services[i].RemoveBuilding(buildingId);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Remove categorized vehicle.
+        /// </summary>
+        /// <param name="vehicleId">The vehicle identifier.</param>
+        public void RemoveVehicle(ushort vehicleId)
+        {
+            for (int i = 0; i < this.services.Length; i++)
+            {
+                if (this.services[i] != null && this.services[i].HasVehicles)
+                {
+                    this.services[i].RemoveVehicle(vehicleId);
                 }
             }
         }
@@ -296,7 +414,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             for (int i = 0; i < this.services.Length; i++)
             {
-                if (this.services[i] != null && this.services[i].Enabled)
+                if (this.services[i] != null && this.services[i].HasBuildings)
                 {
                     this.services[i].UpdateAllBuildings();
                 }
@@ -310,7 +428,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             for (int i = 0; i < this.services.Length; i++)
             {
-                if (this.services[i] != null && this.services[i].Enabled)
+                if (this.services[i] != null && this.services[i].HasVehicles)
                 {
                     this.services[i].UpdateAllVehicles();
                 }
@@ -320,13 +438,13 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// Finish the update.
         /// </summary>
-        public void UpdateFinish()
+        public void UpdateBuildingsFinish()
         {
             for (int i = 0; i < this.services.Length; i++)
             {
-                if (this.services[i] != null && this.services[i].Enabled)
+                if (this.services[i] != null && this.services[i].HasBuildings)
                 {
-                    this.services[i].UpdateFinish();
+                    this.services[i].UpdateBuildingsFinish();
                 }
             }
         }
@@ -334,13 +452,13 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// Prepare for update.
         /// </summary>
-        public void UpdatePrepare()
+        public void UpdateBuildingsPrepare()
         {
             for (int i = 0; i < this.services.Length; i++)
             {
-                if (this.services[i] != null)
+                if (this.services[i] != null && this.services[i].HasBuildings)
                 {
-                    this.services[i].UpdatePrepare();
+                    this.services[i].UpdateBuildingsPrepare();
                 }
             }
         }
