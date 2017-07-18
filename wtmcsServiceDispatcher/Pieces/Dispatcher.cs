@@ -161,13 +161,13 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 switch (this.DispatcherType)
                 {
                     case DispatcherTypes.HearseDispatcher:
-                        return Global.Buildings.HasDeadPeopleBuildingsToCheck;
+                        return Global.Buildings.DeathCare.HasBuildingsToCheck;
 
                     case DispatcherTypes.GarbageTruckDispatcher:
-                        return Global.Buildings.HasDirtyBuildingsToCheck;
+                        return Global.Buildings.Garbage.HasBuildingsToCheck;
 
                     case DispatcherTypes.AmbulanceDispatcher:
-                        return Global.Buildings.HasSickPeopleBuildingsToCheck;
+                        return Global.Buildings.HealthCare.HasBuildingsToCheck;
 
                     default:
                         return false;
@@ -1134,8 +1134,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     if (constructing)
                     {
                         this.TransferType = (byte)TransferManager.TransferReason.Dead;
-                        this.serviceBuildings = Global.Buildings.DeathCareBuildings;
-                        this.targetBuildings = Global.Buildings.DeadPeopleBuildings;
+                        this.serviceBuildings = Global.Buildings.DeathCare.ServiceBuildings;
+                        this.targetBuildings = Global.Buildings.DeathCare.TargetBuildings;
                     }
 
                     this.serviceSettings = Global.Settings.DeathCare;
@@ -1145,8 +1145,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     if (constructing)
                     {
                         this.TransferType = (byte)TransferManager.TransferReason.Garbage;
-                        this.serviceBuildings = Global.Buildings.GarbageBuildings;
-                        this.targetBuildings = Global.Buildings.DirtyBuildings;
+                        this.serviceBuildings = Global.Buildings.Garbage.ServiceBuildings;
+                        this.targetBuildings = Global.Buildings.Garbage.TargetBuildings;
                     }
 
                     this.serviceSettings = Global.Settings.DeathCare;
@@ -1156,8 +1156,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     if (constructing)
                     {
                         this.TransferType = (byte)TransferManager.TransferReason.Sick;
-                        this.serviceBuildings = Global.Buildings.HealthCareBuildings;
-                        this.targetBuildings = Global.Buildings.SickPeopleBuildings;
+                        this.serviceBuildings = Global.Buildings.HealthCare.ServiceBuildings;
+                        this.targetBuildings = Global.Buildings.HealthCare.TargetBuildings;
                     }
 
                     this.serviceSettings = Global.Settings.HealthCare;

@@ -576,17 +576,17 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 if (serviceBuilding == null)
                 {
-                    if (Global.Buildings.GarbageBuildings != null && Global.Buildings.GarbageBuildings.TryGetValue(buildingId, out serviceBuilding))
+                    if (Global.Buildings.Garbage.ServiceBuildings != null && Global.Buildings.Garbage.ServiceBuildings.TryGetValue(buildingId, out serviceBuilding))
                     {
                         serviceBuildings.Add(new KeyValuePair<string, ServiceBuildingInfo>("GB", serviceBuilding));
                     }
 
-                    if (Global.Buildings.DeathCareBuildings != null && Global.Buildings.DeathCareBuildings.TryGetValue(buildingId, out serviceBuilding))
+                    if (Global.Buildings.DeathCare.ServiceBuildings != null && Global.Buildings.DeathCare.ServiceBuildings.TryGetValue(buildingId, out serviceBuilding))
                     {
                         serviceBuildings.Add(new KeyValuePair<string, ServiceBuildingInfo>("DCB", serviceBuilding));
                     }
 
-                    if (Global.Buildings.HealthCareBuildings != null && Global.Buildings.HealthCareBuildings.TryGetValue(buildingId, out serviceBuilding))
+                    if (Global.Buildings.HealthCare.ServiceBuildings != null && Global.Buildings.HealthCare.ServiceBuildings.TryGetValue(buildingId, out serviceBuilding))
                     {
                         serviceBuildings.Add(new KeyValuePair<string, ServiceBuildingInfo>("HCB", serviceBuilding));
                     }
@@ -596,17 +596,17 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 if (targetBuilding == null)
                 {
-                    if (Global.Buildings.DeadPeopleBuildings != null && Global.Buildings.DeadPeopleBuildings.TryGetValue(buildingId, out targetBuilding))
+                    if (Global.Buildings.DeathCare.TargetBuildings != null && Global.Buildings.DeathCare.TargetBuildings.TryGetValue(buildingId, out targetBuilding))
                     {
                         targetBuildings.Add(new KeyValuePair<string, TargetBuildingInfo>("DPB", targetBuilding));
                     }
 
-                    if (Global.Buildings.DirtyBuildings != null && Global.Buildings.DirtyBuildings.TryGetValue(buildingId, out targetBuilding))
+                    if (Global.Buildings.Garbage.TargetBuildings != null && Global.Buildings.Garbage.TargetBuildings.TryGetValue(buildingId, out targetBuilding))
                     {
                         targetBuildings.Add(new KeyValuePair<string, TargetBuildingInfo>("DB", targetBuilding));
                     }
 
-                    if (Global.Buildings.SickPeopleBuildings != null && Global.Buildings.SickPeopleBuildings.TryGetValue(buildingId, out targetBuilding))
+                    if (Global.Buildings.HealthCare.TargetBuildings != null && Global.Buildings.HealthCare.TargetBuildings.TryGetValue(buildingId, out targetBuilding))
                     {
                         targetBuildings.Add(new KeyValuePair<string, TargetBuildingInfo>("SPB", targetBuilding));
                     }

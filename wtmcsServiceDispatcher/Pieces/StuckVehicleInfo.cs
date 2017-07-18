@@ -453,7 +453,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             if (Global.Buildings != null)
             {
-                foreach (BuildingKeeper.BuildingListPair buildings in Global.Buildings.BuildingListPairs)
+                foreach (BuildingKeeper.StandardServiceBuildings buildings in Global.Buildings.StandardServices)
                 {
                     foreach (ServiceBuildingInfo serviceBuilding in buildings.ServiceBuildings.Values)
                     {
@@ -500,7 +500,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             if (Global.Buildings != null)
             {
-                foreach (BuildingKeeper.BuildingListPair buildings in Global.Buildings.BuildingListPairs)
+                foreach (BuildingKeeper.StandardServiceBuildings buildings in Global.Buildings.StandardServices)
                 {
                     foreach (ServiceBuildingInfo serviceBuilding in buildings.ServiceBuildings.Values)
                     {
