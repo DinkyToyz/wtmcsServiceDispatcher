@@ -12,6 +12,7 @@
 
 # Additions and fixes
 
+- Save auto-emptying state in save-file.
 - Custom despawn so recovery crews won't be blocked by "no despawn" mods.
 - Replace MonoDetour with [Harmony](https://github.com/pardeike/Harmony).
 - Fire fighting services?
