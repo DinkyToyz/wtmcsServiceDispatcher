@@ -39,6 +39,6 @@ xcopy /f /y "%TARGETFILENAME%" "%MODPATH%"
 :NOGAME
 
 CALL ..\..\Build\CopyCurrentDocs.cmd
-zip -u -j -9 -o -X "..\..\..\CentralServicesDispatcherWTM.zip" "..\..\..\README.md" "..\..\Dox\PreviewImage.png" "%TARGETFILENAME%"
+zip -u -j -9 -o -X "..\..\..\..\GH-Pages\files\CentralServicesDispatcherWTM.zip" "..\..\..\README.md" "..\..\Dox\PreviewImage.png" "%TARGETFILENAME%"
 
 :END
