@@ -192,7 +192,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
             /// <param name="settings">The settings.</param>
             internal void GetSettings(StandardServiceSettings settings)
             {
-                settings.DispatchVehicles = this.Enabled;
+                settings.AutoEmpty = this.Enabled;
                 settings.AutoEmptyStartLevelPercent = this.StartLevelPercent;
                 settings.AutoEmptyStopLevelPercent = this.StopLevelPercent;
             }
@@ -203,7 +203,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
             /// <param name="settings">The settings.</param>
             internal void SetSettings(StandardServiceSettings settings)
             {
-                this.Enabled = settings.DispatchVehicles;
+                this.Enabled = settings.AutoEmpty;
                 this.StartLevelPercent = settings.AutoEmptyStartLevelPercent;
                 this.StopLevelPercent = settings.AutoEmptyStopLevelPercent;
             }

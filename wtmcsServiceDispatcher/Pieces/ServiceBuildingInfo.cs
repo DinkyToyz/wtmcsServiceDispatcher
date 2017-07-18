@@ -72,7 +72,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             this.Range = 0;
             this.Vehicles = new Dictionary<ushort, ServiceVehicleInfo>();
             this.dispatcherType = dispatcherType;
-            this.IsAutoEmptying = false;
+            this.IsAutoEmptying = (building.m_flags & Building.Flags.Downgrading) != Building.Flags.None;
 
             this.Initialize();
 
