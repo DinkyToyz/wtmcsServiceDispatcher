@@ -521,7 +521,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 }
             }
 
-            Singleton<VehicleManager>.instance.m_vehicles.m_buffer[this.vehicleId].Unspawn(this.vehicleId);
+            VehicleHelper.DeSpawn(this.vehicleId);
         }
     }
 }

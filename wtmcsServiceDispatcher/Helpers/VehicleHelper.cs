@@ -12,6 +12,45 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
     /// </summary>
     internal static class VehicleHelper
     {
+        public static void DeSpawn(ushort vehicleId)
+        {
+            if (Log.LogALot)
+            {
+                Log.DevDebug(typeof(VehicleHelper), "DeSpawn", vehicleId);
+            }
+
+            VehicleManager manager = Singleton<VehicleManager>.instance;
+            Vehicle[] vehicles = manager.m_vehicles.m_buffer;
+
+            if (vehicles[vehicleId].m_flags == ~(Vehicle.Flags.Created | Vehicle.Flags.Deleted | Vehicle.Flags.Spawned | Vehicle.Flags.Inverted | Vehicle.Flags.TransferToTarget | Vehicle.Flags.TransferToSource | Vehicle.Flags.Emergency1 | Vehicle.Flags.Emergency2 | Vehicle.Flags.WaitingPath | Vehicle.Flags.Stopped | Vehicle.Flags.Leaving | Vehicle.Flags.Arriving | Vehicle.Flags.Reversed | Vehicle.Flags.TakingOff | Vehicle.Flags.Flying | Vehicle.Flags.Landing | Vehicle.Flags.WaitingSpace | Vehicle.Flags.WaitingCargo | Vehicle.Flags.GoingBack | Vehicle.Flags.WaitingTarget | Vehicle.Flags.Importing | Vehicle.Flags.Exporting | Vehicle.Flags.Parking | Vehicle.Flags.CustomName | Vehicle.Flags.OnGravel | Vehicle.Flags.WaitingLoading | Vehicle.Flags.Congestion | Vehicle.Flags.DummyTraffic | Vehicle.Flags.Underground | Vehicle.Flags.Transition | Vehicle.Flags.InsideBuilding | Vehicle.Flags.LeftHandDrive))
+            {
+                if (Log.LogALot)
+                {
+                    Log.DevDebug(typeof(VehicleHelper), "DeSpawn", vehicleId, "Unspawn");
+                }
+
+                vehicles[vehicleId].Unspawn(vehicleId);
+                return;
+            }
+
+            if (Log.LogALot)
+            {
+                Log.DevDebug(typeof(VehicleHelper), "DeSpawn", vehicleId, "Release");
+            }
+
+            manager.ReleaseVehicle(vehicleId);
+
+            if (!(vehicles[vehicleId].m_flags == ~(Vehicle.Flags.Created | Vehicle.Flags.Deleted | Vehicle.Flags.Spawned | Vehicle.Flags.Inverted | Vehicle.Flags.TransferToTarget | Vehicle.Flags.TransferToSource | Vehicle.Flags.Emergency1 | Vehicle.Flags.Emergency2 | Vehicle.Flags.WaitingPath | Vehicle.Flags.Stopped | Vehicle.Flags.Leaving | Vehicle.Flags.Arriving | Vehicle.Flags.Reversed | Vehicle.Flags.TakingOff | Vehicle.Flags.Flying | Vehicle.Flags.Landing | Vehicle.Flags.WaitingSpace | Vehicle.Flags.WaitingCargo | Vehicle.Flags.GoingBack | Vehicle.Flags.WaitingTarget | Vehicle.Flags.Importing | Vehicle.Flags.Exporting | Vehicle.Flags.Parking | Vehicle.Flags.CustomName | Vehicle.Flags.OnGravel | Vehicle.Flags.WaitingLoading | Vehicle.Flags.Congestion | Vehicle.Flags.DummyTraffic | Vehicle.Flags.Underground | Vehicle.Flags.Transition | Vehicle.Flags.InsideBuilding | Vehicle.Flags.LeftHandDrive)))
+            {
+                if (Log.LogALot)
+                {
+                    Log.DevDebug(typeof(VehicleHelper), "DeSpawn", vehicleId, "Unspawn");
+                }
+
+                vehicles[vehicleId].Unspawn(vehicleId);
+            }
+        }
+
         /// <summary>
         /// All vehicle flags.
         /// </summary>
@@ -221,7 +260,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     }
 
                     vehicle.m_flags &= ~Vehicle.Flags.WaitingSpace;
-                    vehicle.Unspawn(vehicleId);
+                    DeSpawn(vehicleId);
 
                     return new VehicleResult(VehicleResult.Result.DeSpawned);
                 }
