@@ -13,6 +13,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// </summary>
         private Services.IService[] services = null;
 
+        public ServiceKeeper()
+        {
+            this.Initialize(true);
+        }
+
         /// <summary>
         /// Gets a value indicating whether any dispatcher creates vehicles.
         /// </summary>
@@ -238,7 +243,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// </returns>
         public bool DispatcherCreatesVehicles(TransferManager.TransferReason transferReason)
         {
-            return this.DispatcherCreatesVehicles(ServiceHelper.GetServiceType(transferReason));
+            ServiceHelper.ServiceType serviceType = ServiceHelper.GetServiceType(transferReason);
+            return serviceType != ServiceHelper.ServiceType.None && this.DispatcherCreatesVehicles(serviceType);
         }
 
         /// <summary>
@@ -310,41 +316,46 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             if (constructing || this.services == null)
             {
                 this.services = new Services.IService[(int)ServiceHelper.ServiceType.None];
-
-                foreach (ServiceHelper.ServiceType serviceType in Enum.GetValues(typeof(ServiceHelper.ServiceType)))
+                for (int i=0; i<this.services.Length;i++)
                 {
-                    if (serviceType != ServiceHelper.ServiceType.None)
+                    ServiceHelper.ServiceType serviceType = (ServiceHelper.ServiceType)i;
+
+                    switch (serviceType)
                     {
-                        switch (serviceType)
-                        {
-                            case ServiceHelper.ServiceType.HearseDispatcher:
-                                this.services[(int)serviceType] = new Services.DeathCare();
-                                break;
+                        case ServiceHelper.ServiceType.HearseDispatcher:
+                            this.services[i] = new Services.DeathCare();
+                            break;
 
-                            case ServiceHelper.ServiceType.GarbageTruckDispatcher:
-                                this.services[(int)serviceType] = new Services.Garbage();
-                                break;
+                        case ServiceHelper.ServiceType.GarbageTruckDispatcher:
+                            this.services[i] = new Services.Garbage();
+                            break;
 
-                            case ServiceHelper.ServiceType.AmbulanceDispatcher:
-                                this.services[(int)serviceType] = new Services.HealthCare();
-                                break;
-
-                            case ServiceHelper.ServiceType.BulldozerDispatcher:
-                                this.services[(int)serviceType] = new Services.WreckingCrews();
-                                break;
-
-                            case ServiceHelper.ServiceType.RecoveryCrewDispatcher:
-                                this.services[(int)serviceType] = new Services.RecoveryCrews();
-                                break;
-
-                            case ServiceHelper.ServiceType.Unblocker:
-                                this.services[(int)serviceType] = new Services.Unblocker();
-                                break;
-
-                            default:
+                        case ServiceHelper.ServiceType.AmbulanceDispatcher:
+                            if (Global.EnableDevExperiments)
+                            {
+                                this.services[i] = new Services.HealthCare();
+                            }
+                            else
+                            {
                                 this.services[(int)serviceType] = null;
-                                break;
-                        }
+                            }
+                            break;
+
+                        case ServiceHelper.ServiceType.BulldozerDispatcher:
+                            this.services[i] = new Services.WreckingCrews();
+                            break;
+
+                        case ServiceHelper.ServiceType.RecoveryCrewDispatcher:
+                            this.services[i] = new Services.RecoveryCrews();
+                            break;
+
+                        case ServiceHelper.ServiceType.Unblocker:
+                            this.services[i] = new Services.Unblocker();
+                            break;
+
+                        default:
+                            this.services[(int)serviceType] = null;
+                            break;
                     }
                 }
             }

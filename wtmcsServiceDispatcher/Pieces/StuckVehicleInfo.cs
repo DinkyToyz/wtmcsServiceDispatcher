@@ -199,7 +199,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// </value>
         public static bool CheckDispatchersResponsibility(ServiceHelper.ServiceType serviceType)
         {
-            return Global.Services != null && Global.Services.IsDispatching(serviceType);
+            return serviceType != ServiceHelper.ServiceType.None && Global.Services != null && Global.Services.IsDispatching(serviceType);
         }
 
         /// <summary>

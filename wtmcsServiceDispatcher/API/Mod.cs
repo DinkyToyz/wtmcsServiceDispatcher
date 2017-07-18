@@ -759,14 +759,17 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             string subGroup = "-";
             try
             {
+                subGroup = "a";
                 Services.IService service = (Global.Services == null) ? null : Global.Services[serviceType];
 
+                subGroup = "b";
                 UIHelperBase group = helper.AddGroup(settings.VehicleNamePlural);
+                subGroup = "c";
                 InformationalText currentStrategyInformationalText = null;
 
+                subGroup = "DispatchVehicles";
                 if (canService)
                 {
-                    subGroup = "DispatchVehicles";
                     group.AddCheckbox(
                         "Dispatch " + settings.VehicleNamePlural.ToLower(),
                         settings.DispatchVehicles,
@@ -789,7 +792,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 }
                 else
                 {
-                    subGroup = "(DispatchVehicles)";
                     UIComponent checkBox = group.AddCheckbox(
                         "Dispatch " + settings.VehicleNamePlural.ToLower(),
                         false,
