@@ -211,7 +211,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     throw new ArgumentNullException("Dispathcher type 'None' can not have settings");
 
                 default:
-                    throw new ArgumentException("No settings for dispatcher type: " + serviceType.ToString());
+                    throw new ArgumentException("No service settings for dispatcher type: " + serviceType.ToString());
             }
         }
 

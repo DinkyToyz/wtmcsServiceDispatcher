@@ -313,35 +313,38 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 foreach (ServiceHelper.ServiceType serviceType in Enum.GetValues(typeof(ServiceHelper.ServiceType)))
                 {
-                    switch (serviceType)
+                    if (serviceType != ServiceHelper.ServiceType.None)
                     {
-                        case ServiceHelper.ServiceType.HearseDispatcher:
-                            this.services[(int)serviceType] = new Services.DeathCare();
-                            break;
+                        switch (serviceType)
+                        {
+                            case ServiceHelper.ServiceType.HearseDispatcher:
+                                this.services[(int)serviceType] = new Services.DeathCare();
+                                break;
 
-                        case ServiceHelper.ServiceType.GarbageTruckDispatcher:
-                            this.services[(int)serviceType] = new Services.Garbage();
-                            break;
+                            case ServiceHelper.ServiceType.GarbageTruckDispatcher:
+                                this.services[(int)serviceType] = new Services.Garbage();
+                                break;
 
-                        case ServiceHelper.ServiceType.AmbulanceDispatcher:
-                            this.services[(int)serviceType] = new Services.HealthCare();
-                            break;
+                            case ServiceHelper.ServiceType.AmbulanceDispatcher:
+                                this.services[(int)serviceType] = new Services.HealthCare();
+                                break;
 
-                        case ServiceHelper.ServiceType.BulldozerDispatcher:
-                            this.services[(int)serviceType] = new Services.WreckingCrews();
-                            break;
+                            case ServiceHelper.ServiceType.BulldozerDispatcher:
+                                this.services[(int)serviceType] = new Services.WreckingCrews();
+                                break;
 
-                        case ServiceHelper.ServiceType.RecoveryCrewDispatcher:
-                            this.services[(int)serviceType] = new Services.RecoveryCrews();
-                            break;
+                            case ServiceHelper.ServiceType.RecoveryCrewDispatcher:
+                                this.services[(int)serviceType] = new Services.RecoveryCrews();
+                                break;
 
-                        case ServiceHelper.ServiceType.Unblocker:
-                            this.services[(int)serviceType] = new Services.Unblocker();
-                            break;
+                            case ServiceHelper.ServiceType.Unblocker:
+                                this.services[(int)serviceType] = new Services.Unblocker();
+                                break;
 
-                        default:
-                            this.services[(int)serviceType] = null;
-                            break;
+                            default:
+                                this.services[(int)serviceType] = null;
+                                break;
+                        }
                     }
                 }
             }

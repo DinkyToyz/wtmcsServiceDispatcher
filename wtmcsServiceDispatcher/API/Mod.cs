@@ -755,34 +755,18 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// </returns>
         private UIHelperBase CreateServiceGroup(UIHelperBase helper, ServiceHelper.ServiceType serviceType, bool canService)
         {
-            StandardServiceSettings settings = null;
-            Services.IService service = null;
-
+            StandardServiceSettings settings = Global.GetServiceSettings(serviceType);
+            string subGroup = "-";
             try
             {
-                switch (serviceType)
-                {
-                    case ServiceHelper.ServiceType.HearseDispatcher:
-                        settings = Global.Settings.DeathCare;
-                        service = (Global.Services == null) ? null : Global.Services[serviceType];
-                        break;
-
-                    case ServiceHelper.ServiceType.GarbageTruckDispatcher:
-                        settings = Global.Settings.Garbage;
-                        service = (Global.Services == null) ? null : Global.Services[serviceType];
-                        break;
-
-                    case ServiceHelper.ServiceType.AmbulanceDispatcher:
-                        settings = Global.Settings.HealthCare;
-                        service = (Global.Services == null) ? null : Global.Services[serviceType];
-                        break;
-                }
+                Services.IService service = (Global.Services == null) ? null : Global.Services[serviceType];
 
                 UIHelperBase group = helper.AddGroup(settings.VehicleNamePlural);
                 InformationalText currentStrategyInformationalText = null;
 
                 if (canService)
                 {
+                    subGroup = "DispatchVehicles";
                     group.AddCheckbox(
                         "Dispatch " + settings.VehicleNamePlural.ToLower(),
                         settings.DispatchVehicles,
@@ -805,6 +789,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 }
                 else
                 {
+                    subGroup = "(DispatchVehicles)";
                     UIComponent checkBox = group.AddCheckbox(
                         "Dispatch " + settings.VehicleNamePlural.ToLower(),
                         false,
@@ -813,6 +798,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         }) as UIComponent;
                 }
 
+                subGroup = "DispatchByDistrict";
                 group.AddCheckbox(
                     "Dispatch by district",
                     settings.DispatchByDistrict,
@@ -833,6 +819,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         }
                     });
 
+                subGroup = "DispatchByRange";
                 group.AddCheckbox(
                     "Dispatch by building range",
                     settings.DispatchByRange,
@@ -855,6 +842,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 if (settings.CanRemoveFromGrid)
                 {
+                    subGroup = "RemoveFromGrid";
                     group.AddCheckbox(
                         "Pass through " + settings.VehicleNamePlural.ToLower(),
                         settings.RemoveFromGrid,
@@ -878,6 +866,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 if (settings.CanLimitOpportunisticCollection)
                 {
+                    subGroup = "LimitOpportunisticCollection";
                     group.AddCheckbox(
                         "Prioritize assigned buildings",
                         settings.LimitOpportunisticCollection && settings.OpportunisticCollectionLimitDetourAllowed,
@@ -903,6 +892,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         });
                 }
 
+                subGroup = "CreateSpares";
                 group.AddDropdown(
                     "Send out spare " + settings.VehicleNamePlural.ToLower() + " when",
                     this.vehicleCreationOptions.OrderBy(vco => vco.Key).SelectToArray(vco => vco.Value),
@@ -946,6 +936,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         }
                     });
 
+                subGroup = "DispatchStrategy";
                 group.AddDropdown(
                     settings.VehicleNameSingular + " dispatch strategy",
                     this.targetBuildingChecks.OrderBy(bco => bco.Key).SelectToArray(bco => bco.Value),
@@ -1006,6 +997,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 //        settings.ChecksParametersString);
                 //}
 
+                subGroup = "UseClosest";
                 group.AddExtendedSlider(
                     "Closest services to use when ignoring range",
                     0,
@@ -1032,6 +1024,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         }
                     });
 
+                subGroup = "PatrolLimit";
                 if (settings.UseMinimumAmountForPatrol)
                 {
                     group.AddExtendedSlider(
@@ -1059,6 +1052,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         });
                 }
 
+                subGroup = "DispatchLimit";
                 if (settings.UseMinimumAmountForDispatch)
                 {
                     group.AddExtendedSlider(
@@ -1086,6 +1080,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         });
                 }
 
+                subGroup = "CustomStrategy";
                 bool updatingCustomStrategy = true;
                 InformationalText customStrategyWarningLabel = null;
                 UITextField customStrategyTextField = null;
@@ -1163,7 +1158,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             }
             catch (Exception ex)
             {
-                Log.Error(this, "CreateServiceGroup", ex, (settings == null) ? null : settings.EmptiableServiceBuildingNamePlural);
+                Log.Error(this, "CreateServiceGroup", ex, settings.EmptiableServiceBuildingNamePlural, subGroup);
                 return null;
             }
         }
