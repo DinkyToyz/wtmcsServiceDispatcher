@@ -7,13 +7,14 @@
 
 # Doing
 - Ambulance services.
+- Save auto-emptying state in save-file.
 
 # Dox etc
 
 # Additions and fixes
 
-- Save auto-emptying state in save-file.
-- Custom despawn so recovery crews won't be blocked by "no despawn" mods.
+- WhereSelectToArray
+- Save target assignment states in save?
 - Replace MonoDetour with [Harmony](https://github.com/pardeike/Harmony).
 - Fire fighting services?
 - Law enforcement services?
@@ -22,7 +23,7 @@
 - Save in vehicles how much capacity they will have left after pickup and add send-out-option to send when no vehicles are free now or will be free with enough capacity after next pickup?
 - Social services (taking care of confused citizens and tourists).
 - Fix invisible vehicles (flags == none, but not in m_vehicles.m_unusedItems)?
-- Save states in save?
+- Custom despawn so recovery crews won't be blocked by "no despawn" mods?
 
 # Changes and experiments
 
