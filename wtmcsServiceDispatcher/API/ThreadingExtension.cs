@@ -53,7 +53,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <param name="threading">The threading.</param>
         public override void OnCreated(IThreading threading)
         {
-            Log.Debug(this, "OnCreated", "Base");
+            Log.Debug(this, "OnCreated");
             Log.FlushBuffer();
             base.OnCreated(threading);
         }
@@ -63,7 +63,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// </summary>
         public override void OnReleased()
         {
-            Log.Debug(this, "OnReleased", "Base");
+            Log.Debug(this, "OnReleased");
             Log.FlushBuffer();
             base.OnReleased();
         }

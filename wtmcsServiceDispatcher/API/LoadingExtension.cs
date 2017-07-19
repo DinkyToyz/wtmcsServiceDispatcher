@@ -23,7 +23,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <param name="loading">The loading.</param>
         public override void OnCreated(ILoading loading)
         {
-            Log.Debug(this, "OnCreated", "Base");
+            Log.Debug(this, "OnCreated");
             Global.Initialize();
             Log.FlushBuffer();
             base.OnCreated(loading);
