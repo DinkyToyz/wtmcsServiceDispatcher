@@ -40,7 +40,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// </summary>
         public VehicleKeeper()
         {
-            this.ReInitialize();
+            this.Initialize(true);
             Log.Debug(this, "Constructed");
         }
 
@@ -81,21 +81,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// </summary>
         public void ReInitialize()
         {
-            if (this.StuckVehicles == null)
-            {
-                this.StuckVehicles = new Dictionary<ushort, StuckVehicleInfo>();
-            }
-
-            // Forget stuck vehicles that are no longer the dispatcher's responcibility.
-            if (this.StuckVehicles != null && !Global.Settings.RecoveryCrews.DispatchVehicles)
-            {
-                ushort[] vehicleIds = this.StuckVehicles.WhereSelect(kvp => !kvp.Value.DispatchersResponsibility, kvp => kvp.Key).ToArray();
-
-                for (int i = 0; i < vehicleIds.Length; i++)
-                {
-                    this.StuckVehicles.Remove(vehicleIds[i]);
-                }
-            }
+            this.Initialize(false);
         }
 
         /// <summary>
@@ -277,6 +263,29 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                             this.StuckVehicles.Remove(id);
                         }
                     }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Initialize the part.
+        /// </summary>
+        /// <param name="constructing">if set to <c>true</c> instance is being constructed.</param>
+        private void Initialize(bool constructing)
+        {
+            if (this.StuckVehicles == null)
+            {
+                this.StuckVehicles = new Dictionary<ushort, StuckVehicleInfo>();
+            }
+
+            // Forget stuck vehicles that are no longer the dispatcher's responcibility.
+            if (this.StuckVehicles != null && !Global.Settings.RecoveryCrews.DispatchVehicles)
+            {
+                ushort[] vehicleIds = this.StuckVehicles.WhereSelect(kvp => !kvp.Value.DispatchersResponsibility, kvp => kvp.Key).ToArray();
+
+                for (int i = 0; i < vehicleIds.Length; i++)
+                {
+                    this.StuckVehicles.Remove(vehicleIds[i]);
                 }
             }
         }

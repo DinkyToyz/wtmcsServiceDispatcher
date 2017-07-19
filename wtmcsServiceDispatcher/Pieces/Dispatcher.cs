@@ -998,7 +998,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                                 if (!vehicleResult.DeSpawned)
                                 {
-                                    serviceVehicle = new ServiceVehicleInfo(vehicleId, ref vehicles[vehicleId], canCollect && !hasTarget && !busy && !unavailable, this.DispatcherType);
+                                    serviceVehicle = new ServiceVehicleInfo(vehicleId, ref vehicles[vehicleId], canCollect && !hasTarget && !busy && !unavailable, this.DispatcherType, 0);
                                     if (Log.LogALot)
                                     {
                                         Log.DevDebug(this, "CollectVehicleData", "AddVehicle", serviceBuilding.BuildingId, vehicleId, vehicles[vehicleId].Info.name, serviceVehicle.VehicleName, serviceVehicle.FreeToCollect, collecting, vehicles[vehicleId].m_flags, loadSize, loadMax, loading, unavailable, busy, hasTarget, vehicles[vehicleId].m_targetBuilding, vehicleResult);

@@ -33,6 +33,23 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// </summary>
         /// <param name="vehicleId">The vehicle identifier.</param>
         /// <param name="vehicle">The vehicle.</param>
+        /// <param name="dispatcherType">Type of the dispatcher.</param>
+        /// <param name="targetBuildingId">The target building identifier.</param>
+        public ServiceVehicleInfo(ushort vehicleId, ref Vehicle vehicle, Dispatcher.DispatcherTypes dispatcherType, ushort targetBuildingId)
+        {
+            this.VehicleId = vehicleId;
+            this.dispatcherType = dispatcherType;
+            this.LastAssigned = 0;
+            this.LastSeen = 0;
+            this.FreeToCollect = false;
+            this.Target = targetBuildingId;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ServiceVehicleInfo" /> class.
+        /// </summary>
+        /// <param name="vehicleId">The vehicle identifier.</param>
+        /// <param name="vehicle">The vehicle.</param>
         /// <param name="freeToCollect">If set to <c>true</c> the vehicle is free.</param>
         /// <param name="dispatcherType">Type of the dispatcher.</param>
         /// <param name="targetBuildingId">The target building identifier.</param>

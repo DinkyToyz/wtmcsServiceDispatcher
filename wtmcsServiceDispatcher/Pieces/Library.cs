@@ -16,6 +16,11 @@
         public const string Name = "wtmcsServiceDispatcher";
 
         /// <summary>
+        /// The steam workshop file identifier.
+        /// </summary>
+        public const uint SteamWorkshopFileId = 512341354;
+
+        /// <summary>
         /// The title.
         /// </summary>
         public const string Title = "Central Services Dispatcher (WtM)";

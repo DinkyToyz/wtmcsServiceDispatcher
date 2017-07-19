@@ -120,6 +120,13 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 if (Global.Settings.DispatchAnyVehicles || Global.Settings.AutoEmptyAnyBuildings)
                 {
+                    // Do building stuff.
+                    if (Global.Buildings != null)
+                    {
+                        // Update buildings.
+                        Global.Buildings.Update();
+                    }
+
                     // Do vehicle based stuff.
                     if (Global.Vehicles != null)
                     {
@@ -130,9 +137,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     // Do building based stuff.
                     if (Global.Buildings != null)
                     {
-                        // Update buildings.
-                        Global.Buildings.Update();
-
                         // Dispatch hearses.
                         if (Global.Settings.DeathCare.DispatchVehicles && Global.HearseDispatcher != null)
                         {

@@ -28,7 +28,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         private static List<string> lineBuffer = null;
 
         /// <summary>
-        /// The log info all to file.
+        /// Log all info to file.
         /// </summary>
         private static bool logAllToFile;
 
@@ -79,10 +79,15 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             Log.LastFlush = 0;
 
+            Log.AlwaysFlush = false;
+            Log.LogToUnityOutputLog = true;
+
             Log.LogNames = FileSystem.Exists(".debug.names");
             Log.logDebugLists = FileSystem.Exists(".debug.lists");
             Log.logALot = FileSystem.Exists(".debug.dev");
             Log.logDebug = Library.IsDebugBuild || FileSystem.Exists(".debug");
+
+            Log.LogToDebugOutputPanel = Log.logDebug && !Log.logALot;
 
             SetLogValues();
 
@@ -132,6 +137,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             /// </summary>
             Dev = 5
         }
+
+        /// <summary>
+        /// Whether to flush log after each line even when buffering.
+        /// </summary>
+        public static bool AlwaysFlush { get; set; }
 
         /// <summary>
         /// Gets the last flush of buffer stamp.
@@ -240,6 +250,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// True for logging to debug output panel.
+        /// </summary>
+        public static bool LogToDebugOutputPanel { get; set; }
+
+        /// <summary>
         /// Gets or sets a value indicating whether to log to file.
         /// </summary>
         public static bool LogToFile
@@ -260,6 +275,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 }
             }
         }
+
+        /// <summary>
+        /// True for logging to games output log.
+        /// </summary>
+        public static bool LogToUnityOutputLog { get; set; }
 
         /// <summary>
         /// Instanciate a new info-list data item.
@@ -543,7 +563,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 msg.Insert(0, "] ").Insert(0, Library.Name).Insert(0, "[");
 
-                if (level != Level.None && level <= Level.Warning && level <= logLevel)
+                if (level != Level.None && level <= Level.Warning && level <= logLevel && LogToDebugOutputPanel)
                 {
                     try
                     {
@@ -566,7 +586,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 msg.Insert(0, (((level == Level.None) ? "" : level.ToString()) + ":").PadRight(9));
 
-                if (level != Level.None && level != Level.Dev && level <= logLevel && (level < Level.Debug || !LogToFile))
+                if (level != Level.None && level != Level.Dev && level <= logLevel && (level < Level.Debug || !LogToFile) && LogToUnityOutputLog)
                 {
                     try
                     {
@@ -587,7 +607,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         if (lineBuffer != null)
                         {
                             lineBuffer.Add(msg.ConformNewlines());
-                            if (level <= Level.Warning || lineBuffer.Count >= bufferLines)
+                            if (level <= Level.Warning || lineBuffer.Count >= bufferLines || AlwaysFlush)
                             {
                                 FlushBuffer();
                             }

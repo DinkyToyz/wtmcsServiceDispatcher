@@ -1,6 +1,7 @@
 ﻿using ColossalFramework;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 {
@@ -61,6 +62,19 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             get;
             private set;
         }
+
+        /// <summary>
+        /// The serialized automatic emptying building list.
+        /// </summary>
+        public HashSet<ushort> SerializedAutoEmptying { get; private set; }
+
+        /// <summary>
+        /// Gets the serialized target assignments.
+        /// </summary>
+        /// <value>
+        /// The serialized target assignments.
+        /// </value>
+        public Dictionary<ushort, ushort> SerializedTargetAssignments { get; private set; }
 
         /// <summary>
         /// Gets the service building lists.
@@ -266,6 +280,56 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Deserializes the automatic emptying building list.
+        /// </summary>
+        /// <param name="data">The data.</param>
+        public void DeserializeAutoEmptying(ushort[] data)
+        {
+            if (data == null || data.Length == 0)
+            {
+                this.SerializedAutoEmptying = null;
+                return;
+            }
+
+            try
+            {
+                this.SerializedAutoEmptying = new HashSet<ushort>(data);
+            }
+            catch (Exception ex)
+            {
+                this.SerializedAutoEmptying = null;
+                Log.Error(this, "DeserializeAutoEmptying", ex);
+            }
+        }
+
+        /// <summary>
+        /// Deserializes the target assignment list.
+        /// </summary>
+        /// <param name="data">The data.</param>
+        public void DeserializeTargetAssignments(ushort[] data)
+        {
+            if (data == null || data.Length == 0)
+            {
+                this.SerializedTargetAssignments = null;
+                return;
+            }
+
+            try
+            {
+                this.SerializedTargetAssignments = new Dictionary<ushort, ushort>(data.Length / 2);
+
+                for (int i = 0; i < data.Length - 1; i++)
+                {
+                    this.SerializedTargetAssignments[data[i]] = data[i + 1];
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error(this, "DeserializeTargetAssignments", ex);
+            }
+        }
+
+        /// <summary>
         /// Gets the buidling categories for a building.
         /// </summary>
         /// <param name="buildingId">The building identifier.</param>
@@ -344,6 +408,44 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Serializes the automatic emptying bulding list.
+        /// </summary>
+        /// <returns>Serialized data.</returns>
+        public ushort[] SerializeAutoEmptying()
+        {
+            if (this.StandardServices == null)
+            {
+                return null;
+            }
+
+            return this.StandardServices
+                    .Where(s => s != null && s.ServiceBuildings != null)
+                    .SelectMany(s => s.ServiceBuildings.Values)
+                    .Where(b => b.IsAutoEmptying)
+                    .SelectToArray(b => b.BuildingId);
+        }
+
+        /// <summary>
+        /// Serializes the target assignments.
+        /// </summary>
+        /// <returns>Serialized data.</returns>
+        public ushort[] SerializeTargetAssignments()
+        {
+            if (this.StandardServices == null)
+            {
+                return null;
+            }
+
+            return this.StandardServices
+                    .Where(s => s != null && s.ServiceBuildings != null)
+                    .SelectMany(s => s.ServiceBuildings.Values)
+                    .SelectMany(b => b.Vehicles.Values)
+                    .Where(v => v.Target != 0)
+                    .SelectMany(v => new ushort[] { v.VehicleId, v.Target })
+                    .ToArray();
+        }
+
+        /// <summary>
         /// Updates data.
         /// </summary>
         /// <exception cref="System.Exception">Update bucket loop counter too high.</exception>
@@ -388,6 +490,13 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 }
 
                 this.CategorizeBuildings();
+                this.SerializedAutoEmptying = null;
+
+                if (this.SerializedTargetAssignments != null)
+                {
+                    this.CollectVehicles();
+                    this.SerializedTargetAssignments = null;
+                }
             }
 
             if (Global.BuildingUpdateNeeded)
@@ -883,6 +992,63 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Collects the vehicles from deserialization.
+        /// </summary>
+        private void CollectVehicles()
+        {
+            Building[] buildings = Singleton<BuildingManager>.instance.m_buildings.m_buffer;
+            Vehicle[] vehicles = Singleton<VehicleManager>.instance.m_vehicles.m_buffer;
+
+            foreach (StandardServiceBuildings service in this.StandardServices)
+            {
+                if (service.ServiceBuildings != null)
+                {
+                    foreach (ServiceBuildingInfo serviceBuilding in service.ServiceBuildings.Values)
+                    {
+                        if (buildings[serviceBuilding.BuildingId].Info == null || (buildings[serviceBuilding.BuildingId].m_flags & Building.Flags.Created) == Building.Flags.None || (buildings[serviceBuilding.BuildingId].m_flags & (Building.Flags.Abandoned | Building.Flags.BurnedDown | Building.Flags.Deleted | Building.Flags.Hidden)) != Building.Flags.None)
+                        {
+                            int count = 0;
+
+                            serviceBuilding.FirstOwnVehicleId = buildings[serviceBuilding.BuildingId].m_ownVehicles;
+                            ushort vehicleId = serviceBuilding.FirstOwnVehicleId;
+                            while (vehicleId != 0)
+                            {
+                                if (count >= ushort.MaxValue)
+                                {
+                                    throw new Exception("Loop counter too high");
+                                }
+                                count++;
+
+                                if (vehicles[vehicleId].m_transferType == service.TransferType)
+                                {
+                                    // Add status for relevant vehicles.
+                                    if (vehicles[vehicleId].Info != null &&
+                                        (vehicles[vehicleId].m_flags & Vehicle.Flags.Created) == Vehicle.Flags.Created &&
+                                        (vehicles[vehicleId].m_flags & VehicleHelper.VehicleExists) != ~VehicleHelper.VehicleAll)
+                                    {
+                                        if (!serviceBuilding.Vehicles.ContainsKey(vehicleId))
+                                        {
+                                            ushort serializedTarget;
+                                            if (this.SerializedTargetAssignments.TryGetValue(vehicleId, out serializedTarget) && serializedTarget == vehicles[vehicleId].m_targetBuilding)
+                                            {
+                                                if (Log.LogALot)
+                                                {
+                                                    Log.DevDebug(this, "CollectVehicles", "NewVehicle", "SerializedTarget", vehicleId, serializedTarget);
+                                                }
+
+                                                serviceBuilding.Vehicles[vehicleId] = new ServiceVehicleInfo(vehicleId, ref vehicles[vehicleId], service.DispatcherType, serializedTarget);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        /// <summary>
         /// Initializes the data lists.
         /// </summary>
         /// <param name="constructing">If set to <c>true</c> object is being constructed.</param>
@@ -890,6 +1056,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             Log.InfoList info = new Log.InfoList();
             info.Add("constructing", constructing);
+
+            if (constructing)
+            {
+                this.SerializedAutoEmptying = null;
+                this.SerializedTargetAssignments = null;
+            }
 
             this.DeathCare.Intialize(constructing, Global.Settings.DeathCare, info);
             this.Garbage.Intialize(constructing, Global.Settings.Garbage, info);
@@ -969,34 +1141,55 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             public Dictionary<ushort, TargetBuildingInfo> TargetBuildings = null;
 
             /// <summary>
-            /// The material.
-            /// </summary>
-            private string service = null;
-
-            /// <summary>
             /// Initializes a new instance of the <see cref="StandardServiceBuildings" /> class.
             /// </summary>
             /// <param name="dispatcherType">Type of the dispatcher.</param>
             public StandardServiceBuildings(Dispatcher.DispatcherTypes dispatcherType)
             {
+                this.DispatcherType = dispatcherType;
+
                 switch (dispatcherType)
                 {
                     case Dispatcher.DispatcherTypes.HearseDispatcher:
-                        this.service = "DeathCare";
+                        this.Service = "DeathCare";
+                        this.TransferType = (byte)TransferManager.TransferReason.Dead;
                         break;
 
                     case Dispatcher.DispatcherTypes.GarbageTruckDispatcher:
-                        this.service = "Garbage";
+                        this.Service = "Garbage";
+                        this.TransferType = (byte)TransferManager.TransferReason.Garbage;
                         break;
 
                     case Dispatcher.DispatcherTypes.AmbulanceDispatcher:
-                        this.service = "HelathCare";
+                        this.Service = "HelathCare";
+                        this.TransferType = (byte)TransferManager.TransferReason.Sick;
                         break;
 
                     default:
                         throw new ArgumentOutOfRangeException("Unknown dispatcher type: " + dispatcherType.ToString());
                 }
             }
+
+            /// <summary>
+            /// Gets the type of the dispatcher.
+            /// </summary>
+            /// <value>
+            /// The type of the dispatcher.
+            /// </value>
+            public Dispatcher.DispatcherTypes DispatcherType { get; private set; }
+
+            /// <summary>
+            /// The material.
+            /// </summary>
+            public string Service { get; set; }
+
+            /// <summary>
+            /// Gets the type of the transfer.
+            /// </summary>
+            /// <value>
+            /// The type of the transfer.
+            /// </value>
+            public byte TransferType { get; private set; }
 
             /// <summary>
             /// Intializes this instance.
@@ -1006,8 +1199,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             /// <param name="info">The debug information list.</param>
             public void Intialize(bool constructing, StandardServiceSettings settings, Log.InfoList info)
             {
-                info.Add(this.service, "DispatchVehicles", Global.Settings.DeathCare.DispatchVehicles);
-                info.Add(this.service, "AutoEmpty", Global.Settings.DeathCare.AutoEmpty);
+                info.Add(this.Service, "DispatchVehicles", Global.Settings.DeathCare.DispatchVehicles);
+                info.Add(this.Service, "AutoEmpty", Global.Settings.DeathCare.AutoEmpty);
 
                 if (!settings.DispatchVehicles)
                 {
@@ -1016,7 +1209,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 }
                 else if (constructing || this.TargetBuildings == null)
                 {
-                    info.Add(this.service, "New", "TargetBuildings");
+                    info.Add(this.Service, "New", "TargetBuildings");
                     this.HasBuildingsToCheck = false;
                     this.TargetBuildings = new Dictionary<ushort, TargetBuildingInfo>();
                 }
@@ -1027,7 +1220,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 }
                 else if (constructing || this.BuildingsInNeedOfEmptyingChange == null)
                 {
-                    info.Add(this.service, "New", "BuildingsInNeedOfEmptying");
+                    info.Add(this.Service, "New", "BuildingsInNeedOfEmptying");
                     this.BuildingsInNeedOfEmptyingChange = new List<ServiceBuildingInfo>();
                 }
 
@@ -1037,7 +1230,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 }
                 else if (constructing || this.ServiceBuildings == null)
                 {
-                    info.Add(this.service, "New", "ServiceCareBuildings");
+                    info.Add(this.Service, "New", "ServiceCareBuildings");
                     this.ServiceBuildings = new Dictionary<ushort, ServiceBuildingInfo>();
                 }
             }

@@ -72,7 +72,20 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             this.Range = 0;
             this.Vehicles = new Dictionary<ushort, ServiceVehicleInfo>();
             this.dispatcherType = dispatcherType;
-            this.IsAutoEmptying = (building.m_flags & Building.Flags.Downgrading) != Building.Flags.None;
+
+            if (Global.Buildings.SerializedAutoEmptying != null)
+            {
+                this.IsAutoEmptying = Global.Buildings.SerializedAutoEmptying.Contains(buildingId);
+
+                if (Log.LogALot)
+                {
+                    Log.Debug(this, "Construct", "IsAutoEmptying", buildingId, this.IsAutoEmptying);
+                }
+            }
+            else
+            {
+                this.IsAutoEmptying = false;
+            }
 
             this.Initialize();
 
