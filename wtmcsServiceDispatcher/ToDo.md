@@ -32,6 +32,7 @@
 - Citizens?
 - Ambulances: only emergency if citizen is sick enough?
 - If (Singleton<UnlockManager>.instance.Unlocked(ItemClass.Service.HealthCare))
+- Cargo parent stuck stuff?
 
 # Notes
 
