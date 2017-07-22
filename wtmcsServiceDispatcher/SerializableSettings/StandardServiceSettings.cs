@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 
 namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 {
@@ -106,7 +105,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// The remove from grid settings value.
         /// </summary>
-        private bool removeFromGrid = true;
+        private bool removeFromGridValue = true;
 
         /// <summary>
         /// The minimum amount for dispatch usability value.
@@ -117,6 +116,69 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// The minimum amount for patrol usability value.
         /// </summary>
         private bool? useMinimumAmountForPatrol = null;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="StandardServiceSettings"/> class.
+        /// </summary>
+        public StandardServiceSettings() : base()
+        { }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="StandardServiceSettings"/> class.
+        /// </summary>
+        /// <param name="serviceType">Type of the service.</param>
+        public StandardServiceSettings(SerializableSettings.ServiceType serviceType) : base(serviceType)
+        {
+            switch (serviceType)
+            {
+                case SerializableSettings.ServiceType.DeathCare:
+                    this.VehicleNamePlural = "Hearses";
+                    this.EmptiableServiceBuildingNamePlural = "Cemeteries";
+                    this.MaterialName = "Dead People";
+                    this.CanAutoEmpty = true;
+                    this.CanRemoveFromGrid = true;
+                    break;
+
+                case SerializableSettings.ServiceType.Garbage:
+                    this.VehicleNamePlural = "Garbage Trucks";
+                    this.EmptiableServiceBuildingNamePlural = "Landfills";
+                    this.MaterialName = "Garbage";
+                    this.CanAutoEmpty = true;
+                    this.CanLimitOpportunisticCollection = true;
+                    this.OpportunisticCollectionLimitDetour = Detours.Methods.GarbageTruckAI_TryCollectGarbage;
+                    this.UseMinimumAmountForDispatch = true;
+                    this.UseMinimumAmountForPatrol = true;
+                    break;
+
+                case SerializableSettings.ServiceType.HealthCare:
+                    this.VehicleNamePlural = "Ambulances";
+                    this.MaterialName = "Sick People";
+                    this.CanRemoveFromGrid = true;
+                    break;
+
+                default:
+                    throw new InvalidOperationException("Not a standard service: " + serviceType.ToString());
+            }
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="StandardServiceSettings"/> class.
+        /// </summary>
+        /// <param name="settings">The settings.</param>
+        public StandardServiceSettings(StandardServiceSettings settings) : base(settings)
+        {
+            if (settings != null)
+            {
+                this.emptiableServiceBuildingNamePluralValue = settings.emptiableServiceBuildingNamePluralValue;
+                this.materialNameValue = settings.materialNameValue;
+                this.canAutoEmptyValue = settings.canAutoEmptyValue;
+                this.canRemoveFromGridValue = settings.canRemoveFromGridValue;
+                this.canLimitOpportunisticCollectionValue = settings.canLimitOpportunisticCollectionValue;
+                this.useMinimumAmountForDispatch = settings.useMinimumAmountForDispatch;
+                this.useMinimumAmountForPatrol = settings.useMinimumAmountForPatrol;
+                this.opportunisticCollectionLimitDetour = settings.opportunisticCollectionLimitDetour;
+            }
+        }
 
         /// <summary>
         /// Gets or sets a value indicating whether automatic emptying should be done.
@@ -242,7 +304,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 }
                 else
                 {
-                    this.customCheckParameters = value.DistinctInOrder<ServiceDispatcherSettings.BuildingCheckParameters>().ToArray();
+                    this.customCheckParameters = value.DistinctInOrder<ServiceDispatcherSettings.BuildingCheckParameters>().TakeToArray(255);
                 }
             }
         }
@@ -468,7 +530,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             get
             {
-                return this.removeFromGrid && this.CanRemoveFromGrid;
+                return this.removeFromGridValue && this.CanRemoveFromGrid;
             }
 
             set
@@ -528,6 +590,32 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 {
                     throw new InvalidOperationException("Write-once property modification");
                 }
+            }
+        }
+
+        /// <summary>
+        /// Copies valus from the specified object to this instance.
+        /// </summary>
+        /// <param name="settings">The settings.</param>
+        public override void CopyFrom(ServiceSettings settings)
+        {
+            base.CopyFrom(settings);
+
+            if (settings is StandardServiceSettings)
+            {
+                this.DispatchByDistrict = ((StandardServiceSettings)settings).DispatchByDistrict;
+                this.DispatchByRange = ((StandardServiceSettings)settings).DispatchByRange;
+                this.autoEmptyValue = ((StandardServiceSettings)settings).autoEmptyValue;
+                this.limitOpportunisticCollectionValue = ((StandardServiceSettings)settings).limitOpportunisticCollectionValue;
+                this.removeFromGridValue = ((StandardServiceSettings)settings).removeFromGridValue;
+                this.IgnoreRangeUseClosestBuildings = ((StandardServiceSettings)settings).IgnoreRangeUseClosestBuildings;
+                this.CreateSpares = ((StandardServiceSettings)settings).CreateSpares;
+                this.checksPresetValue = ((StandardServiceSettings)settings).checksPresetValue;
+                this.MinimumAmountForDispatch = ((StandardServiceSettings)settings).MinimumAmountForDispatch;
+                this.MinimumAmountForPatrol = ((StandardServiceSettings)settings).MinimumAmountForPatrol;
+                this.AutoEmptyStartLevelPercent = ((StandardServiceSettings)settings).AutoEmptyStartLevelPercent;
+                this.AutoEmptyStopLevelPercent = ((StandardServiceSettings)settings).AutoEmptyStopLevelPercent;
+                this.customCheckParameters = ((StandardServiceSettings)settings).customCheckParameters;
             }
         }
 

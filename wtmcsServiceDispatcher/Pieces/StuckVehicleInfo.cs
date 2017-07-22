@@ -80,22 +80,33 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         private ushort targetBuildingId = 0;
 
         /// <summary>
-        /// The vehicle identifier.
-        /// </summary>
-        private ushort vehicleId = 0;
-
-        /// <summary>
         /// Initializes a new instance of the <see cref="StuckVehicleInfo"/> class.
         /// </summary>
         /// <param name="vehicleId">The vehicle identifier.</param>
         /// <param name="vehicle">The vehicle.</param>
         public StuckVehicleInfo(ushort vehicleId, ref Vehicle vehicle)
         {
-            this.vehicleId = vehicleId;
+            this.VehicleId = vehicleId;
             this.dispatcherType = Dispatcher.GetDispatcherType(ref vehicle);
 
             this.Update(ref vehicle);
         }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="StuckVehicleInfo" /> class.
+        /// </summary>
+        private StuckVehicleInfo()
+        {
+            this.VehicleId = 0;
+        }
+
+        /// <summary>
+        /// Gets the size of the serialized.
+        /// </summary>
+        /// <value>
+        /// The size of the serialized.
+        /// </value>
+        public static int SerializedSize => 60;
 
         /// <summary>
         /// Gets a value indicating whether the vehicle is the dispatcher's responsibility.
@@ -113,6 +124,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                        (Global.Settings.HealthCare.DispatchVehicles && Global.AmbulanceDispatcher != null && this.dispatcherType == Dispatcher.DispatcherTypes.AmbulanceDispatcher);
             }
         }
+
+        /// <summary>
+        /// The vehicle identifier.
+        /// </summary>
+        public ushort VehicleId { get; private set; }
 
         /// <summary>
         /// Gets the amount of frames during which the vehicle has had a check flag.
@@ -185,6 +201,27 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Tries to deserialize the specified serialized data to this instance.
+        /// </summary>
+        /// <param name="serializedData">The serialized data.</param>
+        /// <param name="stuckVehicleInfo">The stuck vehicle information.</param>
+        /// <returns>
+        /// The deserialization result.
+        /// </returns>
+        public static SerializableSettings.DeserializationResult Deserialize(SerializableSettings.BinaryData serializedData, out StuckVehicleInfo stuckVehicleInfo)
+        {
+            stuckVehicleInfo = new StuckVehicleInfo();
+            SerializableSettings.DeserializationResult result = stuckVehicleInfo.Deserialize(serializedData);
+
+            if (result != SerializableSettings.DeserializationResult.Success)
+            {
+                stuckVehicleInfo = null;
+            }
+
+            return result;
+        }
+
+        /// <summary>
         /// Determines whether the specified vehicle has a problem.
         /// </summary>
         /// <param name="vehicleId">The vehicle identifier.</param>
@@ -254,7 +291,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             Log.InfoList info = new Log.InfoList();
             this.AddDebugInfoData(info, true);
 
-            Log.DevDebug(this, "DebugLog", this.vehicleId, info);
+            Log.DevDebug(this, "DebugLog", this.VehicleId, info);
         }
 
         /// <summary>
@@ -268,7 +305,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 try
                 {
                     // Remove vehicle.
-                    Log.Debug(this, "HandleProblem", "StuckOrBroken", "DeSpawn", this.vehicleId, VehicleHelper.GetVehicleName(this.vehicleId));
+                    Log.Debug(this, "HandleProblem", "StuckOrBroken", "DeSpawn", this.VehicleId, VehicleHelper.GetVehicleName(this.VehicleId));
 
                     this.DeSpawn();
 
@@ -276,7 +313,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 }
                 catch (Exception ex)
                 {
-                    Log.Error(this, "HandleProblem", ex, this.vehicleId);
+                    Log.Error(this, "HandleProblem", ex, this.VehicleId);
                 }
                 finally
                 {
@@ -295,13 +332,13 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 try
                 {
                     // De-assign vehicle.
-                    Log.Debug(this, "HandleProblem", "Confused", "DeAssign", this.vehicleId, VehicleHelper.GetVehicleName(this.vehicleId));
+                    Log.Debug(this, "HandleProblem", "Confused", "DeAssign", this.VehicleId, VehicleHelper.GetVehicleName(this.VehicleId));
 
                     this.DeAssign();
                 }
                 catch (Exception ex)
                 {
-                    Log.Error(this, "HandleProblem", ex, this.vehicleId);
+                    Log.Error(this, "HandleProblem", ex, this.VehicleId);
                 }
                 finally
                 {
@@ -310,6 +347,53 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Serializes this instance.
+        /// </summary>
+        /// <returns>The serialized data.</returns>
+        public SerializableSettings.BinaryData Serialize()
+        {
+            SerializableSettings.BinaryData serializedData = new SerializableSettings.BinaryData(60);
+
+            // Version.
+            serializedData.Add((byte)0);                            //  1    1
+
+            // Data.
+            serializedData.Add(this.VehicleId);                     //  2    3
+            serializedData.Add(this.targetBuildingId);              //  2    5
+            serializedData.Add(this.dispatcherType);                //  1    6
+            serializedData.Add(this.checkFlags);                    //  8   14
+            serializedData.Add(this.checkFlagSinceFrame);           //  4   18
+            serializedData.Add(this.checkFlagSinceTime);            //  8   26
+            serializedData.Add(this.confusedDeAssignedSinceFrame);  //  4   30
+            serializedData.Add(this.confusedSinceFrame);            //  4   34
+            serializedData.Add(this.confusedSinceTime);             //  8   42
+            serializedData.Add(this.lastDeAssignStamp);             //  4   46
+            serializedData.Add(this.checkFlagPosition);             // 12   58
+
+            serializedData.AddLocalCheckSum();                      //  2   60
+
+            return serializedData;
+        }
+
+        /// <summary>
+        /// Returns a <see cref="System.String" /> that represents this instance.
+        /// </summary>
+        /// <returns>
+        /// A <see cref="System.String" /> that represents this instance.
+        /// </returns>
+        public override string ToString()
+        {
+            Log.InfoList info = new Log.InfoList("StuckVehicleInfo: ");
+
+            info.Add("VehcileId", this.VehicleId);
+            info.Add("CheckFlags", this.checkFlags);
+            info.Add("DispatcherType", this.dispatcherType);
+            info.Add("DispatchersResponsibility", this.DispatchersResponsibility);
+
+            return info.ToString();
         }
 
         /// <summary>
@@ -354,7 +438,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 {
                     if (Log.LogALot)
                     {
-                        Log.DevDebug(this, "Update", "NewConfused", this.vehicleId, this.ConfusedForSeconds, this.ConfusedForFrames, Global.Settings.RecoveryCrews.DelaySeconds, Global.DeAssignConfusedDelay, vehicle.m_targetBuilding, vehicle.m_flags, VehicleHelper.GetVehicleName(this.vehicleId));
+                        Log.DevDebug(this, "Update", "NewConfused", this.VehicleId, this.ConfusedForSeconds, this.ConfusedForFrames, Global.Settings.RecoveryCrews.DelaySeconds, Global.DeAssignConfusedDelay, vehicle.m_targetBuilding, vehicle.m_flags, VehicleHelper.GetVehicleName(this.VehicleId));
                     }
 
                     this.confusedSinceTime = Global.SimulationTime;
@@ -381,7 +465,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                     if (delta > Global.Settings.RecoveryCrews.DelaySeconds)
                     {
-                        Log.Info(this, "IsStuck", this.checkFlags, this.vehicleId, delta, VehicleHelper.GetVehicleName(this.vehicleId));
+                        Log.Info(this, "IsStuck", this.checkFlags, this.VehicleId, delta, VehicleHelper.GetVehicleName(this.VehicleId));
 
                         this.isStuck = true;
                     }
@@ -394,7 +478,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                     if (delta > Global.Settings.RecoveryCrews.DelaySeconds)
                     {
-                        Log.Info(this, "IsStuck", "Confused", this.vehicleId, delta, VehicleHelper.GetVehicleName(this.vehicleId));
+                        Log.Info(this, "IsStuck", "Confused", this.VehicleId, delta, VehicleHelper.GetVehicleName(this.VehicleId));
 
                         this.isStuck = true;
                     }
@@ -411,9 +495,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             if (complete)
             {
-                info.Add("VehicleId", this.vehicleId);
+                info.Add("VehicleId", this.VehicleId);
 
-                Vehicle vehicle = Singleton<VehicleManager>.instance.m_vehicles.m_buffer[this.vehicleId];
+                Vehicle vehicle = Singleton<VehicleManager>.instance.m_vehicles.m_buffer[this.VehicleId];
 
                 info.Add("LeadingVehicle", vehicle.m_leadingVehicle);
                 info.Add("TrailingVehicle", vehicle.m_trailingVehicle);
@@ -459,7 +543,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     {
                         ServiceVehicleInfo serviceVehicle;
 
-                        if (serviceBuilding.Vehicles.TryGetValue(this.vehicleId, out serviceVehicle) && serviceVehicle.Target != 0)
+                        if (serviceBuilding.Vehicles.TryGetValue(this.VehicleId, out serviceVehicle) && serviceVehicle.Target != 0)
                         {
                             TargetBuildingInfo targetBuilding;
 
@@ -472,7 +556,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                             {
                                 if (serviceVehicle.DeAssign().DeSpawned)
                                 {
-                                    serviceBuilding.Vehicles.Remove(this.vehicleId);
+                                    serviceBuilding.Vehicles.Remove(this.VehicleId);
                                 }
 
                                 this.lastDeAssignStamp = Global.CurrentFrame;
@@ -486,11 +570,52 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             {
                 if (Log.LogALot)
                 {
-                    Log.DevDebug(this, "DeAssign", this.dispatcherType, this.vehicleId);
+                    Log.DevDebug(this, "DeAssign", this.dispatcherType, this.VehicleId);
                 }
 
-                VehicleHelper.DeAssign(this.vehicleId);
+                VehicleHelper.DeAssign(this.VehicleId);
             }
+        }
+
+        /// <summary>
+        /// Deserializes the specified serialized data to this instance.
+        /// </summary>
+        /// <param name="serializedData">The serialized data.</param>
+        /// <returns>
+        /// The deserialization result.
+        /// </returns>
+        /// <exception cref="InvalidOperationException">Serialized data version too high: " + version.ToString() + " (0)</exception>
+        private SerializableSettings.DeserializationResult Deserialize(SerializableSettings.BinaryData serializedData)
+        {
+            if (serializedData == null || serializedData.Left == 0)
+            {
+                return SerializableSettings.DeserializationResult.EndOfData;
+            }
+
+            serializedData.ResetLocalCheckSum();
+
+            byte version = serializedData.GetByte();
+            if (version > 0)
+            {
+                Log.Warning(this, "Serialized data version too high!", version, 0);
+                return SerializableSettings.DeserializationResult.Error;
+            }
+
+            this.VehicleId = serializedData.GetUshort();
+            this.targetBuildingId = serializedData.GetUshort();
+            this.dispatcherType = serializedData.GetDispatcherType();
+            this.checkFlags = serializedData.GetVehicleFlags();
+            this.checkFlagSinceFrame = serializedData.GetUint();
+            this.checkFlagSinceTime = serializedData.GetDouble();
+            this.confusedDeAssignedSinceFrame = serializedData.GetUint();
+            this.confusedSinceFrame = serializedData.GetUint();
+            this.confusedSinceTime = serializedData.GetDouble();
+            this.lastDeAssignStamp = serializedData.GetUint();
+            this.checkFlagPosition = serializedData.GetVector3();
+
+            serializedData.CheckLocalCheckSum();
+
+            return SerializableSettings.DeserializationResult.Success;
         }
 
         /// <summary>
@@ -506,7 +631,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     {
                         ServiceVehicleInfo serviceVehicle;
 
-                        if (serviceBuilding.Vehicles.TryGetValue(this.vehicleId, out serviceVehicle) && serviceVehicle.Target != 0)
+                        if (serviceBuilding.Vehicles.TryGetValue(this.VehicleId, out serviceVehicle) && serviceVehicle.Target != 0)
                         {
                             TargetBuildingInfo targetBuilding;
 
@@ -516,12 +641,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                             }
                         }
 
-                        serviceBuilding.Vehicles.Remove(this.vehicleId);
+                        serviceBuilding.Vehicles.Remove(this.VehicleId);
                     }
                 }
             }
 
-            VehicleHelper.DeSpawn(this.vehicleId);
+            VehicleHelper.DeSpawn(this.VehicleId);
         }
     }
 }

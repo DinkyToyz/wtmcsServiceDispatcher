@@ -77,11 +77,103 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Deserializes the automatic emptying building list.
+        /// </summary>
+        /// <param name="serializedData">The serialized data.</param>
+        public void DeserializeStuckVehicles(SerializableSettings.BinaryData serializedData)
+        {
+            if (serializedData == null || serializedData.Left == 0)
+            {
+                return;
+            }
+
+            try
+            {
+                byte version = serializedData.GetByte();
+                if (version > 0)
+                {
+                    Log.Warning(this, "DeserializeStuckVehicles", "Serialized data version too high!", version, 0);
+                    return;
+                }
+
+                if (serializedData.Left == 0 || this.StuckVehicles == null)
+                {
+                    return;
+                }
+
+                StuckVehicleInfo vehicle;
+                SerializableSettings.DeserializationResult result;
+                while ((result = StuckVehicleInfo.Deserialize(serializedData, out vehicle)) == SerializableSettings.DeserializationResult.Success)
+                {
+                    if (Log.LogALot)
+                    {
+                        Log.DevDebug(this, "DeserializeStuckVehicles", "[" + vehicle.ToString() + "]");
+                    }
+
+                    this.StuckVehicles[vehicle.VehicleId] = vehicle;
+                }
+
+                if (result == SerializableSettings.DeserializationResult.Error)
+                {
+                    this.StuckVehicles.Clear();
+                }
+                else if (Log.LogALot)
+                {
+                    Log.DevDebug(this, "DeserializeStuckVehicles", String.Join(" | ", this.StuckVehicles.Values.OrderBy(v => v.VehicleId).SelectToArray(v => "[" + v.ToString() + "]")));
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error(this, "DeserializeStuckVehicles", ex);
+
+                if (this.StuckVehicles != null)
+                {
+                    this.StuckVehicles.Clear();
+                }
+            }
+        }
+
+        /// <summary>
         /// Re-initialize the part.
         /// </summary>
         public void ReInitialize()
         {
             this.Initialize(false);
+        }
+
+        /// <summary>
+        /// Serializes the target assignments.
+        /// </summary>
+        /// <returns>Serialized data.</returns>
+        public SerializableSettings.BinaryData SerializeStuckVehicles()
+        {
+            if (this.StuckVehicles == null)
+            {
+                return null;
+            }
+
+            if (Log.LogALot)
+            {
+                Log.DevDebug(this, "SerializeStuckVehicles", String.Join(" | ", this.StuckVehicles.Values.OrderBy(v => v.VehicleId).SelectToArray(v => "[" + v.ToString() + "]")));
+            }
+
+            SerializableSettings.BinaryData serializedData = new SerializableSettings.BinaryData(this.StuckVehicles.Count * StuckVehicleInfo.SerializedSize + 1);
+
+            // Version.
+            serializedData.Add((byte)0);
+
+            // Data.
+            foreach (StuckVehicleInfo vehicle in this.StuckVehicles.Values)
+            {
+                serializedData.Add(vehicle.Serialize());
+            }
+
+            if (Log.LogALot)
+            {
+                Log.DevDebug(this, "SerializeStuckVehicles", serializedData.Length);
+            }
+
+            return serializedData;
         }
 
         /// <summary>

@@ -722,11 +722,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             }
             else if (obj is float)
             {
-                str = ((float)obj).ToString("#,0.##", CultureInfo.InvariantCulture);
+                str = ((float)obj).ToString("#0.##", CultureInfo.InvariantCulture);
             }
             else if (obj is double)
             {
-                str = ((double)obj).ToString("#,0.##", CultureInfo.InvariantCulture);
+                str = ((double)obj).ToString("#0.##", CultureInfo.InvariantCulture);
             }
             else if (obj is Vector3)
             {

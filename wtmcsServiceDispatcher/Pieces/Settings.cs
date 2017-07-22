@@ -15,56 +15,32 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// The death-care settings.
         /// </summary>
-        public readonly StandardServiceSettings DeathCare = new StandardServiceSettings()
-        {
-            VehicleNamePlural = "Hearses",
-            EmptiableServiceBuildingNamePlural = "Cemeteries",
-            MaterialName = "Dead People",
-            CanAutoEmpty = true,
-            CanRemoveFromGrid = true
-        };
+        public readonly StandardServiceSettings DeathCare = new StandardServiceSettings(SerializableSettings.ServiceType.DeathCare);
 
         /// <summary>
         /// The garbage settings.
         /// </summary>
-        public readonly StandardServiceSettings Garbage = new StandardServiceSettings()
-        {
-            VehicleNamePlural = "Garbage Trucks",
-            EmptiableServiceBuildingNamePlural = "Landfills",
-            MaterialName = "Garbage",
-            CanAutoEmpty = true,
-            CanLimitOpportunisticCollection = true,
-            OpportunisticCollectionLimitDetour = Detours.Methods.GarbageTruckAI_TryCollectGarbage,
-            UseMinimumAmountForDispatch = true,
-            UseMinimumAmountForPatrol = true
-        };
+        public readonly StandardServiceSettings Garbage = new StandardServiceSettings(SerializableSettings.ServiceType.Garbage);
 
         /// <summary>
         /// The health-care settings.
         /// </summary>
-        public readonly StandardServiceSettings HealthCare = new StandardServiceSettings()
-        {
-            VehicleNamePlural = "Ambulances",
-            MaterialName = "Sick People",
-            CanRemoveFromGrid = true
-        };
+        public readonly StandardServiceSettings HealthCare = new StandardServiceSettings(SerializableSettings.ServiceType.HealthCare);
 
         /// <summary>
         /// The recovery crews settings.
         /// </summary>
-        public readonly HiddenServiceSettings RecoveryCrews = new HiddenServiceSettings()
-        {
-            VehicleNamePlural = "Recovery Services",
-            VehicleNameSingular = "Recovery"
-        };
+        public readonly HiddenServiceSettings RecoveryCrews = new HiddenServiceSettings(SerializableSettings.ServiceType.RecoveryCrews);
+
+        /// <summary>
+        /// Whether to load settings per city or not.
+        /// </summary>
+        public readonly bool LoadSettingsPerCity = false;
 
         /// <summary>
         /// The wrecking crews settings.
         /// </summary>
-        public readonly HiddenServiceSettings WreckingCrews = new HiddenServiceSettings()
-        {
-            VehicleNamePlural = "Bulldozers"
-        };
+        public readonly HiddenServiceSettings WreckingCrews = new HiddenServiceSettings(SerializableSettings.ServiceType.WreckingCrews);
 
         /// <summary>
         /// The SetTarget call compatibility mode.
@@ -289,13 +265,15 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <value>
         ///   <c>true</c> if dispatching vehicles; otherwise, <c>false</c>.
         /// </value>
-        public bool DispatchAnyVehicles
-        {
-            get
-            {
-                return this.Garbage.DispatchVehicles || this.DeathCare.DispatchVehicles || this.HealthCare.DispatchVehicles;
-            }
-        }
+        public bool DispatchAnyVehicles => this.Garbage.DispatchVehicles || this.DeathCare.DispatchVehicles || this.HealthCare.DispatchVehicles;
+
+        /// <summary>
+        /// Gets a value indicating whether this <see cref="Settings"/> has been loaded from save.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if loaded; otherwise, <c>false</c>.
+        /// </value>
+        public bool Loaded => this.loadedVersion != null && this.loadedVersion.HasValue && this.loadedVersion.Value >= 0;
 
         /// <summary>
         /// Gets the settings version in the loaded file.
@@ -303,13 +281,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <value>
         /// The settings version in the loaded file.
         /// </value>
-        public int LoadedVersion
-        {
-            get
-            {
-                return (this.loadedVersion == null || !this.loadedVersion.HasValue) ? 0 : this.loadedVersion.Value;
-            }
-        }
+        public int LoadedVersion => (this.loadedVersion == null || !this.loadedVersion.HasValue) ? 0 : this.loadedVersion.Value;
 
         /// <summary>
         /// Gets the name of the allowance.

@@ -111,6 +111,8 @@
     <Compile Include="Pieces\Dispatcher.cs" />
     <Compile Include="Pieces\DispatchServiceKeeper.cs" />
     <Compile Include="Pieces\ServiceProblemKeeper.cs" />
+    <Compile Include="SerializableSettings\BinaryData.cs" />
+    <Compile Include="SerializableSettings\BinarySettings.cs" />
     <Compile Include="SerializableSettings\ServiceDispatcherSettings.cs" />
     <Compile Include="Pieces\StuckVehicleInfo.cs" />
     <Compile Include="SerializableSettings\HiddenServiceSettings.cs" />
@@ -118,6 +120,7 @@
     <Compile Include="SerializableSettings\ServiceSettings.cs" />
     <Compile Include="SerializableSettings\SettingsVersion0.cs" />
     <Compile Include="SerializableSettings\SettingsVersion6.cs" />
+    <Compile Include="SerializableSettings\SimpleTypes.cs" />
     <Compile Include="SerializableSettings\StandardServiceSettings.cs" />
     <Compile Include="UI\ExtendedSlider.cs" />
     <Compile Include="UI\InformationalText.cs" />
@@ -129,6 +132,7 @@
     <Compile Include="Pieces\IBuildingInfo.cs" />
     <Compile Include="Pieces\Library.cs" />
     <Compile Include="API\LoadingExtension.cs" />
+    <Compile Include="Util\FletcherChecksum.cs" />
     <Compile Include="Util\LinqExtensions.cs" />
     <Compile Include="Util\Log.cs" />
     <Compile Include="Detouring\MethodDetoursBase.cs" />

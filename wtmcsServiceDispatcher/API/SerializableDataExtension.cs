@@ -46,10 +46,34 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             try
             {
+                Log.AlwaysFlush = true;
                 Log.LogToDebugOutputPanel = false;
 
-                Log.Info(this, "OnSaveData", "LoadStates");
-                this.LoadStandardServiceStates();
+                if (this.serializableData != null && Global.Settings != null)
+                {
+                    if (Global.Settings.LoadSettingsPerCity || !Global.Settings.Loaded)
+                    {
+                        Log.Info(this, "OnLoadData", "LoadSettings");
+
+                        SerializableSettings.BinarySettings.Deseralize(this.LoadSerializedData("Settings"));
+                    }
+
+                    if (Global.Buildings != null)
+                    {
+                        Log.Info(this, "OnLoadData", "LoadBuildingStates");
+
+                        Global.Buildings.DeserializeAutoEmptying(this.LoadSerializedData("AutoEmptying"));
+                        Global.Buildings.DeserializeTargetAssignments(this.LoadSerializedData("TargetAssignments"));
+                        Global.Buildings.DeserializeDesolateBuildings(this.LoadSerializedData("DesolateBuildings"));
+                    }
+
+                    if (Global.Vehicles != null)
+                    {
+                        Log.Info(this, "OnLoadData", "LoadVehicleStates");
+
+                        Global.Vehicles.DeserializeStuckVehicles(this.LoadSerializedData("StuckVehicles"));
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -57,6 +81,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             }
             finally
             {
+                Log.AlwaysFlush = false;
                 Log.LogToDebugOutputPanel = logToDebugOutputPanel;
                 base.OnLoadData();
             }
@@ -83,8 +108,28 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             try
             {
-                Log.Info(this, "OnSaveData", "SaveStates");
-                this.SaveStandardServiceStates();
+                if (Global.Settings != null)
+                {
+                    Log.Info(this, "OnSaveData", "SaveSettings");
+
+                    this.SaveSerializedData(SerializableSettings.BinarySettings.Serialize(), "Settings");
+                }
+
+                if (Global.Buildings != null)
+                {
+                    Log.Info(this, "OnSaveData", "SaveBuildingStates");
+
+                    this.SaveSerializedData(Global.Buildings.SerializeAutoEmptying(), "AutoEmptying");
+                    this.SaveSerializedData(Global.Buildings.SerializeTargetAssignments(), "TargetAssignments");
+                    this.SaveSerializedData(Global.Buildings.SerializeDesolateBuildings(), "DesolateBuildings");
+                }
+
+                if (Global.Vehicles != null)
+                {
+                    Log.Info(this, "OnSaveData", "SaveVehicleStates");
+
+                    this.SaveSerializedData(Global.Vehicles.SerializeStuckVehicles(), "StuckVehicles");
+                }
             }
             catch (Exception ex)
             {
@@ -113,18 +158,18 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// </summary>
         /// <param name="subIds">The sub identifiers.</param>
         /// <returns>The deserialized binary data.</returns>
-        private byte[] LoadSerializedData(params string[] subIds)
+        private SerializableSettings.BinaryData LoadSerializedData(params string[] subIds)
         {
             string id = this.GetDataId(subIds);
 
-            Log.Debug(this, "LoadSerializedData", id);
+            Log.DevDebug(this, "LoadSerializedData", id);
 
             try
             {
-                byte[] data = this.serializableData.LoadData(id);
+                SerializableSettings.BinaryData data = new SerializableSettings.BinaryData(this.serializableData, id);
                 if (data != null)
                 {
-                    Log.Debug(this, "LoadStandardServiceStates", "Data", id, data.Length);
+                    Log.Debug(this, "LoadSerializedData", id, data.Length);
                 }
 
                 return data;
@@ -137,124 +182,30 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
-        /// Loads the serialized data.
-        /// </summary>
-        /// <param name="subIds">The sub identifiers.</param>
-        /// <returns>The deserialized binary data.</returns>
-        private ushort[] LoadSerializedUShortData(params string[] subIds)
-        {
-            byte[] data = this.LoadSerializedData(subIds);
-
-            if (data == null)
-            {
-                return null;
-            }
-
-            ushort[] ushortData = new ushort[data.Length / 2];
-            if (ushortData.Length > 0)
-            {
-                Buffer.BlockCopy(data, 0, ushortData, 0, ushortData.Length * 2);
-            }
-
-            return ushortData;
-        }
-
-        /// <summary>
-        /// Loads the standard service states.
-        /// </summary>
-        private void LoadStandardServiceStates()
-        {
-            Log.Debug(this, "LoadStandardServiceStates", "Begin");
-
-            try
-            {
-                if (this.serializableData != null && Global.Buildings != null)
-                {
-                    Log.Debug(this, "LoadStandardServiceStates", "AutoEmptying");
-                    Global.Buildings.DeserializeAutoEmptying(this.LoadSerializedUShortData("AutoEmptying"));
-
-                    Log.Debug(this, "LoadStandardServiceStates", "TargetAssignments");
-                    Global.Buildings.DeserializeTargetAssignments(this.LoadSerializedUShortData("TargetAssignments"));
-                }
-            }
-            catch (Exception ex)
-            {
-                Log.Error(this, "LoadStandardServiceStates", ex);
-            }
-
-            Log.Debug(this, "LoadStandardServiceStates", "End");
-        }
-
-        /// <summary>
         /// Saves the serialized data.
         /// </summary>
         /// <param name="data">The data.</param>
         /// <param name="subIds">The sub identifiers.</param>
-        private void SaveSerializedData(byte[] data, params string[] subIds)
+        private void SaveSerializedData(SerializableSettings.BinaryData data, params string[] subIds)
         {
             string id = this.GetDataId(subIds);
 
             if (data == null)
             {
                 Log.DevDebug(this, "SaveSerializedData", id, "NoData");
-                return;
+                data = new SerializableSettings.BinaryData();
             }
 
             Log.Debug(this, "SaveSerializedData", id, data.Length);
 
             try
             {
-                this.serializableData.SaveData(id, data);
+                data.Save(this.serializableData, id);
             }
             catch (Exception ex)
             {
                 Log.Error(this, "SaveSerializedData", ex, id);
             }
-        }
-
-        /// <summary>
-        /// Saves the serialized data.
-        /// </summary>
-        /// <param name="data">The data.</param>
-        /// <param name="subIds">The sub identifiers.</param>
-        private void SaveSerializedData(ushort[] data, params string[] subIds)
-        {
-            if (data == null)
-            {
-                Log.DevDebug(this, "SaveSerializedData", this.GetDataId(subIds), "NoData");
-                return;
-            }
-
-            byte[] byteData = new byte[data.Length * 2];
-            if (byteData.Length > 0)
-            {
-                Buffer.BlockCopy(data, 0, byteData, 0, byteData.Length);
-            }
-
-            this.SaveSerializedData(byteData, subIds);
-        }
-
-        /// <summary>
-        /// Saves the standard service states.
-        /// </summary>
-        private void SaveStandardServiceStates()
-        {
-            Log.Debug(this, "SaveStandardServiceStates", "Begin");
-
-            try
-            {
-                if (Global.Buildings != null)
-                {
-                    this.SaveSerializedData(Global.Buildings.SerializeAutoEmptying(), "AutoEmptying");
-                    this.SaveSerializedData(Global.Buildings.SerializeTargetAssignments(), "TargetAssignments");
-                }
-            }
-            catch (Exception ex)
-            {
-                Log.Error(this, "SaveStandardServiceStates", ex);
-            }
-
-            Log.Debug(this, "SaveStandardServiceStates", "End");
         }
     }
 }

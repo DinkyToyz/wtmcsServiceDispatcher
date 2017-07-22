@@ -449,21 +449,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
-        /// Re-initializes the hearse dispatcher.
-        /// </summary>
-        public static void ReInitializeHearseDispatcher()
-        {
-            try
-            {
-                HearseDispatcher.ReInitialize();
-            }
-            catch (Exception ex)
-            {
-                Log.Error(typeof(Global), "ReInitializeHearseDispatcher", ex);
-            }
-        }
-
-        /// <summary>
         /// Logs the debug lists.
         /// </summary>
         /// <param name="initializing">if set to <c>true</c> level is loading.</param>

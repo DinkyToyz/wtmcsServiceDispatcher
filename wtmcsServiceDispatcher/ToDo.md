@@ -1,20 +1,20 @@
 # Still or recently experimental
 - Automatic emptying.
-- Override TransferManager.AddIncomingOffer and TransferManager.AddOutgoingOffer?
-- Remember problematic targets and delay next assigment to such target, so that it does not ceate a problem for the whole city.
+- Override TransferManager.AddIncomingOffer and TransferManager.AddOutgoingOffer.
+- Remember problematic targets and delay next assigment to such target, so that it does not create a problem for the whole city.
 - Make a simple textbox for adding comma separated custom strategy.
 - New stragety option: Make it so IgnoreRange only ignores range for the n closest buildings.
 
 # Doing
 - Ambulance services.
-- Save auto-emptying state in save-file.
+- Save target assigments, desolate buildings and auto-emptying state in save-file.
+- Being able to have separate settings on global level and map level.
 
 # Dox etc
 
 # Additions and fixes
 
 - WhereSelectToArray
-- Save target assignment states in save?
 - Replace MonoDetour with [Harmony](https://github.com/pardeike/Harmony).
 - Fire fighting services?
 - Law enforcement services?
@@ -24,14 +24,14 @@
 - Social services (taking care of confused citizens and tourists).
 - Fix invisible vehicles (flags == none, but not in m_vehicles.m_unusedItems)?
 - Custom despawn so recovery crews won't be blocked by "no despawn" mods?
+- Being able to have separate settings for district and specific buildings?
+- Find path to building for better range check?
 
 # Changes and experiments
 
 - Citizens?
 - Ambulances: only emergency if citizen is sick enough?
 - If (Singleton<UnlockManager>.instance.Unlocked(ItemClass.Service.HealthCare))
-- Being able to have separate settings on global level, map, district and specific building (where only global is required) would be nice.
-- Find path to building for better range check?
 
 # Notes
 

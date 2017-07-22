@@ -46,6 +46,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         private uint bucketMask = 255;
 
         /// <summary>
+        /// Gets the serialized target assignments.
+        /// </summary>
+        /// <value>
+        /// The serialized target assignments.
+        /// </value>
+        private Dictionary<ushort, ushort> serializedTargetAssignments = null;
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="BuildingKeeper"/> class.
         /// </summary>
         public BuildingKeeper()
@@ -67,14 +75,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// The serialized automatic emptying building list.
         /// </summary>
         public HashSet<ushort> SerializedAutoEmptying { get; private set; }
-
-        /// <summary>
-        /// Gets the serialized target assignments.
-        /// </summary>
-        /// <value>
-        /// The serialized target assignments.
-        /// </value>
-        public Dictionary<ushort, ushort> SerializedTargetAssignments { get; private set; }
 
         /// <summary>
         /// Gets the service building lists.
@@ -282,10 +282,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// Deserializes the automatic emptying building list.
         /// </summary>
-        /// <param name="data">The data.</param>
-        public void DeserializeAutoEmptying(ushort[] data)
+        /// <param name="serializedData">The serialized data.</param>
+        public void DeserializeAutoEmptying(SerializableSettings.BinaryData serializedData)
         {
-            if (data == null || data.Length == 0)
+            if (serializedData == null || serializedData.Left == 0)
             {
                 this.SerializedAutoEmptying = null;
                 return;
@@ -293,39 +293,153 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             try
             {
+                byte version = serializedData.GetByte();
+                if (version > 0)
+                {
+                    Log.Warning(this, "DeserializeAutoEmptying", "Serialized data version too high!", version, 0);
+                    this.SerializedAutoEmptying = null;
+                    return;
+                }
+
+                if (serializedData.Left == 0)
+                {
+                    this.SerializedAutoEmptying = null;
+                    return;
+                }
+
+                ushort[] data = serializedData.GetUshortArray();
+
+                if (Log.LogALot)
+                {
+                    Log.Debug(this, "DeserializeAutoEmptying", serializedData.Length, data.Length, String.Join(" ", data.OrderBy(us => us).SelectToArray(us => us.ToString())));
+                }
+
                 this.SerializedAutoEmptying = new HashSet<ushort>(data);
+
+                if (Log.LogALot)
+                {
+                    Log.DevDebug(this, "DeserializeAutoEmptying", this.SerializedAutoEmptying.Count, String.Join(", ", this.SerializedAutoEmptying.OrderBy(id => id).SelectToArray(id => id.ToString())));
+                }
             }
             catch (Exception ex)
             {
-                this.SerializedAutoEmptying = null;
                 Log.Error(this, "DeserializeAutoEmptying", ex);
+                this.SerializedAutoEmptying = null;
+            }
+        }
+
+        /// <summary>
+        /// Deserializes the desolate buildings.
+        /// </summary>
+        /// <param name="serializedData">The serialized data.</param>
+        public void DeserializeDesolateBuildings(SerializableSettings.BinaryData serializedData)
+        {
+            if (serializedData == null || serializedData.Left == 0)
+            {
+                return;
+            }
+
+            try
+            {
+                byte version = serializedData.GetByte();
+                if (version > 0)
+                {
+                    Log.Warning(this, "DeserializeDesolateBuildings", "Serialized data version too high!", version, 0);
+                    return;
+                }
+
+                if (serializedData.Left == 0 || this.DesolateBuildings == null)
+                {
+                    return;
+                }
+
+                if (Log.LogALot)
+                {
+                    Log.Debug(this, "DeserializeDesolateBuildings", serializedData.Length, String.Join(" ", serializedData.Data.Select(b => b.ToString("X2")).TakeToArray(serializedData.Length - 1)));
+                }
+
+                while (serializedData.Left >= 10)
+                {
+                    ushort id = serializedData.GetUshort();
+                    double stamp = serializedData.GetDouble();
+
+                    if (Log.LogALot)
+                    {
+                        Log.DevDebug(this, "DeserializeDesolateBuildings", id, stamp);
+                    }
+
+                    this.DesolateBuildings[id] = stamp;
+                }
+
+                if (Log.LogALot)
+                {
+                    Log.DevDebug(this, "DeserializeDesolateBuildings", this.DesolateBuildings.Count, String.Join(", ", this.DesolateBuildings.OrderBy(db => db.Key).SelectToArray(db => db.Key.ToString() + ":" + db.Value.ToString())));
+                }
+
+                this.DesolateBuildings.Clear();
+            }
+            catch (Exception ex)
+            {
+                Log.Error(this, "DeserializeDesolateBuildings", ex);
+
+                if (this.DesolateBuildings != null)
+                {
+                    this.DesolateBuildings.Clear();
+                }
             }
         }
 
         /// <summary>
         /// Deserializes the target assignment list.
         /// </summary>
-        /// <param name="data">The data.</param>
-        public void DeserializeTargetAssignments(ushort[] data)
+        /// <param name="serializedData">The serialized data.</param>
+        public void DeserializeTargetAssignments(SerializableSettings.BinaryData serializedData)
         {
-            if (data == null || data.Length == 0)
+            if (serializedData == null || serializedData.Left == 0)
             {
-                this.SerializedTargetAssignments = null;
+                this.serializedTargetAssignments = null;
                 return;
             }
 
             try
             {
-                this.SerializedTargetAssignments = new Dictionary<ushort, ushort>(data.Length / 2);
-
-                for (int i = 0; i < data.Length - 1; i++)
+                byte version = serializedData.GetByte();
+                if (version > 0)
                 {
-                    this.SerializedTargetAssignments[data[i]] = data[i + 1];
+                    Log.Warning(this, "DeserializeTargetAssignments", "Serialized data version too high!", version, 0);
+                    this.serializedTargetAssignments = null;
+                    return;
+                }
+
+                if (serializedData.Left == 0)
+                {
+                    this.serializedTargetAssignments = null;
+                    return;
+                }
+
+                ushort[] data = serializedData.GetUshortArray();
+
+                if (Log.LogALot)
+                {
+                    Log.Debug(this, "DeserializeTargetAssignments", serializedData.Length, data.Length, String.Join(" ", data.SelectToArray(us => us.ToString())));
+                }
+
+                this.serializedTargetAssignments = new Dictionary<ushort, ushort>(data.Length / 2);
+
+                for (int i = 0; i < data.Length - 1; i += 2)
+                {
+                    this.serializedTargetAssignments[data[i]] = data[i + 1];
+                }
+
+                if (Log.LogALot)
+                {
+                    Log.DevDebug(this, "DeserializeTargetAssignments", this.serializedTargetAssignments.Count, String.Join(", ", this.serializedTargetAssignments.OrderBy(ta => ta.Key).SelectToArray(ta => ta.Key.ToString() + ":" + ta.Value.ToString())));
                 }
             }
             catch (Exception ex)
             {
                 Log.Error(this, "DeserializeTargetAssignments", ex);
+                this.serializedTargetAssignments = null;
             }
         }
 
@@ -411,44 +525,121 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// Serializes the automatic emptying bulding list.
         /// </summary>
         /// <returns>Serialized data.</returns>
-        public ushort[] SerializeAutoEmptying()
+        public SerializableSettings.BinaryData SerializeAutoEmptying()
         {
             if (this.StandardServices == null)
             {
                 return null;
             }
 
-            return this.StandardServices
+            if (Log.LogALot)
+            {
+                Log.DevDebug(this, "SerializeAutoEmptying", String.Join(", ", this.StandardServices.Where(ss => ss != null && ss.ServiceBuildings != null).SelectMany(ss => ss.ServiceBuildings.Values).Where(sb => sb.IsAutoEmptying).OrderBy(sb => sb.BuildingId).SelectToArray(sb => sb.BuildingId.ToString())));
+            }
+
+            ushort[] sourceData = this.StandardServices
                     .Where(s => s != null && s.ServiceBuildings != null)
                     .SelectMany(s => s.ServiceBuildings.Values)
                     .Where(b => b.IsAutoEmptying)
                     .SelectToArray(b => b.BuildingId);
+
+            SerializableSettings.BinaryData serializedData = new SerializableSettings.BinaryData(sourceData.Length * 2 + 1);
+
+            // Version.
+            serializedData.Add((byte)0);
+
+            // Data.
+            serializedData.Add(sourceData);
+
+            if (Log.LogALot)
+            {
+                Log.DevDebug(this, "SerializeAutoEmptying", serializedData.Length);
+            }
+
+            return serializedData;
+        }
+
+        public SerializableSettings.BinaryData SerializeDesolateBuildings()
+        {
+            if (this.DesolateBuildings == null)
+            {
+                return null;
+            }
+
+            if (Log.LogALot)
+            {
+                Log.DevDebug(this, "SerializeDesolateBuildings", this.DesolateBuildings.Count, String.Join(", ", this.DesolateBuildings.OrderBy(db => db.Key).SelectToArray(db => db.Key.ToString() + ":" + db.Value.ToString("#0.##"))));
+
+                Log.Debug(this, "SerializeDesolateBuildings", this.DesolateBuildings.Count, String.Join(",  ",
+                    this.DesolateBuildings.Select(db =>
+                        String.Join("-", BitConverter.GetBytes(db.Key).Select(b => b.ToString("X2")).ToArray()) + ":" +
+                        String.Join("-", BitConverter.GetBytes(db.Value).Select(b => b.ToString("X2")).ToArray())
+                    ).ToArray()));
+            }
+
+            SerializableSettings.BinaryData serializedData = new SerializableSettings.BinaryData(this.DesolateBuildings.Count * 10 + 1);
+
+            // Version.
+            serializedData.Add((byte)0);
+
+            // Data.
+            foreach (KeyValuePair<ushort, double> desolateBuilding in this.DesolateBuildings)
+            {
+                serializedData.Add(desolateBuilding.Key);
+                serializedData.Add(desolateBuilding.Value);
+            }
+
+            if (Log.LogALot)
+            {
+                Log.DevDebug(this, "SerializeDesolateBuildings", serializedData.Length);
+            }
+
+            return serializedData;
         }
 
         /// <summary>
         /// Serializes the target assignments.
         /// </summary>
         /// <returns>Serialized data.</returns>
-        public ushort[] SerializeTargetAssignments()
+        public SerializableSettings.BinaryData SerializeTargetAssignments()
         {
             if (this.StandardServices == null)
             {
                 return null;
             }
 
-            return this.StandardServices
+            if (Log.LogALot)
+            {
+                Log.DevDebug(this, "SerializeTargetAssignments", String.Join(", ", this.StandardServices.Where(ss => ss != null && ss.ServiceBuildings != null).SelectMany(ss => ss.ServiceBuildings.Values).SelectMany(b => b.Vehicles.Values).Where(v => v.Target != 0).OrderBy(v => v.VehicleId).SelectToArray(v => v.VehicleId.ToString() + ":" + v.Target.ToString())));
+            }
+
+            ushort[] sourceData = this.StandardServices
                     .Where(s => s != null && s.ServiceBuildings != null)
                     .SelectMany(s => s.ServiceBuildings.Values)
                     .SelectMany(b => b.Vehicles.Values)
                     .Where(v => v.Target != 0)
                     .SelectMany(v => new ushort[] { v.VehicleId, v.Target })
                     .ToArray();
+
+            SerializableSettings.BinaryData serializedData = new SerializableSettings.BinaryData(sourceData.Length * 2 + 1);
+
+            // Version.
+            serializedData.Add((byte)0);
+
+            // Data.
+            serializedData.Add(sourceData);
+
+            if (Log.LogALot)
+            {
+                Log.DevDebug(this, "SerializeTargetAssignments", serializedData.Length);
+            }
+
+            return serializedData;
         }
 
         /// <summary>
         /// Updates data.
         /// </summary>
-        /// <exception cref="System.Exception">Update bucket loop counter too high.</exception>
         public void Update()
         {
             // Get and categorize buildings.
@@ -492,10 +683,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 this.CategorizeBuildings();
                 this.SerializedAutoEmptying = null;
 
-                if (this.SerializedTargetAssignments != null)
+                if (this.serializedTargetAssignments != null)
                 {
                     this.CollectVehicles();
-                    this.SerializedTargetAssignments = null;
+                    this.serializedTargetAssignments = null;
                 }
             }
 
@@ -999,14 +1190,34 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             Building[] buildings = Singleton<BuildingManager>.instance.m_buildings.m_buffer;
             Vehicle[] vehicles = Singleton<VehicleManager>.instance.m_vehicles.m_buffer;
 
+            if (Log.LogALot)
+            {
+                Log.DevDebug(this, "CollectVehicles", "SerializedTargetAssignments", this.serializedTargetAssignments.Count);
+            }
+
             foreach (StandardServiceBuildings service in this.StandardServices)
             {
                 if (service.ServiceBuildings != null)
                 {
+                    if (Log.LogALot)
+                    {
+                        Log.DevDebug(this, "CollectVehicles", "SerializedTargets", "Service", service.Service, service.TransferType, service.ServiceBuildings.Count);
+                    }
+
                     foreach (ServiceBuildingInfo serviceBuilding in service.ServiceBuildings.Values)
                     {
-                        if (buildings[serviceBuilding.BuildingId].Info == null || (buildings[serviceBuilding.BuildingId].m_flags & Building.Flags.Created) == Building.Flags.None || (buildings[serviceBuilding.BuildingId].m_flags & (Building.Flags.Abandoned | Building.Flags.BurnedDown | Building.Flags.Deleted | Building.Flags.Hidden)) != Building.Flags.None)
+                        if (Log.LogALot)
                         {
+                            Log.DevDebug(this, "CollectVehicles", "SerializedTargets", "ServiceBuilding", service.Service, serviceBuilding.BuildingId, buildings[serviceBuilding.BuildingId].m_flags, buildings[serviceBuilding.BuildingId].Info);
+                        }
+
+                        if (buildings[serviceBuilding.BuildingId].Info != null && (buildings[serviceBuilding.BuildingId].m_flags & Building.Flags.Created) != Building.Flags.None || (buildings[serviceBuilding.BuildingId].m_flags & (Building.Flags.Abandoned | Building.Flags.BurnedDown | Building.Flags.Deleted | Building.Flags.Hidden)) == Building.Flags.None)
+                        {
+                            if (Log.LogALot)
+                            {
+                                Log.DevDebug(this, "CollectVehicles", "SerializedTargets", "ServiceBuilding", service.Service, serviceBuilding.BuildingId);
+                            }
+
                             int count = 0;
 
                             serviceBuilding.FirstOwnVehicleId = buildings[serviceBuilding.BuildingId].m_ownVehicles;
@@ -1019,7 +1230,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                                 }
                                 count++;
 
-                                if (vehicles[vehicleId].m_transferType == service.TransferType)
+                                if (Log.LogALot)
+                                {
+                                    Log.DevDebug(this, "CollectVehicles", "SerializedTargets", "Vehicle", service.Service, serviceBuilding.BuildingId, vehicleId, vehicles[vehicleId].m_targetBuilding, (TransferManager.TransferReason)vehicles[vehicleId].m_transferType, vehicles[vehicleId].m_flags, vehicles[vehicleId].Info);
+                                }
+
+                                if (vehicles[vehicleId].m_transferType == service.TransferType && vehicles[vehicleId].m_targetBuilding != 0)
                                 {
                                     // Add status for relevant vehicles.
                                     if (vehicles[vehicleId].Info != null &&
@@ -1028,18 +1244,29 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                                     {
                                         if (!serviceBuilding.Vehicles.ContainsKey(vehicleId))
                                         {
+                                            if (Log.LogALot)
+                                            {
+                                                Log.DevDebug(this, "CollectVehicles", "SerializedTargets", "NewVehicle", service.Service, serviceBuilding.BuildingId, vehicleId, vehicles[vehicleId].m_targetBuilding);
+                                            }
+
                                             ushort serializedTarget;
-                                            if (this.SerializedTargetAssignments.TryGetValue(vehicleId, out serializedTarget) && serializedTarget == vehicles[vehicleId].m_targetBuilding)
+                                            if (this.serializedTargetAssignments.TryGetValue(vehicleId, out serializedTarget) && serializedTarget == vehicles[vehicleId].m_targetBuilding)
                                             {
                                                 if (Log.LogALot)
                                                 {
-                                                    Log.DevDebug(this, "CollectVehicles", "NewVehicle", "SerializedTarget", vehicleId, serializedTarget);
+                                                    Log.DevDebug(this, "CollectVehicles", "SerializedTargets", "OldTarget", service.Service, serviceBuilding.BuildingId, vehicleId, serializedTarget);
                                                 }
 
                                                 serviceBuilding.Vehicles[vehicleId] = new ServiceVehicleInfo(vehicleId, ref vehicles[vehicleId], service.DispatcherType, serializedTarget);
                                             }
                                         }
                                     }
+                                }
+
+                                vehicleId = vehicles[vehicleId].m_nextOwnVehicle;
+                                if (vehicleId == serviceBuilding.FirstOwnVehicleId)
+                                {
+                                    break;
                                 }
                             }
                         }
@@ -1060,7 +1287,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             if (constructing)
             {
                 this.SerializedAutoEmptying = null;
-                this.SerializedTargetAssignments = null;
+                this.serializedTargetAssignments = null;
             }
 
             this.DeathCare.Intialize(constructing, Global.Settings.DeathCare, info);

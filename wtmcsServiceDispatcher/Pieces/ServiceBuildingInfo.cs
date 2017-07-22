@@ -79,7 +79,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 if (Log.LogALot)
                 {
-                    Log.Debug(this, "Construct", "IsAutoEmptying", buildingId, this.IsAutoEmptying);
+                    Log.Debug(this, "Construct", "SerializedAutoEmptying", buildingId, this.IsAutoEmptying);
                 }
             }
             else
