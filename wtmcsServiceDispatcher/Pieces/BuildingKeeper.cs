@@ -33,7 +33,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// The building object bucket manager.
         /// </summary>
-        private Bucketeer bucketeer;
+        private Bucketeer bucketeer = null;
 
         /// <summary>
         /// The bucket factor.
@@ -75,6 +75,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// The serialized automatic emptying building list.
         /// </summary>
         public HashSet<ushort> SerializedAutoEmptying { get; private set; }
+
+        /// <summary>
+        /// Gets a value indicating whether emptying is considerd as being automatic for new buildings.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if emptying is considered automatic; otherwise, <c>false</c>.
+        /// </value>
+        public bool EmptyingIsAutoEmptying { get; private set; }
 
         /// <summary>
         /// Gets the service building lists.
@@ -285,6 +293,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <param name="serializedData">The serialized data.</param>
         public void DeserializeAutoEmptying(SerializableSettings.BinaryData serializedData)
         {
+            this.EmptyingIsAutoEmptying = serializedData == null;
+
             if (serializedData == null || serializedData.Left == 0)
             {
                 this.SerializedAutoEmptying = null;
@@ -680,8 +690,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     this.bucket = this.bucketeer.GetEnd();
                 }
 
+                if (Log.LogALot)
+                {
+                    Log.DevDebug(this, "Update", "SerializedAutoEmptying", this.EmptyingIsAutoEmptying, (this.SerializedAutoEmptying == null) ? 0 : this.SerializedAutoEmptying.Count);
+                }
+
                 this.CategorizeBuildings();
                 this.SerializedAutoEmptying = null;
+                this.EmptyingIsAutoEmptying = false;
 
                 if (this.serializedTargetAssignments != null)
                 {
@@ -1286,7 +1302,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             if (constructing)
             {
+                this.bucketeer = null;
                 this.SerializedAutoEmptying = null;
+                this.EmptyingIsAutoEmptying = true;
                 this.serializedTargetAssignments = null;
             }
 
