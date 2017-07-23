@@ -303,7 +303,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             try
             {
-                byte version = serializedData.GetByte();
+                ushort version = serializedData.GetVersion();
                 if (version > 0)
                 {
                     Log.Warning(this, "DeserializeAutoEmptying", "Serialized data version too high!", version, 0);
@@ -351,7 +351,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             try
             {
-                byte version = serializedData.GetByte();
+                ushort version = serializedData.GetVersion();
                 if (version > 0)
                 {
                     Log.Warning(this, "DeserializeDesolateBuildings", "Serialized data version too high!", version, 0);
@@ -403,7 +403,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             try
             {
-                byte version = serializedData.GetByte();
+                ushort version = serializedData.GetVersion();
                 if (version > 0)
                 {
                     Log.Warning(this, "DeserializeTargetAssignments", "Serialized data version too high!", version, 0);
@@ -621,7 +621,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             SerializableSettings.BinaryData serializedData = new SerializableSettings.BinaryData(sourceData.Length * 2 + 1);
 
             // Version.
-            serializedData.Add((ushort)0);
+            serializedData.AddVersion(0);
 
             // Data.
             serializedData.Add(sourceData);
@@ -649,7 +649,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             SerializableSettings.BinaryData serializedData = new SerializableSettings.BinaryData(this.DesolateBuildings.Count * 10 + 1);
 
             // Version.
-            serializedData.Add((ushort)0);
+            serializedData.AddVersion(0);
 
             // Data.
             foreach (KeyValuePair<ushort, double> desolateBuilding in this.DesolateBuildings)
@@ -693,7 +693,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             SerializableSettings.BinaryData serializedData = new SerializableSettings.BinaryData(sourceData.Length * 2 + 1);
 
             // Version.
-            serializedData.Add((ushort)0);
+            serializedData.AddVersion(0);
 
             // Data.
             serializedData.Add(sourceData);

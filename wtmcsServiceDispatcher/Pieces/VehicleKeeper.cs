@@ -89,7 +89,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             try
             {
-                byte version = serializedData.GetByte();
+                ushort version = serializedData.GetVersion();
                 if (version > 0)
                 {
                     Log.Warning(this, "DeserializeStuckVehicles", "Serialized data version too high!", version, 0);
@@ -195,7 +195,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             SerializableSettings.BinaryData serializedData = new SerializableSettings.BinaryData();
 
             // Version.
-            serializedData.Add((ushort)0);
+            serializedData.AddVersion(0);
 
             // Data.
             foreach (StuckVehicleInfo vehicle in this.StuckVehicles.Values)

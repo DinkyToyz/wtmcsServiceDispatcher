@@ -395,6 +395,15 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
         }
 
         /// <summary>
+        /// Adds the version.
+        /// </summary>
+        /// <param name="version">The version.</param>
+        public void AddVersion(ushort version)
+        {
+            this.Add(version);
+        }
+
+        /// <summary>
         /// Checks a local checksum using error-correction check-bytes.
         /// </summary>
         /// <returns>True if the checksum is valid.</returns>
@@ -675,6 +684,15 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
         public Vehicle.Flags GetVehicleFlags()
         {
             return (Vehicle.Flags)this.GetUlong();
+        }
+
+        /// <summary>
+        /// Gets the next version.
+        /// </summary>
+        /// <returns>The ushort.</returns>
+        public ushort GetVersion()
+        {
+            return this.GetUshort();
         }
 
         /// <summary>

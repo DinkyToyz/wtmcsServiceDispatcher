@@ -530,7 +530,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             serializedData.ResetLocalCheckSum();
 
             // Version.
-            serializedData.Add((ushort)0);
+            serializedData.AddVersion(0);
 
             // Data.
             serializedData.Add(this.VehicleId);
@@ -1031,7 +1031,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <returns>
         /// The deserialization result.
         /// </returns>
-        /// <exception cref="InvalidOperationException">Serialized data version too high: " + version.ToString() + " (0)</exception>
         private SerializableSettings.DeserializationResult Deserialize(SerializableSettings.BinaryData serializedData)
         {
             if (serializedData == null || serializedData.Left == 0)
@@ -1041,7 +1040,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             serializedData.ResetLocalCheckSum();
 
-            byte version = serializedData.GetByte();
+            ushort version = serializedData.GetVersion();
             if (version > 0)
             {
                 Log.Warning(this, "Serialized data version too high!", version, 0);

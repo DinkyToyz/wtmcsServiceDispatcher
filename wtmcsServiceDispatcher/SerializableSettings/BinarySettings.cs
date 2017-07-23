@@ -48,7 +48,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
             {
                 Log.Debug(typeof(BinarySettings), "Deserialize", applySettings);
 
-                byte version = serializedData.GetByte();
+                ushort version = serializedData.GetVersion();
                 if (version > 0)
                 {
                     Log.Warning(typeof(BinarySettings), "Serialized data version too high", version, 0);
@@ -94,7 +94,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
             BinaryData serializedData = new BinaryData();
 
             // Version.
-            serializedData.Add((ushort)0);
+            serializedData.AddVersion(0);
 
             // Global.
             SerializeCompatibilitySettings(serializedData, settings);
@@ -170,7 +170,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
                 throw new InvalidOperationException("Not a compatibility settings block");
             }
 
-            byte version = serializedData.GetByte();
+            ushort version = serializedData.GetVersion();
             if (version > 0)
             {
                 Log.Warning(typeof(BinarySettings), "Serialized data version too high", version, 0);
@@ -225,7 +225,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
                 throw new InvalidOperationException("Not a hidden service settings block");
             }
 
-            byte version = serializedData.GetByte();
+            ushort version = serializedData.GetVersion();
             if (version > 0)
             {
                 Log.Warning(typeof(BinarySettings), "Serialized data version too high", version, 0);
@@ -296,7 +296,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
                 throw new InvalidOperationException("Not a service range settings block");
             }
 
-            byte version = serializedData.GetByte();
+            ushort version = serializedData.GetVersion();
             if (version > 0)
             {
                 Log.Warning(typeof(BinarySettings), "Serialized data version too high", version, 0);
@@ -347,7 +347,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
                 throw new InvalidOperationException("Not a standard service settings block");
             }
 
-            byte version = serializedData.GetByte();
+            ushort version = serializedData.GetVersion();
             if (version > 0)
             {
                 Log.Warning(typeof(BinarySettings), "Serialized data version too high", version, 0);
@@ -433,7 +433,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
 
             // Settings types and version.
             serializedData.Add(SettingsType.Compatibility);
-            serializedData.Add((ushort)0);
+            serializedData.AddVersion(0);
 
             // Settings.
             serializedData.Add(settings.ReflectionAllowance);
@@ -461,7 +461,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
 
             // Settings types and version.
             serializedData.Add(SettingsType.HiddenService);
-            serializedData.Add((ushort)0);
+            serializedData.AddVersion(0);
             serializedData.Add(settings.ServiceType);
 
             // Settings.
@@ -488,7 +488,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
 
             // Settings types and version.
             serializedData.Add(SettingsType.ServiceRanges);
-            serializedData.Add((ushort)0);
+            serializedData.AddVersion(0);
 
             // Settings.
             serializedData.Add(settings.RangeLimit);
@@ -513,7 +513,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
 
             // Settings types and version.
             serializedData.Add(SettingsType.StandardService);
-            serializedData.Add((ushort)0);
+            serializedData.AddVersion(0);
             serializedData.Add(settings.ServiceType);
 
             // Simple settings.
