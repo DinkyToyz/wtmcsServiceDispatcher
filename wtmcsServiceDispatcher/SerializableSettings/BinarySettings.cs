@@ -51,7 +51,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
                 ushort version = serializedData.GetVersion();
                 if (version > 0)
                 {
-                    Log.Warning(typeof(BinarySettings), "Serialized data version too high", version, 0);
+                    Log.Warning(typeof(BinarySettings), "Deserialize", "Serialized data version too high", version, 0);
                     return applied;
                 }
 
@@ -173,7 +173,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
             ushort version = serializedData.GetVersion();
             if (version > 0)
             {
-                Log.Warning(typeof(BinarySettings), "Serialized data version too high", version, 0);
+                Log.Warning(typeof(BinarySettings), "DeserializeCompatibilitySettings", "Serialized data version too high", version, 0);
                 return DeserializationResult.Error;
             }
 
@@ -228,7 +228,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
             ushort version = serializedData.GetVersion();
             if (version > 0)
             {
-                Log.Warning(typeof(BinarySettings), "Serialized data version too high", version, 0);
+                Log.Warning(typeof(BinarySettings), "DeserializeHiddenServiceSettings", "Serialized data version too high", version, 0);
                 return DeserializationResult.Error;
             }
 
@@ -299,7 +299,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
             ushort version = serializedData.GetVersion();
             if (version > 0)
             {
-                Log.Warning(typeof(BinarySettings), "Serialized data version too high", version, 0);
+                Log.Warning(typeof(BinarySettings), "DeserializeRangeSettings", "Serialized data version too high", version, 0);
                 return DeserializationResult.Error;
             }
 
@@ -350,7 +350,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
             ushort version = serializedData.GetVersion();
             if (version > 0)
             {
-                Log.Warning(typeof(BinarySettings), "Serialized data version too high", version, 0);
+                Log.Warning(typeof(BinarySettings), "DeserializeStandardServiceSettings", "Serialized data version too high", version, 0);
                 return DeserializationResult.Error;
             }
 

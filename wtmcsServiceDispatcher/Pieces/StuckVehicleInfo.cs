@@ -475,6 +475,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     else if (this.isTrailer)
                     {
                         Log.Debug(this, "HandleProblem", "StuckLostBroken", "IgnoreTrailer", this.VehicleId, VehicleHelper.GetVehicleName(this.VehicleId));
+                        if (Global.EnableDevExperiments)
+                        {
+                            this.DeSpawnTrailer();
+                        }
                     }
                     else
                     {
@@ -518,7 +522,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 }
             }
 
-            return this.handlingErrors < 10;
+            return this.handlingErrors > 10;
         }
 
         /// <summary>
@@ -1043,7 +1047,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             ushort version = serializedData.GetVersion();
             if (version > 0)
             {
-                Log.Warning(this, "Serialized data version too high!", version, 0);
+                Log.Warning(this, "Deserialize", "Serialized data version too high!", version, 0);
                 return SerializableSettings.DeserializationResult.Error;
             }
 
@@ -1065,10 +1069,87 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             return SerializableSettings.DeserializationResult.Success;
         }
 
+        private void DeSpawnTrailer()
+        {
+            ushort count;
+            ushort prevId;
+            ushort nextId;
+
+            Vehicle[] vehicles = Singleton<VehicleManager>.instance.m_vehicles.m_buffer;
+
+            LinkedList<ushort> ids = new LinkedList<ushort>(new ushort[] { this.VehicleId });
+
+            count = 0;
+            prevId = this.VehicleId;
+            nextId = vehicles[prevId].m_leadingVehicle;
+            while (nextId != 0)
+            {
+                if (vehicles[nextId].m_trailingVehicle != prevId)
+                {
+                    break;
+                }
+
+                ids.AddFirst(nextId);
+
+                if (count >= ushort.MaxValue)
+                {
+                    throw new Exception("Loop counter too high");
+                }
+                count++;
+
+                prevId = nextId;
+                nextId = vehicles[prevId].m_leadingVehicle;
+            }
+
+            count = 0;
+            prevId = this.VehicleId;
+            nextId = vehicles[prevId].m_trailingVehicle;
+            while (nextId != 0)
+            {
+                if (vehicles[nextId].m_leadingVehicle != prevId)
+                {
+                    break;
+                }
+                ids.AddLast(nextId);
+
+                if (count >= ushort.MaxValue)
+                {
+                    throw new Exception("Loop counter too high");
+                }
+                count++;
+
+                prevId = nextId;
+                nextId = vehicles[prevId].m_trailingVehicle;
+            }
+
+            count = 0;
+            foreach (ushort id in ids)
+            {
+                if (count == 0 && vehicles[id].m_leadingVehicle == 0)
+                {
+                    DeSpawnVehicle(id);
+                }
+                else
+                {
+                    VehicleHelper.DeSpawn(id);
+                }
+
+                count++;
+            }
+        }
+
         /// <summary>
         /// De-spawns the vehicle.
         /// </summary>
         private void DeSpawn()
+        {
+            DeSpawnVehicle(this.VehicleId);
+        }
+
+        /// <summary>
+        /// De-spawns the vehicle.
+        /// </summary>
+        private static void DeSpawnVehicle(ushort vehicleId)
         {
             if (Global.Buildings != null)
             {
@@ -1078,7 +1159,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     {
                         ServiceVehicleInfo serviceVehicle;
 
-                        if (serviceBuilding.Vehicles.TryGetValue(this.VehicleId, out serviceVehicle) && serviceVehicle.Target != 0)
+                        if (serviceBuilding.Vehicles.TryGetValue(vehicleId, out serviceVehicle) && serviceVehicle.Target != 0)
                         {
                             TargetBuildingInfo targetBuilding;
 
@@ -1088,12 +1169,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                             }
                         }
 
-                        serviceBuilding.Vehicles.Remove(this.VehicleId);
+                        serviceBuilding.Vehicles.Remove(vehicleId);
                     }
                 }
             }
 
-            VehicleHelper.DeSpawn(this.VehicleId);
+            VehicleHelper.DeSpawn(vehicleId);
         }
 
         /// <summary>
