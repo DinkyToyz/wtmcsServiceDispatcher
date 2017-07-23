@@ -26,13 +26,13 @@
 - Custom despawn so recovery crews won't be blocked by "no despawn" mods?
 - Being able to have separate settings for district and specific buildings?
 - Find path to building for better range check?
+- VS Task List.
 
 # Changes and experiments
 
 - Citizens?
 - Ambulances: only emergency if citizen is sick enough?
 - If (Singleton<UnlockManager>.instance.Unlocked(ItemClass.Service.HealthCare))
-- Cargo parent stuck stuff?
 
 # Notes
 

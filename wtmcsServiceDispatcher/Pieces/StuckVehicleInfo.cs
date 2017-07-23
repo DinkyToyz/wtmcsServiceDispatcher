@@ -244,13 +244,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 return false;
             }
 
-            // Cargo parent?
-            if (vehicle.m_cargoParent != 0)
-            {
-                // Todo: investigate how cargo parent works, so the can be checked as well.
-                return false;
-            }
-
             // Only check vehicles we dispatch unless told to check other vehicles as well.
             if (!(Global.Settings.RecoveryCrews.DispatchVehicles ||
                   (Global.Settings.DeathCare.DispatchVehicles && Global.HearseDispatcher != null && vehicle.Info.m_vehicleAI is HearseAI) ||
