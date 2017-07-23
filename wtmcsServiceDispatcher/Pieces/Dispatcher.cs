@@ -1053,7 +1053,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 }
 
                 // Remove old vehicles.
-                KeyValuePair<ushort, ushort>[] removeVehicles = serviceBuilding.Vehicles.Values.WhereSelect(v => v.LastSeen != Global.CurrentFrame, v => new KeyValuePair<ushort, ushort>(v.VehicleId, v.Target)).ToArray();
+                KeyValuePair<ushort, ushort>[] removeVehicles = serviceBuilding.Vehicles.Values.WhereSelectToArray(v => v.LastSeen != Global.CurrentFrame, v => new KeyValuePair<ushort, ushort>(v.VehicleId, v.Target));
                 foreach (KeyValuePair<ushort, ushort> vehicle in removeVehicles)
                 {
                     if (vehicles[vehicle.Key].Info == null ||
@@ -1096,7 +1096,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             }
 
             // Remove old target assigments.
-            ushort[] removeTargets = this.assignedTargets.WhereSelect(at => at.Value != Global.CurrentFrame, at => at.Key).ToArray();
+            ushort[] removeTargets = this.assignedTargets.WhereSelectToArray(at => at.Value != Global.CurrentFrame, at => at.Key);
             foreach (ushort id in removeTargets)
             {
                 if (Log.LogALot)
@@ -1350,7 +1350,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             /// </returns>
             public static BuldingCheckParameters[] GetBuldingCheckParameters(ServiceDispatcherSettings.BuildingCheckParameters[] buildingCheckParameters)
             {
-                //return buildingCheckParameters.Select(bcp => new BuldingCheckParameters(bcp)).ToArray();
                 return buildingCheckParameters.SelectToArray(bcp => new BuldingCheckParameters(bcp));
             }
 

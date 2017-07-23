@@ -364,12 +364,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
             /// <summary>
             /// The possible building checks.
             /// </summary>
-            public ServiceDispatcherSettings.BuildingCheckParameters[] BuildingChecksPossible = (Enum.GetValues(typeof(ServiceDispatcherSettings.BuildingCheckParameters)) as ServiceDispatcherSettings.BuildingCheckParameters[]).Where(bcp => bcp != ServiceDispatcherSettings.BuildingCheckParameters.Undefined).ToArray();
+            public ServiceDispatcherSettings.BuildingCheckParameters[] BuildingChecksPossible = (Enum.GetValues(typeof(ServiceDispatcherSettings.BuildingCheckParameters)) as ServiceDispatcherSettings.BuildingCheckParameters[]).WhereToArray(bcp => bcp != ServiceDispatcherSettings.BuildingCheckParameters.Undefined);
 
             /// <summary>
             /// The possible building checks presets.
             /// </summary>
-            public ServiceDispatcherSettings.BuildingChecksPresetInfo[] BuildingChecksPresets = (Enum.GetValues(typeof(ServiceDispatcherSettings.BuildingCheckOrder)) as ServiceDispatcherSettings.BuildingCheckOrder[]).Where(bco => bco != ServiceDispatcherSettings.BuildingCheckOrder.Custom).Select(bco => new ServiceDispatcherSettings.BuildingChecksPresetInfo(bco)).ToArray();
+            public ServiceDispatcherSettings.BuildingChecksPresetInfo[] BuildingChecksPresets = (Enum.GetValues(typeof(ServiceDispatcherSettings.BuildingCheckOrder)) as ServiceDispatcherSettings.BuildingCheckOrder[]).WhereSelectToArray(bco => bco != ServiceDispatcherSettings.BuildingCheckOrder.Custom, bco => new ServiceDispatcherSettings.BuildingChecksPresetInfo(bco));
 
             /// <summary>
             /// Sets the specified information from the specified settings.

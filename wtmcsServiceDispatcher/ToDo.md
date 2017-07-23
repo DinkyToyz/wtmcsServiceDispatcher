@@ -23,7 +23,6 @@
 - Save in vehicles how much capacity they will have left after pickup and add send-out-option to send when no vehicles are free now or will be free with enough capacity after next pickup?
 - Social services (taking care of confused citizens and tourists).
 - Fix invisible vehicles (flags == none, but not in m_vehicles.m_unusedItems)?
-- Custom despawn so recovery crews won't be blocked by "no despawn" mods?
 - Being able to have separate settings for district and specific buildings?
 - Find path to building for better range check?
 - VS Task List.

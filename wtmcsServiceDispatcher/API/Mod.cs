@@ -273,7 +273,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 group.AddDropdown(
                     "Assigment compatibility mode",
-                    this.modCompatibilityModes.OrderBy(a => a.Key).Select(compatibilityMode => compatibilityMode.Value).ToArray(),
+                    this.modCompatibilityModes.OrderBy(a => a.Key).SelectToArray(compatibilityMode => compatibilityMode.Value),
                     (int)Global.Settings.AssignmentCompatibilityMode,
                     value =>
                     {
@@ -301,7 +301,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 group.AddDropdown(
                     "Creation compatibility mode",
-                    this.modCompatibilityModes.OrderBy(a => a.Key).Select(compatibilityMode => compatibilityMode.Value).ToArray(),
+                    this.modCompatibilityModes.OrderBy(a => a.Key).SelectToArray(compatibilityMode => compatibilityMode.Value),
                     (int)Global.Settings.CreationCompatibilityMode,
                     value =>
                     {
@@ -329,7 +329,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 group.AddDropdown(
                         "Allow Code Overrides",
-                        this.allowances.OrderBy(a => a.Key).Select(allowances => allowances.Value).ToArray(),
+                        this.allowances.OrderBy(a => a.Key).SelectToArray(allowances => allowances.Value),
                         (int)Global.Settings.ReflectionAllowance,
                         value =>
                         {
@@ -956,7 +956,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 group.AddDropdown(
                     "Send out spare " + settings.VehicleNamePlural.ToLower() + " when",
-                    this.vehicleCreationOptions.OrderBy(vco => vco.Key).Select(vco => vco.Value).ToArray(),
+                    this.vehicleCreationOptions.OrderBy(vco => vco.Key).SelectToArray(vco => vco.Value),
                     (int)settings.CreateSpares,
                     value =>
                     {
@@ -997,7 +997,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 group.AddDropdown(
                     settings.VehicleNameSingular + " dispatch strategy",
-                    this.targetBuildingChecks.OrderBy(bco => bco.Key).Select(bco => bco.Value).ToArray(),
+                    this.targetBuildingChecks.OrderBy(bco => bco.Key).SelectToArray(bco => bco.Value),
                     (int)settings.ChecksPreset,
                     value =>
                     {

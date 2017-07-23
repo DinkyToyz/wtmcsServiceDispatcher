@@ -263,7 +263,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
-        /// Projects each element in a sequence into a new form and returns in an array if <typeparamref name="TSource"/>.
+        /// Projects each element in a sequence into a new form and returns in an array of <typeparamref name="TSource"/>.
         /// </summary>
         /// <typeparam name="TSource">The type of the elements.</typeparam>
         /// <typeparam name="TResult">The type to project into.</typeparam>
@@ -961,6 +961,123 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 if (predicate(item))
                 {
                     list.Add(item);
+                }
+            }
+
+            return list;
+        }
+
+        /// <summary>
+        /// Filters a sequence of values based on a predicate, projects each element in the filtered sequence into a new form and returns in an array of <typeparamref name="TSource"/>.
+        /// </summary>
+        /// <typeparam name="TSource">The type of the values.</typeparam>
+        /// <typeparam name="TResult">The type to project into.</typeparam>
+        /// <param name="source">The source.</param>
+        /// <param name="predicate">The predicate.</param>
+        /// <param name="selector">The selector.</param>
+        /// <returns>The filtered sequence.</returns>
+        public static TResult[] WhereSelectToArray<TSource, TResult>(this IList<TSource> source, Func<TSource, bool> predicate, Func<TSource, TResult> selector)
+        {
+            return source.WhereSelectToList(predicate, selector).ToArray();
+        }
+
+        /// <summary>
+        /// Filters a sequence of values based on a predicate, projects each element in the filtered sequence into a new form and returns in an array of <typeparamref name="TSource"/>.
+        /// </summary>
+        /// <typeparam name="TSource">The type of the values.</typeparam>
+        /// <typeparam name="TResult">The type to project into.</typeparam>
+        /// <param name="source">The source.</param>
+        /// <param name="predicate">The predicate.</param>
+        /// <param name="selector">The selector.</param>
+        /// <returns>The filtered sequence.</returns>
+        public static TResult[] WhereSelectToArray<TSource, TResult>(this TSource[] source, Func<TSource, bool> predicate, Func<TSource, TResult> selector)
+        {
+            return source.WhereSelectToList(predicate, selector).ToArray();
+        }
+
+        /// <summary>
+        /// Filters a sequence of values based on a predicate, projects each element in the filtered sequence into a new form and returns in an array of <typeparamref name="TSource"/>.
+        /// </summary>
+        /// <typeparam name="TSource">The type of the values.</typeparam>
+        /// <typeparam name="TResult">The type to project into.</typeparam>
+        /// <param name="source">The source.</param>
+        /// <param name="predicate">The predicate.</param>
+        /// <param name="selector">The selector.</param>
+        /// <returns>The filtered sequence.</returns>
+        public static TResult[] WhereSelectToArray<TSource, TResult>(this IEnumerable<TSource> source, Func<TSource, bool> predicate, Func<TSource, TResult> selector)
+        {
+            return source.WhereSelectToList(predicate, selector).ToArray();
+        }
+
+        /// <summary>
+        /// Filters a sequence of values based on a predicate, projects each element in the filtered sequence into a new form and returns in a List<typeparamref name="TSource"/>.
+        /// </summary>
+        /// <typeparam name="TSource">The type of the values.</typeparam>
+        /// <typeparam name="TResult">The type to project into.</typeparam>
+        /// <param name="source">The source.</param>
+        /// <param name="predicate">The predicate.</param>
+        /// <param name="selector">The selector.</param>
+        /// <returns>The filtered sequence.</returns>
+        public static List<TResult> WhereSelectToList<TSource, TResult>(this IList<TSource> source, Func<TSource, bool> predicate, Func<TSource, TResult> selector)
+        {
+            int count = source.Count;
+            List<TResult> list = new List<TResult>(count);
+
+            for (int i = 0; i < count; i++)
+            {
+                TSource item = source[i];
+
+                if (predicate(item))
+                {
+                    list.Add(selector(item));
+                }
+            }
+
+            return list;
+        }
+
+        /// <summary>
+        /// Filters a sequence of values based on a predicate, projects each element in the filtered sequence into a new form and returns in a List<typeparamref name="TSource"/>.
+        /// </summary>
+        /// <typeparam name="TSource">The type of the values.</typeparam>
+        /// <typeparam name="TResult">The type to project into.</typeparam>
+        /// <param name="source">The source.</param>
+        /// <param name="predicate">The predicate.</param>
+        /// <param name="selector">The selector.</param>
+        /// <returns>The filtered sequence.</returns>
+        public static List<TResult> WhereSelectToList<TSource, TResult>(this TSource[] source, Func<TSource, bool> predicate, Func<TSource, TResult> selector)
+        {
+            List<TResult> list = new List<TResult>(source.Length);
+
+            for (int i = 0; i < source.Length; i++)
+            {
+                if (predicate(source[i]))
+                {
+                    list.Add(selector(source[i]));
+                }
+            }
+
+            return list;
+        }
+
+        /// <summary>
+        /// Filters a sequence of values based on a predicate, projects each element in the filtered sequence into a new form and returns in a List<typeparamref name="TSource"/>.
+        /// </summary>
+        /// <typeparam name="TSource">The type of the values.</typeparam>
+        /// <typeparam name="TResult">The type to project into.</typeparam>
+        /// <param name="source">The source.</param>
+        /// <param name="selector">The selector.</param>
+        /// <param name="predicate">The predicate.</param>
+        /// <returns>The filtered sequence.</returns>
+        public static List<TResult> WhereSelectToList<TSource, TResult>(this IEnumerable<TSource> source, Func<TSource, bool> predicate, Func<TSource, TResult> selector)
+        {
+            List<TResult> list = new List<TResult>();
+
+            foreach (TSource item in source)
+            {
+                if (predicate(item))
+                {
+                    list.Add(selector(item));
                 }
             }
 
