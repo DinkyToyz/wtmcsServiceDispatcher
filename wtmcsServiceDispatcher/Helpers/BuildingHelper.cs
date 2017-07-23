@@ -137,7 +137,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                             string sortValue;
                             try
                             {
-                                sortValue = buildings[id].Info.m_buildingAI.GetType().ToString();
+                                sortValue = buildings[id].Info.m_buildingAI.GetType().ToString().ToLower();
                             }
                             catch
                             {

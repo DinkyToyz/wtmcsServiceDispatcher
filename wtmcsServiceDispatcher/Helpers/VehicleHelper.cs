@@ -420,7 +420,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                             string sortPrefix;
                             try
                             {
-                                sortPrefix = "0" + vehicles[id].Info.m_vehicleAI.GetType().ToString();
+                                sortPrefix = "0" + vehicles[id].Info.m_vehicleAI.GetType().ToString().ToLower();
                             }
                             catch
                             {
@@ -462,7 +462,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         string sortValue;
                         try
                         {
-                            sortValue = "1" + vehicles[id].Info.m_vehicleAI.GetType().ToString();
+                            sortValue = "1" + vehicles[id].Info.m_vehicleAI.GetType().ToString().ToLower();
                         }
                         catch
                         {

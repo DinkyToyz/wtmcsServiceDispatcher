@@ -154,7 +154,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     {
                         string sortValue = "C" + vehicle.ProblemLevel.ToString()
                             + (vehicle.DispatchersResponsibility ? "0" : "1")
-                            + ((vehicle.DispatcherType == Dispatcher.DispatcherTypes.None) ? "99" : ((byte)vehicle.DispatcherType).ToString().PadLeft(2, '0'))
+                            + ((vehicle.DispatcherType == Dispatcher.DispatcherTypes.None) ? "9" : "0" + vehicle.DispatcherType.ToString().ToLower())
                             + vehicle.VehicleId.ToString().PadLeft(16, '0');
 
                         vehicleList.Add(new KeyValuePair<string, string>(sortValue, vehicle.GetInfoLine(vehicles, buildings)));
