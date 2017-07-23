@@ -188,6 +188,15 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
         /// Adds the specified data.
         /// </summary>
         /// <param name="data">The data.</param>
+        public void Add(StuckVehicleInfo.LostReasons data)
+        {
+            this.Add((byte)data);
+        }
+
+        /// <summary>
+        /// Adds the specified data.
+        /// </summary>
+        /// <param name="data">The data.</param>
         public void Add(ServiceDispatcherSettings.ModCompatibilityMode data)
         {
             this.Add((byte)data);
@@ -518,6 +527,15 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
             int i = this.index;
             this.index += 4;
             return BitConverter.ToSingle(this.serializedData, i);
+        }
+
+        /// <summary>
+        /// Gets the next StuckVehicleInfo.LostReasons.
+        /// </summary>
+        /// <returns>The StuckVehicleInfo.LostReasons.</returns>
+        public StuckVehicleInfo.LostReasons GetLostReason()
+        {
+            return (StuckVehicleInfo.LostReasons)this.GetByte();
         }
 
         /// <summary>

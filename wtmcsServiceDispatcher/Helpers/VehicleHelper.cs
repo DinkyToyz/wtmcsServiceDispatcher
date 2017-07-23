@@ -415,7 +415,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                     for (ushort id = 0; id < vehicles.Length; id++)
                     {
-                        if ((vehicles[id].m_flags & VehicleHelper.VehicleAll) != ~VehicleHelper.VehicleAll && (vehicles[id].m_leadingVehicle == 0 || vehicles[id].m_leadingVehicle == id))
+                        if ((vehicles[id].m_flags & VehicleHelper.VehicleAll) != ~VehicleHelper.VehicleAll && vehicles[id].m_leadingVehicle == 0)
                         {
                             string sortPrefix;
                             try

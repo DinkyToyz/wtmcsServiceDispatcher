@@ -192,7 +192,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 Log.DevDebug(this, "SerializeStuckVehicles", this.StuckVehicles.Count, String.Join(" | ", this.StuckVehicles.Values.OrderBy(v => v.VehicleId).SelectToArray(v => "[" + v.ToString() + "]")));
             }
 
-            SerializableSettings.BinaryData serializedData = new SerializableSettings.BinaryData(this.StuckVehicles.Count * StuckVehicleInfo.SerializedSize + 1);
+            SerializableSettings.BinaryData serializedData = new SerializableSettings.BinaryData();
 
             // Version.
             serializedData.Add((byte)0);
@@ -200,7 +200,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             // Data.
             foreach (StuckVehicleInfo vehicle in this.StuckVehicles.Values)
             {
-                serializedData.Add(vehicle.Serialize());
+                vehicle.Serialize(serializedData);
             }
 
             if (Log.LogALot)
@@ -214,7 +214,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// Updates data.
         /// </summary>
-        /// <exception cref="System.Exception">Update bucket loop counter to high.</exception>
         public void Update()
         {
             // Get and categorize vehicles.

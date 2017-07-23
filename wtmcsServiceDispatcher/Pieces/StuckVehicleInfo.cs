@@ -61,12 +61,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         private Dispatcher.DispatcherTypes dispatcherType = Dispatcher.DispatcherTypes.None;
 
         /// <summary>
-        /// Gets the type of the dispatcher.
+        /// The handling errors.
         /// </summary>
-        /// <value>
-        /// The type of the dispatcher.
-        /// </value>
-        public Dispatcher.DispatcherTypes DispatcherType => this.dispatcherType;
+        private uint handlingErrors = 0;
+
+        /// <summary>
+        /// The cargo-vhild flag.
+        /// </summary>
+        private bool hasCargoParent = false;
 
         /// <summary>
         /// The vehicle is broken.
@@ -74,22 +76,46 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         private bool isBroken = false;
 
         /// <summary>
+        /// The vehicle is lost.
+        /// </summary>
+        private bool isLost = false;
+
+        /// <summary>
         /// The vehicle is stuck.
         /// </summary>
         private bool isStuck = false;
 
         /// <summary>
-        /// Gets the problem level.
+        /// The trailer flag.
         /// </summary>
-        /// <value>
-        /// The problem level.
-        /// </value>
-        public byte ProblemLevel => (byte)((this.isStuck ? 1 : 0) + (this.isBroken ? 2 : 0));
+        private bool isTrailer = false;
 
         /// <summary>
         /// The last de-assign time stamp.
         /// </summary>
         private uint lastDeAssignStamp = 0u;
+
+        /// <summary>
+        /// The last handled stamp.
+        /// </summary>
+        private uint lastHandledStamp = 0;
+
+        /// <summary>
+        /// The lost reason.
+        /// </summary>
+        private LostReasons lostReason = LostReasons.None;
+
+        /// <summary>
+        /// The vehicle has been lost since this frame.
+        /// Used for deciding when to de-assign vehicle.
+        /// </summary>
+        private uint lostSinceFrame = 0u;
+
+        /// <summary>
+        /// The vehicle has been lost since this time stamp.
+        /// Used for deciding when to de-spawn vehicle.
+        /// </summary>
+        private double lostSinceTime = 0.0;
 
         /// <summary>
         /// The target building identifier.
@@ -104,7 +130,22 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public StuckVehicleInfo(ushort vehicleId, ref Vehicle vehicle)
         {
             this.VehicleId = vehicleId;
-            this.dispatcherType = Dispatcher.GetDispatcherType(ref vehicle);
+
+            if (vehicle.m_leadingVehicle == 0)
+            {
+                this.dispatcherType = Dispatcher.GetDispatcherType(ref vehicle);
+            }
+            else
+            {
+                try
+                {
+                    this.dispatcherType = Dispatcher.GetDispatcherType(ref Singleton<VehicleManager>.instance.m_vehicles.m_buffer[vehicleId]);
+                }
+                catch
+                {
+                    this.dispatcherType = Dispatcher.DispatcherTypes.None;
+                }
+            }
 
             this.Update(ref vehicle);
         }
@@ -118,18 +159,31 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// The different resons for considering a trailer lost.
+        /// </summary>
+        public enum LostReasons
+        {
+            /// <summary>
+            /// Not lost.
+            /// </summary>
+            None = 0,
+
+            /// <summary>
+            /// Lead vehicle isn't.
+            /// </summary>
+            NoLead = 1,
+
+            /// <summary>
+            /// Broken chain of vehicles.
+            /// </summary>
+            IgnorantLead = 2
+        }
+
+        /// <summary>
         /// Gets the information header.
         /// </summary>
         /// <returns>The information header.</returns>
         public static string InfoHeader => InfoString(null, null, null, true);
-
-        /// <summary>
-        /// Gets the size of the serialized.
-        /// </summary>
-        /// <value>
-        /// The size of the serialized.
-        /// </value>
-        public static int SerializedSize => 60;
 
         /// <summary>
         /// Gets a value indicating whether the vehicle is the dispatcher's responsibility.
@@ -137,16 +191,23 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <value>
         /// <c>true</c> if the vehicle is the dispatcher's responsibility; otherwise, <c>false</c>.
         /// </value>
-        public bool DispatchersResponsibility
-        {
-            get
-            {
-                return Global.Settings.RecoveryCrews.DispatchVehicles ||
-                       (Global.Settings.DeathCare.DispatchVehicles && Global.HearseDispatcher != null && this.dispatcherType == Dispatcher.DispatcherTypes.HearseDispatcher) ||
-                       (Global.Settings.Garbage.DispatchVehicles && Global.GarbageTruckDispatcher != null && this.dispatcherType == Dispatcher.DispatcherTypes.GarbageTruckDispatcher) ||
-                       (Global.Settings.HealthCare.DispatchVehicles && Global.AmbulanceDispatcher != null && this.dispatcherType == Dispatcher.DispatcherTypes.AmbulanceDispatcher);
-            }
-        }
+        public bool DispatchersResponsibility => Global.Settings.RecoveryCrews.DispatchVehicles || IsDispatchersResponsibility(this.dispatcherType);
+
+        /// <summary>
+        /// Gets the type of the dispatcher.
+        /// </summary>
+        /// <value>
+        /// The type of the dispatcher.
+        /// </value>
+        public Dispatcher.DispatcherTypes DispatcherType => this.dispatcherType;
+
+        /// <summary>
+        /// Gets the problem level.
+        /// </summary>
+        /// <value>
+        /// The problem level.
+        /// </value>
+        public byte ProblemLevel => (byte)((this.isStuck ? 1 : 0) + (this.isLost ? 2 : 0) + (this.isBroken ? 4 : 0));
 
         /// <summary>
         /// The vehicle identifier.
@@ -160,20 +221,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// The name of the vehicle.
         /// </value>
         public string VehicleName => VehicleHelper.GetVehicleName(this.VehicleId);
-
-        /// <summary>
-        /// Gets the amount of frames sincle the last time the vehicle was de-assigned.
-        /// </summary>
-        /// <value>
-        /// The de-assign stamp frame count.
-        /// </value>
-        private uint AtLeastDeAssignedForFrames
-        {
-            get
-            {
-                return (this.lastDeAssignStamp > 0 && this.lastDeAssignStamp < Global.CurrentFrame) ? Global.CurrentFrame - this.lastDeAssignStamp : 0;
-            }
-        }
 
         /// <summary>
         /// Gets the amount of frames during which the vehicle has had a check flag.
@@ -246,6 +293,34 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Gets the amount of frames during which the vehicle has been lost.
+        /// </summary>
+        /// <value>
+        /// The lost frame count.
+        /// </value>
+        private uint LostForFrames
+        {
+            get
+            {
+                return (this.lostSinceFrame > 0 && this.lostSinceFrame < Global.CurrentFrame) ? Global.CurrentFrame - this.lostSinceFrame : 0;
+            }
+        }
+
+        /// <summary>
+        /// Gets the duration in seconds during which the vehicle has been lost.
+        /// </summary>
+        /// <value>
+        /// The lost duration.
+        /// </value>
+        private double LostForSeconds
+        {
+            get
+            {
+                return (this.lostSinceTime > 0 && this.lostSinceTime < Global.SimulationTime) ? Global.SimulationTime - this.lostSinceTime : 0;
+            }
+        }
+
+        /// <summary>
         /// Tries to deserialize the specified serialized data to this instance.
         /// </summary>
         /// <param name="serializedData">The serialized data.</param>
@@ -282,18 +357,29 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 return false;
             }
 
-            // Trailer?
-            if (vehicle.m_leadingVehicle != 0 && vehicle.m_leadingVehicle != vehicleId)
+            // Cargo parent?
+            if (vehicle.m_cargoParent != 0)
             {
-                // Todo: Check lost trailers?
-                return false;
+                // Todo: investigate how cargo parent works, to make sure it can be ignored.
+                if (!Global.EnableDevExperiments)
+                {
+                    return false;
+                }
+            }
+
+            // Trailer?
+            if (vehicle.m_leadingVehicle != 0)
+            {
+                if (!Global.EnableDevExperiments)
+                {
+                    return false;
+                }
+
+                return TrailerHasProblem(vehicleId, ref vehicle);
             }
 
             // Only check vehicles we dispatch unless told to check other vehicles as well.
-            if (!(Global.Settings.RecoveryCrews.DispatchVehicles ||
-                  (Global.Settings.DeathCare.DispatchVehicles && Global.HearseDispatcher != null && vehicle.Info.m_vehicleAI is HearseAI) ||
-                  (Global.Settings.Garbage.DispatchVehicles && Global.GarbageTruckDispatcher != null && vehicle.Info.m_vehicleAI is GarbageTruckAI) ||
-                  (Global.Settings.HealthCare.DispatchVehicles && Global.AmbulanceDispatcher != null && vehicle.Info.m_vehicleAI is AmbulanceAI)))
+            if (!(Global.Settings.RecoveryCrews.DispatchVehicles || IsDispatchersResponsibility(ref vehicle)))
             {
                 return false;
             }
@@ -310,6 +396,35 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Determines whether this vehicle is dispatchers responsibility.
+        /// </summary>
+        /// <param name="vehicle">The vehicle.</param>
+        /// <returns>
+        ///   <c>true</c> if dispatchers responsibility; otherwise, <c>false</c>.
+        /// </returns>
+        public static bool IsDispatchersResponsibility(ref Vehicle vehicle)
+        {
+            return vehicle.Info != null && vehicle.Info.m_vehicleAI != null &&
+                   ((Global.Settings.DeathCare.DispatchVehicles && Global.HearseDispatcher != null && vehicle.Info.m_vehicleAI is HearseAI) ||
+                    (Global.Settings.Garbage.DispatchVehicles && Global.GarbageTruckDispatcher != null && vehicle.Info.m_vehicleAI is GarbageTruckAI) ||
+                    (Global.Settings.HealthCare.DispatchVehicles && Global.AmbulanceDispatcher != null && vehicle.Info.m_vehicleAI is AmbulanceAI));
+        }
+
+        /// <summary>
+        /// Determines whether this dispatcher type is dispatchers responsibility.
+        /// </summary>
+        /// <param name="dispatcherType">Type of the dispatcher.</param>
+        /// <returns>
+        ///   <c>true</c> if dispatchers responsibility; otherwise, <c>false</c>.
+        /// </returns>
+        public static bool IsDispatchersResponsibility(Dispatcher.DispatcherTypes dispatcherType)
+        {
+            return (Global.Settings.DeathCare.DispatchVehicles && Global.HearseDispatcher != null && dispatcherType == Dispatcher.DispatcherTypes.HearseDispatcher) ||
+                   (Global.Settings.Garbage.DispatchVehicles && Global.GarbageTruckDispatcher != null && dispatcherType == Dispatcher.DispatcherTypes.GarbageTruckDispatcher) ||
+                   (Global.Settings.HealthCare.DispatchVehicles && Global.AmbulanceDispatcher != null && dispatcherType == Dispatcher.DispatcherTypes.AmbulanceDispatcher);
         }
 
         /// <summary>
@@ -349,45 +464,53 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <returns>True if a problem was handled.</returns>
         public bool HandleProblem()
         {
-            if (this.isStuck || this.isBroken)
+            if ((this.isStuck || this.isBroken || this.isLost) && this.lastHandledStamp + Global.CheckFlagStuckDelay < Global.CurrentFrame)
             {
                 try
                 {
-                    // Remove vehicle.
-                    Log.Debug(this, "HandleProblem", "StuckOrBroken", "DeSpawn", this.VehicleId, VehicleHelper.GetVehicleName(this.VehicleId));
-
-                    this.DeSpawn();
+                    if (this.hasCargoParent)
+                    {
+                        Log.Debug(this, "HandleProblem", "StuckLostBroken", "IgnoreCargoChild", this.VehicleId, VehicleHelper.GetVehicleName(this.VehicleId));
+                    }
+                    else if (this.isTrailer)
+                    {
+                        Log.Debug(this, "HandleProblem", "StuckLostBroken", "IgnoreTrailer", this.VehicleId, VehicleHelper.GetVehicleName(this.VehicleId));
+                    }
+                    else
+                    {
+                        // Remove vehicle.
+                        Log.Debug(this, "HandleProblem", "StuckLostBroken", "DeSpawn", this.VehicleId, VehicleHelper.GetVehicleName(this.VehicleId));
+                        this.DeSpawn();
+                    }
 
                     return true;
                 }
                 catch (Exception ex)
                 {
                     Log.Error(this, "HandleProblem", ex, this.VehicleId);
+                    this.handlingErrors++;
                 }
                 finally
                 {
                     this.isStuck = false;
                     this.isBroken = false;
-                    this.checkFlagSinceTime = 0.0;
-                    this.checkFlagSinceFrame = 0u;
+                    this.isLost = false;
+                    this.lastHandledStamp = Global.CurrentFrame;
                 }
             }
 
-            if (this.ConfusedDeAssignedForFrames > Global.DeAssignConfusedDelay &&
-                ((Global.Settings.DeathCare.DispatchVehicles && Global.HearseDispatcher != null && this.dispatcherType == Dispatcher.DispatcherTypes.HearseDispatcher) ||
-                 (Global.Settings.Garbage.DispatchVehicles && Global.GarbageTruckDispatcher != null && this.dispatcherType == Dispatcher.DispatcherTypes.GarbageTruckDispatcher) ||
-                 (Global.Settings.HealthCare.DispatchVehicles && Global.AmbulanceDispatcher != null && this.dispatcherType == Dispatcher.DispatcherTypes.HearseDispatcher)))
+            if (this.ConfusedDeAssignedForFrames > Global.DeAssignConfusedDelay && IsDispatchersResponsibility(this.dispatcherType))
             {
                 try
                 {
                     // De-assign vehicle.
                     Log.Debug(this, "HandleProblem", "Confused", "DeAssign", this.VehicleId, VehicleHelper.GetVehicleName(this.VehicleId));
-
                     this.DeAssign();
                 }
                 catch (Exception ex)
                 {
                     Log.Error(this, "HandleProblem", ex, this.VehicleId);
+                    this.handlingErrors++;
                 }
                 finally
                 {
@@ -395,36 +518,36 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 }
             }
 
-            return false;
+            return this.handlingErrors < 10;
         }
 
         /// <summary>
         /// Serializes this instance.
         /// </summary>
         /// <returns>The serialized data.</returns>
-        public SerializableSettings.BinaryData Serialize()
+        public void Serialize(SerializableSettings.BinaryData serializedData)
         {
-            SerializableSettings.BinaryData serializedData = new SerializableSettings.BinaryData(60);
+            serializedData.ResetLocalCheckSum();
 
             // Version.
-            serializedData.Add((byte)0);                            //  1    1
+            serializedData.Add((byte)0);
 
             // Data.
-            serializedData.Add(this.VehicleId);                     //  2    3
-            serializedData.Add(this.targetBuildingId);              //  2    5
-            serializedData.Add(this.dispatcherType);                //  1    6
-            serializedData.Add(this.checkFlags);                    //  8   14
-            serializedData.Add(this.checkFlagSinceFrame);           //  4   18
-            serializedData.Add(this.checkFlagSinceTime);            //  8   26
-            serializedData.Add(this.confusedDeAssignedSinceFrame);  //  4   30
-            serializedData.Add(this.confusedSinceFrame);            //  4   34
-            serializedData.Add(this.confusedSinceTime);             //  8   42
-            serializedData.Add(this.lastDeAssignStamp);             //  4   46
-            serializedData.Add(this.checkFlagPosition);             // 12   58
+            serializedData.Add(this.VehicleId);
+            serializedData.Add(this.targetBuildingId);
+            serializedData.Add(this.dispatcherType);
+            serializedData.Add(this.checkFlags);
+            serializedData.Add(this.checkFlagPosition);
+            serializedData.Add(this.checkFlagSinceFrame);
+            serializedData.Add(this.checkFlagSinceTime);
+            serializedData.Add(this.confusedDeAssignedSinceFrame);
+            serializedData.Add(this.confusedSinceFrame);
+            serializedData.Add(this.confusedSinceTime);
+            serializedData.Add(this.lostSinceFrame);
+            serializedData.Add(this.lostSinceTime);
+            serializedData.Add(this.lostReason);
 
-            serializedData.AddLocalCheckSum();                      //  2   60
-
-            return serializedData;
+            serializedData.AddLocalCheckSum();
         }
 
         /// <summary>
@@ -437,7 +560,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             Log.InfoList info = new Log.InfoList("StuckVehicleInfo: ");
 
-            info.Add("VehcileId", this.VehicleId);
+            info.Add("VehicleId", this.VehicleId);
             info.Add("CheckFlags", this.checkFlags);
             info.Add("DispatcherType", this.dispatcherType);
             info.Add("DispatchersResponsibility", this.DispatchersResponsibility);
@@ -452,6 +575,27 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public void Update(ref Vehicle vehicle)
         {
             this.targetBuildingId = vehicle.m_targetBuilding;
+            this.isTrailer = vehicle.m_leadingVehicle != 0;
+            this.hasCargoParent = vehicle.m_cargoParent != 0;
+
+            if (this.hasCargoParent)
+            {
+                // Todo: investigate how cargo parent works, to make sure it can be ignored.
+                if (!Global.EnableDevExperiments)
+                {
+                    return;
+                }
+            }
+
+            if (this.isTrailer)
+            {
+                if (Global.EnableDevExperiments)
+                {
+                    this.UpdateTrailer(ref vehicle);
+                }
+
+                return;
+            }
 
             // Check if vehicle has flag that should be checked.
             Vehicle.Flags flags = vehicle.m_flags & FlagsToCheck;
@@ -476,7 +620,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             }
 
             // Check if vehicle is confused.
-            if (ConfusionHelper.VehicleIsConfused(ref vehicle))
+            bool confused = ConfusionHelper.VehicleIsConfused(ref vehicle);
+            if (confused)
             {
                 if (this.confusedDeAssignedSinceFrame == 0)
                 {
@@ -515,7 +660,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     if (delta > Global.Settings.RecoveryCrews.DelaySeconds)
                     {
                         Log.Info(this, "IsStuck", this.checkFlags, this.VehicleId, delta, VehicleHelper.GetVehicleName(this.VehicleId));
-
                         this.isStuck = true;
                     }
                 }
@@ -528,10 +672,13 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     if (delta > Global.Settings.RecoveryCrews.DelaySeconds)
                     {
                         Log.Info(this, "IsStuck", "Confused", this.VehicleId, delta, VehicleHelper.GetVehicleName(this.VehicleId));
-
                         this.isStuck = true;
                     }
                 }
+            }
+            else if ((this.checkFlags & VehicleHelper.VehicleAll) == ~VehicleHelper.VehicleAll && !confused)
+            {
+                this.isStuck = false;
             }
         }
 
@@ -566,13 +713,17 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 }
 
                 status = new List<string>(1);
+                if (vehicle.isBroken)
+                {
+                    status.Add("Broken");
+                }
                 if (vehicle.isStuck)
                 {
                     status.Add("Stuck");
                 }
-                if (vehicle.isBroken)
+                if (vehicle.isLost)
                 {
-                    status.Add("Broken");
+                    status.Add("Lost");
                 }
                 if (status.Count == 0)
                 {
@@ -642,11 +793,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             if (getHead)
             {
-                info.Add("[Deassigned]", "<AtLeastDeAssignedForFrames>", "<ConfusedDeAssignedForFrames>");
+                info.Add("[Lost]", "<LostForSeconds>", "<LostForFrames>", "[LostReason]");
             }
-            else if (vehicle.confusedDeAssignedSinceFrame > 0 || vehicle.lastDeAssignStamp > 0)
+            else if (vehicle.lostSinceFrame > 0 || vehicle.lostSinceTime > 0.0)
             {
-                info.Add("Deassigned", vehicle.AtLeastDeAssignedForFrames, vehicle.ConfusedDeAssignedForFrames);
+                info.Add("Lost", vehicle.LostForSeconds, vehicle.LostForFrames, vehicle.lostReason);
             }
 
             if (getHead)
@@ -679,6 +830,15 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     InfoStringInfoForBuilding(vehicle, vehicles, buildings, false, vehicles[vehicle.VehicleId].m_targetBuilding, "TargetBuilding", info);
                 }
                 catch { }
+            }
+
+            if (getHead)
+            {
+                info.Add("[Handling]", "<HandledForFrames>", "<HandlingErrors>");
+            }
+            else if (vehicle.handlingErrors > 0 || vehicle.lastHandledStamp > 0)
+            {
+                info.Add("Handling", (vehicle.lastHandledStamp > 0 && vehicle.lastHandledStamp < Global.CurrentFrame) ? Global.CurrentFrame - vehicle.lastHandledStamp : 0, vehicle.handlingErrors);
             }
 
             return info.ToString();
@@ -728,6 +888,51 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Determines whether the specified trailer vehicle has a problem.
+        /// </summary>
+        /// <param name="vehicleId">The vehicle identifier.</param>
+        /// <param name="vehicle">The vehicle.</param>
+        /// <returns>
+        /// True if the vehicle has at least one problem.
+        /// </returns>
+        private static bool TrailerHasProblem(ushort vehicleId, ref Vehicle vehicle)
+        {
+            Vehicle[] vehicles = Singleton<VehicleManager>.instance.m_vehicles.m_buffer;
+
+            ushort count = 0;
+            ushort leadId = vehicleId;
+            ushort nextId = vehicle.m_leadingVehicle;
+            while (nextId != 0)
+            {
+                if (vehicles[nextId].m_trailingVehicle != leadId)
+                {
+                    return true;
+                }
+
+                if (count >= ushort.MaxValue)
+                {
+                    throw new Exception("Loop counter too high");
+                }
+                count++;
+
+                leadId = nextId;
+                nextId = vehicles[leadId].m_leadingVehicle;
+            }
+
+            if (!(Global.Settings.RecoveryCrews.DispatchVehicles || IsDispatchersResponsibility(ref vehicles[leadId])))
+            {
+                return false;
+            }
+
+            if (vehicles[leadId].Info == null || (vehicles[leadId].m_flags & Vehicle.Flags.Spawned) == ~VehicleHelper.VehicleAll)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
         /// Adds debug information data to information list.
         /// </summary>
         /// <param name="info">The information list.</param>
@@ -742,6 +947,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 info.Add("LeadingVehicle", vehicle.m_leadingVehicle);
                 info.Add("TrailingVehicle", vehicle.m_trailingVehicle);
+                info.Add("CargoParent", vehicle.m_cargoParent);
                 info.Add("Spawned", vehicle.m_flags & Vehicle.Flags.Spawned);
                 info.Add("Flags", vehicle.m_flags);
                 info.Add("Info", vehicle.Info);
@@ -846,13 +1052,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             this.targetBuildingId = serializedData.GetUshort();
             this.dispatcherType = serializedData.GetDispatcherType();
             this.checkFlags = serializedData.GetVehicleFlags();
+            this.checkFlagPosition = serializedData.GetVector3();
             this.checkFlagSinceFrame = serializedData.GetUint();
             this.checkFlagSinceTime = serializedData.GetDouble();
             this.confusedDeAssignedSinceFrame = serializedData.GetUint();
             this.confusedSinceFrame = serializedData.GetUint();
             this.confusedSinceTime = serializedData.GetDouble();
-            this.lastDeAssignStamp = serializedData.GetUint();
-            this.checkFlagPosition = serializedData.GetVector3();
+            this.lastHandledStamp = serializedData.GetUint();
+            this.lostReason = serializedData.GetLostReason();
 
             serializedData.CheckLocalCheckSum();
 
@@ -888,6 +1095,80 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             }
 
             VehicleHelper.DeSpawn(this.VehicleId);
+        }
+
+        /// <summary>
+        /// Updates the specified trailer vehicle.
+        /// </summary>
+        /// <param name="vehicle">The vehicle.</param>
+        private void UpdateTrailer(ref Vehicle vehicle)
+        {
+            Vehicle[] vehicles = Singleton<VehicleManager>.instance.m_vehicles.m_buffer;
+
+            LostReasons lost = LostReasons.None;
+
+            ushort count = 0;
+            ushort leadId = this.VehicleId;
+            ushort nextId = vehicle.m_leadingVehicle;
+            while (nextId != 0)
+            {
+                if (vehicles[nextId].m_trailingVehicle != leadId)
+                {
+                    lost = LostReasons.IgnorantLead;
+                    break;
+                }
+
+                if (count >= ushort.MaxValue)
+                {
+                    throw new Exception("Loop counter too high");
+                }
+                count++;
+
+                leadId = nextId;
+                nextId = vehicles[leadId].m_leadingVehicle;
+            }
+
+            if (lost == LostReasons.None && (vehicles[leadId].Info == null || (vehicles[leadId].m_flags & Vehicle.Flags.Spawned) == ~VehicleHelper.VehicleAll))
+            {
+                lost = LostReasons.NoLead;
+            }
+
+            if (lost != LostReasons.None)
+            {
+                if (this.lostSinceFrame == 0 || this.lostSinceTime == 0 || this.lostReason == LostReasons.None || lost != this.lostReason)
+                {
+                    if (Log.LogALot)
+                    {
+                        Log.DevDebug(this, "UpdateTrailer", "NewLost", lost, this.VehicleId, this.LostForSeconds, this.LostForFrames, Global.Settings.RecoveryCrews.DelaySeconds, Global.CheckFlagStuckDelay, vehicle.m_leadingVehicle, vehicle.m_flags, VehicleHelper.GetVehicleName(this.VehicleId));
+                    }
+
+                    this.lostReason = lost;
+                    this.lostSinceTime = Global.SimulationTime;
+                    this.lostSinceFrame = Global.CurrentFrame;
+                }
+                else if (!this.isLost)
+                {
+                    double delta;
+
+                    if (this.lostReason != LostReasons.None && this.LostForFrames > Global.CheckFlagStuckDelay)
+                    {
+                        delta = this.LostForSeconds;
+
+                        if (delta > Global.Settings.RecoveryCrews.DelaySeconds)
+                        {
+                            Log.Info(this, "IsLost", lost, this.VehicleId, delta, VehicleHelper.GetVehicleName(this.VehicleId));
+                            this.isLost = true;
+                        }
+                    }
+                }
+            }
+            else
+            {
+                this.isLost = false;
+                this.lostReason = LostReasons.None;
+                this.lostSinceTime = 0;
+                this.lostSinceFrame = 0;
+            }
         }
     }
 }
