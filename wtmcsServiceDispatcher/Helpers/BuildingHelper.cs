@@ -334,7 +334,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <param name="targetCitizenId">The target citizen identifier.</param>
         /// <param name="vehicleId">The vehicle identifier.</param>
         /// <returns>Vehicle info for the created vehicle.</returns>
-        /// <exception cref="Exception">Loop counter too high.</exception>
         public static VehicleInfo StartTransfer(ushort serviceBuildingId, ref Building building, TransferManager.TransferReason material, ushort targetBuildingId, uint targetCitizenId, out ushort vehicleId)
         {
             if (building.Info.m_buildingAI is HospitalAI && targetCitizenId == 0)
@@ -360,8 +359,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 {
                     throw new Exception("Loop counter too high");
                 }
-
                 count++;
+
                 vehicleId = vehicles[vehicleId].m_nextOwnVehicle;
             }
 
