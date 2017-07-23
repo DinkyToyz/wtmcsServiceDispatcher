@@ -621,7 +621,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             SerializableSettings.BinaryData serializedData = new SerializableSettings.BinaryData(sourceData.Length * 2 + 1);
 
             // Version.
-            serializedData.Add((byte)0);
+            serializedData.Add((ushort)0);
 
             // Data.
             serializedData.Add(sourceData);
@@ -649,7 +649,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             SerializableSettings.BinaryData serializedData = new SerializableSettings.BinaryData(this.DesolateBuildings.Count * 10 + 1);
 
             // Version.
-            serializedData.Add((byte)0);
+            serializedData.Add((ushort)0);
 
             // Data.
             foreach (KeyValuePair<ushort, double> desolateBuilding in this.DesolateBuildings)
@@ -693,7 +693,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             SerializableSettings.BinaryData serializedData = new SerializableSettings.BinaryData(sourceData.Length * 2 + 1);
 
             // Version.
-            serializedData.Add((byte)0);
+            serializedData.Add((ushort)0);
 
             // Data.
             serializedData.Add(sourceData);

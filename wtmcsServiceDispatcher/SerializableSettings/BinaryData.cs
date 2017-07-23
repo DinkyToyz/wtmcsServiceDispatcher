@@ -271,7 +271,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
         /// <param name="data">The data.</param>
         public void Add(Boolean data)
         {
-            this.Add(data ? (byte)1 : (byte)0);
+            this.Add((byte)(data ? 1 : 0));
         }
 
         /// <summary>

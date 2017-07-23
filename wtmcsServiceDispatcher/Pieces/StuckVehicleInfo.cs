@@ -530,7 +530,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             serializedData.ResetLocalCheckSum();
 
             // Version.
-            serializedData.Add((byte)0);
+            serializedData.Add((ushort)0);
 
             // Data.
             serializedData.Add(this.VehicleId);

@@ -94,7 +94,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
             BinaryData serializedData = new BinaryData();
 
             // Version.
-            serializedData.Add((byte)0);
+            serializedData.Add((ushort)0);
 
             // Global.
             SerializeCompatibilitySettings(serializedData, settings);
@@ -433,7 +433,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
 
             // Settings types and version.
             serializedData.Add(SettingsType.Compatibility);
-            serializedData.Add((byte)0);
+            serializedData.Add((ushort)0);
 
             // Settings.
             serializedData.Add(settings.ReflectionAllowance);
@@ -461,7 +461,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
 
             // Settings types and version.
             serializedData.Add(SettingsType.HiddenService);
-            serializedData.Add((byte)0);
+            serializedData.Add((ushort)0);
             serializedData.Add(settings.ServiceType);
 
             // Settings.
@@ -488,7 +488,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
 
             // Settings types and version.
             serializedData.Add(SettingsType.ServiceRanges);
-            serializedData.Add((byte)0);
+            serializedData.Add((ushort)0);
 
             // Settings.
             serializedData.Add(settings.RangeLimit);
@@ -513,7 +513,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
 
             // Settings types and version.
             serializedData.Add(SettingsType.StandardService);
-            serializedData.Add((byte)0);
+            serializedData.Add((ushort)0);
             serializedData.Add(settings.ServiceType);
 
             // Simple settings.

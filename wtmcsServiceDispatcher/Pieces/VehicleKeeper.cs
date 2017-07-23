@@ -195,7 +195,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             SerializableSettings.BinaryData serializedData = new SerializableSettings.BinaryData();
 
             // Version.
-            serializedData.Add((byte)0);
+            serializedData.Add((ushort)0);
 
             // Data.
             foreach (StuckVehicleInfo vehicle in this.StuckVehicles.Values)
