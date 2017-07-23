@@ -56,6 +56,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
         public Information Info = new Information();
 
         /// <summary>
+        /// The miscellaneous global settings. :-)
+        /// </summary>
+        public MiscConfig Miscellaneous = new MiscConfig();
+
+        /// <summary>
         /// Automatic removal of stuck vehicles servic settings.
         /// </summary>
         public HiddenServiceConfig RemoveStuckVehicles = new HiddenServiceConfig();
@@ -115,6 +120,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
             settings.loadedVersion = this.Version;
             settings.SaveCount = this.SaveCount;
 
+            this.Miscellaneous.GetSettings(settings);
             this.Compatibility.GetSettings(settings);
             this.Dispatch.GetSettings(settings);
 
@@ -146,6 +152,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
         /// <param name="settings">The settings.</param>
         public void SetSettings(Settings settings)
         {
+            this.Miscellaneous.SetSettings(settings);
             this.Compatibility.SetSettings(settings);
             this.Dispatch.SetSettings(settings);
 
@@ -370,6 +377,36 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
             /// <param name="settings">The settings.</param>
             internal void SetSettings(Settings settings)
             { }
+        }
+
+        /// <summary>
+        /// The miscellaneous settings.
+        /// </summary>
+        [Serializable]
+        public class MiscConfig
+        {
+            /// <summary>
+            /// Whether to load settings per city or not.
+            /// </summary>
+            public bool LoadSettingsPerCity = Global.EnableDevExperiments;
+
+            /// <summary>
+            /// Gets the settings from the specified configuration.
+            /// </summary>
+            /// <param name="settings">The settings.</param>
+            internal void GetSettings(Settings settings)
+            {
+                settings.LoadSettingsPerCity = this.LoadSettingsPerCity;
+            }
+
+            /// <summary>
+            /// Sets the specified configuration for the values from the sepcified settings.
+            /// </summary>
+            /// <param name="settings">The settings.</param>
+            internal void SetSettings(Settings settings)
+            {
+                this.LoadSettingsPerCity = settings.LoadSettingsPerCity;
+            }
         }
 
         /// <summary>

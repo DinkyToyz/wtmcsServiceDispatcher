@@ -59,6 +59,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
                 {
                     applied = applySettings;
                 };
+
+                if (applied && !settings.Loaded)
+                {
+                    settings.LoadSettingsPerCity = true;
+                }
             }
             catch (Exception ex)
             {
@@ -398,7 +403,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
 
             if (serviceSettings != null)
             {
-                Log.Debug(typeof(BinarySettings), "DeserializeStandardServiceSettings", applySettings, service, serializedSettings.DispatchVehicles, serializedSettings.ChecksPreset, serializedSettings.ChecksParameters, serializedSettings.ChecksCustom);
+                Log.Debug(typeof(BinarySettings), "DeserializeStandardServiceSettings", applySettings,
+                    service,
+                    serializedSettings.DispatchVehicles,
+                    serializedSettings.ChecksPreset,
+                    ServiceDispatcherSettings.BuildingChecksPresetInfo.ToString(serializedSettings.ChecksParameters),
+                    ServiceDispatcherSettings.BuildingChecksPresetInfo.ToString(serializedSettings.ChecksCustom));
 
                 if (applySettings)
                 {
