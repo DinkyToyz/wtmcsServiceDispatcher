@@ -46,7 +46,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             try
             {
-                Log.AlwaysFlush = true;
                 Log.LogToDebugOutputPanel = false;
 
                 if (this.serializableData != null && Global.Settings != null)
@@ -81,7 +80,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             }
             finally
             {
-                Log.AlwaysFlush = false;
                 Log.LogToDebugOutputPanel = logToDebugOutputPanel;
                 base.OnLoadData();
             }

@@ -148,7 +148,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     List<KeyValuePair<string, string>> vehicleList = new List<KeyValuePair<string, string>>(this.StuckVehicles.Count + 2);
 
                     vehicleList.Add(new KeyValuePair<string, string>("A", StuckVehicleInfo.InfoHeader));
-                    vehicleList.Add(new KeyValuePair<string, string>("B", ""));
 
                     foreach (StuckVehicleInfo vehicle in this.StuckVehicles.Values)
                     {

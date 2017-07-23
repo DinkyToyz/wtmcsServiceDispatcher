@@ -28,11 +28,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public readonly StandardServiceSettings HealthCare = new StandardServiceSettings(SerializableSettings.ServiceType.HealthCare);
 
         /// <summary>
-        /// Whether to load settings per city or not.
-        /// </summary>
-        public readonly bool LoadSettingsPerCity = Global.EnableDevExperiments;
-
-        /// <summary>
         /// The recovery crews settings.
         /// </summary>
         public readonly HiddenServiceSettings RecoveryCrews = new HiddenServiceSettings(SerializableSettings.ServiceType.RecoveryCrews);
@@ -61,6 +56,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// The settings version in the loaded file.
         /// </summary>
         public int? loadedVersion = null;
+
+        /// <summary>
+        /// Whether to load settings per city or not.
+        /// </summary>
+        public bool LoadSettingsPerCity = Global.EnableDevExperiments;
 
         /// <summary>
         /// Limit building ranges.

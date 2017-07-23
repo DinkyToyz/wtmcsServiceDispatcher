@@ -468,7 +468,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     info.Add("[District]", "<DistrictId>", "[DistrictName]");
 
                     buildingList.Add(new KeyValuePair<string, string>("A", info.ToString()));
-                    buildingList.Add(new KeyValuePair<string, string>("B", ""));
 
                     foreach (KeyValuePair<ushort, double> building in this.DesolateBuildings)
                     {

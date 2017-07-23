@@ -472,9 +472,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             {
                 info.Add("CanReceive" + tagSuffix, serviceBuilding.CanReceive);
                 info.Add("CapacityLevel" + tagSuffix, serviceBuilding.CapacityLevel);
-                info.Add("CapactyFree" + tagSuffix, serviceBuilding.CapacityFree);
-                info.Add("CapactyMax" + tagSuffix, serviceBuilding.CapacityMax);
-                info.Add("CapactyOverflow" + tagSuffix, serviceBuilding.CurrentTargetCapacityOverflow);
+                info.Add("CapacityFree" + tagSuffix, serviceBuilding.CapacityFree);
+                info.Add("CapacityMax" + tagSuffix, serviceBuilding.CapacityMax);
+                info.Add("CapacityOverflow" + tagSuffix, serviceBuilding.CurrentTargetCapacityOverflow);
                 info.Add("CapacityPercent" + tagSuffix, serviceBuilding.CapacityPercent);
                 info.Add("Range" + tagSuffix, serviceBuilding.Range);
                 info.Add("VehiclesFree" + tagSuffix, serviceBuilding.VehiclesFree);
