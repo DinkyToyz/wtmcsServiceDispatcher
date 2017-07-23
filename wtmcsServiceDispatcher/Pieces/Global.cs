@@ -84,6 +84,16 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public const uint TargetLingerDelay = 240u;
 
         /// <summary>
+        /// Indicates whether development experiments are enabled.
+        /// </summary>
+        public static readonly bool EnableDevExperiments = FileSystem.Exists(".enable.experiments.dev");
+
+        /// <summary>
+        /// Indicates whether experiments are enabled.
+        /// </summary>
+        public static readonly bool EnableExperiments = FileSystem.Exists(".enable.experiments");
+
+        /// <summary>
         /// The ambulance dispatcher.
         /// </summary>
         public static Dispatcher AmbulanceDispatcher = null;
@@ -102,16 +112,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// The current frame.
         /// </summary>
         public static uint CurrentFrame = 0u;
-
-        /// <summary>
-        /// Indicates whether development experiments are enabled.
-        /// </summary>
-        public static bool EnableDevExperiments = FileSystem.Exists(".enable.experiments.dev");
-
-        /// <summary>
-        /// Indicates whether experiments are enabled.
-        /// </summary>
-        public static bool EnableExperiments = FileSystem.Exists(".enable.experiments");
 
         /// <summary>
         /// The garbage truck dispatcher.

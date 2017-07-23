@@ -72,17 +72,17 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
-        /// The serialized automatic emptying building list.
-        /// </summary>
-        public HashSet<ushort> SerializedAutoEmptying { get; private set; }
-
-        /// <summary>
         /// Gets a value indicating whether emptying is considerd as being automatic for new buildings.
         /// </summary>
         /// <value>
         ///   <c>true</c> if emptying is considered automatic; otherwise, <c>false</c>.
         /// </value>
         public bool EmptyingIsAutoEmptying { get; private set; }
+
+        /// <summary>
+        /// The serialized automatic emptying building list.
+        /// </summary>
+        public HashSet<ushort> SerializedAutoEmptying { get; private set; }
 
         /// <summary>
         /// Gets the service building lists.
@@ -363,20 +363,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     return;
                 }
 
-                if (Log.LogALot)
-                {
-                    Log.Debug(this, "DeserializeDesolateBuildings", serializedData.Length, String.Join(" ", serializedData.Data.Select(b => b.ToString("X2")).TakeToArray(serializedData.Length - 1)));
-                }
-
                 while (serializedData.Left >= 10)
                 {
                     ushort id = serializedData.GetUshort();
                     double stamp = serializedData.GetDouble();
-
-                    if (Log.LogALot)
-                    {
-                        Log.DevDebug(this, "DeserializeDesolateBuildings", id, stamp);
-                    }
 
                     this.DesolateBuildings[id] = stamp;
                 }
@@ -579,12 +569,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             if (Log.LogALot)
             {
                 Log.DevDebug(this, "SerializeDesolateBuildings", this.DesolateBuildings.Count, String.Join(", ", this.DesolateBuildings.OrderBy(db => db.Key).SelectToArray(db => db.Key.ToString() + ":" + db.Value.ToString("#0.##"))));
-
-                Log.Debug(this, "SerializeDesolateBuildings", this.DesolateBuildings.Count, String.Join(",  ",
-                    this.DesolateBuildings.Select(db =>
-                        String.Join("-", BitConverter.GetBytes(db.Key).Select(b => b.ToString("X2")).ToArray()) + ":" +
-                        String.Join("-", BitConverter.GetBytes(db.Value).Select(b => b.ToString("X2")).ToArray())
-                    ).ToArray()));
             }
 
             SerializableSettings.BinaryData serializedData = new SerializableSettings.BinaryData(this.DesolateBuildings.Count * 10 + 1);
@@ -1211,32 +1195,34 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 Log.DevDebug(this, "CollectVehicles", "SerializedTargetAssignments", this.serializedTargetAssignments.Count);
             }
 
+            int countServices = 0;
+            int countDispathchingServices = 0;
+            int countBuildings = 0;
+            int countUsableBuildings = 0;
+            int countVehicles = 0;
+            int countUsableVehicles = 0;
+            int countNewVehicles = 0;
+            int countTargetingVehicles = 0;
+
             foreach (StandardServiceBuildings service in this.StandardServices)
             {
+                countServices++;
+
                 if (service.ServiceBuildings != null)
                 {
-                    if (Log.LogALot)
-                    {
-                        Log.DevDebug(this, "CollectVehicles", "SerializedTargets", "Service", service.Service, service.TransferType, service.ServiceBuildings.Count);
-                    }
+                    countDispathchingServices++;
 
                     foreach (ServiceBuildingInfo serviceBuilding in service.ServiceBuildings.Values)
                     {
-                        if (Log.LogALot)
-                        {
-                            Log.DevDebug(this, "CollectVehicles", "SerializedTargets", "ServiceBuilding", service.Service, serviceBuilding.BuildingId, buildings[serviceBuilding.BuildingId].m_flags, buildings[serviceBuilding.BuildingId].Info);
-                        }
+                        countBuildings++;
 
                         if (buildings[serviceBuilding.BuildingId].Info != null && (buildings[serviceBuilding.BuildingId].m_flags & Building.Flags.Created) != Building.Flags.None || (buildings[serviceBuilding.BuildingId].m_flags & (Building.Flags.Abandoned | Building.Flags.BurnedDown | Building.Flags.Deleted | Building.Flags.Hidden)) == Building.Flags.None)
                         {
-                            if (Log.LogALot)
-                            {
-                                Log.DevDebug(this, "CollectVehicles", "SerializedTargets", "ServiceBuilding", service.Service, serviceBuilding.BuildingId);
-                            }
-
-                            int count = 0;
+                            countUsableBuildings++;
 
                             serviceBuilding.FirstOwnVehicleId = buildings[serviceBuilding.BuildingId].m_ownVehicles;
+
+                            int count = 0;
                             ushort vehicleId = serviceBuilding.FirstOwnVehicleId;
                             while (vehicleId != 0)
                             {
@@ -1245,11 +1231,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                                     throw new Exception("Loop counter too high");
                                 }
                                 count++;
-
-                                if (Log.LogALot)
-                                {
-                                    Log.DevDebug(this, "CollectVehicles", "SerializedTargets", "Vehicle", service.Service, serviceBuilding.BuildingId, vehicleId, vehicles[vehicleId].m_targetBuilding, (TransferManager.TransferReason)vehicles[vehicleId].m_transferType, vehicles[vehicleId].m_flags, vehicles[vehicleId].Info);
-                                }
+                                countVehicles++;
 
                                 if (vehicles[vehicleId].m_transferType == service.TransferType && vehicles[vehicleId].m_targetBuilding != 0)
                                 {
@@ -1258,21 +1240,16 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                                         (vehicles[vehicleId].m_flags & Vehicle.Flags.Created) == Vehicle.Flags.Created &&
                                         (vehicles[vehicleId].m_flags & VehicleHelper.VehicleExists) != ~VehicleHelper.VehicleAll)
                                     {
+                                        countUsableVehicles++;
+
                                         if (!serviceBuilding.Vehicles.ContainsKey(vehicleId))
                                         {
-                                            if (Log.LogALot)
-                                            {
-                                                Log.DevDebug(this, "CollectVehicles", "SerializedTargets", "NewVehicle", service.Service, serviceBuilding.BuildingId, vehicleId, vehicles[vehicleId].m_targetBuilding);
-                                            }
+                                            countNewVehicles++;
 
                                             ushort serializedTarget;
                                             if (this.serializedTargetAssignments.TryGetValue(vehicleId, out serializedTarget) && serializedTarget == vehicles[vehicleId].m_targetBuilding)
                                             {
-                                                if (Log.LogALot)
-                                                {
-                                                    Log.DevDebug(this, "CollectVehicles", "SerializedTargets", "OldTarget", service.Service, serviceBuilding.BuildingId, vehicleId, serializedTarget);
-                                                }
-
+                                                countTargetingVehicles++;
                                                 serviceBuilding.Vehicles[vehicleId] = new ServiceVehicleInfo(vehicleId, ref vehicles[vehicleId], service.DispatcherType, serializedTarget);
                                             }
                                         }
@@ -1288,6 +1265,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         }
                     }
                 }
+            }
+
+            if (Log.LogALot)
+            {
+                Log.DevDebug(this, "CollectVehicles", "SerializedTargetAssignments", this.serializedTargetAssignments.Count, countServices, countDispathchingServices, countBuildings, countUsableBuildings, countVehicles, countUsableVehicles, countNewVehicles, countTargetingVehicles);
             }
         }
 

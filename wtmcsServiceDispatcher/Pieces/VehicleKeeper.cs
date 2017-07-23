@@ -105,11 +105,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 SerializableSettings.DeserializationResult result;
                 while ((result = StuckVehicleInfo.Deserialize(serializedData, out vehicle)) == SerializableSettings.DeserializationResult.Success)
                 {
-                    if (Log.LogALot)
-                    {
-                        Log.DevDebug(this, "DeserializeStuckVehicles", "[" + vehicle.ToString() + "]");
-                    }
-
                     this.StuckVehicles[vehicle.VehicleId] = vehicle;
                 }
 
@@ -119,7 +114,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 }
                 else if (Log.LogALot)
                 {
-                    Log.DevDebug(this, "DeserializeStuckVehicles", String.Join(" | ", this.StuckVehicles.Values.OrderBy(v => v.VehicleId).SelectToArray(v => "[" + v.ToString() + "]")));
+                    Log.DevDebug(this, "DeserializeStuckVehicles", this.StuckVehicles.Count, String.Join(" | ", this.StuckVehicles.Values.OrderBy(v => v.VehicleId).SelectToArray(v => "[" + v.ToString() + "]")));
                 }
             }
             catch (Exception ex)
@@ -195,7 +190,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             if (Log.LogALot)
             {
-                Log.DevDebug(this, "SerializeStuckVehicles", String.Join(" | ", this.StuckVehicles.Values.OrderBy(v => v.VehicleId).SelectToArray(v => "[" + v.ToString() + "]")));
+                Log.DevDebug(this, "SerializeStuckVehicles", this.StuckVehicles.Count, String.Join(" | ", this.StuckVehicles.Values.OrderBy(v => v.VehicleId).SelectToArray(v => "[" + v.ToString() + "]")));
             }
 
             SerializableSettings.BinaryData serializedData = new SerializableSettings.BinaryData(this.StuckVehicles.Count * StuckVehicleInfo.SerializedSize + 1);

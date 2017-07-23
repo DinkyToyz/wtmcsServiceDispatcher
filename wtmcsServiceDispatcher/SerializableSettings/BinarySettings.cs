@@ -10,7 +10,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
         /// <summary>
         /// Whether this deserialized settings should actually be aplied.
         /// </summary>
-        private static bool applySettings = true;
+        private static readonly bool applySettings = false;
 
         /// <summary>
         /// Deseralizes the specified serialized data and applies to global settings.
@@ -46,7 +46,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
 
             try
             {
-                applySettings = applySettings && Global.EnableDevExperiments;
                 Log.Debug(typeof(BinarySettings), "Deserialize", applySettings);
 
                 byte version = serializedData.GetByte();
@@ -122,7 +121,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
             }
 
             SettingsType settingsType = serializedData.PeekSettingsType();
-            Log.Debug(typeof(BinarySettings), "DeserializeBlock", applySettings, settingsType);
+            Log.DevDebug(typeof(BinarySettings), "DeserializeBlock", applySettings, settingsType);
 
             switch (settingsType)
             {
@@ -156,7 +155,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
                 return DeserializationResult.EndOfData;
             }
 
-            Log.Debug(typeof(BinarySettings), "DeserializeCompatibilitySettings", applySettings);
+            Log.DevDebug(typeof(BinarySettings), "DeserializeCompatibilitySettings", applySettings);
 
             serializedData.ResetLocalCheckSum();
 
@@ -211,7 +210,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
                 return DeserializationResult.EndOfData;
             }
 
-            Log.Debug(typeof(BinarySettings), "DeserializeHiddenServiceSettings", applySettings);
+            Log.DevDebug(typeof(BinarySettings), "DeserializeHiddenServiceSettings", applySettings);
 
             serializedData.ResetLocalCheckSum();
 
@@ -282,7 +281,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
                 return DeserializationResult.EndOfData;
             }
 
-            Log.Debug(typeof(BinarySettings), "DeserializeRangeSettings", applySettings);
+            Log.DevDebug(typeof(BinarySettings), "DeserializeRangeSettings", applySettings);
 
             serializedData.ResetLocalCheckSum();
 
@@ -333,7 +332,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
                 return DeserializationResult.EndOfData;
             }
 
-            Log.Debug(typeof(BinarySettings), "DeserializeStandardServiceSettings", applySettings);
+            Log.DevDebug(typeof(BinarySettings), "DeserializeStandardServiceSettings", applySettings);
 
             serializedData.ResetLocalCheckSum();
 

@@ -77,7 +77,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             {
                 this.IsAutoEmptying = Global.Buildings.SerializedAutoEmptying.Contains(buildingId);
 
-                if (Log.LogALot)
+                if (Log.LogALot && this.IsAutoEmptying)
                 {
                     Log.Debug(this, "Construct", "SerializedAutoEmptying", buildingId, this.IsAutoEmptying);
                 }
@@ -85,11 +85,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             else if (Global.Buildings.EmptyingIsAutoEmptying)
             {
                 this.IsAutoEmptying = (building.m_flags & Building.Flags.Downgrading) != Building.Flags.None;
-
-                if (Log.LogALot)
-                {
-                    Log.Debug(this, "Construct", "EmptyingIsAutoEmptying", buildingId, this.IsAutoEmptying);
-                }
             }
             else
             {
