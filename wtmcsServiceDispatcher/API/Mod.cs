@@ -23,6 +23,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         private UIComponent dumpBuildingsButton = null;
 
         /// <summary>
+        /// The dump desolate buildings button.
+        /// </summary>
+        private UIComponent dumpDesolateBuildingsButton = null;
+
+        /// <summary>
         /// The dump buttons information text.
         /// </summary>
         private InformationalText dumpButtonsInfoText = null;
@@ -767,6 +772,26 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 this.dumpButtonsInfoText = group.AddInformationalText("Note:", "Dumping is only possible when a city is loaded.");
 
+                this.dumpStuckVehiclesButton = (UIComponent)group.AddButton(
+                    "Dump stuck vehicles",
+                    () =>
+                    {
+                        if (Global.Vehicles != null)
+                        {
+                            Global.Vehicles.DumpStuckVehicles(true);
+                        }
+                    });
+
+                this.dumpDesolateBuildingsButton = (UIComponent)group.AddButton(
+                    "Dump desolate buildings",
+                    () =>
+                    {
+                        if (Global.Buildings != null)
+                        {
+                            Global.Buildings.DumpDesolateBuildings(true);
+                        }
+                    });
+
                 this.dumpBuildingsButton = (UIComponent)group.AddButton(
                     "Dump buildings",
                     () =>
@@ -779,16 +804,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     () =>
                     {
                         VehicleHelper.DumpVehicles(true);
-                    });
-
-                this.dumpStuckVehiclesButton = (UIComponent)group.AddButton(
-                    "Dump stuck vehicles",
-                    () =>
-                    {
-                        if (Global.Vehicles != null)
-                        {
-                            Global.Vehicles.DumpStuckVehicles(true);
-                        }
                     });
 
                 return group;
@@ -1330,6 +1345,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 this.SetUsability(this.dumpBuildingsButton, Global.LevelLoaded);
                 this.SetUsability(this.dumpVehiclesButton, Global.LevelLoaded);
                 this.SetUsability(this.dumpStuckVehiclesButton, Global.LevelLoaded && Global.Vehicles != null && Global.Vehicles.StuckVehicles != null);
+                this.SetUsability(this.dumpDesolateBuildingsButton, Global.LevelLoaded && Global.Buildings != null && Global.Buildings.DesolateBuildings != null);
             }
             catch (Exception ex)
             {
