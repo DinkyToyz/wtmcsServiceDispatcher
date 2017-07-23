@@ -444,6 +444,82 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Dumps the desolate buildings.
+        /// </summary>
+        /// <param name="openDumpedFile">if set to <c>true</c> open dumped file when created.</param>
+        public void DumpDesolateBuildings(bool openDumpedFile = false)
+        {
+            if (this.DesolateBuildings == null)
+            {
+                return;
+            }
+
+            try
+            {
+                Global.DumpData("DesolateBuildings", openDumpedFile, true, () =>
+                {
+                    Building[] buildings = Singleton<BuildingManager>.instance.m_buildings.m_buffer;
+                    List<KeyValuePair<string, string>> buildingList = new List<KeyValuePair<string, string>>(this.DesolateBuildings.Count + 2);
+
+                    Log.InfoList info = new Log.InfoList();
+
+                    info.Add("<Building>", "<BuilldingId>", "[BuildingName]");
+                    info.Add("<Desolate>", "<DesolateForTime>");
+                    info.Add("[District]", "<DistrictId>", "[DistrictName]");
+
+                    buildingList.Add(new KeyValuePair<string, string>("A", info.ToString()));
+                    buildingList.Add(new KeyValuePair<string, string>("B", ""));
+
+                    foreach (KeyValuePair<ushort, double> building in this.DesolateBuildings)
+                    {
+                        string ai = null;
+                        string sortPrefix = "9";
+                        try
+                        {
+                            if (buildings[building.Key].Info != null && buildings[building.Key].Info.m_buildingAI != null)
+                            {
+                                ai = buildings[building.Key].Info.m_buildingAI.GetType().ToString();
+
+                                if (buildings[building.Key].Info.m_buildingAI is LandfillSiteAI ||
+                                    buildings[building.Key].Info.m_buildingAI is CemeteryAI ||
+                                    buildings[building.Key].Info.m_buildingAI is HospitalAI)
+                                {
+                                    sortPrefix = "0";
+                                }
+                            }
+                        }
+                        catch { }
+
+                        string sortValue = "C" + sortPrefix + (ai == null ? "?" : ai.ToLower()) + building.Key.ToString().PadLeft(16, '0');
+
+                        info = new Log.InfoList();
+
+                        info.Add("Building", building.Key, BuildingHelper.GetBuildingName(building.Key));
+                        info.Add("Desolate", Global.SimulationTime - building.Value);
+
+                        try
+                        {
+                            byte districtId = DistrictHelper.GetDistrict(buildings[building.Key].m_position);
+                            if (districtId != 0)
+                            {
+                                info.Add("District", districtId, DistrictHelper.GetDistrictName(districtId));
+                            }
+                        }
+                        catch { }
+
+                        buildingList.Add(new KeyValuePair<string, string>(sortValue, info.ToString()));
+                    }
+
+                    return buildingList.OrderBy(b => b.Key).SelectToArray(b => b.Value);
+                });
+            }
+            catch (Exception ex)
+            {
+                Log.Error(this, "DumpDesolateBuildings", ex, openDumpedFile);
+            }
+        }
+
+        /// <summary>
         /// Gets the buidling categories for a building.
         /// </summary>
         /// <param name="buildingId">The building identifier.</param>
