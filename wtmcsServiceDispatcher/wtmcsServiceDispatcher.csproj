@@ -109,7 +109,6 @@
     <Compile Include="Detours\GarbageTruckAIShouldReturnToSourceDetour.cs" />
     <Compile Include="Pieces\IHandlerPart.cs" />
     <Compile Include="Pieces\Dispatcher.cs" />
-    <Compile Include="Pieces\DispatchServiceKeeper.cs" />
     <Compile Include="Pieces\ServiceProblemKeeper.cs" />
     <Compile Include="SerializableSettings\BinaryData.cs" />
     <Compile Include="SerializableSettings\BinarySettings.cs" />
