@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 
 namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 {
@@ -252,6 +253,78 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             Global.Buildings = null;
             Global.Vehicles = null;
             Global.ServiceProblems = null;
+        }
+
+        /// <summary>
+        /// Dumps the data.
+        /// </summary>
+        /// <param name="objectNamePlural">The object name plural.</param>
+        /// <param name="openDumpedFile">if set to <c>true</c> open dumped file after creation.</param>
+        /// <param name="requireLoadedLevel">if set to <c>true</c> require a loaded level before dumping.</param>
+        /// <param name="lister">The object lister.</param>
+        public static void DumpData(string objectNamePlural, bool openDumpedFile, bool requireLoadedLevel, Func<string[]> lister)
+        {
+            if (requireLoadedLevel && !LevelLoaded)
+            {
+                return;
+            }
+
+            bool logNames = Log.LogNames;
+            Log.LogNames = true;
+
+            try
+            {
+                string[] lines = lister();
+
+                if (lines != null)
+                {
+                    DumpData(objectNamePlural, openDumpedFile, lines);
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error(typeof(Global), "DumpData", ex, objectNamePlural, openDumpedFile, requireLoadedLevel);
+            }
+            finally
+            {
+                Log.LogNames = logNames;
+            }
+        }
+
+        /// <summary>
+        /// Dumps the data.
+        /// </summary>
+        /// <param name="objectNamePlural">The object name in plural.</param>
+        /// <param name="openDumpedFile">if set to <c>true</c> open dumped file after creation.</param>
+        /// <param name="lines">The lines.</param>
+        /// <exception cref="InvalidDataException">No objects</exception>
+        public static void DumpData(string objectNamePlural, bool openDumpedFile, string[] lines)
+        {
+            try
+            {
+                if (lines.Length == 0)
+                {
+                    throw new InvalidDataException("No objects");
+                }
+
+                string filePathName = FileSystem.FilePathName("." + objectNamePlural + ".txt");
+
+                using (StreamWriter dumpFile = new StreamWriter(filePathName, false))
+                {
+                    dumpFile.Write(String.Join("\n", lines).ConformNewlines());
+                    dumpFile.WriteLine();
+                    dumpFile.Close();
+                }
+
+                if (openDumpedFile)
+                {
+                    FileSystem.OpenFile(filePathName);
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error(typeof(Global), "DumpData", ex, objectNamePlural, openDumpedFile);
+            }
         }
 
         /// <summary>

@@ -1,5 +1,5 @@
-﻿using System;
-using ColossalFramework;
+﻿using ColossalFramework;
+using System;
 using UnityEngine;
 
 namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
@@ -9,6 +9,23 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
     /// </summary>
     internal static class DistrictHelper
     {
+        /// <summary>
+        /// Gets the district for a position.
+        /// </summary>
+        /// <param name="position">The position.</param>
+        /// <returns>The district.</returns>
+        public static byte GetDistrict(Vector3 position)
+        {
+            try
+            {
+                return Singleton<DistrictManager>.instance.GetDistrict(position);
+            }
+            catch
+            {
+                return 0;
+            }
+        }
+
         /// <summary>
         /// Gets the name of the district.
         /// </summary>

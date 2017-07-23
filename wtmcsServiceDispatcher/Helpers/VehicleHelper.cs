@@ -3,6 +3,7 @@ using ColossalFramework.Math;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using UnityEngine;
 
 namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
@@ -399,78 +400,91 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// Saves a list of vehicle info for debug use.
         /// </summary>
         /// <exception cref="InvalidDataException">No vehicle objects.</exception>
-        public static void DumpVehicles()
+        public static void DumpVehicles(bool openDumpedFile = false)
         {
-            if (!Global.LevelLoaded)
-            {
-                return;
-            }
-
-            bool logNames = Log.LogNames;
-            Log.LogNames = true;
-
             try
             {
-                List<string> vehicleList = new List<string>();
-                HashSet<ushort> listed = new HashSet<ushort>();
-
-                Vehicle[] vehicles = Singleton<VehicleManager>.instance.m_vehicles.m_buffer;
-                Building[] buildings = Singleton<BuildingManager>.instance.m_buildings.m_buffer;
-
-                for (ushort id = 0; id < vehicles.Length; id++)
+                Global.DumpData("StuckVehicles", openDumpedFile, true, () =>
                 {
-                    if ((vehicles[id].m_flags & VehicleHelper.VehicleAll) != ~VehicleHelper.VehicleAll && vehicles[id].m_leadingVehicle == 0)
+                    List<KeyValuePair<string, string>> vehicleList = new List<KeyValuePair<string, string>>();
+
+                    HashSet<ushort> listed = new HashSet<ushort>();
+
+                    Vehicle[] vehicles = Singleton<VehicleManager>.instance.m_vehicles.m_buffer;
+                    Building[] buildings = Singleton<BuildingManager>.instance.m_buildings.m_buffer;
+
+                    for (ushort id = 0; id < vehicles.Length; id++)
                     {
-                        listed.Add(id);
-                        vehicleList.Add(DebugInfoMsg(vehicles, buildings, id, true).ToString());
-
-                        if (vehicles[id].m_trailingVehicle != 0)
+                        if ((vehicles[id].m_flags & VehicleHelper.VehicleAll) != ~VehicleHelper.VehicleAll && (vehicles[id].m_leadingVehicle == 0 || vehicles[id].m_leadingVehicle == id))
                         {
-                            ushort trailerCount = 0;
-                            ushort trailerId = vehicles[id].m_trailingVehicle;
-
-                            while (trailerId != 0 && trailerCount < ushort.MaxValue)
+                            string sortPrefix;
+                            try
                             {
-                                if (!listed.Contains(trailerId))
-                                {
-                                    listed.Add(trailerId);
-                                    vehicleList.Add(DebugInfoMsg(vehicles, buildings, trailerId, true).ToString());
-                                }
+                                sortPrefix = "0" + vehicles[id].Info.m_vehicleAI.GetType().ToString();
+                            }
+                            catch
+                            {
+                                sortPrefix = "0?";
+                            }
 
-                                trailerId = vehicles[trailerId].m_trailingVehicle;
-                                trailerCount++;
+                            sortPrefix += id.ToString().PadLeft(16, '0');
+
+                            string sortValue = sortPrefix + "".PadLeft(16, '0');
+
+                            listed.Add(id);
+                            vehicleList.Add(new KeyValuePair<string, string>(sortValue, DebugInfoMsg(vehicles, buildings, id, true).ToString()));
+
+                            if (vehicles[id].m_trailingVehicle != 0)
+                            {
+                                ushort trailerCount = 0;
+                                ushort trailerId = vehicles[id].m_trailingVehicle;
+
+                                while (trailerId != 0 && trailerCount < ushort.MaxValue)
+                                {
+                                    trailerCount++;
+
+                                    if (!listed.Contains(trailerId))
+                                    {
+                                        sortValue = sortPrefix + trailerCount.ToString().PadLeft(16, '0');
+
+                                        listed.Add(trailerId);
+                                        vehicleList.Add(new KeyValuePair<string, string>(sortValue, DebugInfoMsg(vehicles, buildings, trailerId, true).ToString()));
+                                    }
+
+                                    trailerId = vehicles[trailerId].m_trailingVehicle;
+                                }
                             }
                         }
                     }
-                }
 
-                for (ushort id = 0; id < vehicles.Length; id++)
-                {
-                    if (!listed.Contains(id) && (vehicles[id].m_flags & VehicleHelper.VehicleAll) != ~VehicleHelper.VehicleAll)
+                    for (ushort id = 0; id < vehicles.Length; id++)
                     {
-                        listed.Add(id);
-                        vehicleList.Add(DebugInfoMsg(vehicles, buildings, id, true).ToString());
+                        string sortValue;
+                        try
+                        {
+                            sortValue = "1" + vehicles[id].Info.m_vehicleAI.GetType().ToString();
+                        }
+                        catch
+                        {
+                            sortValue = "1?";
+                        }
+
+                        sortValue += id.ToString().PadLeft(16, '0');
+
+                        if (!listed.Contains(id) && (vehicles[id].m_flags & VehicleHelper.VehicleAll) != ~VehicleHelper.VehicleAll)
+                        {
+                            listed.Add(id);
+                            vehicleList.Add(new KeyValuePair<string, string>(sortValue, DebugInfoMsg(vehicles, buildings, id, true).ToString()));
+                        }
                     }
-                }
 
-                if (vehicleList.Count == 0)
-                {
-                    throw new InvalidDataException("No vehicle objects");
-                }
-
-                vehicleList.Add("");
-                using (StreamWriter dumpFile = new StreamWriter(FileSystem.FilePathName(".Vehicles.txt"), false))
-                {
-                    dumpFile.Write(String.Join("\n", vehicleList.ToArray()).ConformNewlines());
-                    dumpFile.Close();
-                }
+                    return vehicleList.OrderBy(v => v.Key).SelectToArray(v => v.Value);
+                });
             }
             catch (Exception ex)
             {
-                Log.Error(typeof(VehicleKeeper), "DumpVehicles", ex);
+                Log.Error(typeof(VehicleKeeper), "DumpVehicles", ex, openDumpedFile);
             }
-
-            Log.LogNames = logNames;
         }
 
         /// <summary>

@@ -134,6 +134,47 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Dumps the stuck vehicles.
+        /// </summary>
+        /// <param name="openDumpedFile">if set to <c>true</c> open dumped file when created.</param>
+        public void DumpStuckVehicles(bool openDumpedFile = false)
+        {
+            if (this.StuckVehicles == null)
+            {
+                return;
+            }
+
+            try
+            {
+                Global.DumpData("StuckVehicles", openDumpedFile, true, () =>
+                {
+                    Vehicle[] vehicles = Singleton<VehicleManager>.instance.m_vehicles.m_buffer;
+                    Building[] buildings = Singleton<BuildingManager>.instance.m_buildings.m_buffer;
+                    List<KeyValuePair<string, string>> vehicleList = new List<KeyValuePair<string, string>>(this.StuckVehicles.Count + 2);
+
+                    vehicleList.Add(new KeyValuePair<string, string>("A", StuckVehicleInfo.InfoHeader));
+                    vehicleList.Add(new KeyValuePair<string, string>("B", ""));
+
+                    foreach (StuckVehicleInfo vehicle in this.StuckVehicles.Values)
+                    {
+                        string sortValue = "C" + vehicle.ProblemLevel.ToString()
+                            + (vehicle.DispatchersResponsibility ? "0" : "1")
+                            + ((vehicle.DispatcherType == Dispatcher.DispatcherTypes.None) ? "99" : ((byte)vehicle.DispatcherType).ToString().PadLeft(2, '0'))
+                            + vehicle.VehicleId.ToString().PadLeft(16, '0');
+
+                        vehicleList.Add(new KeyValuePair<string, string>(sortValue, vehicle.GetInfoLine(vehicles, buildings)));
+                    }
+
+                    return vehicleList.OrderBy(v => v.Key).SelectToArray(v => v.Value);
+                });
+            }
+            catch (Exception ex)
+            {
+                Log.Error(this, "DumpStuckVehicles", ex, openDumpedFile);
+            }
+        }
+
+        /// <summary>
         /// Re-initialize the part.
         /// </summary>
         public void ReInitialize()

@@ -1,5 +1,6 @@
 ﻿using ColossalFramework;
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
@@ -60,6 +61,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         private Dispatcher.DispatcherTypes dispatcherType = Dispatcher.DispatcherTypes.None;
 
         /// <summary>
+        /// Gets the type of the dispatcher.
+        /// </summary>
+        /// <value>
+        /// The type of the dispatcher.
+        /// </value>
+        public Dispatcher.DispatcherTypes DispatcherType => this.dispatcherType;
+
+        /// <summary>
         /// The vehicle is broken.
         /// </summary>
         private bool isBroken = false;
@@ -68,6 +77,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// The vehicle is stuck.
         /// </summary>
         private bool isStuck = false;
+
+        /// <summary>
+        /// Gets the problem level.
+        /// </summary>
+        /// <value>
+        /// The problem level.
+        /// </value>
+        public byte ProblemLevel => (byte)((this.isStuck ? 1 : 0) + (this.isBroken ? 2 : 0));
 
         /// <summary>
         /// The last de-assign time stamp.
@@ -101,6 +118,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Gets the information header.
+        /// </summary>
+        /// <returns>The information header.</returns>
+        public static string InfoHeader => InfoString(null, null, null, true);
+
+        /// <summary>
         /// Gets the size of the serialized.
         /// </summary>
         /// <value>
@@ -129,6 +152,28 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// The vehicle identifier.
         /// </summary>
         public ushort VehicleId { get; private set; }
+
+        /// <summary>
+        /// Gets the name of the vehicle.
+        /// </summary>
+        /// <value>
+        /// The name of the vehicle.
+        /// </value>
+        public string VehicleName => VehicleHelper.GetVehicleName(this.VehicleId);
+
+        /// <summary>
+        /// Gets the amount of frames sincle the last time the vehicle was de-assigned.
+        /// </summary>
+        /// <value>
+        /// The de-assign stamp frame count.
+        /// </value>
+        private uint AtLeastDeAssignedForFrames
+        {
+            get
+            {
+                return (this.lastDeAssignStamp > 0 && this.lastDeAssignStamp < Global.CurrentFrame) ? Global.CurrentFrame - this.lastDeAssignStamp : 0;
+            }
+        }
 
         /// <summary>
         /// Gets the amount of frames during which the vehicle has had a check flag.
@@ -238,7 +283,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             }
 
             // Trailer?
-            if (vehicle.m_leadingVehicle != 0)
+            if (vehicle.m_leadingVehicle != 0 && vehicle.m_leadingVehicle != vehicleId)
             {
                 // Todo: Check lost trailers?
                 return false;
@@ -285,6 +330,17 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             this.AddDebugInfoData(info, true);
 
             Log.DevDebug(this, "DebugLog", this.VehicleId, info);
+        }
+
+        /// <summary>
+        /// Gets the information line.
+        /// </summary>
+        /// <param name="vehicles">The vehicles.</param>
+        /// <param name="buildings">The buildings.</param>
+        /// <returns>The information line.</returns>
+        public string GetInfoLine(Vehicle[] vehicles = null, Building[] buildings = null)
+        {
+            return InfoString(this, vehicles, buildings, false);
         }
 
         /// <summary>
@@ -476,6 +532,198 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         this.isStuck = true;
                     }
                 }
+            }
+        }
+
+        /// <summary>
+        /// Returns a <see cref="System.String" /> that represents this instance.
+        /// </summary>
+        /// <param name="vehicle">The vehicle.</param>
+        /// <param name="vehicles">The vehicles.</param>
+        /// <param name="buildings">The buildings.</param>
+        /// <param name="getHead">if set to <c>true</c> get header instead of data.</param>
+        /// <returns>
+        /// A <see cref="System.String" /> that represents this instance.
+        /// </returns>
+        private static string InfoString(StuckVehicleInfo vehicle, Vehicle[] vehicles, Building[] buildings, bool getHead)
+        {
+            Log.InfoList info = new Log.InfoList();
+
+            List<string> status = null;
+            List<string> dispatch = null;
+            string ai = null;
+
+            if (!getHead)
+            {
+                if (vehicles == null)
+                {
+                    vehicles = Singleton<VehicleManager>.instance.m_vehicles.m_buffer;
+                }
+
+                if (buildings == null)
+                {
+                    buildings = Singleton<BuildingManager>.instance.m_buildings.m_buffer;
+                }
+
+                status = new List<string>(1);
+                if (vehicle.isStuck)
+                {
+                    status.Add("Stuck");
+                }
+                if (vehicle.isBroken)
+                {
+                    status.Add("Broken");
+                }
+                if (status.Count == 0)
+                {
+                    status.Add("Checking");
+                }
+
+                dispatch = new List<string>(2);
+                if (vehicle.DispatchersResponsibility)
+                {
+                    dispatch.Add("IsResponsible");
+                }
+                if (vehicle.dispatcherType != Dispatcher.DispatcherTypes.None)
+                {
+                    dispatch.Add(vehicle.dispatcherType.ToString());
+                }
+
+                try
+                {
+                    if (vehicles[vehicle.VehicleId].Info != null)
+                    {
+                        if (vehicles[vehicle.VehicleId].Info.m_vehicleAI != null)
+                        {
+                            ai = vehicles[vehicle.VehicleId].Info.m_vehicleAI.GetType().ToString();
+                        }
+                    }
+                }
+                catch { }
+            }
+
+            if (getHead)
+            {
+                info.Add("<Status>", "<Status>");
+                info.Add("<Vehicle>", "<VehicleId>", "[VehicleName]", "[VehicleAI]");
+            }
+            else
+            {
+                info.Add("Status", status);
+                info.Add("Vehicle", vehicle.VehicleId, vehicle.VehicleName, ai);
+            }
+
+            if (getHead)
+            {
+                info.Add("[Dispatch]", "[Responsibility]", "[DispatcherType]");
+            }
+            else if (dispatch.Count > 0)
+            {
+                info.Add("Dispatch", dispatch);
+            }
+
+            if (getHead)
+            {
+                info.Add("[Confused]", "<ConfusedForSeconds>", "<ConfusedForFrames>");
+            }
+            else if (vehicle.confusedSinceFrame > 0 || vehicle.confusedSinceTime > 0.0)
+            {
+                info.Add("Confused", vehicle.ConfusedForSeconds, vehicle.ConfusedForFrames);
+            }
+
+            if (getHead)
+            {
+                info.Add("[Flagged]", "<CheckFlaggedForSeconds>", "<CheckFlaggedForFrames>", "[checkFlags]", "[checkFlagPosition]");
+            }
+            else if (vehicle.checkFlagSinceFrame > 0 || vehicle.checkFlagSinceTime > 0.0)
+            {
+                info.Add("Flagged", vehicle.CheckFlaggedForSeconds, vehicle.CheckFlaggedForFrames, vehicle.checkFlags, vehicle.checkFlagPosition);
+            }
+
+            if (getHead)
+            {
+                info.Add("[Deassigned]", "<AtLeastDeAssignedForFrames>", "<ConfusedDeAssignedForFrames>");
+            }
+            else if (vehicle.confusedDeAssignedSinceFrame > 0 || vehicle.lastDeAssignStamp > 0)
+            {
+                info.Add("Deassigned", vehicle.AtLeastDeAssignedForFrames, vehicle.ConfusedDeAssignedForFrames);
+            }
+
+            if (getHead)
+            {
+                info.Add("[District]", "<districtId>", "[DistrictName]");
+            }
+            else if (vehicle.checkFlagSinceFrame > 0 || vehicle.checkFlagSinceTime > 0.0)
+            {
+                try
+                {
+                    byte districtId = DistrictHelper.GetDistrict(vehicle.checkFlagPosition);
+                    if (districtId != 0)
+                    {
+                        info.Add("District", districtId, DistrictHelper.GetDistrictName(districtId));
+                    }
+                }
+                catch { }
+            }
+
+            if (getHead)
+            {
+                InfoStringInfoForBuilding(null, null, null, true, 0, "SourceBuilding", info);
+                InfoStringInfoForBuilding(null, null, null, true, 0, "TargetBuilding", info);
+            }
+            else
+            {
+                try
+                {
+                    InfoStringInfoForBuilding(vehicle, vehicles, buildings, false, vehicles[vehicle.VehicleId].m_sourceBuilding, "SourceBuilding", info);
+                    InfoStringInfoForBuilding(vehicle, vehicles, buildings, false, vehicles[vehicle.VehicleId].m_targetBuilding, "TargetBuilding", info);
+                }
+                catch { }
+            }
+
+            return info.ToString();
+        }
+
+        /// <summary>
+        /// Adds the building information to the string information.
+        /// </summary>
+        /// <param name="vehicle">The vehicle.</param>
+        /// <param name="vehicles">The vehicles.</param>
+        /// <param name="buildings">The buildings.</param>
+        /// <param name="getHead">if set to <c>true</c> get for header instead of data.</param>
+        /// <param name="buildingId">The building identifier.</param>
+        /// <param name="buildingType">Type of the building.</param>
+        /// <param name="info">The information.</param>
+        private static void InfoStringInfoForBuilding(StuckVehicleInfo vehicle, Vehicle[] vehicles, Building[] buildings, bool getHead, ushort buildingId, string buildingType, Log.InfoList info)
+        {
+            if (getHead)
+            {
+                info.Add("[" + buildingType + "]", "<buildingId>", "[BuildingName]", "[districtId]", "[DistrictName]");
+                return;
+            }
+
+            if (buildingId == 0)
+            {
+                return;
+            }
+
+            byte districtId = BuildingHelper.GetDistrict(buildingId);
+
+            if (districtId == 0)
+            {
+                info.Add(
+                    buildingType,
+                    buildingId,
+                    BuildingHelper.GetBuildingName(vehicles[vehicle.VehicleId].m_sourceBuilding));
+            }
+            else
+            {
+                info.Add(
+                    buildingType,
+                    buildingId,
+                    BuildingHelper.GetBuildingName(vehicles[vehicle.VehicleId].m_sourceBuilding),
+                    districtId,
+                    DistrictHelper.GetDistrictName(districtId));
             }
         }
 

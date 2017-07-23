@@ -1,6 +1,7 @@
-﻿using System;
+﻿using ColossalFramework.IO;
+using System;
+using System.Diagnostics;
 using System.IO;
-using ColossalFramework.IO;
 
 namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 {
@@ -9,6 +10,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
     /// </summary>
     internal static class FileSystem
     {
+        /// <summary>
+        /// Gets a value indicating whether this instance can open files.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if this instance can open files; otherwise, <c>false</c>.
+        /// </value>
+        public static bool CanOpenFile => IsRunningOnWindows;
+
         /// <summary>
         /// Gets the file path.
         /// </summary>
@@ -20,6 +29,21 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             get
             {
                 return Path.Combine(DataLocation.localApplicationData, "ModConfig");
+            }
+        }
+
+        /// <summary>
+        /// Gets a value indicating whether this instance is running on windows.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if this instance is running on windows; otherwise, <c>false</c>.
+        /// </value>
+        private static bool IsRunningOnWindows
+        {
+            get
+            {
+                PlatformID platform = Environment.OSVersion.Platform;
+                return platform == PlatformID.Win32NT || platform == PlatformID.Win32S || platform == PlatformID.Win32Windows;
             }
         }
 
@@ -69,6 +93,18 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             }
 
             return Path.GetFullPath(Path.Combine(FilePath, fileName));
+        }
+
+        /// <summary>
+        /// Opens the file.
+        /// </summary>
+        /// <param name="filePathName">Name of the file path.</param>
+        public static void OpenFile(string filePathName)
+        {
+            if (CanOpenFile)
+            {
+                Process.Start(filePathName);
+            }
         }
     }
 }

@@ -219,6 +219,22 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Gets a value indicating whether the log file exists and has been created.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if log file exists, and has been created; otherwise, <c>false</c>.
+        /// </value>
+        public static bool LogFileExists => logFileCreated && File.Exists(LogFilePathName);
+
+        /// <summary>
+        /// Gets the path and name of the log file.
+        /// </summary>
+        /// <value>
+        /// The the log file path and name.
+        /// </value>
+        public static string LogFilePathName => FileSystem.FilePathName(".log");
+
+        /// <summary>
         /// Gets the log level.
         /// </summary>
         public static Level LogLevel
@@ -784,7 +800,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <returns>The open log file writer.</returns>
         private static StreamWriter OpenLogFile()
         {
-            string filePathName = FileSystem.FilePathName(".log");
+            string filePathName = LogFilePathName;
             string filePath = Path.GetDirectoryName(filePathName);
             if (!Directory.Exists(filePath))
             {

@@ -18,9 +18,34 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         private Dictionary<byte, string> allowances = null;
 
         /// <summary>
+        /// The dump buildings button.
+        /// </summary>
+        private UIComponent dumpBuildingsButton = null;
+
+        /// <summary>
+        /// The dump buttons information text.
+        /// </summary>
+        private InformationalText dumpButtonsInfoText = null;
+
+        /// <summary>
+        /// The dump buildings button.
+        /// </summary>
+        private UIComponent dumpStuckVehiclesButton = null;
+
+        /// <summary>
+        /// The dump vehicles button.
+        /// </summary>
+        private UIComponent dumpVehiclesButton = null;
+
+        /// <summary>
         /// The allowances.
         /// </summary>
         private Dictionary<byte, string> modCompatibilityModes = null;
+
+        /// <summary>
+        /// The open log file button.
+        /// </summary>
+        private UIComponent openLogFileButton = null;
 
         /// <summary>
         /// The target building check strings for dropdown.
@@ -108,6 +133,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         {
             Log.Debug(this, "OnSettingsUI");
 
+            this.InitializeHelper(helper);
+
             try
             {
                 // Load settings.
@@ -178,6 +205,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                                 settings.DispatchVehicles = value;
                                 Global.Settings.Save();
                                 Global.ReInitializeHandlers();
+                                this.RefreshUsability();
                             }
                         }
                         catch (Exception ex)
@@ -309,8 +337,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                                         if (allowance != Global.Settings.ReflectionAllowance)
                                         {
                                             Global.Settings.ReflectionAllowance = allowance;
-                                            Global.ReInitializeHandlers();
                                             Global.Settings.Save();
+                                            Global.ReInitializeHandlers();
                                         }
 
                                         break;
@@ -702,7 +730,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 try
                 {
-                    group.AddInformationalText("Config Path:", FileSystem.FilePath);
+                    group.AddInformationalText("Config, Log and Dump Path:", FileSystem.FilePath);
 
                     string version = null;
                     Assembly modAss = this.GetType().Assembly;
@@ -719,20 +747,48 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 {
                 }
 
-                group.AddInformationalText("Note:", "Dumping is only possible when a city is loaded.");
+                if (FileSystem.CanOpenFile)
+                {
+                    this.openLogFileButton = (UIComponent)group.AddButton(
+                        "Open log file",
+                        () =>
+                        {
+                            if (Log.LogToFile)
+                            {
+                                Log.FlushBuffer();
+                            }
 
-                group.AddButton(
+                            if (Log.LogFileExists)
+                            {
+                                FileSystem.OpenFile(Log.LogFilePathName);
+                            }
+                        });
+                }
+
+                this.dumpButtonsInfoText = group.AddInformationalText("Note:", "Dumping is only possible when a city is loaded.");
+
+                this.dumpBuildingsButton = (UIComponent)group.AddButton(
                     "Dump buildings",
                     () =>
                     {
-                        BuildingHelper.DumpBuildings();
+                        BuildingHelper.DumpBuildings(true);
                     });
 
-                group.AddButton(
+                this.dumpVehiclesButton = (UIComponent)group.AddButton(
                     "Dump vehicles",
                     () =>
                     {
-                        VehicleHelper.DumpVehicles();
+                        VehicleHelper.DumpVehicles(true);
+                    });
+
+                this.dumpStuckVehiclesButton = (UIComponent)group.AddButton(
+                    "Dump stuck vehicles",
+                    () =>
+                    {
+                        if (Global.Vehicles != null)
+                        {
+                            Global.Vehicles.DumpStuckVehicles(true);
+                        }
                     });
 
                 return group;
@@ -1171,6 +1227,30 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Initializes the helper.
+        /// </summary>
+        /// <param name="helper">The helper.</param>
+        private void InitializeHelper(UIHelperBase helper)
+        {
+            if (!(helper is UIHelper))
+            {
+                return;
+            }
+
+            try
+            {
+                UIComponent panel = (UIComponent)((UIHelper)helper).self;
+
+                Log.DevDebug(this, "InitializeHelper", helper, panel);
+                panel.eventVisibilityChanged += OnHelperPanelVisibilityChange;
+            }
+            catch (Exception ex)
+            {
+                Log.Error(this, "InitializeHelper", ex);
+            }
+        }
+
+        /// <summary>
         /// Initializes the options.
         /// </summary>
         private void InitializeOptions()
@@ -1213,6 +1293,95 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Called when helper panel visibility changes.
+        /// </summary>
+        /// <param name="component">The component.</param>
+        /// <param name="value">if set to <c>true</c> component is made visible.</param>
+        private void OnHelperPanelVisibilityChange(UIComponent component, bool value)
+        {
+            if (!value)
+            {
+                return;
+            }
+
+            try
+            {
+                Log.DevDebug(this, "OnHelperPanelVisibilityChange", component, value);
+                if (value)
+                {
+                    this.RefreshUsability();
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error(this, "OnHelperPanelVisibilityChange", ex);
+            }
+        }
+
+        /// <summary>
+        /// Refreshes the usability for controls.
+        /// </summary>
+        private void RefreshUsability()
+        {
+            try
+            {
+                this.SetUsability(this.openLogFileButton, FileSystem.CanOpenFile && Log.LogFileExists);
+                this.SetUsability(this.dumpButtonsInfoText, Global.LevelLoaded);
+                this.SetUsability(this.dumpBuildingsButton, Global.LevelLoaded);
+                this.SetUsability(this.dumpVehiclesButton, Global.LevelLoaded);
+                this.SetUsability(this.dumpStuckVehiclesButton, Global.LevelLoaded && Global.Vehicles != null && Global.Vehicles.StuckVehicles != null);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(this, "RefreshUsability", ex);
+            }
+        }
+
+        /// <summary>
+        /// Sets the components usability.
+        /// </summary>
+        /// <param name="component">The component.</param>
+        /// <param name="usability">if set to <c>true</c> component will be usable.</param>
+        private void SetUsability(UIComponent component, bool usability)
+        {
+            if (component != null)
+            {
+                if (usability)
+                {
+                    component.Enable();
+                    component.Show();
+                }
+                else
+                {
+                    component.Hide();
+                    component.Disable();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Sets the components usability.
+        /// </summary>
+        /// <param name="component">The component.</param>
+        /// <param name="usability">if set to <c>true</c> component will be usable.</param>
+        private void SetUsability(InformationalText component, bool usability)
+        {
+            if (component != null)
+            {
+                if (usability)
+                {
+                    component.Enable();
+                    component.Show();
+                }
+                else
+                {
+                    component.Hide();
+                    component.Disable();
+                }
+            }
+        }
+
+        /// <summary>
         /// Updates the log controls.
         /// </summary>
         /// <param name="debugLog">The debug log control.</param>
@@ -1250,6 +1419,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 {
                     ((UICheckBox)fileLog).isChecked = Log.LogToFile;
                 }
+
+                this.RefreshUsability();
             }
             catch
             {

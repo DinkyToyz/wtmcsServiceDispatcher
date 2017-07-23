@@ -117,64 +117,45 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// Saves a list of building info for debug use.
         /// </summary>
         /// <exception cref="InvalidDataException">No building objects.</exception>
-        public static void DumpBuildings()
+        public static void DumpBuildings(bool openDumpedFile = false)
         {
-            if (!Global.LevelLoaded)
-            {
-                return;
-            }
-
-            bool logNames = Log.LogNames;
-            Log.LogNames = true;
-
             try
             {
-                List<KeyValuePair<string, string>> buildingList = new List<KeyValuePair<string, string>>();
-
-                Building[] buildings = Singleton<BuildingManager>.instance.m_buildings.m_buffer;
-                Vehicle[] vehicles = Singleton<VehicleManager>.instance.m_vehicles.m_buffer;
-                DistrictManager districtManager = Singleton<DistrictManager>.instance;
-                CitizenManager citizenManager = Singleton<CitizenManager>.instance;
-
-                for (ushort id = 0; id < buildings.Length; id++)
+                Global.DumpData("StuckVehicles", openDumpedFile, true, () =>
                 {
-                    if (buildings[id].m_flags != Building.Flags.None)
+                    List<KeyValuePair<string, string>> buildingList = new List<KeyValuePair<string, string>>();
+
+                    Building[] buildings = Singleton<BuildingManager>.instance.m_buildings.m_buffer;
+                    Vehicle[] vehicles = Singleton<VehicleManager>.instance.m_vehicles.m_buffer;
+                    DistrictManager districtManager = Singleton<DistrictManager>.instance;
+                    CitizenManager citizenManager = Singleton<CitizenManager>.instance;
+
+                    for (ushort id = 0; id < buildings.Length; id++)
                     {
-                        string sortValue;
-                        try
+                        if (buildings[id].m_flags != Building.Flags.None)
                         {
-                            sortValue = buildings[id].Info.m_buildingAI.GetType().ToString();
-                        }
-                        catch
-                        {
-                            sortValue = "?";
-                        }
+                            string sortValue;
+                            try
+                            {
+                                sortValue = buildings[id].Info.m_buildingAI.GetType().ToString();
+                            }
+                            catch
+                            {
+                                sortValue = "?";
+                            }
 
-                        sortValue += id.ToString().PadLeft(16, '0');
+                            sortValue += id.ToString().PadLeft(16, '0');
 
-                        buildingList.Add(new KeyValuePair<string, string>(sortValue, DebugInfoMsg(buildings, vehicles, districtManager, citizenManager, id, null, null, null, true).ToString()));
+                            buildingList.Add(new KeyValuePair<string, string>(sortValue, DebugInfoMsg(buildings, vehicles, districtManager, citizenManager, id, null, null, null, true).ToString()));
+                        }
                     }
-                }
 
-                if (buildingList.Count == 0)
-                {
-                    throw new InvalidDataException("No building objects");
-                }
-
-                using (StreamWriter dumpFile = new StreamWriter(FileSystem.FilePathName(".Buildings.txt"), false))
-                {
-                    dumpFile.Write(String.Join(Environment.NewLine, buildingList.OrderBy(bi => bi.Key).Select(bi => bi.Value).ToArray()).ConformNewlines());
-                    dumpFile.WriteLine();
-                    dumpFile.Close();
-                }
+                    return buildingList.OrderBy(bi => bi.Key).SelectToArray(bi => bi.Value);
+                });
             }
             catch (Exception ex)
             {
-                Log.Error(typeof(VehicleKeeper), "DumpBuildings", ex);
-            }
-            finally
-            {
-                Log.LogNames = logNames;
+                Log.Error(typeof(VehicleKeeper), "DumpBuildings", ex, openDumpedFile);
             }
         }
 
@@ -270,6 +251,31 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             capacityMax = 0;
 
             return false;
+        }
+
+        /// <summary>
+        /// Gets the district for a building.
+        /// </summary>
+        /// <param name="buildingId">The building identifier.</param>
+        /// <returns>
+        /// The district.
+        /// </returns>
+        public static byte GetDistrict(ushort buildingId)
+        {
+            try
+            {
+                Building[] buildings = Singleton<BuildingManager>.instance.m_buildings.m_buffer;
+                if (buildings[buildingId].Info == null || (buildings[buildingId].m_flags & Building.Flags.Created) != Building.Flags.Created)
+                {
+                    return 0;
+                }
+
+                return DistrictHelper.GetDistrict(buildings[buildingId].m_position);
+            }
+            catch
+            {
+                return 0;
+            }
         }
 
         /// <summary>
