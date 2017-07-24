@@ -53,7 +53,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public ServiceDispatcherSettings.ModCompatibilityMode CreationCompatibilityMode = ServiceDispatcherSettings.DefaultCreationCompatibilityMode;
 
         /// <summary>
-        /// The experimental settings (not saved).
+        /// The experimental settings.
         /// </summary>
         public ExperimentalSettings Experimental = new ExperimentalSettings();
 
@@ -575,7 +575,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
-        /// Expermintal settings container (not saved).
+        /// Experimental settings container.
         /// </summary>
         public class ExperimentalSettings
         {
@@ -584,27 +584,27 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             /// <summary>
             /// Whether to allow removal of confused vehicles with cargo parent.
             /// </summary>
-            public bool AllowRemovalOfConfusedCargoChildren = Global.EnableDevExperiments;
+            public bool AllowRemovalOfConfusedCargoChildren = false;
 
             /// <summary>
             /// Whether to allow removal of stuck vehicles with cargo parent.
             /// </summary>
-            public bool AllowRemovalOfStuckCargoChildren = Global.EnableDevExperiments;
+            public bool AllowRemovalOfStuckCargoChildren = false;
 
             /// <summary>
             /// Whether to allow tracking of vehicles with cargo parent.
             /// </summary>
-            public bool AllowTrackingOfCargoChildren = Global.EnableDevExperiments;
+            public bool AllowTrackingOfCargoChildren = false;
 
             /// <summary>
             /// Whether to remove lost trailers.
             /// </summary>
-            public bool RemoveLostTrailers = Global.EnableDevExperiments;
+            public bool RemoveLostTrailers = false;
 
             /// <summary>
             /// Whether to remove lost trailers.
             /// </summary>
-            public bool TrackLostTrailers = Global.EnableDevExperiments;
+            public bool TrackLostTrailers = false;
         }
     }
 }

@@ -627,7 +627,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     {
                         try
                         {
-                            Global.Settings.Experimental.TrackLostTrailers = value;
+                            if (Global.Settings.Experimental.TrackLostTrailers != value)
+                            {
+                                Global.Settings.Experimental.TrackLostTrailers = value;
+                                Global.Settings.Save();
+                            }
                         }
                         catch (Exception ex)
                         {
@@ -642,7 +646,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     {
                         try
                         {
-                            Global.Settings.Experimental.RemoveLostTrailers = value;
+                            if (Global.Settings.Experimental.RemoveLostTrailers != value)
+                            {
+                                Global.Settings.Experimental.RemoveLostTrailers = value;
+                                Global.Settings.Save();
+                            }
                         }
                         catch (Exception ex)
                         {
@@ -657,7 +665,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     {
                         try
                         {
-                            Global.Settings.Experimental.AllowTrackingOfCargoChildren = value;
+                            if (Global.Settings.Experimental.AllowTrackingOfCargoChildren != value)
+                            {
+                                Global.Settings.Experimental.AllowTrackingOfCargoChildren = value;
+                                Global.Settings.Save();
+                            }
                         }
                         catch (Exception ex)
                         {
@@ -672,7 +684,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     {
                         try
                         {
-                            Global.Settings.Experimental.AllowRemovalOfConfusedCargoChildren = value;
+                            if (Global.Settings.Experimental.AllowRemovalOfConfusedCargoChildren != value)
+                            {
+                                Global.Settings.Experimental.AllowRemovalOfConfusedCargoChildren = value;
+                                Global.Settings.Save();
+                            }
                         }
                         catch (Exception ex)
                         {
@@ -687,7 +703,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     {
                         try
                         {
-                            Global.Settings.Experimental.AllowRemovalOfStuckCargoChildren = value;
+                            if (Global.Settings.Experimental.AllowRemovalOfStuckCargoChildren != value)
+                            {
+                                Global.Settings.Experimental.AllowRemovalOfStuckCargoChildren = value;
+                                Global.Settings.Save();
+                            }
                         }
                         catch (Exception ex)
                         {

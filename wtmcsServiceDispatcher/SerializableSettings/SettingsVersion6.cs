@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Linq;
-using WhatThe.Mods.CitiesSkylines.ServiceDispatcher;
 
 namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
 {
@@ -41,6 +39,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
         public DispatchConfig Dispatch = new DispatchConfig();
 
         /// <summary>
+        /// Experimental settings.
+        /// </summary>
+        public ExperimentalConfig Experiments = new ExperimentalConfig();
+
+        /// <summary>
         /// The standard garbage truck service settings.
         /// </summary>
         public StandardServiceConfig GarbageTrucks = new StandardServiceConfig();
@@ -51,7 +54,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
         public StandardServiceConfig Hearses = new StandardServiceConfig();
 
         /// <summary>
-        /// The information.
+        /// Informational stuff.
         /// </summary>
         public Information Info = new Information();
 
@@ -134,6 +137,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
             this.AutoBulldoze.GetSettings(settings.WreckingCrews);
             this.RemoveStuckVehicles.GetSettings(settings.RecoveryCrews);
 
+            this.Experiments.GetSettings(settings.Experimental);
+
             settings.Initialize();
 
             return settings;
@@ -165,6 +170,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
 
             this.AutoBulldoze.SetSettings(settings.WreckingCrews);
             this.RemoveStuckVehicles.SetSettings(settings.RecoveryCrews);
+
+            this.Experiments.SetSettings(settings.Experimental);
 
             this.Info.SetSettings(settings);
 
@@ -315,6 +322,64 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
                 this.RangeLimit = settings.RangeLimit;
                 this.RangeMaximum = settings.RangeMaximum;
                 this.RangeMinimum = settings.RangeMinimum;
+            }
+        }
+
+        /// <summary>
+        /// The experimental settings.
+        /// </summary>
+        [Serializable]
+        public class ExperimentalConfig
+        {
+            /// <summary>
+            /// Whether to allow removal of confused vehicles with cargo parent.
+            /// </summary>
+            public bool AllowRemovalOfConfusedCargoChildren_20170725 = false;
+
+            /// <summary>
+            /// Whether to allow removal of stuck vehicles with cargo parent.
+            /// </summary>
+            public bool AllowRemovalOfStuckCargoChildren_20170725 = false;
+
+            /// <summary>
+            /// Whether to allow tracking of vehicles with cargo parent.
+            /// </summary>
+            public bool AllowTrackingOfCargoChildren_20170725 = false;
+
+            /// <summary>
+            /// Whether to remove lost trailers.
+            /// </summary>
+            public bool RemoveLostTrailers_20170725 = false;
+
+            /// <summary>
+            /// Whether to remove lost trailers.
+            /// </summary>
+            public bool TrackLostTrailers_20170725 = false;
+
+            /// <summary>
+            /// Gets the settings from the specified configuration.
+            /// </summary>
+            /// <param name="settings">The settings.</param>
+            internal void GetSettings(Settings.ExperimentalSettings settings)
+            {
+                settings.TrackLostTrailers = this.TrackLostTrailers_20170725;
+                settings.RemoveLostTrailers = this.RemoveLostTrailers_20170725;
+                settings.AllowTrackingOfCargoChildren = this.AllowTrackingOfCargoChildren_20170725;
+                settings.AllowRemovalOfConfusedCargoChildren = this.AllowRemovalOfConfusedCargoChildren_20170725;
+                settings.AllowRemovalOfStuckCargoChildren = this.AllowRemovalOfStuckCargoChildren_20170725;
+            }
+
+            /// <summary>
+            /// Sets the specified configuration for the values from the sepcified settings.
+            /// </summary>
+            /// <param name="settings">The settings.</param>
+            internal void SetSettings(Settings.ExperimentalSettings settings)
+            {
+                this.TrackLostTrailers_20170725 = settings.TrackLostTrailers;
+                this.RemoveLostTrailers_20170725 = settings.RemoveLostTrailers;
+                this.AllowTrackingOfCargoChildren_20170725 = settings.AllowTrackingOfCargoChildren;
+                this.AllowRemovalOfConfusedCargoChildren_20170725 = settings.AllowRemovalOfConfusedCargoChildren;
+                this.AllowRemovalOfStuckCargoChildren_20170725 = settings.AllowRemovalOfStuckCargoChildren;
             }
         }
 
