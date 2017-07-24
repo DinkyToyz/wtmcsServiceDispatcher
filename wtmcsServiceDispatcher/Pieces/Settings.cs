@@ -53,6 +53,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         public ServiceDispatcherSettings.ModCompatibilityMode CreationCompatibilityMode = ServiceDispatcherSettings.DefaultCreationCompatibilityMode;
 
         /// <summary>
+        /// The experimental settings (not saved).
+        /// </summary>
+        public ExperimentalSettings Experimental = new ExperimentalSettings();
+
+        /// <summary>
         /// The settings version in the loaded file.
         /// </summary>
         public int? loadedVersion = null;
@@ -567,6 +572,39 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             {
                 return "Yes (enabled)";
             }
+        }
+
+        /// <summary>
+        /// Expermintal settings container (not saved).
+        /// </summary>
+        public class ExperimentalSettings
+        {
+            // Todo: investigate how cargo parent works, to make sure it can be ignored.
+
+            /// <summary>
+            /// Whether to allow removal of confused vehicles with cargo parent.
+            /// </summary>
+            public bool AllowRemovalOfConfusedCargoChildren = Global.EnableDevExperiments;
+
+            /// <summary>
+            /// Whether to allow removal of stuck vehicles with cargo parent.
+            /// </summary>
+            public bool AllowRemovalOfStuckCargoChildren = Global.EnableDevExperiments;
+
+            /// <summary>
+            /// Whether to allow tracking of vehicles with cargo parent.
+            /// </summary>
+            public bool AllowTrackingOfCargoChildren = Global.EnableDevExperiments;
+
+            /// <summary>
+            /// Whether to remove lost trailers.
+            /// </summary>
+            public bool RemoveLostTrailers = Global.EnableDevExperiments;
+
+            /// <summary>
+            /// Whether to remove lost trailers.
+            /// </summary>
+            public bool TrackLostTrailers = Global.EnableDevExperiments;
         }
     }
 }

@@ -361,12 +361,13 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                             }
                             else
                             {
-                                if (Log.LogALot)
-                                {
-                                    Log.DevDebug(this, "HandleVehicles", "StuckVehicles", "New", id, vehicles[id].m_flags, vehicles[id].m_flags & StuckVehicleInfo.FlagsToCheck, ConfusionHelper.VehicleIsConfused(ref vehicles[id]));
-                                }
                                 stuckVehicle = new StuckVehicleInfo(id, ref vehicles[id]);
                                 this.StuckVehicles[id] = stuckVehicle;
+
+                                if (Log.LogALot)
+                                {
+                                    Log.DevDebug(this, "HandleVehicles", "StuckVehicles", "New", id, vehicles[id].m_flags, stuckVehicle.Flagged, stuckVehicle.Lost, stuckVehicle.Confused, stuckVehicle.ExtraInfo);
+                                }
                             }
 
                             if (stuckVehicle.HandleProblem())

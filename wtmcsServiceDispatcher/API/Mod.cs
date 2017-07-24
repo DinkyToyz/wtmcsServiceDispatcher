@@ -23,14 +23,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         private UIComponent dumpBuildingsButton = null;
 
         /// <summary>
-        /// The dump desolate buildings button.
-        /// </summary>
-        private UIComponent dumpDesolateBuildingsButton = null;
-
-        /// <summary>
         /// The dump buttons information text.
         /// </summary>
         private InformationalText dumpButtonsInfoText = null;
+
+        /// <summary>
+        /// The dump desolate buildings button.
+        /// </summary>
+        private UIComponent dumpDesolateBuildingsButton = null;
 
         /// <summary>
         /// The dump buildings button.
@@ -173,6 +173,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 // Add compatibility group.
                 UIHelperBase compatibilityGroup = this.CreateCompatibilityGroup(helper);
+
+                // Add experimental group.
+                UIHelperBase experimentalGroup = this.CreateExperimentalGroup(helper);
 
                 // Add logging group.
                 UIHelperBase logGroup = this.CreateLogGroup(helper);
@@ -602,6 +605,106 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         }
 
         /// <summary>
+        /// Creates the experimental group.
+        /// </summary>
+        /// <param name="helper">The helper.</param>
+        /// <returns>The group.</returns>
+        private UIHelperBase CreateExperimentalGroup(UIHelperBase helper)
+        {
+            try
+            {
+                UIHelperBase group = helper.AddGroup("Experimental");
+
+                if (Settings.AboveAboveMaxTestedGameVersion)
+                {
+                    group.AddInformationalText("Note:", "The following settngs are experimental, and may have adverse effects.");
+                }
+
+                group.AddCheckbox(
+                    "Track lost trailers",
+                    Global.Settings.Experimental.TrackLostTrailers,
+                    value =>
+                    {
+                        try
+                        {
+                            Global.Settings.Experimental.TrackLostTrailers = value;
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.Error(this, "CreateExperimentalGroup", ex, "TrackLostTrailers", value);
+                        }
+                    });
+
+                group.AddCheckbox(
+                    "Remove lost trailers",
+                    Global.Settings.Experimental.RemoveLostTrailers,
+                    value =>
+                    {
+                        try
+                        {
+                            Global.Settings.Experimental.RemoveLostTrailers = value;
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.Error(this, "CreateExperimentalGroup", ex, "RemoveLostTrailers", value);
+                        }
+                    });
+
+                group.AddCheckbox(
+                    "Allow tracking cargo children",
+                    Global.Settings.Experimental.AllowTrackingOfCargoChildren,
+                    value =>
+                    {
+                        try
+                        {
+                            Global.Settings.Experimental.AllowTrackingOfCargoChildren = value;
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.Error(this, "CreateExperimentalGroup", ex, "AllowTrackingOfCargoChildren", value);
+                        }
+                    });
+
+                group.AddCheckbox(
+                    "Allow removing confused cargo children",
+                    Global.Settings.Experimental.AllowRemovalOfConfusedCargoChildren,
+                    value =>
+                    {
+                        try
+                        {
+                            Global.Settings.Experimental.AllowRemovalOfConfusedCargoChildren = value;
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.Error(this, "CreateExperimentalGroup", ex, "AllowRemovalOfConfusedCargoChildren", value);
+                        }
+                    });
+
+                group.AddCheckbox(
+                    "Allow removing stuck cargo children",
+                    Global.Settings.Experimental.AllowRemovalOfStuckCargoChildren,
+                    value =>
+                    {
+                        try
+                        {
+                            Global.Settings.Experimental.AllowRemovalOfStuckCargoChildren = value;
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.Error(this, "CreateExperimentalGroup", ex, "AllowRemovalOfStuckCargoChildren", value);
+                        }
+                    });
+
+                return group;
+            }
+            catch (Exception ex)
+            {
+                Log.Error(this, "CreateExperimentalGroup", ex);
+                return null;
+            }
+        }
+
+        /// <summary>
         /// Creates the log group.
         /// </summary>
         /// <param name="helper">The helper.</param>
@@ -772,16 +875,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 this.dumpButtonsInfoText = group.AddInformationalText("Note:", "Dumping is only possible when a city is loaded.");
 
-                this.dumpStuckVehiclesButton = (UIComponent)group.AddButton(
-                    "Dump stuck vehicles",
-                    () =>
-                    {
-                        if (Global.Vehicles != null)
-                        {
-                            Global.Vehicles.DumpStuckVehicles(true);
-                        }
-                    });
-
                 this.dumpDesolateBuildingsButton = (UIComponent)group.AddButton(
                     "Dump desolate buildings",
                     () =>
@@ -792,15 +885,25 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         }
                     });
 
+                this.dumpStuckVehiclesButton = (UIComponent)group.AddButton(
+                    "Dump stuck vehicles",
+                    () =>
+                    {
+                        if (Global.Vehicles != null)
+                        {
+                            Global.Vehicles.DumpStuckVehicles(true);
+                        }
+                    });
+
                 this.dumpBuildingsButton = (UIComponent)group.AddButton(
-                    "Dump buildings",
+                    "Dump all buildings",
                     () =>
                     {
                         BuildingHelper.DumpBuildings(true);
                     });
 
                 this.dumpVehiclesButton = (UIComponent)group.AddButton(
-                    "Dump vehicles",
+                    "Dump all vehicles",
                     () =>
                     {
                         VehicleHelper.DumpVehicles(true);
