@@ -54,23 +54,23 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     {
                         Log.Info(this, "OnLoadData", "LoadSettings");
 
-                        SerializableSettings.BinarySettings.Deseralize(this.LoadSerializedData("Settings"));
+                        this.LoadSerializedData(bd => SerializableSettings.BinarySettings.Deseralize(bd), "Settings");
                     }
 
                     if (Global.Buildings != null)
                     {
                         Log.Info(this, "OnLoadData", "LoadBuildingStates");
 
-                        Global.Buildings.DeserializeAutoEmptying(this.LoadSerializedData("AutoEmptying"));
-                        Global.Buildings.DeserializeTargetAssignments(this.LoadSerializedData("TargetAssignments"));
-                        Global.Buildings.DeserializeDesolateBuildings(this.LoadSerializedData("DesolateBuildings"));
+                        this.LoadSerializedData(bd => Global.Buildings.DeserializeAutoEmptying(bd), "AutoEmptying");
+                        this.LoadSerializedData(bd => Global.Buildings.DeserializeTargetAssignments(bd), "TargetAssignments");
+                        this.LoadSerializedData(bd => Global.Buildings.DeserializeDesolateBuildings(bd), "DesolateBuildings");
                     }
 
                     if (Global.Vehicles != null)
                     {
                         Log.Info(this, "OnLoadData", "LoadVehicleStates");
 
-                        Global.Vehicles.DeserializeStuckVehicles(this.LoadSerializedData("StuckVehicles"));
+                        this.LoadSerializedData(bd => Global.Vehicles.DeserializeStuckVehicles(bd), "StuckVehicles");
                     }
                 }
             }
@@ -154,9 +154,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <summary>
         /// Loads the serialized data.
         /// </summary>
+        /// <param name="Deserializer">The deserializer.</param>
         /// <param name="subIds">The sub identifiers.</param>
-        /// <returns>The deserialized binary data.</returns>
-        private SerializableSettings.BinaryData LoadSerializedData(params string[] subIds)
+        private void LoadSerializedData(Action<SerializableSettings.BinaryData> Deserializer, params string[] subIds)
         {
             string id = this.GetDataId(subIds);
 
@@ -165,17 +165,15 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             try
             {
                 SerializableSettings.BinaryData data = new SerializableSettings.BinaryData(this.serializableData, id);
-                if (data != null)
+                if (!data.DeserializationError)
                 {
                     Log.Debug(this, "LoadSerializedData", id, data.Length);
+                    Deserializer(data);
                 }
-
-                return data;
             }
             catch (Exception ex)
             {
                 Log.Error(this, "LoadSerializedData", ex, id);
-                return null;
             }
         }
 

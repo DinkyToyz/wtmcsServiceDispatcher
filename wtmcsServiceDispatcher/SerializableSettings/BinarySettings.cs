@@ -37,7 +37,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
         /// <returns>True if any settings were applied.</returns>
         public static bool Deseralize(BinaryData serializedData, Settings settings)
         {
-            if (serializedData == null || serializedData.Left == 0)
+            if (serializedData.Left == 0)
             {
                 return false;
             }

@@ -293,9 +293,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <param name="serializedData">The serialized data.</param>
         public void DeserializeAutoEmptying(SerializableSettings.BinaryData serializedData)
         {
-            this.EmptyingIsAutoEmptying = serializedData == null;
+            this.EmptyingIsAutoEmptying = false;
 
-            if (serializedData == null || serializedData.Left == 0)
+            if (serializedData.Left == 0)
             {
                 this.SerializedAutoEmptying = null;
                 return;
@@ -344,7 +344,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <param name="serializedData">The serialized data.</param>
         public void DeserializeDesolateBuildings(SerializableSettings.BinaryData serializedData)
         {
-            if (serializedData == null || serializedData.Left == 0)
+            if (serializedData.Left == 0)
             {
                 return;
             }
@@ -395,7 +395,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <param name="serializedData">The serialized data.</param>
         public void DeserializeTargetAssignments(SerializableSettings.BinaryData serializedData)
         {
-            if (serializedData == null || serializedData.Left == 0)
+            if (serializedData.Left == 0)
             {
                 this.serializedTargetAssignments = null;
                 return;

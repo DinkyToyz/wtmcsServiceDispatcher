@@ -82,7 +82,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <param name="serializedData">The serialized data.</param>
         public void DeserializeStuckVehicles(SerializableSettings.BinaryData serializedData)
         {
-            if (serializedData == null || serializedData.Left == 0)
+            if (serializedData.Left == 0)
             {
                 return;
             }

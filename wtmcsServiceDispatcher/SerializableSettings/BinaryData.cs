@@ -36,6 +36,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
         private byte[] serializedData = null;
 
         /// <summary>
+        /// Gets a value indicating whether there was a deserialization error.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if there was a deserialization error; otherwise, <c>false</c>.
+        /// </value>
+        public bool DeserializationError { get; private set; }
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="BinaryData"/> class.
         /// </summary>
         /// <param name="serializableData">The serializable data interface object.</param>
@@ -43,7 +51,16 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
         public BinaryData(ISerializableData serializableData, string id)
         {
             this.isWriteable = false;
-            this.serializedData = Load(serializableData, id);
+
+            try
+            {
+                this.serializedData = Load(serializableData, id);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(this, "Load", ex);
+                this.DeserializationError = true;
+            }
         }
 
         /// <summary>
@@ -414,6 +431,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
 
             if (!FletcherChecksum.Validate(this.serializedData, this.localCheckSumIndex, this.index))
             {
+                this.DeserializationError = true;
                 throw new InvalidOperationException("Serialized data corruption!");
             }
         }
@@ -444,6 +462,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
                     return true;
 
                 default:
+                    this.DeserializationError = true;
                     throw new InvalidOperationException("Error in serialized data");
             }
         }
@@ -765,6 +784,13 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
         private static byte[] Load(ISerializableData serializableData, string id)
         {
             byte[] data = serializableData.LoadData(id);
+
+            if (data == null)
+            {
+                Log.Debug(typeof(BinaryData), "Load", id, "-");
+                return null;
+            }
+
             Log.Debug(typeof(BinaryData), "Load", id, data.Length);
 
             if (data.Length > 0)
@@ -798,6 +824,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
 
             if (this.Left < size)
             {
+                this.DeserializationError = true;
                 throw new IndexOutOfRangeException("Not enough bytes left");
             }
         }
