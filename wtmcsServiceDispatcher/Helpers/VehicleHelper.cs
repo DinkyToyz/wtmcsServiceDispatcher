@@ -614,16 +614,15 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             try
             {
-                string type = vehicles[vehicleId].m_transferType.ToString();
-                foreach (TransferManager.TransferReason reason in Enum.GetValues(typeof(TransferManager.TransferReason)))
+                TransferManager.TransferReason reason;
+                if (Enums<TransferManager.TransferReason>.TryConvert(vehicles[vehicleId].m_transferType, out reason))
                 {
-                    if ((byte)reason == vehicles[vehicleId].m_transferType)
-                    {
-                        type = reason.ToString();
-                        break;
-                    }
+                    info.Add("Type", reason);
                 }
-                info.Add("Type", type);
+                else
+                {
+                    info.Add("Type", vehicles[vehicleId].m_transferType);
+                }
             }
             catch
             {

@@ -192,7 +192,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 Log.DevDebug(this, "SerializeStuckVehicles", this.StuckVehicles.Count, String.Join(" | ", this.StuckVehicles.Values.OrderBy(v => v.VehicleId).SelectToArray(v => "[" + v.ToString() + "]")));
             }
 
-            SerializableSettings.BinaryData serializedData = new SerializableSettings.BinaryData();
+            SerializableSettings.BinaryData serializedData = new SerializableSettings.BinaryData(20 * 1024);
 
             // Version.
             serializedData.AddVersion(0);

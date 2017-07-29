@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Xml.Serialization;
 
@@ -470,19 +469,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 {
                     if (!String.IsNullOrEmpty(check))
                     {
-                        bool found = false;
-                        string checkLow = check.ToLower();
-
-                        foreach (BuildingCheckParameters parameter in Enum.GetValues(typeof(BuildingCheckParameters)))
+                        BuildingCheckParameters parameter;
+                        if (Enums<BuildingCheckParameters>.TryConvert(check, out parameter))
                         {
-                            if (parameter.ToString().ToLower() == checkLow)
-                            {
-                                found = true;
-                                checks.Add(parameter);
-                            }
+                            checks.Add(parameter);
                         }
-
-                        if (!found)
+                        else
                         {
                             if (errorString.Length > 0)
                             {

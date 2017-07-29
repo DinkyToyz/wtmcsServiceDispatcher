@@ -282,18 +282,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     {
                         try
                         {
-                            foreach (ServiceDispatcherSettings.ModCompatibilityMode compatibilityMode in Enum.GetValues(typeof(ServiceDispatcherSettings.ModCompatibilityMode)))
-                            {
-                                if ((byte)compatibilityMode == value)
-                                {
-                                    if (compatibilityMode != Global.Settings.AssignmentCompatibilityMode)
-                                    {
-                                        Global.Settings.AssignmentCompatibilityMode = compatibilityMode;
-                                        Global.Settings.Save();
-                                    }
+                            ServiceDispatcherSettings.ModCompatibilityMode compatibilityMode = Enums<ServiceDispatcherSettings.ModCompatibilityMode>.Convert(value);
 
-                                    break;
-                                }
+                            if (compatibilityMode != Global.Settings.AssignmentCompatibilityMode)
+                            {
+                                Global.Settings.AssignmentCompatibilityMode = compatibilityMode;
+                                Global.Settings.Save();
                             }
                         }
                         catch (Exception ex)
@@ -310,18 +304,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     {
                         try
                         {
-                            foreach (ServiceDispatcherSettings.ModCompatibilityMode compatibilityMode in Enum.GetValues(typeof(ServiceDispatcherSettings.ModCompatibilityMode)))
-                            {
-                                if ((byte)compatibilityMode == value)
-                                {
-                                    if (compatibilityMode != Global.Settings.CreationCompatibilityMode)
-                                    {
-                                        Global.Settings.CreationCompatibilityMode = compatibilityMode;
-                                        Global.Settings.Save();
-                                    }
+                            ServiceDispatcherSettings.ModCompatibilityMode compatibilityMode = Enums<ServiceDispatcherSettings.ModCompatibilityMode>.Convert(value);
 
-                                    break;
-                                }
+                            if (compatibilityMode != Global.Settings.CreationCompatibilityMode)
+                            {
+                                Global.Settings.CreationCompatibilityMode = compatibilityMode;
+                                Global.Settings.Save();
                             }
                         }
                         catch (Exception ex)
@@ -338,19 +326,13 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         {
                             try
                             {
-                                foreach (ServiceDispatcherSettings.Allowance allowance in Enum.GetValues(typeof(ServiceDispatcherSettings.Allowance)))
-                                {
-                                    if ((byte)allowance == value)
-                                    {
-                                        if (allowance != Global.Settings.ReflectionAllowance)
-                                        {
-                                            Global.Settings.ReflectionAllowance = allowance;
-                                            Global.Settings.Save();
-                                            Global.ReInitializeHandlers();
-                                        }
+                                ServiceDispatcherSettings.Allowance allowance = Enums<ServiceDispatcherSettings.Allowance>.Convert(value);
 
-                                        break;
-                                    }
+                                if (allowance != Global.Settings.ReflectionAllowance)
+                                {
+                                    Global.Settings.ReflectionAllowance = allowance;
+                                    Global.Settings.Save();
+                                    Global.ReInitializeHandlers();
                                 }
                             }
                             catch (Exception ex)
@@ -1085,31 +1067,24 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     {
                         try
                         {
-                            foreach (ServiceDispatcherSettings.SpareVehiclesCreation option in Enum.GetValues(typeof(ServiceDispatcherSettings.SpareVehiclesCreation)))
+                            ServiceDispatcherSettings.SpareVehiclesCreation creation = Enums<ServiceDispatcherSettings.SpareVehiclesCreation>.Convert(value);
+                            if (settings.CreateSpares != creation)
                             {
-                                if ((byte)option == value)
+                                settings.CreateSpares = creation;
+
+                                if (dispatcher != null)
                                 {
-                                    if (settings.CreateSpares != option)
+                                    try
                                     {
-                                        settings.CreateSpares = option;
-
-                                        if (dispatcher != null)
-                                        {
-                                            try
-                                            {
-                                                dispatcher.ReInitialize();
-                                            }
-                                            catch (Exception ex)
-                                            {
-                                                Log.Error(this, "CreateServiceGroup", ex, settings.VehicleNamePlural, "CreateSpares", "ReInitializeDispatcher");
-                                            }
-                                        }
-
-                                        Global.Settings.Save();
+                                        dispatcher.ReInitialize();
                                     }
-
-                                    break;
+                                    catch (Exception ex)
+                                    {
+                                        Log.Error(this, "CreateServiceGroup", ex, settings.VehicleNamePlural, "CreateSpares", "ReInitializeDispatcher");
+                                    }
                                 }
+
+                                Global.Settings.Save();
                             }
                         }
                         catch (Exception ex)
@@ -1126,43 +1101,31 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     {
                         try
                         {
-                            foreach (ServiceDispatcherSettings.BuildingCheckOrder checks in Enum.GetValues(typeof(ServiceDispatcherSettings.BuildingCheckOrder)))
+                            ServiceDispatcherSettings.BuildingCheckOrder order = Enums<ServiceDispatcherSettings.BuildingCheckOrder>.Convert(value);
+                            if (settings.ChecksPreset != order)
                             {
-                                if ((byte)checks == value)
+                                try
                                 {
-                                    if (settings.ChecksPreset != checks)
-                                    {
-                                        try
-                                        {
-                                            settings.ChecksPreset = checks;
-                                        }
-                                        catch (Exception ex)
-                                        {
-                                            Log.Error(this, "OnSettingsUI", ex, "Set", "DeathChecksPreset", checks);
-                                        }
-
-                                        if (dispatcher != null)
-                                        {
-                                            try
-                                            {
-                                                dispatcher.ReInitialize();
-                                            }
-                                            catch (Exception ex)
-                                            {
-                                                Log.Error(this, "CreateServiceGroup", ex, settings.VehicleNamePlural, "ChecksPreset", "ReInitializeDispatcher");
-                                            }
-                                        }
-
-                                        Global.Settings.Save();
-                                    }
-
-                                    if (currentStrategyInformationalText != null)
-                                    {
-                                        currentStrategyInformationalText.Text = settings.ChecksParametersString;
-                                    }
-
-                                    break;
+                                    settings.ChecksPreset = order;
                                 }
+                                catch (Exception ex)
+                                {
+                                    Log.Error(this, "OnSettingsUI", ex, "Set", "DeathChecksPreset", order);
+                                }
+
+                                if (dispatcher != null)
+                                {
+                                    try
+                                    {
+                                        dispatcher.ReInitialize();
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        Log.Error(this, "CreateServiceGroup", ex, settings.VehicleNamePlural, "ChecksPreset", "ReInitializeDispatcher");
+                                    }
+                                }
+
+                                Global.Settings.Save();
                             }
                         }
                         catch (Exception ex)
