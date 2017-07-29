@@ -39,13 +39,13 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// </summary>
         public override void OnLoadData()
         {
-            Log.Debug(this, "OnLoadData", "Begin");
-
             // Logging to output panel here crashed the game. :-(
             bool logToDebugOutputPanel = Log.LogToDebugOutputPanel;
 
             try
             {
+                Log.Debug(this, "OnLoadData", "Begin");
+
                 Log.LogToDebugOutputPanel = false;
 
                 if (this.serializableData != null && Global.Settings != null)
@@ -73,6 +73,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         this.LoadSerializedData(bd => Global.Vehicles.DeserializeStuckVehicles(bd), "StuckVehicles");
                     }
                 }
+
+                Log.Debug(this, "OnLoadData", "End");
             }
             catch (Exception ex)
             {
@@ -80,11 +82,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             }
             finally
             {
-                Log.LogToDebugOutputPanel = logToDebugOutputPanel;
                 base.OnLoadData();
+                Log.LogToDebugOutputPanel = logToDebugOutputPanel;
             }
 
-            Log.Debug(this, "OnLoadData", "End");
         }
 
         /// <summary>
@@ -102,10 +103,15 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// </summary>
         public override void OnSaveData()
         {
-            Log.Debug(this, "OnSaveData", "Begin");
+            bool logToDebugOutputPanel = Log.LogToDebugOutputPanel;
 
             try
             {
+                Log.Debug(this, "OnSaveData", "Begin");
+
+                Log.LogToDebugOutputPanel = false;
+                Log.AlwaysFlush = true;
+
                 if (Global.Settings != null)
                 {
                     Log.Info(this, "OnSaveData", "SaveSettings");
@@ -128,6 +134,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                     this.SaveSerializedData(Global.Vehicles.SerializeStuckVehicles(), "StuckVehicles");
                 }
+
+                Log.Debug(this, "OnSaveData", "End");
             }
             catch (Exception ex)
             {
@@ -136,9 +144,9 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             finally
             {
                 base.OnSaveData();
+                //Log.AlwaysFlush = false;
+                Log.LogToDebugOutputPanel = logToDebugOutputPanel;
             }
-
-            Log.Debug(this, "OnSaveData", "End");
         }
 
         /// <summary>
