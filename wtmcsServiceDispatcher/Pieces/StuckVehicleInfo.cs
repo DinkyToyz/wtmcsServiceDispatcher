@@ -1192,7 +1192,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             this.confusedDeAssignedSinceFrame = serializedData.GetUint();
             this.confusedSinceFrame = serializedData.GetUint();
             this.confusedSinceTime = serializedData.GetDouble();
-            this.lastHandledStamp = serializedData.GetUint();
+            this.lostSinceFrame = serializedData.GetUint();
+            this.lostSinceTime = serializedData.GetDouble();
             this.lostReason = serializedData.GetLostReason();
 
             serializedData.CheckLocalCheckSum();
