@@ -85,7 +85,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 base.OnLoadData();
                 Log.LogToDebugOutputPanel = logToDebugOutputPanel;
             }
-
         }
 
         /// <summary>
