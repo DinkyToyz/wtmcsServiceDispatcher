@@ -52,14 +52,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 {
                     if (Global.Settings.LoadSettingsPerCity || !Global.Settings.Loaded)
                     {
-                        Log.Info(this, "OnLoadData", "LoadSettings");
+                        Log.Debug(this, "OnLoadData", "LoadSettings");
 
                         this.LoadSerializedData(bd => SerializableSettings.BinarySettings.Deseralize(bd), "Settings");
                     }
 
                     if (Global.Buildings != null)
                     {
-                        Log.Info(this, "OnLoadData", "LoadBuildingStates");
+                        Log.Debug(this, "OnLoadData", "LoadBuildingStates");
 
                         this.LoadSerializedData(bd => Global.Buildings.DeserializeAutoEmptying(bd), "AutoEmptying");
                         this.LoadSerializedData(bd => Global.Buildings.DeserializeTargetAssignments(bd), "TargetAssignments");
@@ -68,7 +68,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                     if (Global.Vehicles != null)
                     {
-                        Log.Info(this, "OnLoadData", "LoadVehicleStates");
+                        Log.Debug(this, "OnLoadData", "LoadVehicleStates");
 
                         this.LoadSerializedData(bd => Global.Vehicles.DeserializeStuckVehicles(bd), "StuckVehicles");
                     }
@@ -110,18 +110,17 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 Log.Debug(this, "OnSaveData", "Begin");
 
                 Log.LogToDebugOutputPanel = false;
-                Log.AlwaysFlush = true;
 
                 if (Global.Settings != null)
                 {
-                    Log.Info(this, "OnSaveData", "SaveSettings");
+                    Log.Debug(this, "OnSaveData", "SaveSettings");
 
                     this.SaveSerializedData(SerializableSettings.BinarySettings.Serialize(), "Settings");
                 }
 
                 if (Global.Buildings != null)
                 {
-                    Log.Info(this, "OnSaveData", "SaveBuildingStates");
+                    Log.Debug(this, "OnSaveData", "SaveBuildingStates");
 
                     this.SaveSerializedData(Global.Buildings.SerializeAutoEmptying(), "AutoEmptying");
                     this.SaveSerializedData(Global.Buildings.SerializeTargetAssignments(), "TargetAssignments");
@@ -130,7 +129,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
                 if (Global.Vehicles != null)
                 {
-                    Log.Info(this, "OnSaveData", "SaveVehicleStates");
+                    Log.Debug(this, "OnSaveData", "SaveVehicleStates");
 
                     this.SaveSerializedData(Global.Vehicles.SerializeStuckVehicles(), "StuckVehicles");
                 }
@@ -144,7 +143,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             finally
             {
                 base.OnSaveData();
-                //Log.AlwaysFlush = false;
                 Log.LogToDebugOutputPanel = logToDebugOutputPanel;
             }
         }
@@ -176,7 +174,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                 if (!data.DeserializationError)
                 {
                     Log.Debug(this, "LoadSerializedData", id, data.Length);
+
                     Deserializer(data);
+
+                    Log.Info(this, "LoadSerializedData", id, data.Length, "Loaded");
                 }
             }
             catch (Exception ex)
@@ -205,6 +206,8 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             try
             {
                 data.Save(this.serializableData, id);
+
+                Log.Info(this, "SaveSerializedData", id, data.Length, "Saved");
             }
             catch (Exception ex)
             {
