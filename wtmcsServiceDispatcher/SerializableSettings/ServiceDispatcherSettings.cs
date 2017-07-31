@@ -470,7 +470,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     if (!String.IsNullOrEmpty(check))
                     {
                         BuildingCheckParameters parameter;
-                        if (Enums<BuildingCheckParameters>.TryConvert(check, out parameter))
+                        if (Enums.TryConvertToBuildingCheckParameters(check, out parameter))
                         {
                             checks.Add(parameter);
                         }

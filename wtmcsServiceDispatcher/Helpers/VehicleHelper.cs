@@ -615,7 +615,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             try
             {
                 TransferManager.TransferReason reason;
-                if (Enums<TransferManager.TransferReason>.TryConvert(vehicles[vehicleId].m_transferType, out reason))
+                if (Enums.TryConvertToTransferReason(vehicles[vehicleId].m_transferType, out reason))
                 {
                     info.Add("Type", reason);
                 }

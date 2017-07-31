@@ -282,7 +282,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     {
                         try
                         {
-                            ServiceDispatcherSettings.ModCompatibilityMode compatibilityMode = Enums<ServiceDispatcherSettings.ModCompatibilityMode>.Convert(value);
+                            ServiceDispatcherSettings.ModCompatibilityMode compatibilityMode = Enums.ConvertToModCompatibilityMode(value);
 
                             if (compatibilityMode != Global.Settings.AssignmentCompatibilityMode)
                             {
@@ -304,7 +304,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     {
                         try
                         {
-                            ServiceDispatcherSettings.ModCompatibilityMode compatibilityMode = Enums<ServiceDispatcherSettings.ModCompatibilityMode>.Convert(value);
+                            ServiceDispatcherSettings.ModCompatibilityMode compatibilityMode = Enums.ConvertToModCompatibilityMode(value);
 
                             if (compatibilityMode != Global.Settings.CreationCompatibilityMode)
                             {
@@ -326,7 +326,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         {
                             try
                             {
-                                ServiceDispatcherSettings.Allowance allowance = Enums<ServiceDispatcherSettings.Allowance>.Convert(value);
+                                ServiceDispatcherSettings.Allowance allowance = Enums.ConvertToAllowance(value);
 
                                 if (allowance != Global.Settings.ReflectionAllowance)
                                 {
@@ -1067,7 +1067,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     {
                         try
                         {
-                            ServiceDispatcherSettings.SpareVehiclesCreation creation = Enums<ServiceDispatcherSettings.SpareVehiclesCreation>.Convert(value);
+                            ServiceDispatcherSettings.SpareVehiclesCreation creation = Enums.ConvertToSpareVehiclesCreation(value);
                             if (settings.CreateSpares != creation)
                             {
                                 settings.CreateSpares = creation;
@@ -1101,7 +1101,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                     {
                         try
                         {
-                            ServiceDispatcherSettings.BuildingCheckOrder order = Enums<ServiceDispatcherSettings.BuildingCheckOrder>.Convert(value);
+                            ServiceDispatcherSettings.BuildingCheckOrder order = Enums.ConvertToBuildingCheckOrder(value);
                             if (settings.ChecksPreset != order)
                             {
                                 try

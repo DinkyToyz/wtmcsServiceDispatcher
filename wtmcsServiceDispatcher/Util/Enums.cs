@@ -1,186 +1,127 @@
 ﻿using System;
-using System.Text;
 
 namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 {
     /// <summary>
     /// Enum conversion utils.
     /// </summary>
-    /// <typeparam name="T"></typeparam>
-    internal static class Enums<T> where T : struct, IConvertible
+    internal static class Enums
     {
         /// <summary>
-        /// Initializes the <see cref="Enums{T}"/> class, to check that T is an enum.
+        /// Converts to allowance.
         /// </summary>
-        static Enums()
+        /// <param name="value">The value.</param>
+        /// <returns>The allowance.</returns>
+        public static ServiceDispatcherSettings.Allowance ConvertToAllowance(int value)
         {
-            if (!typeof(T).IsEnum)
+            foreach (ServiceDispatcherSettings.Allowance allowance in Enum.GetValues(typeof(ServiceDispatcherSettings.Allowance)))
             {
-                throw new InvalidCastException("Type  (" + typeof(T).ToString() + ") if not an enum");
+                if (value == (int)allowance)
+                {
+                    return allowance;
+                }
             }
+
+            throw new InvalidCastException("Cannot convert value (" + value.ToString() + ") to Allowance");
         }
 
         /// <summary>
-        /// Converts the specified value to the enum type.
+        /// Converts to building check order.
         /// </summary>
         /// <param name="value">The value.</param>
-        /// <returns>The enum value.</returns>
-        public static T Convert(object value)
+        /// <returns>The building check order.</returns>
+        public static ServiceDispatcherSettings.BuildingCheckOrder ConvertToBuildingCheckOrder(int value)
         {
-            if (!typeof(T).IsEnum)
+            foreach (ServiceDispatcherSettings.BuildingCheckOrder order in Enum.GetValues(typeof(ServiceDispatcherSettings.BuildingCheckOrder)))
             {
-                throw new InvalidCastException("Type  (" + typeof(T).ToString() + ") if not an enum");
-            }
-
-            if (value is StringBuilder)
-            {
-                value = value.ToString();
-            }
-
-            if (value is string)
-            {
-                long longValue;
-                if (long.TryParse((string)value, out longValue))
+                if (value == (int)order)
                 {
-                    return Convert(longValue);
+                    return order;
                 }
-
-                ulong ulongValue;
-                if (ulong.TryParse((string)value, out ulongValue))
-                {
-                    return Convert(ulongValue);
-                }
-
-                return (T)Enum.Parse(typeof(T), (string)value, true);
             }
 
-            if (IsDefined(value))
-            {
-                throw new InvalidCastException("Cannot convert value (" + value.ToString() + ") to enum (" + typeof(T).ToString() + ")");
-            }
-
-            return (T)value;
+            throw new InvalidCastException("Cannot convert value (" + value.ToString() + ") to BuildingCheckOrder");
         }
 
         /// <summary>
-        /// Determines whether the specified value is defined as an enum element.
+        /// Converts to mod compatibility mode.
         /// </summary>
         /// <param name="value">The value.</param>
-        /// <returns>
-        ///   <c>true</c> if the specified value is defined; otherwise, <c>false</c>.
-        /// </returns>
-        public static bool IsDefined(object value)
+        /// <returns>The mod compatibility mode</returns>
+        public static ServiceDispatcherSettings.ModCompatibilityMode ConvertToModCompatibilityMode(int value)
         {
-            return Enum.IsDefined(typeof(T), value);
+            foreach (ServiceDispatcherSettings.ModCompatibilityMode mode in Enum.GetValues(typeof(ServiceDispatcherSettings.ModCompatibilityMode)))
+            {
+                if (value == (int)mode)
+                {
+                    return mode;
+                }
+            }
+
+            throw new InvalidCastException("Cannot convert value (" + value.ToString() + ") to ModCompatibilityMode");
         }
 
         /// <summary>
-        /// Determines whether the specified value is convertible to an enum element.
+        /// Converts to spare vehicles creation.
         /// </summary>
         /// <param name="value">The value.</param>
-        /// <returns>
-        ///   <c>true</c> if the specified value is valid; otherwise, <c>false</c>.
-        /// </returns>
-        public static bool IsValid(object value)
+        /// <returns>The spare vehicles creation.</returns>
+        public static ServiceDispatcherSettings.SpareVehiclesCreation ConvertToSpareVehiclesCreation(int value)
         {
-            if (!typeof(T).IsEnum)
+            foreach (ServiceDispatcherSettings.SpareVehiclesCreation creation in Enum.GetValues(typeof(ServiceDispatcherSettings.SpareVehiclesCreation)))
             {
-                throw new InvalidCastException("Type  (" + typeof(T).ToString() + ") if not an enum");
-            }
-
-            if (value is StringBuilder)
-            {
-                value = value.ToString();
-            }
-
-            if (value is string)
-            {
-                long longValue;
-                if (long.TryParse((string)value, out longValue))
+                if (value == (int)creation)
                 {
-                    return IsValid(longValue);
-                }
-
-                ulong ulongValue;
-                if (ulong.TryParse((string)value, out ulongValue))
-                {
-                    return IsValid(ulongValue);
-                }
-
-                try
-                {
-                    Enum.Parse(typeof(T), (string)value, true);
-                    return true;
-                }
-                catch
-                {
-                    return false;
+                    return creation;
                 }
             }
 
-            return IsDefined(value);
+            throw new InvalidCastException("Cannot convert value (" + value.ToString() + ") to SpareVehiclesCreation");
         }
 
         /// <summary>
-        /// Tries to convert the specified value to the enum type.
+        /// Tries to convert to building check parameters.
         /// </summary>
         /// <param name="value">The value.</param>
-        /// <param name="result">The result.</param>
+        /// <param name="buildingCheckParameters">The building check parameters.</param>
         /// <returns>True on success.</returns>
-        public static bool TryConvert(object value, out T result)
+        public static bool TryConvertToBuildingCheckParameters(string value, out ServiceDispatcherSettings.BuildingCheckParameters buildingCheckParameters)
         {
-            if (!typeof(T).IsEnum)
+            value = value.ToLowerInvariant();
+            foreach (ServiceDispatcherSettings.BuildingCheckParameters parameters in Enum.GetValues(typeof(ServiceDispatcherSettings.BuildingCheckParameters)))
             {
-                throw new InvalidCastException("Type  (" + typeof(T).ToString() + ") if not an enum");
-            }
-
-            if (value is StringBuilder)
-            {
-                value = value.ToString();
-            }
-
-            if (value is string)
-            {
-                long longValue;
-                if (long.TryParse((string)value, out longValue))
+                if (value == parameters.ToString().ToLowerInvariant())
                 {
-                    return TryConvert(longValue, out result);
-                }
-
-                ulong ulongValue;
-                if (ulong.TryParse((string)value, out ulongValue))
-                {
-                    return TryConvert(ulongValue, out result);
-                }
-
-                try
-                {
-                    result = (T)Enum.Parse(typeof(T), (string)value, true);
+                    buildingCheckParameters = parameters;
                     return true;
                 }
-                catch
+            }
+
+            buildingCheckParameters = ServiceDispatcherSettings.BuildingCheckParameters.Any;
+            return false;
+        }
+
+        /// <summary>
+        /// Tries to convert to transfer reason.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <param name="transferReason">The transfer reason.</param>
+        /// <returns>
+        /// True on success.
+        /// </returns>
+        public static bool TryConvertToTransferReason(byte value, out TransferManager.TransferReason transferReason)
+        {
+            foreach (TransferManager.TransferReason reason in Enum.GetValues(typeof(TransferManager.TransferReason)))
+            {
+                if (value == (int)reason)
                 {
-                    result = default(T);
-                    return false;
+                    transferReason = reason;
+                    return true;
                 }
             }
 
-            if (!IsDefined(value))
-            {
-                result = default(T);
-                return false;
-            }
-
-            try
-            {
-                result = (T)value;
-                return true;
-            }
-            catch
-            {
-                result = default(T);
-                return false;
-            }
+            transferReason = TransferManager.TransferReason.None;
+            return false;
         }
     }
 }
