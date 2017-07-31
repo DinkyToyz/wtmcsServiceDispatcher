@@ -1,4 +1,7 @@
-﻿namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
+﻿using System;
+using System.Reflection;
+
+namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 {
     /// <summary>
     /// Mod info.
@@ -24,6 +27,56 @@
         /// The title.
         /// </summary>
         public const string Title = "Central Services Dispatcher (WtM)";
+
+        /// <summary>
+        /// Gets the build.
+        /// </summary>
+        /// <value>
+        /// The build.
+        /// </value>
+        public static string Build
+        {
+            get
+            {
+                try
+                {
+                    AssemblyName name = Assembly.GetExecutingAssembly().GetName();
+                    return name.Name + " " + name.Version.ToString() + " (" + AssemblyInfo.PreBuildStamps.DateTime.ToString("yyyy-MM-dd HH:mm") + ")";
+                }
+                catch
+                {
+                    try
+                    {
+                        return Name + " (" + AssemblyInfo.PreBuildStamps.DateTime.ToString("yyyy-MM-dd HH:mm") + ")";
+                    }
+                    catch
+                    {
+                        return Name;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets the version.
+        /// </summary>
+        /// <value>
+        /// The version.
+        /// </value>
+        public static Version Version
+        {
+            get
+            {
+                try
+                {
+                    return Assembly.GetExecutingAssembly().GetName().Version;
+                }
+                catch
+                {
+                    return new Version(0, 0, 0, 0);
+                }
+            }
+        }
 
         /// <summary>
         /// Gets a value indicating whether this is a debug build.

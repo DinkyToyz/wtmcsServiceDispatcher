@@ -29,6 +29,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
         public AutoEmptyServiceConfig AutoEmptyLandfills = new AutoEmptyServiceConfig();
 
         /// <summary>
+        /// The build info.
+        /// </summary>
+        public string Build = Library.Build;
+
+        /// <summary>
         /// The compatibility configuration.
         /// </summary>
         public CompatibilityConfig Compatibility = new SettingsVersion6.CompatibilityConfig();
@@ -177,6 +182,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
 
             this.Version = CurrentVersion;
             this.SaveCount = settings.SaveCount;
+            this.Build = Library.Build;
         }
 
         /// <summary>

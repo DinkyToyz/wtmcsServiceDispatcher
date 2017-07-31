@@ -36,14 +36,6 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
         private byte[] serializedData = null;
 
         /// <summary>
-        /// Gets a value indicating whether there was a deserialization error.
-        /// </summary>
-        /// <value>
-        ///   <c>true</c> if there was a deserialization error; otherwise, <c>false</c>.
-        /// </value>
-        public bool DeserializationError { get; private set; }
-
-        /// <summary>
         /// Initializes a new instance of the <see cref="BinaryData"/> class.
         /// </summary>
         /// <param name="serializableData">The serializable data interface object.</param>
@@ -108,6 +100,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
         /// The data.
         /// </value>
         public IList<byte> Data => Array.AsReadOnly((this.serializedData == null) ? new byte[0] : this.serializedData);
+
+        /// <summary>
+        /// Gets a value indicating whether there was a deserialization error.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if there was a deserialization error; otherwise, <c>false</c>.
+        /// </value>
+        public bool DeserializationError { get; private set; }
 
         /// <summary>
         /// Gets the count of bytes left.
@@ -352,6 +352,18 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
         /// Adds the specified source.
         /// </summary>
         /// <param name="source">The source.</param>
+        public void Add(Int32 source)
+        {
+            this.AssureSize(this.index + 4);
+
+            Buffer.BlockCopy(BitConverter.GetBytes(source), 0, this.serializedData, this.index, 4);
+            this.index += 4;
+        }
+
+        /// <summary>
+        /// Adds the specified source.
+        /// </summary>
+        /// <param name="source">The source.</param>
         public void Add(Vector3 source)
         {
             this.Add(source.x);
@@ -369,6 +381,30 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
 
             Buffer.BlockCopy(BitConverter.GetBytes(source), 0, this.serializedData, this.index, 8);
             this.index += 8;
+        }
+
+        /// <summary>
+        /// Adds the specified source.
+        /// </summary>
+        /// <param name="source">The source.</param>
+        public void Add(Int64 source)
+        {
+            this.AssureSize(this.index + 8);
+
+            Buffer.BlockCopy(BitConverter.GetBytes(source), 0, this.serializedData, this.index, 8);
+            this.index += 8;
+        }
+
+        /// <summary>
+        /// Adds the specified source.
+        /// </summary>
+        /// <param name="source">The source.</param>
+        public void Add(Version source)
+        {
+            this.Add(source.Major);
+            this.Add(source.Minor);
+            this.Add(source.Build);
+            this.Add(source.Revision);
         }
 
         /// <summary>
@@ -415,7 +451,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
         /// Adds the version.
         /// </summary>
         /// <param name="version">The version.</param>
-        public void AddVersion(ushort version)
+        public void AddVersion(ulong version)
         {
             this.Add(version);
         }
@@ -443,6 +479,15 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
         public ServiceDispatcherSettings.Allowance GetAllowance()
         {
             return (ServiceDispatcherSettings.Allowance)this.GetByte();
+        }
+
+        /// <summary>
+        /// Gets the next assembly version.
+        /// </summary>
+        /// <returns>The assembly version.</returns>
+        public Version GetAssemblyVersion()
+        {
+            return new Version(this.GetInt(), this.GetInt(), this.GetInt(), this.GetInt());
         }
 
         /// <summary>
@@ -555,6 +600,32 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
             int i = this.index;
             this.index += 4;
             return BitConverter.ToSingle(this.serializedData, i);
+        }
+
+        /// <summary>
+        /// Gets the next uint.
+        /// </summary>
+        /// <returns>the uint.</returns>
+        public Int32 GetInt()
+        {
+            this.AssureLeft(4);
+
+            int i = this.index;
+            this.index += 4;
+            return BitConverter.ToInt32(this.serializedData, i);
+        }
+
+        /// <summary>
+        /// Gets the next ulong.
+        /// </summary>
+        /// <returns>The ulong.</returns>
+        public Int64 GetLong()
+        {
+            this.AssureLeft(8);
+
+            int i = this.index;
+            this.index += 8;
+            return BitConverter.ToInt64(this.serializedData, i);
         }
 
         /// <summary>
@@ -708,10 +779,10 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
         /// <summary>
         /// Gets the next version.
         /// </summary>
-        /// <returns>The ushort.</returns>
-        public ushort GetVersion()
+        /// <returns>The version.</returns>
+        public ulong GetVersion()
         {
-            return this.GetUshort();
+            return this.GetUlong();
         }
 
         /// <summary>

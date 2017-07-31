@@ -89,7 +89,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             try
             {
-                ushort version = serializedData.GetVersion();
+                ulong version = serializedData.GetVersion();
                 if (version > 0)
                 {
                     Log.Warning(this, "DeserializeStuckVehicles", "Serialized data version too high!", version, 0);

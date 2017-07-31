@@ -48,13 +48,35 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
             {
                 Log.Debug(typeof(BinarySettings), "Deserialize", applySettings);
 
-                ushort version = serializedData.GetVersion();
+                // Data version.
+                ulong version = serializedData.GetVersion();
+
+                // Build version and stamp.
+                Version assemblyVersion = serializedData.GetAssemblyVersion();
+                long ticks = serializedData.GetLong();
+
                 if (version > 0)
                 {
-                    Log.Warning(typeof(BinarySettings), "Deserialize", "Serialized data version too high", version, 0);
+                    try
+                    {
+                        Log.Warning(typeof(BinarySettings), "Deserialize", "Serialized data version too high", version, 0, assemblyVersion, new DateTime(ticks).ToString("yyyy-MM-dd HH:mm"));
+                    }
+                    catch
+                    {
+                        Log.Warning(typeof(BinarySettings), "Deserialize", "Serialized data version too high", version, 0);
+                    }
+
                     return applied;
                 }
 
+                try
+                {
+                    Log.DevDebug(typeof(BinarySettings), "Deserialize", version, assemblyVersion, new DateTime(ticks).ToString("yyyy-MM-dd HH:mm"));
+                }
+                catch
+                { }
+
+                // Blocks.
                 while (DeserializeBlock(serializedData, settings) == DeserializationResult.Success)
                 {
                     applied = applySettings;
@@ -93,8 +115,12 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
         {
             BinaryData serializedData = new BinaryData();
 
-            // Version.
+            // Data version.
             serializedData.AddVersion(0);
+
+            // Build version and stamp.
+            serializedData.Add(Library.Version);
+            serializedData.Add(AssemblyInfo.PreBuildStamps.Ticks);
 
             // Global.
             SerializeCompatibilitySettings(serializedData, settings);
@@ -170,7 +196,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
                 throw new InvalidOperationException("Not a compatibility settings block");
             }
 
-            ushort version = serializedData.GetVersion();
+            ulong version = serializedData.GetVersion();
             if (version > 0)
             {
                 Log.Warning(typeof(BinarySettings), "DeserializeCompatibilitySettings", "Serialized data version too high", version, 0);
@@ -225,7 +251,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
                 throw new InvalidOperationException("Not a hidden service settings block");
             }
 
-            ushort version = serializedData.GetVersion();
+            ulong version = serializedData.GetVersion();
             if (version > 0)
             {
                 Log.Warning(typeof(BinarySettings), "DeserializeHiddenServiceSettings", "Serialized data version too high", version, 0);
@@ -296,7 +322,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
                 throw new InvalidOperationException("Not a service range settings block");
             }
 
-            ushort version = serializedData.GetVersion();
+            ulong version = serializedData.GetVersion();
             if (version > 0)
             {
                 Log.Warning(typeof(BinarySettings), "DeserializeRangeSettings", "Serialized data version too high", version, 0);
@@ -347,7 +373,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher.SerializableSettings
                 throw new InvalidOperationException("Not a standard service settings block");
             }
 
-            ushort version = serializedData.GetVersion();
+            ulong version = serializedData.GetVersion();
             if (version > 0)
             {
                 Log.Warning(typeof(BinarySettings), "DeserializeStandardServiceSettings", "Serialized data version too high", version, 0);

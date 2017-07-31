@@ -1175,7 +1175,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             serializedData.ResetLocalCheckSum();
 
-            ushort version = serializedData.GetVersion();
+            ulong version = serializedData.GetVersion();
             if (version > 0)
             {
                 Log.Warning(this, "Deserialize", "Serialized data version too high!", version, 0);

@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using UnityEngine;
@@ -93,8 +92,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             try
             {
-                AssemblyName name = Assembly.GetExecutingAssembly().GetName();
-                Output(Level.None, null, null, null, name.Name + " " + name.Version, AssemblyInfo.PreBuildStamps.DateTime.ToString("yyyy-MM-dd HH:mm"), Global.EnableExperiments ? "Experiments Enabled" : null, Global.EnableDevExperiments ? "Development Experiments Enabled" : null);
+                Output(Level.None, null, null, null, Library.Build, Global.EnableExperiments ? "Experiments Enabled" : null, Global.EnableDevExperiments ? "Development Experiments Enabled" : null);
                 Output(Level.None, null, null, null, "Cities Skylines", BuildConfig.applicationVersionFull, GetDLCString());
             }
             catch
@@ -362,17 +360,18 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         logFileCreated = true;
                     }
                     catch
-                    {
-                    }
+                    { }
                     finally
                     {
-                        LastFlush = Global.CurrentFrame;
                         lineBuffer.Clear();
                     }
                 }
             }
             catch
+            { }
+            finally
             {
+                LastFlush = Global.CurrentFrame;
             }
         }
 

@@ -14,6 +14,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         private static readonly int MaxExceptionCount = 1;
 
         /// <summary>
+        /// The called-flag.
+        /// </summary>
+        private bool called = false;
+
+        /// <summary>
         /// The on update exception count.
         /// </summary>
         private int exceptionCount = 0;
@@ -84,6 +89,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             {
                 if (this.threadingManager.simulationPaused)
                 {
+                    if (!this.called || (Global.CurrentFrame - Log.LastFlush >= Global.LogFlushDelay))
+                    {
+                        Log.FlushBuffer();
+                    }
+
                     return;
                 }
 
@@ -206,6 +216,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             }
             finally
             {
+                this.called = true;
                 base.OnUpdate(realTimeDelta, simulationTimeDelta);
             }
         }

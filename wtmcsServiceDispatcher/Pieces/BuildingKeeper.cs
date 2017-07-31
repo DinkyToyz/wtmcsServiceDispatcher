@@ -303,7 +303,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             try
             {
-                ushort version = serializedData.GetVersion();
+                ulong version = serializedData.GetVersion();
                 if (version > 0)
                 {
                     Log.Warning(this, "DeserializeAutoEmptying", "Serialized data version too high!", version, 0);
@@ -351,7 +351,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             try
             {
-                ushort version = serializedData.GetVersion();
+                ulong version = serializedData.GetVersion();
                 if (version > 0)
                 {
                     Log.Warning(this, "DeserializeDesolateBuildings", "Serialized data version too high!", version, 0);
@@ -403,7 +403,7 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
 
             try
             {
-                ushort version = serializedData.GetVersion();
+                ulong version = serializedData.GetVersion();
                 if (version > 0)
                 {
                     Log.Warning(this, "DeserializeTargetAssignments", "Serialized data version too high!", version, 0);
