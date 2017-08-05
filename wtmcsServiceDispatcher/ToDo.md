@@ -4,10 +4,10 @@
 - Remember problematic targets and delay next assigment to such target, so that it does not create a problem for the whole city.
 - Make a simple textbox for adding comma separated custom strategy.
 - New stragety option: Make it so IgnoreRange only ignores range for the n closest buildings.
+- Save target assigments, desolate buildings and auto-emptying state in save-file.
 
 # Doing
 - Ambulance services.
-- Save target assigments, desolate buildings and auto-emptying state in save-file.
 - Being able to have separate settings on global level and map level.
 
 # Dox etc

@@ -1139,14 +1139,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         }
                     });
 
-                if (Global.EnableDevExperiments)
-                {
-                    currentStrategyInformationalText = group.AddInformationalText(
-                        "Current dispatch strategy",
-                        settings.ChecksParametersString);
+                currentStrategyInformationalText = group.AddInformationalText(
+                    "Current dispatch strategy",
+                    settings.ChecksParametersString);
 
-                    currentStrategyInformationalText.TextScale *= 0.9f;
-                }
+                currentStrategyInformationalText.TextScale *= 0.9f;
 
                 group.AddExtendedSlider(
                     "Closest services to use when ignoring range",
