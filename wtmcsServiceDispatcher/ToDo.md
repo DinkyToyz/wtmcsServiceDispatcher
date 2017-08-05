@@ -2,16 +2,19 @@
 - Save states in save-game.
 - Dumping stuck vehicles and desolate buldings.
 - On windows, dump-buttons also opens the file.
-- New experimental setinsg group, used when there are public experiments.
+- New experimental settings group, used when there are public experiments.
   - Experimental checking for lost trailers.
   - Experimental checking for cargo children.
+
+# After next release
+- Being able to have separate settings on global level and map level.
 
 # Still or recently experimental
 - Automatic emptying.
 - Override TransferManager.AddIncomingOffer and TransferManager.AddOutgoingOffer.
 - Remember problematic targets and delay next assigment to such target, so that it does not create a problem for the whole city.
 - Make a simple textbox for adding comma separated custom strategy.
-- New stragety option: Make it so IgnoreRange only ignores range for the n closest buildings.
+- New strategy option: Make it so IgnoreRange only ignores range for the n closest buildings.
 - Save target assigments, desolate buildings and auto-emptying state in save-file.
 
 # Doing
@@ -22,7 +25,6 @@
 
 # Additions and fixes
 
-- WhereSelectToArray
 - Replace MonoDetour with [Harmony](https://github.com/pardeike/Harmony).
 - Fire fighting services?
 - Law enforcement services?
