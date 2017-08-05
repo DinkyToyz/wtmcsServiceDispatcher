@@ -36,13 +36,34 @@
 - Being able to have separate settings for district and specific buildings?
 - Find path to building for better range check?
 - VS Task List.
+- Helpful info for user (see notes).
 
 # Changes and experiments
 
 - Citizens?
 - Ambulances: only emergency if citizen is sick enough?
 - If (Singleton<UnlockManager>.instance.Unlocked(ItemClass.Service.HealthCare))
+- Test with too long trains (se notes).
 
 # Notes
 
 - Ambulances: ResidentAI FindHospital, Citizen Sick, m_healthProblemTimer
+
+## Long trains
+
+> tmaekler 24 Jul @ 10:45pm       
+> Those trains which got stuck were passenger trains (US High Speed Pax & BRClass43 Intercity). It looks like they got stuck because they are longer than the train station and that blocks the interjunction directly after the train station. I lengthened that with "Move it" and since then not problems... .
+
+## Helpful info for user
+
+- Short log of recent problems, so user can find problems in map.
+  - Removed stuck vehicles.
+  - Service vehicles that failed to find path.
+  - Should include helpful info.
+    - District.
+    - Service and target buildings.
+    - Vehicle type and name.
+    - etc...
+- Notice when/if identifying problems can user can fix.
+  - Maybe an icon somewhere?
+  - A chirp?
