@@ -1107,6 +1107,11 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                                 try
                                 {
                                     settings.ChecksPreset = order;
+
+                                    if (currentStrategyInformationalText != null)
+                                    {
+                                        currentStrategyInformationalText.Text = settings.ChecksParametersString;
+                                    }
                                 }
                                 catch (Exception ex)
                                 {
@@ -1134,12 +1139,14 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
                         }
                     });
 
-                //if (Global.EnableDevExperiments)
-                //{
-                //    currentStrategyInformationalText = group.AddInformationalText(
-                //        "Current dispatch strategy",
-                //        settings.ChecksParametersString);
-                //}
+                if (Global.EnableDevExperiments)
+                {
+                    currentStrategyInformationalText = group.AddInformationalText(
+                        "Current dispatch strategy",
+                        settings.ChecksParametersString);
+
+                    currentStrategyInformationalText.TextScale *= 0.9f;
+                }
 
                 group.AddExtendedSlider(
                     "Closest services to use when ignoring range",

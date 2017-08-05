@@ -31,18 +31,18 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
         /// <param name="informationalText">The informational text.</param>
         public InformationalText(UIHelperBase helper, string labelText, string informationalText)
         {
-            textField = (UITextField)helper.AddTextfield(
+            this.textField = (UITextField)helper.AddTextfield(
                 labelText,
                 informationalText,
                 value => { });
 
-            textFieldParent = textField.parent;
-            textField.Hide();
-            textField.Disable();
-            //// textFieldParent.RemoveUIComponent(textField);
+            this.textFieldParent = this.textField.parent;
+            this.textField.Hide();
+            this.textField.Disable();
+            //// this.textFieldParent.RemoveUIComponent(textField);
 
-            textFieldLabel = (UILabel)textFieldParent.AddUIComponent(typeof(UILabel));
-            textFieldLabel.text = informationalText;
+            this.textFieldLabel = (UILabel)this.textFieldParent.AddUIComponent(typeof(UILabel));
+            this.textFieldLabel.text = informationalText;
         }
 
         /// <summary>
@@ -74,6 +74,18 @@ namespace WhatThe.Mods.CitiesSkylines.ServiceDispatcher
             {
                 this.textFieldLabel.text = value;
             }
+        }
+
+        /// <summary>
+        /// Gets or sets the text scale.
+        /// </summary>
+        /// <value>
+        /// The text scale.
+        /// </value>
+        public float TextScale
+        {
+            get => this.textFieldLabel.textScale;
+            set => this.textFieldLabel.textScale = value;
         }
 
         /// <summary>
