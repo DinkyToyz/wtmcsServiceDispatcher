@@ -1,3 +1,11 @@
+# Next release
+- Save states in save-game.
+- Dumping stuck vehicles and desolate buldings.
+- On windows, dump-buttons also opens the file.
+- New experimental setinsg group, used when there are public experiments.
+  - Experimental checking for lost trailers.
+  - Experimental checking for cargo children.
+
 # Still or recently experimental
 - Automatic emptying.
 - Override TransferManager.AddIncomingOffer and TransferManager.AddOutgoingOffer.
