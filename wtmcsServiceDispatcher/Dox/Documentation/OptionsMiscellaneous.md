@@ -6,7 +6,7 @@ sort_order: 560
 
 - **Config Path**:
   The path where the mods configuration and separate log file can be found.
-  See [Files](Files.html) for more info.
+  See [Files](Files) for more info.
   
 - **Mod Version**:
   The mods version and build number.

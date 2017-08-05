@@ -10,10 +10,10 @@ The Central Services Dispatcher dispatches service vehicles and crews for variou
 
 Currently the following services can be handled by Central Services:
 
-- [Hearses](ServiceHearses.html)
-- [Garbage Trucks](ServiceGarbageTrucks.html)
-- [Bulldozers](ServiceBulldozers.html)
-- [Recovery Crews](ServiceRecoveryCrews.html)
+- [Hearses](ServiceHearses)
+- [Garbage Trucks](ServiceGarbageTrucks)
+- [Bulldozers](ServiceBulldozers)
+- [Recovery Crews](ServiceRecoveryCrews)
 
 ## Dispatching
 
@@ -35,7 +35,7 @@ When a service building is full, the dipatcher can order its vehicles to start e
 
 Which services should be dispatched by Central Services can be configured, as can the dispatch strategy, in the mod options in the content manager, or a configuration file.If no services are set to be dispatch by the mod, it should not affect the game.
 
-For available options see: [Configuration](Configuration.html)
+For available options see: [Configuration](Configuration)
 
 ## Compatibility
 
@@ -43,7 +43,7 @@ For most options, this mod is not dependant on overriding any game code, which s
 
 Any mod that overrides, or replaces, service vehicle AIs may limit some of the dispatchers functionality, but hopefully in a non-fatal way.
 
-For more info, please see: [Incompatibilities](Incompatibilities.html)
+For more info, please see: [Incompatibilities](Incompatibilities)
 
 ## The Future
 

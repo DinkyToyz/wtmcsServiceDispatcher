@@ -4,7 +4,7 @@ sort_order: 550
 ---
 *The logging options are not saved in the settings, so they reset at every start of the game.*
 
-See [Files](Files.html) for more info about log files.
+See [Files](Files) for more info about log files.
 
 - **Debug log**: 
   Log extra debugging information.
@@ -20,4 +20,4 @@ See [Files](Files.html) for more info about log files.
 
 - **Log to file**:
   Log to separate files as well as to the standard game logs.
-  See [Files](Files.html) for log file locations.
+  See [Files](Files) for log file locations.

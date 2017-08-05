@@ -9,17 +9,17 @@
 
 - **Send out spare {{ include.vehicles }}**: 
   When to send out new vehicles from the service building instead of sending one that's already driving.
-  See [Sending Out Spare Vehicles](OptionsStandardServices.html#SendOutSpares).  
+  See [Sending Out Spare Vehicles](OptionsStandardServices#SendOutSpares).  
 
 - **{{ include.vehicle }} dispatch strategy**: 
   Choose the dispatch strategy to use for these vehicles.
-  See [Dispatch Strategies](OptionsStandardServices.html#DispatchStrategies).
+  See [Dispatch Strategies](OptionsStandardServices#DispatchStrategies).
 
 - **Closest services to use when ignoring range**:
   Only uses the specified number of service buildings closest to the target building when ignoring whether buildings are in range or not.  
   
 - **Custom dispatch strategy**
   The rules used for the custom dispatch strategy.
-  See [Custom Dispatch Strategy Rules](OptionsStandardServices.html#CustomDispatchStrategy).
+  See [Custom Dispatch Strategy Rules](OptionsStandardServices#CustomDispatchStrategy).
 
 If both *Dispatch by district* and *Dispatch by building range* are selected, a building is considered in range if it is either in the same district as, *or* within the coverage radius of, the service building. 

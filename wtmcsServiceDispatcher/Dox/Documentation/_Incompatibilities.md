@@ -2,7 +2,7 @@ As of this writing there are no confirmed incompatibilities, but there are some 
 
 This mod does not completely replace any AIs or other original game objects, but it does override a few methods and may sometimes use it's own code instead of the games original methods. 
 
-The [Allow Code Overrides](OptionsCompatibility.html#ReflectionAllowance) option can be used to stop the mod from overriding any code, while the [Assignment compatibility mode](OptionsCompatibility.html#AssignmentCompatibilityMode) and [Creation compatibility mode](OptionsCompatibility.html#CreationCompatibilityMode) options can be used to tell the mod whether to use it's own code or not for some actions.
+The [Allow Code Overrides](OptionsCompatibility#ReflectionAllowance) option can be used to stop the mod from overriding any code, while the [Assignment compatibility mode](OptionsCompatibility#AssignmentCompatibilityMode) and [Creation compatibility mode](OptionsCompatibility#CreationCompatibilityMode) options can be used to tell the mod whether to use it's own code or not for some actions.
 
 ## Game Versions & Patches
 
@@ -10,7 +10,7 @@ Whenever the game is patched/upgraded by the developers, there is a risk that th
 
 The mod therefore has version limits, and some functionality may be disabled automatically when the game updates.
 
-To manually allow or disallow code overrides and deep game calls regardless of version, use the [Allow Code Overrides](OptionsCompatibility.html#ReflectionAllowance) option.
+To manually allow or disallow code overrides and deep game calls regardless of version, use the [Allow Code Overrides](OptionsCompatibility#ReflectionAllowance) option.
 
 ## Service Mods
 
@@ -18,7 +18,7 @@ Any mod that override code in, or replaces, the AI of service vehicles or buildi
 
 Hopefully such incompatibilities will only result in limited functionality loss in one of the mods, and no crashes, but it is impossible to know for sure.
 
-To control whether another mod can override this mod at the moment of a few specific actions, use the [Assignment compatibility mode](OptionsCompatibility.html#AssignmentCompatibilityMode) and [Creation compatibility mode](OptionsCompatibility.html#CreationCompatibilityMode) options. 
+To control whether another mod can override this mod at the moment of a few specific actions, use the [Assignment compatibility mode](OptionsCompatibility#AssignmentCompatibilityMode) and [Creation compatibility mode](OptionsCompatibility#CreationCompatibilityMode) options. 
 
 Also, using two mods that assigns/reassigns the same service vehicles is likely to cause problems.
 

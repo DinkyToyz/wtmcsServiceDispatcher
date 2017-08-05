@@ -16,8 +16,8 @@ These options controls if/when the dispatcher orders emptying of storage facilit
 
 See the different services for their unique options:
 
-- [Hearse Service Options](ServiceHearses.html#Options)
-- [Garbage Truck Service Options](ServiceGarbageTrucks.html#Options)
+- [Hearse Service Options](ServiceHearses#Options)
+- [Garbage Truck Service Options](ServiceGarbageTrucks#Options)
 
 ## Sending Out Spare Vehicles {#SendOutSpares}
 

@@ -8,6 +8,6 @@ The configuration file, wtmcsServiceDispatcher.xml, is stored in the folder "Mod
 
 ## Errors & Logging {#Logs}
 
-_See also: [Incompatibilities](Incompatibilities.html) and [Known Issues](Issues.html)_
+_See also: [Incompatibilities](Incompatibilities) and [Known Issues](Issues)_
 
 {% capture ErrorsLogging %}{% include_relative _ErrorsLogging.md %}{% endcapture %}{{ ErrorsLogging | markdownify }}
