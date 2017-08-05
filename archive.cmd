@@ -1,1 +1,0 @@
-@robocopy docs ..\Solution\wtmcsServiceDispatcher\Dox\Documentation /MIR > nul
